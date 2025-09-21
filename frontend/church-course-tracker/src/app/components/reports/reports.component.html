@@ -1,0 +1,286 @@
+<div class="reports-container">
+  <div class="reports-header">
+    <h1>Reports & Analytics</h1>
+    <div class="export-buttons">
+      <button mat-raised-button color="accent" (click)="exportReport('pdf')" [disabled]="isGeneratingReport">
+        <mat-icon>picture_as_pdf</mat-icon>
+        Export PDF
+      </button>
+      <button mat-raised-button color="accent" (click)="exportReport('xlsx')" [disabled]="isGeneratingReport">
+        <mat-icon>table_chart</mat-icon>
+        Export Excel
+      </button>
+    </div>
+  </div>
+
+  <!-- Filters Section -->
+  <mat-card class="filters-card">
+    <mat-card-header>
+      <mat-card-title>Report Filters</mat-card-title>
+      <mat-card-subtitle>Customize your report parameters</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <form [formGroup]="filterForm" class="filters-form">
+        <div class="filters-row">
+          <mat-form-field appearance="outline" class="filter-field">
+            <mat-label>Start Date</mat-label>
+            <input matInput [matDatepicker]="startPicker" formControlName="start_date">
+            <mat-datepicker-toggle matSuffix [for]="startPicker"></mat-datepicker-toggle>
+            <mat-datepicker #startPicker></mat-datepicker>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="filter-field">
+            <mat-label>End Date</mat-label>
+            <input matInput [matDatepicker]="endPicker" formControlName="end_date">
+            <mat-datepicker-toggle matSuffix [for]="endPicker"></mat-datepicker-toggle>
+            <mat-datepicker #endPicker></mat-datepicker>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="filter-field">
+            <mat-label>Courses</mat-label>
+            <mat-select formControlName="course_ids" multiple>
+              <mat-option *ngFor="let course of courses" [value]="course.id">
+                {{ course.title }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="filter-field">
+            <mat-label>Status</mat-label>
+            <mat-select formControlName="status">
+              <mat-option value="">All Statuses</mat-option>
+              <mat-option value="enrolled">Enrolled</mat-option>
+              <mat-option value="in_progress">In Progress</mat-option>
+              <mat-option value="completed">Completed</mat-option>
+              <mat-option value="dropped">Dropped</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <div class="filter-actions">
+          <button mat-raised-button color="primary" (click)="generateReport()" [disabled]="isGeneratingReport">
+            <mat-spinner *ngIf="isGeneratingReport" diameter="20"></mat-spinner>
+            <mat-icon *ngIf="!isGeneratingReport">refresh</mat-icon>
+            <span *ngIf="!isGeneratingReport">Generate Report</span>
+          </button>
+          <button mat-button (click)="clearFilters()" [disabled]="isGeneratingReport">
+            Clear Filters
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-spinner></mat-spinner>
+    <p>Loading reports data...</p>
+  </div>
+
+  <!-- Reports Content -->
+  <div *ngIf="!isLoading" class="reports-content">
+    <!-- Summary Stats -->
+    <div class="stats-section">
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <div class="stat-content">
+            <mat-icon class="stat-icon courses">school</mat-icon>
+            <div class="stat-info">
+              <h3>{{ dashboardStats?.total_courses || 0 }}</h3>
+              <p>Total Courses</p>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <div class="stat-content">
+            <mat-icon class="stat-icon enrollments">assignment</mat-icon>
+            <div class="stat-info">
+              <h3>{{ dashboardStats?.total_enrollments || 0 }}</h3>
+              <p>Total Enrollments</p>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <div class="stat-content">
+            <mat-icon class="stat-icon completions">check_circle</mat-icon>
+            <div class="stat-info">
+              <h3>{{ dashboardStats?.completed_enrollments || 0 }}</h3>
+              <p>Completions</p>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <div class="stat-content">
+            <mat-icon class="stat-icon rate">trending_up</mat-icon>
+            <div class="stat-info">
+              <h3 [style.color]="getCompletionRateColor(dashboardStats?.completion_rate || 0)">
+                {{ (dashboardStats?.completion_rate || 0) | number:'1.1-1' }}%
+              </h3>
+              <p>Completion Rate</p>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="charts-section">
+      <div class="chart-container">
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>Course Completion Rates</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="chart-wrapper">
+              <canvas 
+                baseChart
+                [data]="courseCompletionData"
+                [options]="courseCompletionOptions"
+                type="bar">
+              </canvas>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+
+      <div class="chart-container">
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>Enrollment Trends</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="chart-wrapper">
+              <canvas 
+                baseChart
+                [data]="enrollmentTrendsData"
+                [options]="enrollmentTrendsOptions"
+                type="line">
+              </canvas>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+
+    <!-- Detailed Reports -->
+    <div class="detailed-reports" *ngIf="progressReport">
+      <!-- Course Performance Table -->
+      <mat-card class="report-table-card">
+        <mat-card-header>
+          <mat-card-title>Course Performance Summary</mat-card-title>
+          <mat-card-subtitle>Detailed breakdown by course</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="table-container">
+            <table mat-table [dataSource]="progressReport.course_stats" class="report-table">
+              <ng-container matColumnDef="course_title">
+                <th mat-header-cell *matHeaderCellDef>Course</th>
+                <td mat-cell *matCellDef="let stat">{{ stat.course_title }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="total_enrollments">
+                <th mat-header-cell *matHeaderCellDef>Enrollments</th>
+                <td mat-cell *matCellDef="let stat">{{ stat.total_enrollments }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="completed_enrollments">
+                <th mat-header-cell *matHeaderCellDef>Completed</th>
+                <td mat-cell *matCellDef="let stat">{{ stat.completed_enrollments }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="in_progress_enrollments">
+                <th mat-header-cell *matHeaderCellDef>In Progress</th>
+                <td mat-cell *matCellDef="let stat">{{ stat.in_progress_enrollments }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="completion_rate">
+                <th mat-header-cell *matHeaderCellDef>Completion Rate</th>
+                <td mat-cell *matCellDef="let stat">
+                  <span [style.color]="getCompletionRateColor(stat.completion_rate)">
+                    {{ stat.completion_rate | number:'1.1-1' }}%
+                  </span>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="average_progress">
+                <th mat-header-cell *matHeaderCellDef>Avg Progress</th>
+                <td mat-cell *matCellDef="let stat">
+                  <div class="progress-cell">
+                    <mat-progress-bar 
+                      mode="determinate" 
+                      [value]="stat.average_progress"
+                      [color]="getProgressColor(stat.average_progress) === '#4CAF50' ? 'primary' : 'warn'">
+                    </mat-progress-bar>
+                    <span>{{ stat.average_progress | number:'1.0-0' }}%</span>
+                  </div>
+                </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="['course_title', 'total_enrollments', 'completed_enrollments', 'in_progress_enrollments', 'completion_rate', 'average_progress']"></tr>
+              <tr mat-row *matRowDef="let row; columns: ['course_title', 'total_enrollments', 'completed_enrollments', 'in_progress_enrollments', 'completion_rate', 'average_progress'];"></tr>
+            </table>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Member Progress Table -->
+      <mat-card class="report-table-card">
+        <mat-card-header>
+          <mat-card-title>Member Progress Summary</mat-card-title>
+          <mat-card-subtitle>Individual member performance</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="table-container">
+            <table mat-table [dataSource]="progressReport.member_progress" class="report-table">
+              <ng-container matColumnDef="person_name">
+                <th mat-header-cell *matHeaderCellDef>Member</th>
+                <td mat-cell *matCellDef="let member">{{ member.person_name }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="total_enrollments">
+                <th mat-header-cell *matHeaderCellDef>Enrollments</th>
+                <td mat-cell *matCellDef="let member">{{ member.total_enrollments }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="completed_enrollments">
+                <th mat-header-cell *matHeaderCellDef>Completed</th>
+                <td mat-cell *matCellDef="let member">{{ member.completed_enrollments }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="in_progress_enrollments">
+                <th mat-header-cell *matHeaderCellDef>In Progress</th>
+                <td mat-cell *matCellDef="let member">{{ member.in_progress_enrollments }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="overall_progress">
+                <th mat-header-cell *matHeaderCellDef>Overall Progress</th>
+                <td mat-cell *matCellDef="let member">
+                  <div class="progress-cell">
+                    <mat-progress-bar 
+                      mode="determinate" 
+                      [value]="member.overall_progress"
+                      [color]="getProgressColor(member.overall_progress) === '#4CAF50' ? 'primary' : 'warn'">
+                    </mat-progress-bar>
+                    <span>{{ member.overall_progress | number:'1.0-0' }}%</span>
+                  </div>
+                </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="['person_name', 'total_enrollments', 'completed_enrollments', 'in_progress_enrollments', 'overall_progress']"></tr>
+              <tr mat-row *matRowDef="let row; columns: ['person_name', 'total_enrollments', 'completed_enrollments', 'in_progress_enrollments', 'overall_progress'];"></tr>
+            </table>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,59 @@
+<div class="member-dialog">
+  <h2 mat-dialog-title>
+    {{ isEditing ? 'Edit Member' : 'Add New Member' }}
+  </h2>
+  
+  <mat-dialog-content>
+    <form [formGroup]="memberForm" class="member-form">
+      <div class="name-row">
+        <mat-form-field appearance="outline" class="half-width">
+          <mat-label>First Name</mat-label>
+          <input matInput formControlName="first_name" placeholder="Enter first name">
+          <mat-error>{{ getErrorMessage('first_name') }}</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="half-width">
+          <mat-label>Last Name</mat-label>
+          <input matInput formControlName="last_name" placeholder="Enter last name">
+          <mat-error>{{ getErrorMessage('last_name') }}</mat-error>
+        </mat-form-field>
+      </div>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Email</mat-label>
+        <input matInput formControlName="email" type="email" placeholder="Enter email address">
+        <mat-icon matSuffix>email</mat-icon>
+        <mat-error>{{ getErrorMessage('email') }}</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Phone</mat-label>
+        <input matInput formControlName="phone" type="tel" placeholder="Enter phone number">
+        <mat-icon matSuffix>phone</mat-icon>
+        <mat-error>{{ getErrorMessage('phone') }}</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Planning Center ID</mat-label>
+        <input matInput formControlName="planning_center_id" placeholder="Enter Planning Center ID (optional)">
+        <mat-icon matSuffix>badge</mat-icon>
+        <mat-hint>Optional: ID from Planning Center integration</mat-hint>
+        <mat-error>{{ getErrorMessage('planning_center_id') }}</mat-error>
+      </mat-form-field>
+    </form>
+  </mat-dialog-content>
+  
+  <mat-dialog-actions align="end">
+    <button mat-button (click)="onCancel()" [disabled]="isLoading">
+      Cancel
+    </button>
+    <button 
+      mat-raised-button 
+      color="primary" 
+      (click)="onSubmit()" 
+      [disabled]="!memberForm.valid || isLoading">
+      <mat-spinner *ngIf="isLoading" diameter="20"></mat-spinner>
+      <span *ngIf="!isLoading">{{ isEditing ? 'Update' : 'Create' }}</span>
+    </button>
+  </mat-dialog-actions>
+</div>

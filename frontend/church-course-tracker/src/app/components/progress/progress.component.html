@@ -1,0 +1,205 @@
+<div class="progress-container">
+  <div class="progress-header">
+    <h1>Progress Tracking</h1>
+    <button mat-raised-button color="primary" (click)="refreshData()" [disabled]="isLoading">
+      <mat-icon>refresh</mat-icon>
+      Refresh
+    </button>
+  </div>
+
+  <div class="progress-content">
+    <!-- Filters Section -->
+    <mat-card class="filters-card">
+      <mat-card-header>
+        <mat-card-title>Filters</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="filters-row">
+          <mat-form-field appearance="outline" class="filter-field">
+            <mat-label>Course</mat-label>
+            <mat-select [formControl]="courseFilter">
+              <mat-option value="">All Courses</mat-option>
+              <mat-option *ngFor="let course of courses" [value]="course.id">
+                {{ course.title }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="filter-field">
+            <mat-label>Student</mat-label>
+            <mat-select [formControl]="memberFilter">
+              <mat-option value="">All Students</mat-option>
+              <mat-option *ngFor="let member of members" [value]="member.id">
+                {{ getPersonName(member) }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="filter-field">
+            <mat-label>Status</mat-label>
+            <mat-select [formControl]="statusFilter">
+              <mat-option *ngFor="let status of statusOptions" [value]="status.value">
+                {{ status.label }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <!-- Enrollments List -->
+      <div class="enrollments-panel">
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>Student Enrollments</mat-card-title>
+            <mat-card-subtitle>Select an enrollment to view detailed progress</mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <div *ngIf="isLoading" class="loading-container">
+              <mat-spinner></mat-spinner>
+              <p>Loading enrollments...</p>
+            </div>
+
+            <div *ngIf="!isLoading" class="enrollments-list">
+              <div *ngIf="enrollments.length === 0" class="no-data">
+                <mat-icon>assignment</mat-icon>
+                <p>No enrollments found</p>
+              </div>
+
+              <div 
+                *ngFor="let enrollment of enrollments" 
+                class="enrollment-item"
+                [class.selected]="selectedEnrollment?.id === enrollment.id"
+                (click)="selectEnrollment(enrollment)">
+                
+                <div class="enrollment-info">
+                  <div class="student-info">
+                    <strong>{{ getPersonName(enrollment.person) }}</strong>
+                    <small>{{ enrollment.course?.title }}</small>
+                  </div>
+                  
+                  <div class="status-info">
+                    <mat-chip 
+                      [color]="getStatusColor(enrollment.status)" 
+                      selected
+                      class="status-chip">
+                      {{ enrollment.status }}
+                    </mat-chip>
+                  </div>
+                </div>
+
+                <div class="progress-info">
+                  <div class="progress-bar-container">
+                    <mat-progress-bar 
+                      mode="determinate" 
+                      [value]="getOverallProgress(enrollment)"
+                      color="primary">
+                    </mat-progress-bar>
+                    <span class="progress-text">{{ getOverallProgress(enrollment) | number:'1.0-0' }}%</span>
+                  </div>
+                  <small class="enrolled-date">Enrolled: {{ enrollment.enrolled_at | date:'short' }}</small>
+                </div>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+
+      <!-- Progress Details -->
+      <div class="progress-details-panel">
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>Progress Details</mat-card-title>
+            <mat-card-subtitle *ngIf="selectedEnrollment">
+              {{ getPersonName(selectedEnrollment.person) }} - {{ selectedEnrollment.course?.title }}
+            </mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <div *ngIf="!selectedEnrollment" class="no-selection">
+              <mat-icon>trending_up</mat-icon>
+              <h3>No enrollment selected</h3>
+              <p>Select an enrollment from the list to view detailed progress</p>
+            </div>
+
+            <div *ngIf="selectedEnrollment" class="progress-details">
+              <!-- Overall Progress Summary -->
+              <div class="progress-summary">
+                <div class="summary-item">
+                  <mat-icon>school</mat-icon>
+                  <div class="summary-content">
+                    <strong>Course:</strong>
+                    <span>{{ selectedEnrollment.course?.title }}</span>
+                  </div>
+                </div>
+                
+                <div class="summary-item">
+                  <mat-icon>schedule</mat-icon>
+                  <div class="summary-content">
+                    <strong>Duration:</strong>
+                    <span>{{ selectedEnrollment.course?.duration_weeks }} weeks</span>
+                  </div>
+                </div>
+                
+                <div class="summary-item">
+                  <mat-icon>trending_up</mat-icon>
+                  <div class="summary-content">
+                    <strong>Overall Progress:</strong>
+                    <span>{{ getOverallProgress(selectedEnrollment) | number:'1.0-0' }}%</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Content Progress List -->
+              <div class="content-progress">
+                <h4>Course Content Progress</h4>
+                
+                <div *ngIf="progressItems.length === 0" class="no-content">
+                  <p>No content items found for this course</p>
+                </div>
+
+                <div *ngFor="let progressItem of progressItems" class="content-item">
+                  <div class="content-info">
+                    <mat-icon 
+                      [style.color]="getProgressStatusColor(progressItem.status)"
+                      class="status-icon">
+                      {{ getProgressStatusIcon(progressItem.status) }}
+                    </mat-icon>
+                    
+                    <div class="content-details">
+                      <strong>{{ progressItem.content?.title }}</strong>
+                      <p>{{ progressItem.content?.description }}</p>
+                      <small *ngIf="progressItem.completed_at">
+                        Completed: {{ progressItem.completed_at | date:'short' }}
+                      </small>
+                    </div>
+                  </div>
+
+                  <div class="content-actions">
+                    <button 
+                      *ngIf="progressItem.status !== 'completed'"
+                      mat-icon-button 
+                      color="primary"
+                      (click)="markContentComplete(selectedEnrollment!.id, progressItem.content_id)"
+                      [disabled]="isUpdating"
+                      matTooltip="Mark as Complete">
+                      <mat-icon>check_circle</mat-icon>
+                    </button>
+                    
+                    <mat-chip 
+                      [style.background-color]="getProgressStatusColor(progressItem.status)"
+                      [style.color]="'white'"
+                      class="progress-status-chip">
+                      {{ progressItem.status }}
+                    </mat-chip>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+  </div>
+</div>

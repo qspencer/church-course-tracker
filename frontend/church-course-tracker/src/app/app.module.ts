@@ -29,13 +29,6 @@ import { MatExpansionModule } from '@angular/material/expansion';
 // App Components
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
-import { DashboardComponent } from './components/dashboard/dashboard.component';
-import { CoursesComponent } from './components/courses/courses.component';
-import { EnrollmentsComponent } from './components/enrollments/enrollments.component';
-import { ProgressComponent } from './components/progress/progress.component';
-import { ReportsComponent } from './components/reports/reports.component';
-import { MembersComponent } from './components/members/members.component';
-import { AuthComponent } from './components/auth/auth.component';
 
 // Services
 import { AuthService } from './services/auth.service';
@@ -51,14 +44,7 @@ import { ErrorInterceptor } from './interceptors/error.interceptor';
 
 @NgModule({
   declarations: [
-    AppComponent,
-    DashboardComponent,
-    CoursesComponent,
-    EnrollmentsComponent,
-    ProgressComponent,
-    ReportsComponent,
-    MembersComponent,
-    AuthComponent
+    AppComponent
   ],
   imports: [
     BrowserModule,

@@ -1,0 +1,93 @@
+<div class="enrollment-dialog">
+  <h2 mat-dialog-title>
+    {{ isEditing ? 'Edit Enrollment' : 'Create New Enrollment' }}
+  </h2>
+  
+  <mat-dialog-content>
+    <div *ngIf="isLoading" class="loading-container">
+      <mat-spinner></mat-spinner>
+      <p>Loading data...</p>
+    </div>
+
+    <form *ngIf="!isLoading" [formGroup]="enrollmentForm" class="enrollment-form">
+      <mat-form-field appearance="outline" class="full-width" *ngIf="!isEditing">
+        <mat-label>Student</mat-label>
+        <mat-select formControlName="person_id" placeholder="Select a student">
+          <mat-option *ngFor="let member of members" [value]="member.id">
+            {{ getPersonDisplayName(member) }}
+            <span *ngIf="member.email" class="member-email"> - {{ member.email }}</span>
+          </mat-option>
+        </mat-select>
+        <mat-icon matSuffix>person</mat-icon>
+        <mat-error>{{ getErrorMessage('person_id') }}</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width" *ngIf="!isEditing">
+        <mat-label>Course</mat-label>
+        <mat-select formControlName="course_id" placeholder="Select a course">
+          <mat-option *ngFor="let course of courses" [value]="course.id">
+            {{ getCourseDisplayName(course) }}
+          </mat-option>
+        </mat-select>
+        <mat-icon matSuffix>school</mat-icon>
+        <mat-error>{{ getErrorMessage('course_id') }}</mat-error>
+      </mat-form-field>
+
+      <!-- Show current enrollment info when editing -->
+      <div *ngIf="isEditing && data.enrollment" class="current-enrollment-info">
+        <mat-card class="info-card">
+          <mat-card-content>
+            <div class="enrollment-details">
+              <div class="detail-item">
+                <mat-icon>person</mat-icon>
+                <span>
+                  <strong>Student:</strong> 
+                  {{ data.enrollment.person?.first_name }} {{ data.enrollment.person?.last_name }}
+                </span>
+              </div>
+              <div class="detail-item">
+                <mat-icon>school</mat-icon>
+                <span>
+                  <strong>Course:</strong> 
+                  {{ data.enrollment.course?.title }}
+                </span>
+              </div>
+              <div class="detail-item">
+                <mat-icon>trending_up</mat-icon>
+                <span>
+                  <strong>Progress:</strong> 
+                  {{ data.enrollment.progress_percentage | number:'1.0-0' }}%
+                </span>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Status</mat-label>
+        <mat-select formControlName="status" placeholder="Select status">
+          <mat-option *ngFor="let status of statusOptions" [value]="status.value">
+            {{ status.label }}
+          </mat-option>
+        </mat-select>
+        <mat-icon matSuffix>flag</mat-icon>
+        <mat-error>{{ getErrorMessage('status') }}</mat-error>
+      </mat-form-field>
+    </form>
+  </mat-dialog-content>
+  
+  <mat-dialog-actions align="end">
+    <button mat-button (click)="onCancel()" [disabled]="isLoading">
+      Cancel
+    </button>
+    <button 
+      mat-raised-button 
+      color="primary" 
+      (click)="onSubmit()" 
+      [disabled]="!enrollmentForm.valid || isLoading">
+      <mat-spinner *ngIf="isLoading" diameter="20"></mat-spinner>
+      <span *ngIf="!isLoading">{{ isEditing ? 'Update' : 'Create' }}</span>
+    </button>
+  </mat-dialog-actions>
+</div>

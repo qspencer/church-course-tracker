@@ -1,0 +1,248 @@
+.reports-container {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.reports-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  
+  h1 {
+    margin: 0;
+    color: #333;
+    font-size: 28px;
+    font-weight: 500;
+  }
+  
+  .export-buttons {
+    display: flex;
+    gap: 12px;
+  }
+}
+
+.filters-card {
+  margin-bottom: 24px;
+  
+  .filters-form {
+    .filters-row {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+      
+      .filter-field {
+        min-width: 200px;
+        flex: 1;
+      }
+    }
+    
+    .filter-actions {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      
+      button {
+        mat-spinner {
+          margin-right: 8px;
+        }
+      }
+    }
+  }
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px;
+  
+  mat-spinner {
+    margin-bottom: 16px;
+  }
+  
+  p {
+    color: #666;
+    font-size: 16px;
+  }
+}
+
+.reports-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.stats-section {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
+  
+  .stat-card {
+    transition: transform 0.2s ease-in-out;
+    
+    &:hover {
+      transform: translateY(-2px);
+    }
+    
+    .stat-content {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      
+      .stat-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        color: white;
+        
+        &.courses {
+          background: linear-gradient(45deg, #2196F3, #21CBF3);
+        }
+        
+        &.enrollments {
+          background: linear-gradient(45deg, #4CAF50, #8BC34A);
+        }
+        
+        &.completions {
+          background: linear-gradient(45deg, #FF9800, #FFC107);
+        }
+        
+        &.rate {
+          background: linear-gradient(45deg, #9C27B0, #E91E63);
+        }
+      }
+      
+      .stat-info {
+        h3 {
+          margin: 0 0 4px 0;
+          font-size: 28px;
+          font-weight: 600;
+          color: #333;
+        }
+        
+        p {
+          margin: 0;
+          color: #666;
+          font-size: 14px;
+          font-weight: 500;
+        }
+      }
+    }
+  }
+}
+
+.charts-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  
+  .chart-container {
+    mat-card {
+      height: 400px;
+    }
+    
+    .chart-wrapper {
+      height: 300px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  }
+}
+
+.detailed-reports {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  
+  .report-table-card {
+    .table-container {
+      width: 100%;
+      overflow-x: auto;
+    }
+    
+    .report-table {
+      width: 100%;
+      
+      .progress-cell {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        
+        mat-progress-bar {
+          flex: 1;
+          height: 8px;
+        }
+        
+        span {
+          font-size: 12px;
+          color: #666;
+          min-width: 35px;
+          text-align: right;
+        }
+      }
+    }
+  }
+}
+
+// Responsive design
+@media (max-width: 1200px) {
+  .charts-section {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .reports-container {
+    padding: 16px;
+  }
+  
+  .reports-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+    
+    h1 {
+      font-size: 24px;
+    }
+    
+    .export-buttons {
+      width: 100%;
+      justify-content: flex-start;
+    }
+  }
+  
+  .filters-card .filters-form .filters-row {
+    flex-direction: column;
+    
+    .filter-field {
+      min-width: 100%;
+    }
+  }
+  
+  .stats-section {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
+  .detailed-reports .report-table-card {
+    .report-table {
+      font-size: 14px;
+      
+      // Hide some columns on mobile
+      .mat-column-in_progress_enrollments,
+      .mat-column-average_progress {
+        display: none;
+      }
+    }
+  }
+}

@@ -1,0 +1,355 @@
+.progress-container {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  
+  h1 {
+    margin: 0;
+    color: #333;
+    font-size: 28px;
+    font-weight: 500;
+  }
+}
+
+.progress-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.filters-card {
+  .filters-row {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    
+    .filter-field {
+      min-width: 200px;
+      flex: 1;
+    }
+  }
+}
+
+.main-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  min-height: 600px;
+}
+
+.enrollments-panel, .progress-details-panel {
+  mat-card {
+    height: 100%;
+  }
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  
+  mat-spinner {
+    margin-bottom: 16px;
+  }
+  
+  p {
+    color: #666;
+    font-size: 16px;
+  }
+}
+
+.enrollments-list {
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.enrollment-item {
+  padding: 16px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  
+  &:hover {
+    background-color: #f5f5f5;
+    border-color: #2196F3;
+  }
+  
+  &.selected {
+    background-color: #e3f2fd;
+    border-color: #2196F3;
+    border-width: 2px;
+  }
+}
+
+.enrollment-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.student-info {
+  display: flex;
+  flex-direction: column;
+  
+  strong {
+    color: #333;
+    font-size: 16px;
+    margin-bottom: 4px;
+  }
+  
+  small {
+    color: #666;
+    font-size: 13px;
+  }
+}
+
+.status-chip {
+  font-size: 11px;
+  height: 20px;
+  min-height: 20px;
+}
+
+.progress-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.progress-bar-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  
+  mat-progress-bar {
+    flex: 1;
+    height: 6px;
+  }
+  
+  .progress-text {
+    font-size: 12px;
+    color: #666;
+    min-width: 35px;
+    text-align: right;
+  }
+}
+
+.enrolled-date {
+  color: #999;
+  font-size: 11px;
+}
+
+.no-data, .no-selection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  text-align: center;
+  color: #666;
+  
+  mat-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+  }
+  
+  h3 {
+    margin: 0 0 8px 0;
+    font-size: 18px;
+    font-weight: 500;
+    color: #333;
+  }
+  
+  p {
+    margin: 0;
+    font-size: 14px;
+  }
+}
+
+.progress-details {
+  .progress-summary {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 24px;
+    
+    .summary-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+      
+      &:last-child {
+        margin-bottom: 0;
+      }
+      
+      mat-icon {
+        color: #666;
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+      }
+      
+      .summary-content {
+        display: flex;
+        flex-direction: column;
+        
+        strong {
+          font-size: 13px;
+          color: #666;
+          margin-bottom: 2px;
+        }
+        
+        span {
+          font-size: 15px;
+          color: #333;
+        }
+      }
+    }
+  }
+  
+  .content-progress {
+    h4 {
+      margin: 0 0 16px 0;
+      color: #333;
+      font-size: 18px;
+      font-weight: 500;
+    }
+    
+    .no-content {
+      text-align: center;
+      padding: 20px;
+      color: #666;
+    }
+    
+    .content-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      
+      .content-info {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        flex: 1;
+        
+        .status-icon {
+          margin-top: 2px;
+        }
+        
+        .content-details {
+          flex: 1;
+          
+          strong {
+            color: #333;
+            font-size: 15px;
+            display: block;
+            margin-bottom: 4px;
+          }
+          
+          p {
+            margin: 0 0 4px 0;
+            color: #666;
+            font-size: 13px;
+            line-height: 1.4;
+          }
+          
+          small {
+            color: #999;
+            font-size: 11px;
+          }
+        }
+      }
+      
+      .content-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        
+        .progress-status-chip {
+          font-size: 11px;
+          height: 20px;
+          min-height: 20px;
+          border: none;
+        }
+      }
+    }
+  }
+}
+
+// Responsive design
+@media (max-width: 1200px) {
+  .main-content {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .progress-container {
+    padding: 16px;
+  }
+  
+  .progress-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+    
+    h1 {
+      font-size: 24px;
+    }
+  }
+  
+  .filters-card .filters-row {
+    flex-direction: column;
+    
+    .filter-field {
+      min-width: 100%;
+    }
+  }
+  
+  .enrollment-item {
+    padding: 12px;
+  }
+  
+  .enrollment-info {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .progress-details .progress-summary {
+    padding: 12px;
+    
+    .summary-item {
+      margin-bottom: 8px;
+      
+      .summary-content {
+        strong {
+          font-size: 12px;
+        }
+        
+        span {
+          font-size: 14px;
+        }
+      }
+    }
+  }
+}

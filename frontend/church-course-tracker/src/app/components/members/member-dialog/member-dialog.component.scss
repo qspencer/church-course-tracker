@@ -1,0 +1,61 @@
+.member-dialog {
+  min-width: 500px;
+  
+  h2 {
+    margin: 0;
+    color: #333;
+    font-size: 24px;
+    font-weight: 500;
+  }
+  
+  mat-dialog-content {
+    padding: 20px 0;
+    max-height: 400px;
+    overflow-y: auto;
+  }
+  
+  .member-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .name-row {
+    display: flex;
+    gap: 16px;
+    
+    .half-width {
+      flex: 1;
+    }
+  }
+  
+  .full-width {
+    width: 100%;
+  }
+  
+  mat-dialog-actions {
+    padding: 0;
+    margin: 0;
+    gap: 8px;
+    
+    button {
+      min-width: 80px;
+      
+      mat-spinner {
+        margin-right: 8px;
+      }
+    }
+  }
+}
+
+// Responsive design
+@media (max-width: 600px) {
+  .member-dialog {
+    min-width: 90vw;
+  }
+  
+  .name-row {
+    flex-direction: column;
+    gap: 16px;
+  }
+}

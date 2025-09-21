@@ -1,0 +1,284 @@
+.enrollments-container {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.enrollments-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  
+  h1 {
+    margin: 0;
+    color: #333;
+    font-size: 28px;
+    font-weight: 500;
+  }
+}
+
+.enrollments-card {
+  margin-bottom: 24px;
+}
+
+.search-field {
+  width: 100%;
+  max-width: 400px;
+  margin-bottom: 20px;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px;
+  
+  mat-spinner {
+    margin-bottom: 16px;
+  }
+  
+  p {
+    color: #666;
+    font-size: 16px;
+  }
+}
+
+.table-container {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.enrollments-table {
+  width: 100%;
+  background: white;
+  
+  .mat-column-person_name {
+    width: 25%;
+  }
+  
+  .mat-column-course_title {
+    width: 25%;
+  }
+  
+  .mat-column-status {
+    width: 12%;
+  }
+  
+  .mat-column-progress_percentage {
+    width: 18%;
+  }
+  
+  .mat-column-enrolled_at {
+    width: 12%;
+  }
+  
+  .mat-column-actions {
+    width: 8%;
+  }
+}
+
+.student-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  
+  .student-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(45deg, #FF9800, #FFC107);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    mat-icon {
+      color: white;
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+  }
+  
+  .student-details {
+    display: flex;
+    flex-direction: column;
+    
+    strong {
+      color: #333;
+      font-weight: 500;
+      font-size: 15px;
+    }
+    
+    small {
+      color: #666;
+      font-size: 12px;
+      margin-top: 2px;
+    }
+  }
+}
+
+.course-info {
+  display: flex;
+  flex-direction: column;
+  
+  strong {
+    color: #333;
+    font-weight: 500;
+    font-size: 15px;
+    margin-bottom: 2px;
+  }
+  
+  small {
+    color: #666;
+    font-size: 12px;
+  }
+}
+
+.status-chip {
+  font-size: 12px;
+  height: 24px;
+  min-height: 24px;
+}
+
+.progress-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  
+  mat-progress-bar {
+    height: 8px;
+    border-radius: 4px;
+  }
+  
+  .progress-text {
+    font-size: 12px;
+    color: #666;
+    text-align: center;
+  }
+}
+
+.date-info {
+  color: #666;
+  font-size: 13px;
+}
+
+.actions-container {
+  display: flex;
+  gap: 4px;
+  
+  button {
+    width: 32px;
+    height: 32px;
+    line-height: 32px;
+    
+    mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+  }
+}
+
+.no-data {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 32px;
+  text-align: center;
+  color: #666;
+  
+  mat-icon {
+    font-size: 64px;
+    width: 64px;
+    height: 64px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+  }
+  
+  h3 {
+    margin: 0 0 8px 0;
+    font-size: 20px;
+    font-weight: 500;
+    color: #333;
+  }
+  
+  p {
+    margin: 0 0 24px 0;
+    font-size: 16px;
+  }
+}
+
+mat-paginator {
+  border-top: 1px solid #e0e0e0;
+  background: #fafafa;
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .enrollments-container {
+    padding: 16px;
+  }
+  
+  .enrollments-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+    
+    h1 {
+      font-size: 24px;
+    }
+  }
+  
+  .search-field {
+    max-width: 100%;
+  }
+  
+  .enrollments-table {
+    font-size: 14px;
+    
+    .mat-column-progress_percentage {
+      display: none;
+    }
+    
+    .mat-column-enrolled_at {
+      display: none;
+    }
+  }
+  
+  .student-info {
+    .student-avatar {
+      width: 32px;
+      height: 32px;
+      
+      mat-icon {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+      }
+    }
+    
+    .student-details strong {
+      font-size: 14px;
+    }
+  }
+  
+  .actions-container {
+    flex-direction: column;
+    gap: 2px;
+    
+    button {
+      width: 28px;
+      height: 28px;
+      line-height: 28px;
+      
+      mat-icon {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+      }
+    }
+  }
+}
