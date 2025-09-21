@@ -1,0 +1,58 @@
+<div class="app-container">
+  <!-- Navigation Toolbar -->
+  <mat-toolbar color="primary" *ngIf="isAuthenticated">
+    <button mat-icon-button (click)="sidenav.toggle()">
+      <mat-icon>menu</mat-icon>
+    </button>
+    <span>{{ title }}</span>
+    <span class="spacer"></span>
+    <span *ngIf="currentUser">Welcome, {{ currentUser.full_name }}</span>
+    <button mat-icon-button (click)="logout()" matTooltip="Logout">
+      <mat-icon>logout</mat-icon>
+    </button>
+  </mat-toolbar>
+
+  <!-- Side Navigation -->
+  <mat-sidenav-container *ngIf="isAuthenticated" class="sidenav-container">
+    <mat-sidenav #sidenav mode="side" opened>
+      <mat-nav-list>
+        <a mat-list-item routerLink="/dashboard" routerLinkActive="active">
+          <mat-icon matListItemIcon>dashboard</mat-icon>
+          <span matListItemTitle>Dashboard</span>
+        </a>
+        <a mat-list-item routerLink="/courses" routerLinkActive="active">
+          <mat-icon matListItemIcon>school</mat-icon>
+          <span matListItemTitle>Courses</span>
+        </a>
+        <a mat-list-item routerLink="/enrollments" routerLinkActive="active">
+          <mat-icon matListItemIcon>assignment</mat-icon>
+          <span matListItemTitle>Enrollments</span>
+        </a>
+        <a mat-list-item routerLink="/progress" routerLinkActive="active">
+          <mat-icon matListItemIcon>trending_up</mat-icon>
+          <span matListItemTitle>Progress</span>
+        </a>
+        <a mat-list-item routerLink="/members" routerLinkActive="active">
+          <mat-icon matListItemIcon>people</mat-icon>
+          <span matListItemTitle>Members</span>
+        </a>
+        <a mat-list-item routerLink="/reports" routerLinkActive="active">
+          <mat-icon matListItemIcon>assessment</mat-icon>
+          <span matListItemTitle>Reports</span>
+        </a>
+      </mat-nav-list>
+    </mat-sidenav>
+
+    <!-- Main Content -->
+    <mat-sidenav-content>
+      <div class="content">
+        <router-outlet></router-outlet>
+      </div>
+    </mat-sidenav-content>
+  </mat-sidenav-container>
+
+  <!-- Auth Content (when not authenticated) -->
+  <div *ngIf="!isAuthenticated" class="auth-container">
+    <router-outlet></router-outlet>
+  </div>
+</div>

@@ -1,0 +1,152 @@
+<div class="courses-container">
+  <div class="courses-header">
+    <h1>Courses Management</h1>
+    <button mat-raised-button color="primary" (click)="openCourseDialog()">
+      <mat-icon>add</mat-icon>
+      Add New Course
+    </button>
+  </div>
+
+  <mat-card class="courses-card">
+    <mat-card-header>
+      <mat-card-title>All Courses</mat-card-title>
+      <mat-card-subtitle>Manage your church courses and curriculum</mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <!-- Search Filter -->
+      <mat-form-field appearance="outline" class="search-field">
+        <mat-label>Search courses...</mat-label>
+        <input matInput (keyup)="applyFilter($event)" placeholder="Search by title or description">
+        <mat-icon matSuffix>search</mat-icon>
+      </mat-form-field>
+
+      <!-- Loading Spinner -->
+      <div *ngIf="isLoading" class="loading-container">
+        <mat-spinner></mat-spinner>
+        <p>Loading courses...</p>
+      </div>
+
+      <!-- Courses Table -->
+      <div *ngIf="!isLoading" class="table-container">
+        <table mat-table [dataSource]="dataSource" matSort class="courses-table">
+          <!-- Title Column -->
+          <ng-container matColumnDef="title">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Title</th>
+            <td mat-cell *matCellDef="let course">
+              <div class="course-title">
+                <strong>{{ course.title }}</strong>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Description Column -->
+          <ng-container matColumnDef="description">
+            <th mat-header-cell *matHeaderCellDef>Description</th>
+            <td mat-cell *matCellDef="let course">
+              <div class="course-description">
+                {{ course.description | slice:0:100 }}
+                <span *ngIf="course.description.length > 100">...</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Duration Column -->
+          <ng-container matColumnDef="duration_weeks">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Duration</th>
+            <td mat-cell *matCellDef="let course">
+              <div class="duration-info">
+                <mat-icon class="duration-icon">schedule</mat-icon>
+                {{ course.duration_weeks }} weeks
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Status Column -->
+          <ng-container matColumnDef="is_active">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Status</th>
+            <td mat-cell *matCellDef="let course">
+              <mat-chip 
+                [color]="getStatusColor(course.is_active)" 
+                selected
+                class="status-chip">
+                {{ getStatusText(course.is_active) }}
+              </mat-chip>
+            </td>
+          </ng-container>
+
+          <!-- Created Date Column -->
+          <ng-container matColumnDef="created_at">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Created</th>
+            <td mat-cell *matCellDef="let course">
+              <div class="date-info">
+                {{ course.created_at | date:'short' }}
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Actions Column -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>Actions</th>
+            <td mat-cell *matCellDef="let course">
+              <div class="actions-container">
+                <button 
+                  mat-icon-button 
+                  color="primary" 
+                  (click)="viewCourseDetails(course)"
+                  matTooltip="View Details">
+                  <mat-icon>visibility</mat-icon>
+                </button>
+                
+                <button 
+                  mat-icon-button 
+                  color="accent" 
+                  (click)="editCourse(course)"
+                  matTooltip="Edit Course">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                
+                <button 
+                  mat-icon-button 
+                  [color]="course.is_active ? 'warn' : 'primary'"
+                  (click)="toggleCourseStatus(course)"
+                  [matTooltip]="course.is_active ? 'Deactivate Course' : 'Activate Course'">
+                  <mat-icon>{{ course.is_active ? 'pause' : 'play_arrow' }}</mat-icon>
+                </button>
+                
+                <button 
+                  mat-icon-button 
+                  color="warn" 
+                  (click)="deleteCourse(course)"
+                  matTooltip="Delete Course">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+
+        <!-- No Data Message -->
+        <div *ngIf="dataSource.data.length === 0" class="no-data">
+          <mat-icon>school</mat-icon>
+          <h3>No courses found</h3>
+          <p>Get started by creating your first course</p>
+          <button mat-raised-button color="primary" (click)="openCourseDialog()">
+            <mat-icon>add</mat-icon>
+            Create Course
+          </button>
+        </div>
+
+        <!-- Paginator -->
+        <mat-paginator 
+          [pageSizeOptions]="[5, 10, 25, 100]"
+          [pageSize]="10"
+          showFirstLastButtons>
+        </mat-paginator>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

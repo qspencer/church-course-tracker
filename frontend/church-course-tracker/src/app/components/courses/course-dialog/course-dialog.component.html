@@ -1,0 +1,53 @@
+<div class="course-dialog">
+  <h2 mat-dialog-title>
+    {{ isEditing ? 'Edit Course' : 'Create New Course' }}
+  </h2>
+  
+  <mat-dialog-content>
+    <form [formGroup]="courseForm" class="course-form">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Course Title</mat-label>
+        <input matInput formControlName="title" placeholder="Enter course title">
+        <mat-error>{{ getErrorMessage('title') }}</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Description</mat-label>
+        <textarea 
+          matInput 
+          formControlName="description" 
+          placeholder="Enter course description"
+          rows="4">
+        </textarea>
+        <mat-error>{{ getErrorMessage('description') }}</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Duration (weeks)</mat-label>
+        <input 
+          matInput 
+          type="number" 
+          formControlName="duration_weeks" 
+          placeholder="Enter duration in weeks"
+          min="1"
+          max="52">
+        <mat-hint>Enter the course duration in weeks (1-52)</mat-hint>
+        <mat-error>{{ getErrorMessage('duration_weeks') }}</mat-error>
+      </mat-form-field>
+    </form>
+  </mat-dialog-content>
+  
+  <mat-dialog-actions align="end">
+    <button mat-button (click)="onCancel()" [disabled]="isLoading">
+      Cancel
+    </button>
+    <button 
+      mat-raised-button 
+      color="primary" 
+      (click)="onSubmit()" 
+      [disabled]="!courseForm.valid || isLoading">
+      <mat-spinner *ngIf="isLoading" diameter="20"></mat-spinner>
+      <span *ngIf="!isLoading">{{ isEditing ? 'Update' : 'Create' }}</span>
+    </button>
+  </mat-dialog-actions>
+</div>

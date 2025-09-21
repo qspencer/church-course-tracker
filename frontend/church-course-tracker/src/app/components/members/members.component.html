@@ -1,0 +1,145 @@
+<div class="members-container">
+  <div class="members-header">
+    <h1>Members Management</h1>
+    <button mat-raised-button color="primary" (click)="openMemberDialog()">
+      <mat-icon>person_add</mat-icon>
+      Add New Member
+    </button>
+  </div>
+
+  <mat-card class="members-card">
+    <mat-card-header>
+      <mat-card-title>All Members</mat-card-title>
+      <mat-card-subtitle>Manage church members and their information</mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <!-- Search Filter -->
+      <mat-form-field appearance="outline" class="search-field">
+        <mat-label>Search members...</mat-label>
+        <input matInput (keyup)="applyFilter($event)" placeholder="Search by name or email">
+        <mat-icon matSuffix>search</mat-icon>
+      </mat-form-field>
+
+      <!-- Loading Spinner -->
+      <div *ngIf="isLoading" class="loading-container">
+        <mat-spinner></mat-spinner>
+        <p>Loading members...</p>
+      </div>
+
+      <!-- Members Table -->
+      <div *ngIf="!isLoading" class="table-container">
+        <table mat-table [dataSource]="dataSource" matSort class="members-table">
+          <!-- Name Column -->
+          <ng-container matColumnDef="full_name">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Name</th>
+            <td mat-cell *matCellDef="let member">
+              <div class="member-name">
+                <div class="name-avatar">
+                  <mat-icon>person</mat-icon>
+                </div>
+                <div class="name-info">
+                  <strong>{{ member.first_name }} {{ member.last_name }}</strong>
+                  <small *ngIf="member.planning_center_id">PC ID: {{ member.planning_center_id }}</small>
+                </div>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Email Column -->
+          <ng-container matColumnDef="email">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Email</th>
+            <td mat-cell *matCellDef="let member">
+              <div class="email-info">
+                <mat-icon class="contact-icon">email</mat-icon>
+                <span>{{ member.email || 'No email' }}</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Phone Column -->
+          <ng-container matColumnDef="phone">
+            <th mat-header-cell *matHeaderCellDef>Phone</th>
+            <td mat-cell *matCellDef="let member">
+              <div class="phone-info">
+                <mat-icon class="contact-icon">phone</mat-icon>
+                <span>{{ member.phone || 'No phone' }}</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Created Date Column -->
+          <ng-container matColumnDef="created_at">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Added</th>
+            <td mat-cell *matCellDef="let member">
+              <div class="date-info">
+                {{ member.created_at | date:'short' }}
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Actions Column -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>Actions</th>
+            <td mat-cell *matCellDef="let member">
+              <div class="actions-container">
+                <button 
+                  mat-icon-button 
+                  color="primary" 
+                  (click)="viewMemberDetails(member)"
+                  matTooltip="View Details">
+                  <mat-icon>visibility</mat-icon>
+                </button>
+                
+                <button 
+                  mat-icon-button 
+                  color="accent" 
+                  (click)="viewMemberEnrollments(member)"
+                  matTooltip="View Enrollments">
+                  <mat-icon>school</mat-icon>
+                </button>
+                
+                <button 
+                  mat-icon-button 
+                  color="accent" 
+                  (click)="editMember(member)"
+                  matTooltip="Edit Member">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                
+                <button 
+                  mat-icon-button 
+                  color="warn" 
+                  (click)="deleteMember(member)"
+                  matTooltip="Delete Member">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+
+        <!-- No Data Message -->
+        <div *ngIf="dataSource.data.length === 0" class="no-data">
+          <mat-icon>people</mat-icon>
+          <h3>No members found</h3>
+          <p>Get started by adding your first member</p>
+          <button mat-raised-button color="primary" (click)="openMemberDialog()">
+            <mat-icon>person_add</mat-icon>
+            Add Member
+          </button>
+        </div>
+
+        <!-- Paginator -->
+        <mat-paginator 
+          [pageSizeOptions]="[5, 10, 25, 100]"
+          [pageSize]="10"
+          showFirstLastButtons>
+        </mat-paginator>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

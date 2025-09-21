@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  # Backend API Service (Development)
+  backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile.dev
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=development
+      - DATABASE_URL=h2://./data/church_course_tracker.db
+      - SECRET_KEY=dev-secret-key
+      - DEBUG=true
+      - DATABASE_ECHO=true
+    volumes:
+      - ../backend:/app
+      - backend_data:/app/data
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    networks:
+      - church-tracker-network
+
+  # Frontend Service (Development)
+  frontend:
+    build:
+      context: ../frontend/church-course-tracker
+      dockerfile: Dockerfile.dev
+    ports:
+      - "4200:4200"
+    environment:
+      - API_URL=http://localhost:8000/api/v1
+    volumes:
+      - ../frontend/church-course-tracker:/app
+      - /app/node_modules
+    command: npm start
+    networks:
+      - church-tracker-network
+
+volumes:
+  backend_data:
+
+networks:
+  church-tracker-network:
+    driver: bridge
