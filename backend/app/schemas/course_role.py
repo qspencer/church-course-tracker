@@ -11,7 +11,7 @@ class CourseRoleBase(BaseModel):
     """Base course role schema"""
     people_id: int
     course_id: int
-    role_type: str = Field(..., regex="^(teacher|student|assistant|observer)$")
+    role_type: str = Field(..., pattern="^(teacher|student|assistant|observer)$")
     assigned_date: date
     assigned_by: Optional[int] = None
     is_active: bool = Field(default=True)
@@ -24,7 +24,7 @@ class CourseRoleCreate(CourseRoleBase):
 
 class CourseRoleUpdate(BaseModel):
     """Schema for updating a course role"""
-    role_type: Optional[str] = Field(None, regex="^(teacher|student|assistant|observer)$")
+    role_type: Optional[str] = Field(None, pattern="^(teacher|student|assistant|observer)$")
     assigned_by: Optional[int] = None
     is_active: Optional[bool] = None
 

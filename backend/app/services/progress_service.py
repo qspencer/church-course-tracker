@@ -6,8 +6,8 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 from datetime import datetime
 
-from app.schemas.progress import ProgressCreate, ProgressUpdate
-from app.models.progress import Progress as ProgressModel
+from app.schemas.progress import ContentCompletionCreate, ContentCompletionUpdate
+from app.models.progress import ContentCompletion as ProgressModel
 
 
 class ProgressService:
@@ -38,7 +38,7 @@ class ProgressService:
             ProgressModel.id == progress_id
         ).first()
     
-    def create_progress(self, progress: ProgressCreate) -> ProgressModel:
+    def create_progress(self, progress: ContentCompletionCreate) -> ProgressModel:
         """Create a new progress record"""
         db_progress = ProgressModel(**progress.dict())
         db_progress.created_at = datetime.utcnow()
@@ -52,7 +52,7 @@ class ProgressService:
     def update_progress(
         self, 
         progress_id: int, 
-        progress_update: ProgressUpdate
+        progress_update: ContentCompletionUpdate
     ) -> Optional[ProgressModel]:
         """Update an existing progress record"""
         db_progress = self.get_progress(progress_id)

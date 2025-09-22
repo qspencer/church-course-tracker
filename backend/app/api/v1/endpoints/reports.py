@@ -63,7 +63,7 @@ async def get_member_progress_report(
 @router.get("/export/{report_type}")
 async def export_report(
     report_type: ReportType,
-    format: str = Query("csv", regex="^(csv|pdf)$"),
+    format: str = Query("csv", pattern="^(csv|pdf)$"),
     course_id: Optional[int] = None,
     start_date: Optional[datetime] = None,
     end_date: Optional[datetime] = None,

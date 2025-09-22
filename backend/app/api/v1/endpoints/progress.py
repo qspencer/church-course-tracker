@@ -7,13 +7,13 @@ from sqlalchemy.orm import Session
 from typing import List
 
 from app.core.database import get_db
-from app.schemas.progress import Progress, ProgressCreate, ProgressUpdate
+from app.schemas.progress import ContentCompletion, ContentCompletionCreate, ContentCompletionUpdate
 from app.services.progress_service import ProgressService
 
 router = APIRouter()
 
 
-@router.get("/member/{member_id}", response_model=List[Progress])
+@router.get("/member/{member_id}", response_model=List[ContentCompletion])
 async def get_member_progress(
     member_id: int,
     db: Session = Depends(get_db)
@@ -23,7 +23,7 @@ async def get_member_progress(
     return progress_service.get_member_progress(member_id)
 
 
-@router.get("/course/{course_id}", response_model=List[Progress])
+@router.get("/course/{course_id}", response_model=List[ContentCompletion])
 async def get_course_progress(
     course_id: int,
     db: Session = Depends(get_db)
@@ -33,7 +33,7 @@ async def get_course_progress(
     return progress_service.get_course_progress(course_id)
 
 
-@router.get("/{progress_id}", response_model=Progress)
+@router.get("/{progress_id}", response_model=ContentCompletion)
 async def get_progress(
     progress_id: int,
     db: Session = Depends(get_db)
@@ -49,9 +49,9 @@ async def get_progress(
     return progress
 
 
-@router.post("/", response_model=Progress)
+@router.post("/", response_model=ContentCompletion)
 async def create_progress(
-    progress: ProgressCreate,
+    progress: ContentCompletionCreate,
     db: Session = Depends(get_db)
 ):
     """Create a new progress record"""
@@ -59,10 +59,10 @@ async def create_progress(
     return progress_service.create_progress(progress)
 
 
-@router.put("/{progress_id}", response_model=Progress)
+@router.put("/{progress_id}", response_model=ContentCompletion)
 async def update_progress(
     progress_id: int,
-    progress_update: ProgressUpdate,
+    progress_update: ContentCompletionUpdate,
     db: Session = Depends(get_db)
 ):
     """Update an existing progress record"""

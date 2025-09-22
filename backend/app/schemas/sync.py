@@ -10,7 +10,7 @@ from datetime import datetime
 class SyncStatus(BaseModel):
     """Sync status schema"""
     last_sync: Optional[datetime] = None
-    status: str = Field(..., regex="^(idle|syncing|error)$")
+    status: str = Field(..., pattern="^(idle|syncing|error)$")
     records_synced: int = 0
     error_message: Optional[str] = None
 

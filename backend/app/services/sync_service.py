@@ -9,7 +9,7 @@ from datetime import datetime
 
 from app.core.config import settings
 from app.schemas.sync import SyncResponse, SyncStatus
-from app.models.member import Member as MemberModel
+from app.models.member import People as MemberModel
 
 
 class SyncService:

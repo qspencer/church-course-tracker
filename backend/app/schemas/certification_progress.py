@@ -13,7 +13,7 @@ class CertificationProgressBase(BaseModel):
     certification_id: int
     started_date: date
     completed_date: Optional[date] = None
-    status: str = Field(default="in_progress", regex="^(in_progress|completed|expired)$")
+    status: str = Field(default="in_progress", pattern="^(in_progress|completed|expired)$")
     expires_date: Optional[date] = None
 
 
@@ -25,7 +25,7 @@ class CertificationProgressCreate(CertificationProgressBase):
 class CertificationProgressUpdate(BaseModel):
     """Schema for updating certification progress"""
     completed_date: Optional[date] = None
-    status: Optional[str] = Field(None, regex="^(in_progress|completed|expired)$")
+    status: Optional[str] = Field(None, pattern="^(in_progress|completed|expired)$")
     expires_date: Optional[date] = None
 
 

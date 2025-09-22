@@ -25,7 +25,7 @@ class Settings(BaseSettings):
     ALLOWED_HOSTS: List[str] = ["*"]  # Configure properly for production
     
     # Database
-    DATABASE_URL: str = "h2://./data/church_course_tracker.db"
+    DATABASE_URL: str = "sqlite:///./data/church_course_tracker.db"
     DATABASE_ECHO: bool = False
     
     # Planning Center API

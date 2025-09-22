@@ -10,8 +10,8 @@ import io
 
 from app.schemas.report import ReportResponse, ReportData, ReportType
 from app.models.course import Course as CourseModel
-from app.models.enrollment import Enrollment as EnrollmentModel
-from app.models.progress import Progress as ProgressModel
+from app.models.enrollment import CourseEnrollment as EnrollmentModel
+from app.models.progress import ContentCompletion as ProgressModel
 
 
 class ReportService:

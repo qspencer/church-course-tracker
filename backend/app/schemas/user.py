@@ -11,7 +11,7 @@ class UserBase(BaseModel):
     """Base user schema"""
     email: EmailStr
     full_name: str = Field(..., min_length=1, max_length=200)
-    role: str = Field(default="staff", regex="^(admin|staff|viewer)$")
+    role: str = Field(default="staff", pattern="^(admin|staff|viewer)$")
     is_active: bool = True
 
 
@@ -24,7 +24,7 @@ class UserUpdate(BaseModel):
     """Schema for updating a user"""
     email: Optional[EmailStr] = None
     full_name: Optional[str] = Field(None, min_length=1, max_length=200)
-    role: Optional[str] = Field(None, regex="^(admin|staff|viewer)$")
+    role: Optional[str] = Field(None, pattern="^(admin|staff|viewer)$")
     is_active: Optional[bool] = None
     password: Optional[str] = Field(None, min_length=8)
 

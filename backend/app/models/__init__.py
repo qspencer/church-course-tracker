@@ -2,7 +2,7 @@
 
 # Import all models to ensure they are registered with SQLAlchemy
 from .user import User
-from .people import People
+from .member import People
 from .campus import Campus
 from .role import Role
 from .course import Course

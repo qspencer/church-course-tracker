@@ -7,7 +7,7 @@ from typing import List, Optional
 from datetime import datetime
 
 from app.schemas.people import PeopleCreate, PeopleUpdate
-from app.models.people import People as PeopleModel
+from app.models.member import People as PeopleModel
 
 
 class PeopleService:

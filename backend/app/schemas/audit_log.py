@@ -11,7 +11,7 @@ class AuditLogBase(BaseModel):
     """Base audit log schema"""
     table_name: str = Field(..., min_length=1, max_length=100)
     record_id: int = Field(..., ge=1)
-    action: str = Field(..., regex="^(insert|update|delete)$")
+    action: str = Field(..., pattern="^(insert|update|delete)$")
     old_values: Optional[Dict[str, Any]] = None
     new_values: Optional[Dict[str, Any]] = None
     changed_by: Optional[int] = None

@@ -9,8 +9,8 @@ from datetime import datetime
 
 class PlanningCenterSyncLogBase(BaseModel):
     """Base sync log schema"""
-    sync_type: str = Field(..., regex="^(people|events|registrations|custom_fields)$")
-    sync_direction: str = Field(..., regex="^(from_pc|to_pc)$")
+    sync_type: str = Field(..., pattern="^(people|events|registrations|custom_fields)$")
+    sync_direction: str = Field(..., pattern="^(from_pc|to_pc)$")
     records_processed: int = Field(default=0, ge=0)
     records_successful: int = Field(default=0, ge=0)
     records_failed: int = Field(default=0, ge=0)
