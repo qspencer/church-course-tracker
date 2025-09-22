@@ -22,7 +22,19 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8  # 8 days
     
     # CORS
-    ALLOWED_HOSTS: List[str] = ["*"]  # Configure properly for production
+    ALLOWED_HOSTS: List[str] = [
+        "localhost:8000",
+        "127.0.0.1:8000",
+        "localhost:4200",
+        "127.0.0.1:4200",
+        "*"
+    ]
+    ALLOWED_ORIGINS: List[str] = [
+        "http://localhost:4200",
+        "http://127.0.0.1:4200",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000"
+    ]
     
     # Database
     DATABASE_URL: str = "sqlite:///./data/church_course_tracker.db"
@@ -32,6 +44,7 @@ class Settings(BaseSettings):
     PLANNING_CENTER_API_URL: str = "https://api.planningcenteronline.com"
     PLANNING_CENTER_APP_ID: Optional[str] = None
     PLANNING_CENTER_SECRET: Optional[str] = None
+    PLANNING_CENTER_ACCESS_TOKEN: Optional[str] = None
     
     # Security
     ALGORITHM: str = "HS256"

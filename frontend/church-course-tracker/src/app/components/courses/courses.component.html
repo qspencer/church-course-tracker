@@ -1,7 +1,11 @@
 <div class="courses-container">
   <div class="courses-header">
     <h1>Courses Management</h1>
-    <button mat-raised-button color="primary" (click)="openCourseDialog()">
+    <button 
+      *ngIf="canCreateCourse()" 
+      mat-raised-button 
+      color="primary" 
+      (click)="openCourseDialog()">
       <mat-icon>add</mat-icon>
       Add New Course
     </button>
@@ -99,6 +103,7 @@
                 </button>
                 
                 <button 
+                  *ngIf="canEditCourse()"
                   mat-icon-button 
                   color="accent" 
                   (click)="editCourse(course)"
@@ -107,6 +112,7 @@
                 </button>
                 
                 <button 
+                  *ngIf="canToggleCourseStatus()"
                   mat-icon-button 
                   [color]="course.is_active ? 'warn' : 'primary'"
                   (click)="toggleCourseStatus(course)"
@@ -115,6 +121,7 @@
                 </button>
                 
                 <button 
+                  *ngIf="canDeleteCourse()"
                   mat-icon-button 
                   color="warn" 
                   (click)="deleteCourse(course)"
@@ -134,7 +141,11 @@
           <mat-icon>school</mat-icon>
           <h3>No courses found</h3>
           <p>Get started by creating your first course</p>
-          <button mat-raised-button color="primary" (click)="openCourseDialog()">
+          <button 
+            *ngIf="canCreateCourse()" 
+            mat-raised-button 
+            color="primary" 
+            (click)="openCourseDialog()">
             <mat-icon>add</mat-icon>
             Create Course
           </button>

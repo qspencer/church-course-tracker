@@ -12,6 +12,38 @@ from app.services.planning_center_sync_service import PlanningCenterSyncService
 router = APIRouter()
 
 
+@router.get("/test-connection", response_model=Dict[str, Any])
+async def test_planning_center_connection(
+    db: Session = Depends(get_db)
+):
+    """Test connection to Planning Center API"""
+    try:
+        from app.services.sync_service import SyncService
+        sync_service = SyncService(db)
+        
+        # Test the connection
+        is_connected = await sync_service.test_connection()
+        
+        if is_connected:
+            return {
+                "status": "success",
+                "message": "Successfully connected to Planning Center API",
+                "connected": True
+            }
+        else:
+            return {
+                "status": "error",
+                "message": "Failed to connect to Planning Center API",
+                "connected": False
+            }
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": f"Connection test failed: {str(e)}",
+            "connected": False
+        }
+
+
 @router.post("/people", response_model=Dict[str, Any])
 async def start_sync_people(
     db: Session = Depends(get_db)

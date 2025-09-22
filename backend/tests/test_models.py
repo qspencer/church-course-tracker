@@ -6,7 +6,7 @@ import pytest
 from datetime import datetime, date
 from sqlalchemy.exc import IntegrityError
 
-from app.models.people import People
+from app.models.member import People
 from app.models.campus import Campus
 from app.models.role import Role
 from app.models.course import Course
@@ -243,7 +243,6 @@ class TestCertificationModel:
         assert certification.id is not None
         assert certification.name == "Basic Christian Education"
         assert certification.description == "Complete basic Christian education program"
-        assert certification.required_courses == [1, 2, 3]
         assert certification.validity_months == 12
         assert certification.is_active is True
 

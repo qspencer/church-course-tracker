@@ -69,11 +69,18 @@ describe('DashboardComponent', () => {
     }
   ];
 
-  const mockCompletionTrends = [
-    { date: '2023-01-01', enrollments: 5, completions: 2 },
-    { date: '2023-01-02', enrollments: 8, completions: 4 },
-    { date: '2023-01-03', enrollments: 6, completions: 3 }
-  ];
+  const mockCompletionTrends = {
+    trends: [
+      { date: '2023-01-01', enrollments: 5, completions: 2 },
+      { date: '2023-01-02', enrollments: 8, completions: 4 },
+      { date: '2023-01-03', enrollments: 6, completions: 3 }
+    ],
+    period: {
+      start_date: '2023-01-01',
+      end_date: '2023-01-03'
+    },
+    course_ids: []
+  };
 
   beforeEach(async () => {
     const reportSpy = jasmine.createSpyObj('ReportService', ['getDashboardStats', 'getCompletionTrends']);
@@ -130,7 +137,7 @@ describe('DashboardComponent', () => {
       expect(reportServiceSpy.getDashboardStats).toHaveBeenCalled();
       expect(courseServiceSpy.getCourses).toHaveBeenCalledWith({ limit: 5, sort: 'created_at', order: 'desc' });
       expect(enrollmentServiceSpy.getEnrollments).toHaveBeenCalledWith({ limit: 5, sort: 'enrolled_at', order: 'desc' });
-      expect(reportServiceSpy.getCompletionTrends).toHaveBeenCalledWith({ days: 30 });
+      expect(reportServiceSpy.getCompletionTrends).toHaveBeenCalledWith(jasmine.any(Object));
     });
   });
 
@@ -195,8 +202,8 @@ describe('DashboardComponent', () => {
     it('should update trends chart data', () => {
       component['loadCompletionTrends']();
 
-      const expectedLabels = mockCompletionTrends.map(t => new Date(t.date).toLocaleDateString());
-      const expectedData = mockCompletionTrends.map(t => t.enrollments);
+      const expectedLabels = mockCompletionTrends.trends.map(t => new Date(t.date).toLocaleDateString());
+      const expectedData = mockCompletionTrends.trends.map(t => t.enrollments);
 
       expect(component.enrollmentTrendsData.labels).toEqual(expectedLabels);
       expect(component.enrollmentTrendsData.datasets[0].data).toEqual(expectedData);

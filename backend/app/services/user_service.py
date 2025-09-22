@@ -32,12 +32,17 @@ class UserService:
         """Get a user by email"""
         return self.db.query(UserModel).filter(UserModel.email == email).first()
     
+    def get_user_by_username(self, username: str) -> Optional[UserModel]:
+        """Get a user by username"""
+        return self.db.query(UserModel).filter(UserModel.username == username).first()
+    
     def create_user(self, user: UserCreate) -> UserModel:
         """Create a new user"""
         # Hash the password
         hashed_password = pwd_context.hash(user.password)
         
         db_user = UserModel(
+            username=user.username,
             email=user.email,
             full_name=user.full_name,
             role=user.role,

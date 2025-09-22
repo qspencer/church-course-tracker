@@ -1,18 +1,21 @@
 export interface User {
   id: number;
-  username: string;
+  username?: string;
   email: string;
   full_name: string;
+  role: 'admin' | 'staff' | 'viewer';
   is_active: boolean;
-  is_superuser: boolean;
   created_at: string;
   updated_at: string;
+  last_login?: string;
 }
 
 export interface UserCreate {
-  username: string;
+  username?: string;
   email: string;
   full_name: string;
+  role?: 'admin' | 'staff' | 'viewer';
+  is_active?: boolean;
   password: string;
 }
 
@@ -20,7 +23,9 @@ export interface UserUpdate {
   username?: string;
   email?: string;
   full_name?: string;
+  role?: 'admin' | 'staff' | 'viewer';
   is_active?: boolean;
+  password?: string;
 }
 
 export interface LoginRequest {

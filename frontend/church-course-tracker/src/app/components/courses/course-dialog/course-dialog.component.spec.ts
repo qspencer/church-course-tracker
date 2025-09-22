@@ -6,6 +6,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { of, throwError } from 'rxjs';
 
 // Angular Material
+import { MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
@@ -46,6 +47,7 @@ describe('CourseDialogComponent', () => {
       imports: [
         ReactiveFormsModule,
         BrowserAnimationsModule,
+        MatDialogModule,
         MatFormFieldModule,
         MatInputModule,
         MatButtonModule,

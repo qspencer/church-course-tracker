@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ReportService } from '../../services/report.service';
 import { CourseService } from '../../services/course.service';
 import { EnrollmentService } from '../../services/enrollment.service';
-import { DashboardStats, Course, Enrollment } from '../../models';
+import { DashboardStats, Course, Enrollment, CompletionTrendsResponse } from '../../models';
 import { ChartConfiguration, ChartData, ChartType } from 'chart.js';
 
 @Component({
@@ -133,8 +133,16 @@ export class DashboardComponent implements OnInit {
   }
 
   private loadCompletionTrends(): void {
-    this.reportService.getCompletionTrends({ days: 30 }).subscribe({
-      next: (trends) => {
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setDate(endDate.getDate() - 30);
+    
+    this.reportService.getCompletionTrends({ 
+      start_date: startDate.toISOString().split('T')[0],
+      end_date: endDate.toISOString().split('T')[0]
+    }).subscribe({
+      next: (response: CompletionTrendsResponse) => {
+        const trends = response.trends || [];
         const labels = trends.map(t => new Date(t.date).toLocaleDateString());
         const data = trends.map(t => t.enrollments);
         

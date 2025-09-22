@@ -6,7 +6,7 @@ import pytest
 from datetime import datetime, date
 from fastapi.testclient import TestClient
 
-from app.models.people import People
+from app.models.member import People
 from app.models.course import Course
 from app.models.enrollment import CourseEnrollment
 from app.models.campus import Campus
@@ -272,8 +272,8 @@ class TestCourseEndpoints:
         assert data["planning_center_event_id"] == "evt_123"
         assert data["name"] == "Introduction to Faith"
     
-    def test_create_course(self, client):
-        """Test POST /courses endpoint"""
+    def test_create_course_unauthorized(self, client):
+        """Test POST /courses endpoint without authentication"""
         course_data = {
             "name": "Introduction to Faith",
             "description": "Basic course on Christian faith",
@@ -283,6 +283,20 @@ class TestCourseEndpoints:
         }
         
         response = client.post("/api/v1/courses/", json=course_data)
+        assert response.status_code == 401  # Unauthorized
+    
+    def test_create_course_as_admin(self, client, admin_token):
+        """Test POST /courses endpoint as admin user"""
+        course_data = {
+            "name": "Introduction to Faith",
+            "description": "Basic course on Christian faith",
+            "planning_center_event_id": "evt_123",
+            "max_capacity": 50,
+            "is_active": True
+        }
+        
+        headers = {"Authorization": f"Bearer {admin_token}"}
+        response = client.post("/api/v1/courses/", json=course_data, headers=headers)
         assert response.status_code == 201
         
         data = response.json()
@@ -292,8 +306,43 @@ class TestCourseEndpoints:
         assert data["id"] is not None
         assert data["created_at"] is not None
     
-    def test_update_course(self, client, db_session, sample_course_data):
-        """Test PUT /courses/{course_id} endpoint"""
+    def test_create_course_as_staff(self, client, staff_token):
+        """Test POST /courses endpoint as staff user"""
+        course_data = {
+            "name": "Staff Course",
+            "description": "Course created by staff",
+            "planning_center_event_id": "evt_staff",
+            "max_capacity": 30,
+            "is_active": True
+        }
+        
+        headers = {"Authorization": f"Bearer {staff_token}"}
+        response = client.post("/api/v1/courses/", json=course_data, headers=headers)
+        assert response.status_code == 201
+        
+        data = response.json()
+        assert data["name"] == "Staff Course"
+        assert data["planning_center_event_id"] == "evt_staff"
+    
+    def test_create_course_as_viewer_forbidden(self, client, viewer_token):
+        """Test POST /courses endpoint as viewer user (should be forbidden)"""
+        course_data = {
+            "name": "Viewer Course",
+            "description": "Course created by viewer",
+            "planning_center_event_id": "evt_viewer",
+            "max_capacity": 20,
+            "is_active": True
+        }
+        
+        headers = {"Authorization": f"Bearer {viewer_token}"}
+        response = client.post("/api/v1/courses/", json=course_data, headers=headers)
+        assert response.status_code == 403  # Forbidden
+        
+        data = response.json()
+        assert "Only admin and staff users can create courses" in data["detail"]
+    
+    def test_update_course_unauthorized(self, client, db_session, sample_course_data):
+        """Test PUT /courses/{course_id} endpoint without authentication"""
         course = Course(**sample_course_data)
         db_session.add(course)
         db_session.commit()
@@ -304,6 +353,21 @@ class TestCourseEndpoints:
         }
         
         response = client.put(f"/api/v1/courses/{course.id}", json=update_data)
+        assert response.status_code == 401  # Unauthorized
+    
+    def test_update_course_as_admin(self, client, admin_token, db_session, sample_course_data):
+        """Test PUT /courses/{course_id} endpoint as admin user"""
+        course = Course(**sample_course_data)
+        db_session.add(course)
+        db_session.commit()
+        
+        update_data = {
+            "name": "Updated Course Name",
+            "max_capacity": 75
+        }
+        
+        headers = {"Authorization": f"Bearer {admin_token}"}
+        response = client.put(f"/api/v1/courses/{course.id}", json=update_data, headers=headers)
         assert response.status_code == 200
         
         data = response.json()
@@ -311,18 +375,91 @@ class TestCourseEndpoints:
         assert data["max_capacity"] == 75
         assert data["description"] == "Basic course on Christian faith"  # Unchanged
     
-    def test_delete_course(self, client, db_session, sample_course_data):
-        """Test DELETE /courses/{course_id} endpoint"""
+    def test_update_course_as_staff(self, client, staff_token, db_session, sample_course_data):
+        """Test PUT /courses/{course_id} endpoint as staff user"""
+        course = Course(**sample_course_data)
+        db_session.add(course)
+        db_session.commit()
+        
+        update_data = {
+            "name": "Staff Updated Course",
+            "max_capacity": 60
+        }
+        
+        headers = {"Authorization": f"Bearer {staff_token}"}
+        response = client.put(f"/api/v1/courses/{course.id}", json=update_data, headers=headers)
+        assert response.status_code == 200
+        
+        data = response.json()
+        assert data["name"] == "Staff Updated Course"
+        assert data["max_capacity"] == 60
+    
+    def test_update_course_as_viewer_forbidden(self, client, viewer_token, db_session, sample_course_data):
+        """Test PUT /courses/{course_id} endpoint as viewer user (should be forbidden)"""
+        course = Course(**sample_course_data)
+        db_session.add(course)
+        db_session.commit()
+        
+        update_data = {
+            "name": "Viewer Updated Course",
+            "max_capacity": 40
+        }
+        
+        headers = {"Authorization": f"Bearer {viewer_token}"}
+        response = client.put(f"/api/v1/courses/{course.id}", json=update_data, headers=headers)
+        assert response.status_code == 403  # Forbidden
+        
+        data = response.json()
+        assert "Only admin and staff users can update courses" in data["detail"]
+    
+    def test_delete_course_unauthorized(self, client, db_session, sample_course_data):
+        """Test DELETE /courses/{course_id} endpoint without authentication"""
         course = Course(**sample_course_data)
         db_session.add(course)
         db_session.commit()
         
         response = client.delete(f"/api/v1/courses/{course.id}")
+        assert response.status_code == 401  # Unauthorized
+    
+    def test_delete_course_as_admin(self, client, admin_token, db_session, sample_course_data):
+        """Test DELETE /courses/{course_id} endpoint as admin user"""
+        course = Course(**sample_course_data)
+        db_session.add(course)
+        db_session.commit()
+        
+        headers = {"Authorization": f"Bearer {admin_token}"}
+        response = client.delete(f"/api/v1/courses/{course.id}", headers=headers)
         assert response.status_code == 204
         
         # Verify course is deleted
         response = client.get(f"/api/v1/courses/{course.id}")
         assert response.status_code == 404
+    
+    def test_delete_course_as_staff_forbidden(self, client, staff_token, db_session, sample_course_data):
+        """Test DELETE /courses/{course_id} endpoint as staff user (should be forbidden)"""
+        course = Course(**sample_course_data)
+        db_session.add(course)
+        db_session.commit()
+        
+        headers = {"Authorization": f"Bearer {staff_token}"}
+        response = client.delete(f"/api/v1/courses/{course.id}", headers=headers)
+        assert response.status_code == 403  # Forbidden
+        
+        data = response.json()
+        assert "Only admin users can delete courses" in data["detail"]
+    
+    def test_delete_course_as_viewer_forbidden(self, client, viewer_token, db_session, sample_course_data):
+        """Test DELETE /courses/{course_id} endpoint as viewer user (should be forbidden)"""
+        course = Course(**sample_course_data)
+        db_session.add(course)
+        db_session.commit()
+        
+        headers = {"Authorization": f"Bearer {viewer_token}"}
+        response = client.delete(f"/api/v1/courses/{course.id}", headers=headers)
+        assert response.status_code == 403  # Forbidden
+        
+        data = response.json()
+        assert "Only admin users can delete courses" in data["detail"]
 
 
 class TestEnrollmentEndpoints:

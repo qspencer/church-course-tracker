@@ -22,9 +22,17 @@ engine = create_engine(
 )
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
+# Override the database engine in the app's database module
+import app.core.database as db_module
+db_module.engine = engine
+db_module.SessionLocal = TestingSessionLocal
+
 # Import after setting environment variables
-from app.core.database import Base
-from app.main import app
+from app.core.database import Base, get_db
+from main import app
+
+# Disable TrustedHostMiddleware for tests
+app.user_middleware = [mw for mw in app.user_middleware if 'TrustedHostMiddleware' not in str(mw)]
 
 @pytest.fixture(scope="session")
 def event_loop():
@@ -60,9 +68,12 @@ def client(db_session):
         finally:
             pass
     
-    app.dependency_overrides[app.dependency_overrides.get("get_db", None)] = override_get_db
+    app.dependency_overrides[get_db] = override_get_db
     
-    with TestClient(app) as test_client:
+    # Ensure tables are created for the test client
+    Base.metadata.create_all(bind=engine)
+    
+    with TestClient(app, headers={"host": "testserver"}) as test_client:
         yield test_client
     
     app.dependency_overrides.clear()
@@ -75,8 +86,8 @@ def sample_user_data():
         "username": "testuser",
         "email": "test@example.com",
         "full_name": "Test User",
-        "is_active": True,
-        "is_superuser": False
+        "role": "staff",
+        "is_active": True
     }
 
 
@@ -174,7 +185,6 @@ def sample_certification_data():
     return {
         "name": "Basic Christian Education",
         "description": "Complete basic Christian education program",
-        "required_courses": [1, 2, 3],  # Will be set in test
         "validity_months": 12,
         "is_active": True
     }
@@ -192,3 +202,87 @@ def sample_enrollment_data():
         "planning_center_synced": False,
         "registration_status": "registered"
     }
+
+
+@pytest.fixture
+def admin_token(db_session):
+    """Create a test admin user and return their token."""
+    from app.core.security import create_access_token, get_password_hash
+    from app.models.user import User
+    from datetime import timedelta
+    
+    # Create admin user in database
+    admin_user = User(
+        username="admin",
+        email="admin@test.com",
+        full_name="Admin User",
+        role="admin",
+        hashed_password=get_password_hash("password"),
+        is_active=True
+    )
+    db_session.add(admin_user)
+    db_session.commit()
+    db_session.refresh(admin_user)
+    
+    # Create a token for admin user
+    access_token_expires = timedelta(minutes=30)
+    access_token = create_access_token(
+        data={"sub": str(admin_user.id)}, expires_delta=access_token_expires
+    )
+    return access_token
+
+
+@pytest.fixture
+def staff_token(db_session):
+    """Create a test staff user and return their token."""
+    from app.core.security import create_access_token, get_password_hash
+    from app.models.user import User
+    from datetime import timedelta
+    
+    # Create staff user in database
+    staff_user = User(
+        username="staff",
+        email="staff@test.com",
+        full_name="Staff User",
+        role="staff",
+        hashed_password=get_password_hash("password"),
+        is_active=True
+    )
+    db_session.add(staff_user)
+    db_session.commit()
+    db_session.refresh(staff_user)
+    
+    # Create a token for staff user
+    access_token_expires = timedelta(minutes=30)
+    access_token = create_access_token(
+        data={"sub": str(staff_user.id)}, expires_delta=access_token_expires
+    )
+    return access_token
+
+
+@pytest.fixture
+def viewer_token(db_session):
+    """Create a test viewer user and return their token."""
+    from app.core.security import create_access_token, get_password_hash
+    from app.models.user import User
+    from datetime import timedelta
+    
+    # Create viewer user in database
+    viewer_user = User(
+        username="viewer",
+        email="viewer@test.com",
+        full_name="Viewer User",
+        role="viewer",
+        hashed_password=get_password_hash("password"),
+        is_active=True
+    )
+    db_session.add(viewer_user)
+    db_session.commit()
+    db_session.refresh(viewer_user)
+    
+    # Create a token for viewer user
+    access_token_expires = timedelta(minutes=30)
+    access_token = create_access_token(
+        data={"sub": str(viewer_user.id)}, expires_delta=access_token_expires
+    )
+    return access_token

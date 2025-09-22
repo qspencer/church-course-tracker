@@ -5,13 +5,38 @@ Reporting endpoints
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from typing import List, Optional
-from datetime import datetime
+from datetime import datetime, date
 
 from app.core.database import get_db
 from app.schemas.report import ReportResponse, ReportType
 from app.services.report_service import ReportService
 
 router = APIRouter()
+
+
+@router.get("/dashboard")
+async def get_dashboard_stats(
+    db: Session = Depends(get_db)
+):
+    """Get dashboard statistics"""
+    report_service = ReportService(db)
+    return report_service.get_dashboard_stats()
+
+
+@router.get("/completion-trends")
+async def get_completion_trends(
+    start_date: Optional[date] = None,
+    end_date: Optional[date] = None,
+    course_ids: Optional[List[int]] = Query(None),
+    db: Session = Depends(get_db)
+):
+    """Get completion trends data"""
+    report_service = ReportService(db)
+    return report_service.get_completion_trends(
+        start_date=start_date,
+        end_date=end_date,
+        course_ids=course_ids
+    )
 
 
 @router.get("/enrollment", response_model=ReportResponse)

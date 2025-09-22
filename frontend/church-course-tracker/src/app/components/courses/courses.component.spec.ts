@@ -19,12 +19,14 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { CoursesComponent } from './courses.component';
 import { CourseService } from '../../services/course.service';
+import { AuthService } from '../../services/auth.service';
 import { Course } from '../../models';
 
 describe('CoursesComponent', () => {
   let component: CoursesComponent;
   let fixture: ComponentFixture<CoursesComponent>;
   let courseServiceSpy: jasmine.SpyObj<CourseService>;
+  let authServiceSpy: jasmine.SpyObj<AuthService>;
   let dialogSpy: jasmine.SpyObj<MatDialog>;
   let snackBarSpy: jasmine.SpyObj<MatSnackBar>;
 
@@ -51,6 +53,7 @@ describe('CoursesComponent', () => {
 
   beforeEach(async () => {
     const courseSpy = jasmine.createSpyObj('CourseService', ['getCourses', 'deleteCourse', 'updateCourse']);
+    const authSpy = jasmine.createSpyObj('AuthService', ['hasRole', 'hasAnyRole']);
     const matDialogSpy = jasmine.createSpyObj('MatDialog', ['open']);
     const matSnackBarSpy = jasmine.createSpyObj('MatSnackBar', ['open']);
 
@@ -72,6 +75,7 @@ describe('CoursesComponent', () => {
       ],
       providers: [
         { provide: CourseService, useValue: courseSpy },
+        { provide: AuthService, useValue: authSpy },
         { provide: MatDialog, useValue: matDialogSpy },
         { provide: MatSnackBar, useValue: matSnackBarSpy }
       ]
@@ -80,6 +84,7 @@ describe('CoursesComponent', () => {
     fixture = TestBed.createComponent(CoursesComponent);
     component = fixture.componentInstance;
     courseServiceSpy = TestBed.inject(CourseService) as jasmine.SpyObj<CourseService>;
+    authServiceSpy = TestBed.inject(AuthService) as jasmine.SpyObj<AuthService>;
     dialogSpy = TestBed.inject(MatDialog) as jasmine.SpyObj<MatDialog>;
     snackBarSpy = TestBed.inject(MatSnackBar) as jasmine.SpyObj<MatSnackBar>;
 
@@ -305,6 +310,92 @@ describe('CoursesComponent', () => {
 
       const compiled = fixture.nativeElement;
       expect(compiled.querySelector('.no-data')).toBeTruthy();
+    });
+  });
+
+  describe('Role-based Access Control', () => {
+    it('should allow admin to create courses', () => {
+      authServiceSpy.hasAnyRole.and.returnValue(true);
+      
+      expect(component.canCreateCourse()).toBe(true);
+      expect(authServiceSpy.hasAnyRole).toHaveBeenCalledWith(['admin', 'staff']);
+    });
+
+    it('should allow staff to create courses', () => {
+      authServiceSpy.hasAnyRole.and.returnValue(true);
+      
+      expect(component.canCreateCourse()).toBe(true);
+      expect(authServiceSpy.hasAnyRole).toHaveBeenCalledWith(['admin', 'staff']);
+    });
+
+    it('should not allow viewer to create courses', () => {
+      authServiceSpy.hasAnyRole.and.returnValue(false);
+      
+      expect(component.canCreateCourse()).toBe(false);
+      expect(authServiceSpy.hasAnyRole).toHaveBeenCalledWith(['admin', 'staff']);
+    });
+
+    it('should allow admin to edit courses', () => {
+      authServiceSpy.hasAnyRole.and.returnValue(true);
+      
+      expect(component.canEditCourse()).toBe(true);
+      expect(authServiceSpy.hasAnyRole).toHaveBeenCalledWith(['admin', 'staff']);
+    });
+
+    it('should allow staff to edit courses', () => {
+      authServiceSpy.hasAnyRole.and.returnValue(true);
+      
+      expect(component.canEditCourse()).toBe(true);
+      expect(authServiceSpy.hasAnyRole).toHaveBeenCalledWith(['admin', 'staff']);
+    });
+
+    it('should not allow viewer to edit courses', () => {
+      authServiceSpy.hasAnyRole.and.returnValue(false);
+      
+      expect(component.canEditCourse()).toBe(false);
+      expect(authServiceSpy.hasAnyRole).toHaveBeenCalledWith(['admin', 'staff']);
+    });
+
+    it('should allow admin to delete courses', () => {
+      authServiceSpy.hasRole.and.returnValue(true);
+      
+      expect(component.canDeleteCourse()).toBe(true);
+      expect(authServiceSpy.hasRole).toHaveBeenCalledWith('admin');
+    });
+
+    it('should not allow staff to delete courses', () => {
+      authServiceSpy.hasRole.and.returnValue(false);
+      
+      expect(component.canDeleteCourse()).toBe(false);
+      expect(authServiceSpy.hasRole).toHaveBeenCalledWith('admin');
+    });
+
+    it('should not allow viewer to delete courses', () => {
+      authServiceSpy.hasRole.and.returnValue(false);
+      
+      expect(component.canDeleteCourse()).toBe(false);
+      expect(authServiceSpy.hasRole).toHaveBeenCalledWith('admin');
+    });
+
+    it('should allow admin to toggle course status', () => {
+      authServiceSpy.hasAnyRole.and.returnValue(true);
+      
+      expect(component.canToggleCourseStatus()).toBe(true);
+      expect(authServiceSpy.hasAnyRole).toHaveBeenCalledWith(['admin', 'staff']);
+    });
+
+    it('should allow staff to toggle course status', () => {
+      authServiceSpy.hasAnyRole.and.returnValue(true);
+      
+      expect(component.canToggleCourseStatus()).toBe(true);
+      expect(authServiceSpy.hasAnyRole).toHaveBeenCalledWith(['admin', 'staff']);
+    });
+
+    it('should not allow viewer to toggle course status', () => {
+      authServiceSpy.hasAnyRole.and.returnValue(false);
+      
+      expect(component.canToggleCourseStatus()).toBe(false);
+      expect(authServiceSpy.hasAnyRole).toHaveBeenCalledWith(['admin', 'staff']);
     });
   });
 });

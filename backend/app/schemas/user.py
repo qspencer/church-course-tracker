@@ -9,6 +9,7 @@ from datetime import datetime
 
 class UserBase(BaseModel):
     """Base user schema"""
+    username: Optional[str] = Field(None, min_length=1, max_length=50)
     email: EmailStr
     full_name: str = Field(..., min_length=1, max_length=200)
     role: str = Field(default="staff", pattern="^(admin|staff|viewer)$")
@@ -22,6 +23,7 @@ class UserCreate(UserBase):
 
 class UserUpdate(BaseModel):
     """Schema for updating a user"""
+    username: Optional[str] = Field(None, min_length=1, max_length=50)
     email: Optional[EmailStr] = None
     full_name: Optional[str] = Field(None, min_length=1, max_length=200)
     role: Optional[str] = Field(None, pattern="^(admin|staff|viewer)$")

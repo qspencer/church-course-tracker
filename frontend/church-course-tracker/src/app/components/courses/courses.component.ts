@@ -5,6 +5,7 @@ import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { CourseService } from '../../services/course.service';
+import { AuthService } from '../../services/auth.service';
 import { Course } from '../../models';
 import { CourseDialogComponent } from './course-dialog/course-dialog.component';
 import { ConfirmDialogComponent } from '../../shared/confirm-dialog/confirm-dialog.component';
@@ -24,6 +25,7 @@ export class CoursesComponent implements OnInit {
 
   constructor(
     private courseService: CourseService,
+    private authService: AuthService,
     private dialog: MatDialog,
     private snackBar: MatSnackBar
   ) {}
@@ -128,5 +130,22 @@ export class CoursesComponent implements OnInit {
 
   getStatusText(isActive: boolean): string {
     return isActive ? 'Active' : 'Inactive';
+  }
+
+  // Role-based access control methods
+  canCreateCourse(): boolean {
+    return this.authService.hasAnyRole(['admin', 'staff']);
+  }
+
+  canEditCourse(): boolean {
+    return this.authService.hasAnyRole(['admin', 'staff']);
+  }
+
+  canDeleteCourse(): boolean {
+    return this.authService.hasRole('admin');
+  }
+
+  canToggleCourseStatus(): boolean {
+    return this.authService.hasAnyRole(['admin', 'staff']);
   }
 }

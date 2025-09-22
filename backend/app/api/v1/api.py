@@ -4,11 +4,14 @@ API v1 router configuration
 
 from fastapi import APIRouter
 from app.api.v1.endpoints import (
-    courses, enrollments, progress, reports, users, sync,
+    auth, courses, enrollments, progress, reports, users, sync,
     people, planning_center_sync
 )
 
 api_router = APIRouter()
+
+# Authentication endpoints
+api_router.include_router(auth.router, prefix="/auth", tags=["authentication"])
 
 # Core entity endpoints
 api_router.include_router(people.router, prefix="/people", tags=["people"])

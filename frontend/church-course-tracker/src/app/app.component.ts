@@ -1,6 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from './services/auth.service';
+import { MatSidenav } from '@angular/material/sidenav';
 
 @Component({
   selector: 'app-root',
@@ -8,6 +9,7 @@ import { AuthService } from './services/auth.service';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent implements OnInit {
+  @ViewChild('sidenav') sidenav!: MatSidenav;
   title = 'Church Course Tracker';
   isAuthenticated = false;
   currentUser: any = null;
@@ -30,5 +32,9 @@ export class AppComponent implements OnInit {
   logout(): void {
     this.authService.logout();
     this.router.navigate(['/auth']);
+  }
+
+  isAdmin(): boolean {
+    return this.authService.isAdmin();
   }
 }

@@ -10,7 +10,7 @@ from app.services.people_service import PeopleService
 from app.services.course_service import CourseService
 from app.services.enrollment_service import CourseEnrollmentService
 from app.services.planning_center_sync_service import PlanningCenterSyncService
-from app.models.people import People
+from app.models.member import People
 from app.models.course import Course
 from app.models.enrollment import CourseEnrollment
 from app.schemas.people import PeopleCreate, PeopleUpdate

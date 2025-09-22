@@ -1,0 +1,37 @@
+import { Injectable } from '@angular/core';
+import { CanActivate, Router } from '@angular/router';
+import { Observable } from 'rxjs';
+import { map, take } from 'rxjs/operators';
+import { AuthService } from '../services/auth.service';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class AdminGuard implements CanActivate {
+  constructor(
+    private authService: AuthService,
+    private router: Router
+  ) {}
+
+  canActivate(): Observable<boolean> {
+    return this.authService.currentUser$.pipe(
+      take(1),
+      map(user => {
+        if (!user) {
+          // User not authenticated, redirect to login
+          this.router.navigate(['/auth']);
+          return false;
+        }
+
+        if (user.role !== 'admin') {
+          // User is authenticated but not admin, redirect to dashboard
+          this.router.navigate(['/dashboard']);
+          return false;
+        }
+
+        // User is admin, allow access
+        return true;
+      })
+    );
+  }
+}

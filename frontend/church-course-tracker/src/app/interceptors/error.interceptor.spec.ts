@@ -151,7 +151,8 @@ describe('ErrorInterceptor', () => {
     });
 
     const req = httpMock.expectOne('/test');
-    req.error(new ErrorEvent('Network error'), { status: 0 });
+    const errorEvent = new ErrorEvent('Network error', { message: 'Network error' });
+    req.error(errorEvent, { status: 0 });
 
     expect(snackBarSpy.open).toHaveBeenCalledWith('Network error', 'Close', {
       duration: 5000,

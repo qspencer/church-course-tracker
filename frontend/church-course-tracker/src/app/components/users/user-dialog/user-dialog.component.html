@@ -1,0 +1,88 @@
+<div class="user-dialog">
+  <h2 mat-dialog-title>
+    {{ data.mode === 'create' ? 'Create New User' : 'Edit User' }}
+  </h2>
+
+  <mat-dialog-content>
+    <form [formGroup]="userForm" (ngSubmit)="onSubmit()">
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Full Name</mat-label>
+          <input matInput formControlName="full_name" placeholder="Enter full name">
+          <mat-error *ngIf="userForm.get('full_name')?.invalid && userForm.get('full_name')?.touched">
+            {{ getErrorMessage('full_name') }}
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Email</mat-label>
+          <input matInput type="email" formControlName="email" placeholder="Enter email address">
+          <mat-error *ngIf="userForm.get('email')?.invalid && userForm.get('email')?.touched">
+            {{ getErrorMessage('email') }}
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Username (Optional)</mat-label>
+          <input matInput formControlName="username" placeholder="Enter username">
+          <mat-hint>Leave blank to use email as username</mat-hint>
+        </mat-form-field>
+      </div>
+
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Role</mat-label>
+          <mat-select formControlName="role">
+            <mat-option value="admin">Admin</mat-option>
+            <mat-option value="staff">Staff</mat-option>
+            <mat-option value="viewer">Viewer</mat-option>
+          </mat-select>
+          <mat-error *ngIf="userForm.get('role')?.invalid && userForm.get('role')?.touched">
+            {{ getErrorMessage('role') }}
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Password</mat-label>
+          <input matInput [type]="hidePassword ? 'password' : 'text'" 
+                 formControlName="password" 
+                 placeholder="Enter password">
+          <button mat-icon-button matSuffix (click)="hidePassword = !hidePassword" type="button">
+            <mat-icon>{{hidePassword ? 'visibility_off' : 'visibility'}}</mat-icon>
+          </button>
+          <mat-hint *ngIf="data.mode === 'edit'">Leave blank to keep current password</mat-hint>
+          <mat-hint *ngIf="data.mode === 'create'">Minimum 8 characters</mat-hint>
+          <mat-error *ngIf="userForm.get('password')?.invalid && userForm.get('password')?.touched">
+            {{ getErrorMessage('password') }}
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="form-row">
+        <mat-checkbox formControlName="is_active">
+          Active User
+        </mat-checkbox>
+        <mat-hint>Inactive users cannot log in</mat-hint>
+      </div>
+    </form>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button (click)="onCancel()" [disabled]="isSubmitting">
+      Cancel
+    </button>
+    <button mat-raised-button 
+            color="primary" 
+            (click)="onSubmit()" 
+            [disabled]="userForm.invalid || isSubmitting">
+      <mat-spinner *ngIf="isSubmitting" diameter="20"></mat-spinner>
+      <span *ngIf="!isSubmitting">{{ data.mode === 'create' ? 'Create' : 'Update' }}</span>
+    </button>
+  </mat-dialog-actions>
+</div>

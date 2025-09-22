@@ -9,6 +9,7 @@ from typing import List, Optional
 from app.core.database import get_db
 from app.schemas.course import Course, CourseCreate, CourseUpdate
 from app.services.course_service import CourseService
+from app.api.v1.endpoints.auth import get_current_active_user, get_current_admin_user
 
 router = APIRouter()
 
@@ -60,22 +61,38 @@ async def get_course_by_pc_event_id(
 @router.post("/", response_model=Course, status_code=status.HTTP_201_CREATED)
 async def create_course(
     course: CourseCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_active_user)
 ):
-    """Create a new course"""
+    """Create a new course - Admin and Staff only"""
+    # Check if user has permission to create courses
+    if current_user["role"] not in ["admin", "staff"]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only admin and staff users can create courses"
+        )
+    
     course_service = CourseService(db)
-    return course_service.create_course(course)
+    return course_service.create_course(course, created_by=current_user["id"])
 
 
 @router.put("/{course_id}", response_model=Course)
 async def update_course(
     course_id: int,
     course_update: CourseUpdate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_active_user)
 ):
-    """Update an existing course"""
+    """Update an existing course - Admin and Staff only"""
+    # Check if user has permission to update courses
+    if current_user["role"] not in ["admin", "staff"]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only admin and staff users can update courses"
+        )
+    
     course_service = CourseService(db)
-    course = course_service.update_course(course_id, course_update)
+    course = course_service.update_course(course_id, course_update, updated_by=current_user["id"])
     if not course:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -87,9 +104,17 @@ async def update_course(
 @router.delete("/{course_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_course(
     course_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_active_user)
 ):
-    """Delete a course"""
+    """Delete a course - Admin only"""
+    # Check if user has permission to delete courses
+    if current_user["role"] != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only admin users can delete courses"
+        )
+    
     course_service = CourseService(db)
     success = course_service.delete_course(course_id)
     if not success:

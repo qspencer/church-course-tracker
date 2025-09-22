@@ -98,7 +98,7 @@ describe('ReportService', () => {
         request.params.get('start_date') === '2023-01-01' &&
         request.params.get('end_date') === '2023-01-31' &&
         request.params.get('status') === 'completed' &&
-        request.params.getAll('course_ids').length === 2
+        request.params.getAll('course_ids')?.length === 2
       );
       expect(req.request.method).toBe('GET');
       req.flush(mockProgressReport);
@@ -107,7 +107,14 @@ describe('ReportService', () => {
 
   describe('getCompletionTrends', () => {
     it('should fetch completion trends', () => {
-      const mockTrends = [{ date: '2023-01-01', completions: 5, enrollments: 10 }];
+      const mockTrends = {
+        trends: [{ date: '2023-01-01', completions: 5, enrollments: 10 }],
+        period: {
+          start_date: '2023-01-01',
+          end_date: '2023-01-01'
+        },
+        course_ids: []
+      };
 
       service.getCompletionTrends().subscribe(trends => {
         expect(trends).toEqual(mockTrends);

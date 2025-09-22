@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { DashboardStats, ProgressReport, ReportFilters } from '../models';
+import { DashboardStats, ProgressReport, ReportFilters, CompletionTrendsResponse } from '../models';
 
 @Injectable({
   providedIn: 'root'
@@ -33,7 +33,7 @@ export class ReportService {
     return this.http.get<ProgressReport>(`${this.API_URL}/progress`, { params: httpParams });
   }
 
-  getCompletionTrends(filters?: ReportFilters): Observable<any[]> {
+  getCompletionTrends(filters?: ReportFilters): Observable<CompletionTrendsResponse> {
     let httpParams = new HttpParams();
     if (filters) {
       Object.keys(filters).forEach(key => {
@@ -43,7 +43,7 @@ export class ReportService {
         }
       });
     }
-    return this.http.get<any[]>(`${this.API_URL}/completion-trends`, { params: httpParams });
+    return this.http.get<CompletionTrendsResponse>(`${this.API_URL}/completion-trends`, { params: httpParams });
   }
 
   exportReport(reportType: string, filters?: ReportFilters): Observable<Blob> {

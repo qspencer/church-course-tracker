@@ -124,8 +124,15 @@ class SyncService:
     
     def _get_auth_headers(self) -> dict:
         """Get authentication headers for Planning Center API"""
-        # This is a placeholder - implement proper OAuth or API key auth
+        if not self.app_id or not self.secret:
+            raise ValueError("Planning Center credentials not configured. Please set PLANNING_CENTER_APP_ID and PLANNING_CENTER_SECRET.")
+        
+        # Use HTTP Basic Authentication for Personal Access Tokens
+        import base64
+        credentials = f"{self.app_id}:{self.secret}"
+        encoded_credentials = base64.b64encode(credentials.encode()).decode()
+        
         return {
-            "Authorization": f"Bearer {self.secret}",
+            "Authorization": f"Basic {encoded_credentials}",
             "Content-Type": "application/json"
         }

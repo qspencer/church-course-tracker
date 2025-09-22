@@ -56,6 +56,21 @@ export class AuthService {
     return this.currentUserSubject.value;
   }
 
+  isAdmin(): boolean {
+    const user = this.getCurrentUser();
+    return user?.role === 'admin';
+  }
+
+  hasRole(role: string): boolean {
+    const user = this.getCurrentUser();
+    return user?.role === role;
+  }
+
+  hasAnyRole(roles: string[]): boolean {
+    const user = this.getCurrentUser();
+    return user ? roles.includes(user.role) : false;
+  }
+
   private hasToken(): boolean {
     return !!localStorage.getItem(this.TOKEN_KEY);
   }

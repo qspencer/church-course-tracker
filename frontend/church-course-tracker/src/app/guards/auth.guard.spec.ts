@@ -47,7 +47,7 @@ describe('AuthGuard', () => {
     routerSpy.createUrlTree.and.returnValue(urlTree);
 
     guard.canActivate().subscribe(result => {
-      expect(result).toBe(urlTree);
+      expect(result).toEqual(urlTree);
       expect(routerSpy.createUrlTree).toHaveBeenCalledWith(['/auth']);
       done();
     });

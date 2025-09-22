@@ -34,8 +34,8 @@ def upgrade() -> None:
         sa.Column('email', sa.String(length=255), nullable=True),
         sa.Column('planning_center_location_id', sa.String(length=50), nullable=True),
         sa.Column('is_active', sa.Boolean(), nullable=False),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
-        sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=True),
+        sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=True),
         sa.Column('created_by', sa.Integer(), nullable=True),
         sa.Column('updated_by', sa.Integer(), nullable=True),
         sa.PrimaryKeyConstraint('id')
@@ -50,8 +50,8 @@ def upgrade() -> None:
         sa.Column('description', sa.Text(), nullable=True),
         sa.Column('permissions', sa.JSON(), nullable=True),
         sa.Column('is_active', sa.Boolean(), nullable=False),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
-        sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=True),
+        sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=True),
         sa.Column('created_by', sa.Integer(), nullable=True),
         sa.Column('updated_by', sa.Integer(), nullable=True),
         sa.PrimaryKeyConstraint('id')
@@ -66,8 +66,8 @@ def upgrade() -> None:
         sa.Column('description', sa.Text(), nullable=True),
         sa.Column('icon_class', sa.String(length=100), nullable=True),
         sa.Column('is_active', sa.Boolean(), nullable=False),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
-        sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=True),
+        sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=True),
         sa.Column('created_by', sa.Integer(), nullable=True),
         sa.Column('updated_by', sa.Integer(), nullable=True),
         sa.PrimaryKeyConstraint('id')
@@ -96,8 +96,8 @@ def upgrade() -> None:
         sa.Column('join_date', sa.Date(), nullable=True),
         sa.Column('last_synced_at', sa.DateTime(timezone=True), nullable=True),
         sa.Column('is_active', sa.Boolean(), nullable=False),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
-        sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=True),
+        sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=True),
         sa.Column('created_by', sa.Integer(), nullable=True),
         sa.Column('updated_by', sa.Integer(), nullable=True),
         sa.PrimaryKeyConstraint('id')
@@ -120,8 +120,8 @@ def upgrade() -> None:
         sa.Column('max_capacity', sa.Integer(), nullable=True),
         sa.Column('current_registrations', sa.Integer(), nullable=False),
         sa.Column('is_active', sa.Boolean(), nullable=False),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
-        sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=True),
+        sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=True),
         sa.Column('created_by', sa.Integer(), nullable=True),
         sa.Column('updated_by', sa.Integer(), nullable=True),
         sa.PrimaryKeyConstraint('id')
@@ -142,8 +142,8 @@ def upgrade() -> None:
         sa.Column('duration_minutes', sa.Integer(), nullable=True),
         sa.Column('is_required', sa.Boolean(), nullable=False),
         sa.Column('is_active', sa.Boolean(), nullable=False),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
-        sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=True),
+        sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=True),
         sa.Column('created_by', sa.Integer(), nullable=True),
         sa.Column('updated_by', sa.Integer(), nullable=True),
         sa.PrimaryKeyConstraint('id')
@@ -160,8 +160,8 @@ def upgrade() -> None:
         sa.Column('required_courses', sa.JSON(), nullable=True),
         sa.Column('validity_months', sa.Integer(), nullable=True),
         sa.Column('is_active', sa.Boolean(), nullable=False),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
-        sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=True),
+        sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=True),
         sa.Column('created_by', sa.Integer(), nullable=True),
         sa.Column('updated_by', sa.Integer(), nullable=True),
         sa.PrimaryKeyConstraint('id')
@@ -177,8 +177,8 @@ def upgrade() -> None:
         sa.Column('assigned_date', sa.Date(), nullable=False),
         sa.Column('is_primary', sa.Boolean(), nullable=False),
         sa.Column('is_active', sa.Boolean(), nullable=False),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
-        sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=True),
+        sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=True),
         sa.Column('created_by', sa.Integer(), nullable=True),
         sa.Column('updated_by', sa.Integer(), nullable=True),
         sa.ForeignKeyConstraint(['campus_id'], ['campus.id'], ),
@@ -196,8 +196,8 @@ def upgrade() -> None:
         sa.Column('assigned_date', sa.Date(), nullable=False),
         sa.Column('assigned_by', sa.Integer(), nullable=True),
         sa.Column('is_active', sa.Boolean(), nullable=False),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
-        sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=True),
+        sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=True),
         sa.ForeignKeyConstraint(['people_id'], ['people.id'], ),
         sa.ForeignKeyConstraint(['role_id'], ['role.id'], ),
         sa.PrimaryKeyConstraint('id')
@@ -211,7 +211,7 @@ def upgrade() -> None:
         sa.Column('people_id', sa.Integer(), nullable=False),
         sa.Column('course_id', sa.Integer(), nullable=False),
         sa.Column('planning_center_registration_id', sa.String(length=50), nullable=True),
-        sa.Column('enrollment_date', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+        sa.Column('enrollment_date', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=True),
         sa.Column('status', sa.String(length=20), nullable=False),
         sa.Column('progress_percentage', sa.Float(), nullable=False),
         sa.Column('completion_date', sa.DateTime(timezone=True), nullable=True),
@@ -221,8 +221,8 @@ def upgrade() -> None:
         sa.Column('planning_center_synced', sa.Boolean(), nullable=False),
         sa.Column('registration_status', sa.String(length=20), nullable=True),
         sa.Column('registration_notes', sa.Text(), nullable=True),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
-        sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=True),
+        sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=True),
         sa.Column('created_by', sa.Integer(), nullable=True),
         sa.Column('updated_by', sa.Integer(), nullable=True),
         sa.ForeignKeyConstraint(['course_id'], ['courses.id'], ),
@@ -242,8 +242,8 @@ def upgrade() -> None:
         sa.Column('assigned_date', sa.Date(), nullable=False),
         sa.Column('assigned_by', sa.Integer(), nullable=True),
         sa.Column('is_active', sa.Boolean(), nullable=False),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
-        sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=True),
+        sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=True),
         sa.ForeignKeyConstraint(['course_id'], ['courses.id'], ),
         sa.ForeignKeyConstraint(['people_id'], ['people.id'], ),
         sa.PrimaryKeyConstraint('id')
@@ -260,8 +260,8 @@ def upgrade() -> None:
         sa.Column('completed_date', sa.Date(), nullable=True),
         sa.Column('status', sa.String(length=20), nullable=False),
         sa.Column('expires_date', sa.Date(), nullable=True),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
-        sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=True),
+        sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=True),
         sa.Column('created_by', sa.Integer(), nullable=True),
         sa.Column('updated_by', sa.Integer(), nullable=True),
         sa.ForeignKeyConstraint(['certification_id'], ['certification.id'], ),
@@ -280,8 +280,8 @@ def upgrade() -> None:
         sa.Column('time_spent_minutes', sa.Integer(), nullable=True),
         sa.Column('score', sa.Float(), nullable=True),
         sa.Column('notes', sa.Text(), nullable=True),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
-        sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=True),
+        sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=True),
         sa.ForeignKeyConstraint(['content_id'], ['content.id'], ),
         sa.ForeignKeyConstraint(['course_enrollment_id'], ['course_enrollment.id'], ),
         sa.PrimaryKeyConstraint('id')
@@ -314,7 +314,7 @@ def upgrade() -> None:
         sa.Column('processed', sa.Boolean(), nullable=False),
         sa.Column('processed_at', sa.DateTime(timezone=True), nullable=True),
         sa.Column('error_message', sa.Text(), nullable=True),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=True),
         sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_planning_center_webhook_events_id'), 'planning_center_webhook_events', ['id'], unique=False)
@@ -332,8 +332,8 @@ def upgrade() -> None:
         sa.Column('registration_deadline', sa.DateTime(timezone=True), nullable=True),
         sa.Column('event_status', sa.String(length=50), nullable=True),
         sa.Column('last_synced_at', sa.DateTime(timezone=True), nullable=True),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
-        sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=True),
+        sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=True),
         sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_planning_center_events_cache_id'), 'planning_center_events_cache', ['id'], unique=False)
@@ -349,8 +349,8 @@ def upgrade() -> None:
         sa.Column('registration_notes', sa.Text(), nullable=True),
         sa.Column('custom_field_responses', sa.JSON(), nullable=True),
         sa.Column('last_synced_at', sa.DateTime(timezone=True), nullable=True),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
-        sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=True),
+        sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=True),
         sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_planning_center_registrations_cache_id'), 'planning_center_registrations_cache', ['id'], unique=False)
@@ -367,7 +367,7 @@ def upgrade() -> None:
         sa.Column('old_values', sa.JSON(), nullable=True),
         sa.Column('new_values', sa.JSON(), nullable=True),
         sa.Column('changed_by', sa.Integer(), nullable=True),
-        sa.Column('changed_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+        sa.Column('changed_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=True),
         sa.Column('ip_address', sa.String(length=45), nullable=True),
         sa.Column('user_agent', sa.Text(), nullable=True),
         sa.PrimaryKeyConstraint('id')
@@ -385,9 +385,7 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint('certification_id', 'course_id')
     )
 
-    # Add foreign key constraints
-    op.create_foreign_key('fk_content_course_id', 'content', 'courses', ['course_id'], ['id'])
-    op.create_foreign_key('fk_content_content_type_id', 'content', 'content_type', ['content_type_id'], ['id'])
+    # Foreign key constraints are already included in table creation
 
 
 def downgrade() -> None:
@@ -421,8 +419,8 @@ def downgrade() -> None:
         sa.Column('email', sa.String(length=255), nullable=True),
         sa.Column('phone', sa.String(length=20), nullable=True),
         sa.Column('address', sa.Text(), nullable=True),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
-        sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=True),
+        sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=True),
         sa.PrimaryKeyConstraint('id')
     )
     
@@ -433,8 +431,8 @@ def downgrade() -> None:
         sa.Column('duration_weeks', sa.Integer(), nullable=True),
         sa.Column('prerequisites', sa.JSON(), nullable=True),
         sa.Column('is_active', sa.Boolean(), nullable=False),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
-        sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=True),
+        sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=True),
         sa.PrimaryKeyConstraint('id')
     )
     
@@ -442,11 +440,11 @@ def downgrade() -> None:
         sa.Column('id', sa.Integer(), nullable=False),
         sa.Column('member_id', sa.Integer(), nullable=False),
         sa.Column('course_id', sa.Integer(), nullable=False),
-        sa.Column('enrolled_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+        sa.Column('enrolled_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=True),
         sa.Column('status', sa.String(length=20), nullable=False),
         sa.Column('notes', sa.Text(), nullable=True),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
-        sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=True),
+        sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=True),
         sa.ForeignKeyConstraint(['course_id'], ['courses.id'], ),
         sa.ForeignKeyConstraint(['member_id'], ['members.id'], ),
         sa.PrimaryKeyConstraint('id')
@@ -459,8 +457,8 @@ def downgrade() -> None:
         sa.Column('completion_percentage', sa.Float(), nullable=False),
         sa.Column('completed_at', sa.DateTime(timezone=True), nullable=True),
         sa.Column('notes', sa.Text(), nullable=True),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
-        sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=True),
+        sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=True),
         sa.ForeignKeyConstraint(['enrollment_id'], ['enrollments.id'], ),
         sa.PrimaryKeyConstraint('id')
     )

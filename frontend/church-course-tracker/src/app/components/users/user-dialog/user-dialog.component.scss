@@ -1,0 +1,51 @@
+.user-dialog {
+  min-width: 400px;
+
+  h2 {
+    margin: 0 0 24px 0;
+    color: #333;
+    font-weight: 500;
+  }
+
+  .form-row {
+    margin-bottom: 16px;
+
+    .full-width {
+      width: 100%;
+    }
+
+    mat-checkbox {
+      margin-bottom: 8px;
+    }
+
+    mat-hint {
+      font-size: 12px;
+      color: #666;
+      margin-top: 4px;
+    }
+  }
+
+  mat-dialog-actions {
+    padding: 16px 0 0 0;
+    margin: 0;
+
+    button {
+      min-width: 100px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      mat-spinner {
+        margin-right: 8px;
+      }
+    }
+  }
+}
+
+// Responsive design
+@media (max-width: 600px) {
+  .user-dialog {
+    min-width: 300px;
+    max-width: 90vw;
+  }
+}

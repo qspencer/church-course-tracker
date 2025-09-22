@@ -7,12 +7,13 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from app.core.config import settings
 
-# Create database engine
-# Note: H2 integration will require JPype setup
+# Create database engine - using SQLite for development
+# TODO: Switch back to H2 in production with proper server mode
 engine = create_engine(
     settings.DATABASE_URL,
     echo=settings.DATABASE_ECHO,
-    pool_pre_ping=True
+    pool_pre_ping=True,
+    connect_args={"check_same_thread": False} if "sqlite" in settings.DATABASE_URL else {}
 )
 
 # Create session factory

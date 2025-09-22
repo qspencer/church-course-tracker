@@ -36,6 +36,10 @@
           <mat-icon matListItemIcon>people</mat-icon>
           <span matListItemTitle>Members</span>
         </a>
+        <a mat-list-item *ngIf="isAdmin()" routerLink="/users" routerLinkActive="active">
+          <mat-icon matListItemIcon>admin_panel_settings</mat-icon>
+          <span matListItemTitle>Users</span>
+        </a>
         <a mat-list-item routerLink="/reports" routerLinkActive="active">
           <mat-icon matListItemIcon>assessment</mat-icon>
           <span matListItemTitle>Reports</span>

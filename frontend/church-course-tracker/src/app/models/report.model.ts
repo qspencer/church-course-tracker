@@ -44,3 +44,12 @@ export interface ReportFilters {
   course_ids?: number[];
   status?: string;
 }
+
+export interface CompletionTrendsResponse {
+  trends: CompletionTrend[];
+  period: {
+    start_date: string;
+    end_date: string;
+  };
+  course_ids: number[];
+}

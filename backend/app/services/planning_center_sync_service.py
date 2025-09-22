@@ -33,15 +33,27 @@ class PlanningCenterSyncService:
         self.course_service = CourseService(db)
         self.enrollment_service = CourseEnrollmentService(db)
         self.base_url = "https://api.planningcenteronline.com"
-        self.headers = {
-            "Authorization": f"Bearer {settings.PLANNING_CENTER_ACCESS_TOKEN}",
-            "Content-Type": "application/json"
-        }
+        self.headers = self._get_auth_headers()
     
     def _get_db_session(self):
         """Get a new database session for background tasks"""
         from app.core.database import SessionLocal
         return SessionLocal()
+    
+    def _get_auth_headers(self) -> dict:
+        """Get authentication headers for Planning Center API"""
+        if not settings.PLANNING_CENTER_APP_ID or not settings.PLANNING_CENTER_SECRET:
+            raise ValueError("Planning Center credentials not configured. Please set PLANNING_CENTER_APP_ID and PLANNING_CENTER_SECRET.")
+        
+        # Use HTTP Basic Authentication for Personal Access Tokens
+        import base64
+        credentials = f"{settings.PLANNING_CENTER_APP_ID}:{settings.PLANNING_CENTER_SECRET}"
+        encoded_credentials = base64.b64encode(credentials.encode()).decode()
+        
+        return {
+            "Authorization": f"Basic {encoded_credentials}",
+            "Content-Type": "application/json"
+        }
     
     def _create_sync_task(self, task_type: str, task_id: str = None) -> str:
         """Create a new sync task entry"""

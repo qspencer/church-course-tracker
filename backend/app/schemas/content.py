@@ -27,6 +27,7 @@ class ContentCreate(ContentBase):
 
 class ContentUpdate(BaseModel):
     """Schema for updating content"""
+    course_id: Optional[int] = None
     title: Optional[str] = Field(None, min_length=1, max_length=200)
     content_type_id: Optional[int] = None
     order_sequence: Optional[int] = Field(None, ge=0)
