@@ -23,18 +23,23 @@ def get_engine_config():
         # SQLite configuration
         config.update({
             "connect_args": {"check_same_thread": False},
-            "poolclass": None,  # SQLite doesn't support connection pooling
         })
     else:
         # PostgreSQL/MySQL configuration with connection pooling
-        config.update({
-            "poolclass": QueuePool,
-            "pool_size": int(settings.DATABASE_POOL_SIZE),
-            "max_overflow": int(settings.DATABASE_MAX_OVERFLOW),
-            "pool_timeout": int(settings.DATABASE_POOL_TIMEOUT),
-            "pool_recycle": int(settings.DATABASE_POOL_RECYCLE),
-            "pool_pre_ping": True,
-        })
+        try:
+            config.update({
+                "poolclass": QueuePool,
+                "pool_size": settings.DATABASE_POOL_SIZE,
+                "max_overflow": settings.DATABASE_MAX_OVERFLOW,
+                "pool_timeout": settings.DATABASE_POOL_TIMEOUT,
+                "pool_recycle": settings.DATABASE_POOL_RECYCLE,
+                "pool_pre_ping": True,
+            })
+        except (ValueError, TypeError) as e:
+            logger.warning(f"Database pool configuration error: {e}. Using defaults.")
+            config.update({
+                "pool_pre_ping": True,
+            })
     
     return config
 

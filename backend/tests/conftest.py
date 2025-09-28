@@ -12,6 +12,7 @@ from datetime import datetime, date
 
 # Override database configuration for tests
 os.environ["DATABASE_URL"] = "sqlite:///:memory:"
+os.environ["RATE_LIMIT_ENABLED"] = "false"
 
 # Test database URL - use in-memory SQLite for tests
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
@@ -33,6 +34,27 @@ from main import app
 
 # Import all models to ensure they are registered with SQLAlchemy
 from app.models import *
+# Import all models explicitly to ensure they are registered
+from app.models.audit_log import AuditLog
+from app.models.campus import Campus
+from app.models.certification import Certification
+from app.models.certification_progress import CertificationProgress
+from app.models.content import Content
+from app.models.content_type import ContentType
+from app.models.course import Course
+from app.models.course_content import CourseContent, CourseModule, ContentAccessLog, ContentAuditLog
+from app.models.course_role import CourseRole
+from app.models.enrollment import CourseEnrollment
+from app.models.member import People
+from app.models.people_campus import PeopleCampus
+from app.models.people_role import PeopleRole
+from app.models.planning_center_events_cache import PlanningCenterEventsCache
+from app.models.planning_center_registrations_cache import PlanningCenterRegistrationsCache
+from app.models.planning_center_sync_log import PlanningCenterSyncLog
+from app.models.planning_center_webhook_events import PlanningCenterWebhookEvents
+from app.models.progress import ContentCompletion
+from app.models.role import Role
+from app.models.user import User
 
 # Disable TrustedHostMiddleware for tests
 app.user_middleware = [mw for mw in app.user_middleware if 'TrustedHostMiddleware' not in str(mw)]
