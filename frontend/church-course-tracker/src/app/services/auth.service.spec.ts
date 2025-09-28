@@ -166,11 +166,20 @@ describe('AuthService', () => {
 
   describe('refreshToken', () => {
     it('should refresh token and update user data', (done) => {
-      service.refreshToken().subscribe(response => {
-        expect(response).toEqual(mockLoginResponse);
-        expect(service.getToken()).toBe('mock-token');
-        expect(service.getCurrentUser()).toEqual(jasmine.any(Object));
-        done();
+      service.refreshToken().subscribe({
+        next: (response) => {
+          expect(response).toEqual(mockLoginResponse);
+          expect(service.getToken()).toBe('mock-token');
+          // The user should be set after the tap operator executes
+          setTimeout(() => {
+            expect(service.getCurrentUser()).toEqual(mockLoginResponse.user);
+            done();
+          }, 10);
+        },
+        error: (error) => {
+          fail('Should not have errored: ' + error);
+          done();
+        }
       });
 
       const req = httpMock.expectOne(`${environment.apiUrl}/auth/refresh`);

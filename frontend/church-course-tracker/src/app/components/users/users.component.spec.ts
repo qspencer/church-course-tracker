@@ -62,7 +62,14 @@ describe('UsersComponent', () => {
     const userServiceSpy = jasmine.createSpyObj('UserService', [
       'getUsers', 'deleteUser', 'updateUser'
     ]);
+    // Set up default return values for the service methods
+    userServiceSpy.getUsers.and.returnValue(of(mockUsers));
+    userServiceSpy.deleteUser.and.returnValue(of({}));
+    userServiceSpy.updateUser.and.returnValue(of(mockUsers[0]));
+    
     const authServiceSpy = jasmine.createSpyObj('AuthService', ['isAdmin']);
+    authServiceSpy.isAdmin.and.returnValue(true);
+    
     const routerSpy = jasmine.createSpyObj('Router', ['navigate']);
     const dialogSpy = jasmine.createSpyObj('MatDialog', ['open']);
     const snackBarSpy = jasmine.createSpyObj('MatSnackBar', ['open']);
@@ -133,19 +140,23 @@ describe('UsersComponent', () => {
     });
 
     it('should load users successfully', () => {
+      authService.isAdmin.and.returnValue(true);
       userService.getUsers.and.returnValue(of(mockUsers));
 
-      component.loadUsers();
+      component.ngOnInit();
+      fixture.detectChanges();
 
       expect(component.users).toEqual(mockUsers);
       expect(component.isLoading).toBe(false);
     });
 
     it('should handle error when loading users fails', () => {
+      authService.isAdmin.and.returnValue(true);
       const error = new Error('Failed to load users');
       userService.getUsers.and.returnValue(throwError(() => error));
 
-      component.loadUsers();
+      component.ngOnInit();
+      fixture.detectChanges();
 
       expect(snackBar.open).toHaveBeenCalledWith(
         'Error loading users',

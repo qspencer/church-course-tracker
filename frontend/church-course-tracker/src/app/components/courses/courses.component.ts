@@ -1,4 +1,5 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
+import { Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
@@ -27,7 +28,8 @@ export class CoursesComponent implements OnInit {
     private courseService: CourseService,
     private authService: AuthService,
     private dialog: MatDialog,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -122,6 +124,11 @@ export class CoursesComponent implements OnInit {
   viewCourseDetails(course: Course): void {
     // Navigate to course details page or open detailed dialog
     console.log('View course details:', course);
+  }
+
+  manageCourseContent(course: Course): void {
+    // Navigate to course content management page
+    this.router.navigate(['/courses', course.id, 'content']);
   }
 
   getStatusColor(isActive: boolean): string {

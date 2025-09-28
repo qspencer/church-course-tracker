@@ -103,6 +103,14 @@
                 </button>
                 
                 <button 
+                  mat-icon-button 
+                  color="primary" 
+                  (click)="manageCourseContent(course)"
+                  matTooltip="Manage Content">
+                  <mat-icon>folder</mat-icon>
+                </button>
+                
+                <button 
                   *ngIf="canEditCourse()"
                   mat-icon-button 
                   color="accent" 

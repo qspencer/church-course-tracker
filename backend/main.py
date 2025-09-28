@@ -29,11 +29,12 @@ app.add_middleware(
 )
 
 # Add trusted host middleware for security (disabled in development)
-if settings.ENVIRONMENT != "development":
-    app.add_middleware(
-        TrustedHostMiddleware,
-        allowed_hosts=settings.ALLOWED_HOSTS
-    )
+# Note: Disabled for AWS deployment due to ALB health check issues
+# if settings.ENVIRONMENT != "development":
+#     app.add_middleware(
+#         TrustedHostMiddleware,
+#         allowed_hosts=settings.ALLOWED_HOSTS
+#     )
 
 # Include API router
 app.include_router(api_router, prefix="/api/v1")

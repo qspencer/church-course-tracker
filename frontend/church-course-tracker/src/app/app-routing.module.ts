@@ -24,6 +24,11 @@ const routes: Routes = [
     canActivate: [AuthGuard]
   },
   {
+    path: 'courses/:courseId/content',
+    loadChildren: () => import('./components/course-content/course-content.module').then(m => m.CourseContentModule),
+    canActivate: [AuthGuard]
+  },
+  {
     path: 'enrollments',
     loadChildren: () => import('./components/enrollments/enrollments.module').then(m => m.EnrollmentsModule),
     canActivate: [AuthGuard]
@@ -46,6 +51,11 @@ const routes: Routes = [
   {
     path: 'users',
     loadChildren: () => import('./components/users/users.module').then(m => m.UsersModule),
+    canActivate: [AuthGuard, AdminGuard]
+  },
+  {
+    path: 'audit',
+    loadChildren: () => import('./components/audit/audit.module').then(m => m.AuditModule),
     canActivate: [AuthGuard, AdminGuard]
   },
   {

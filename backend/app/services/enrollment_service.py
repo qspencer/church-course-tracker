@@ -143,6 +143,8 @@ class CourseEnrollmentService:
         if progress_percentage >= 100.0:
             db_enrollment.status = "completed"
             db_enrollment.completion_date = datetime.utcnow()
+        elif progress_percentage > 0.0:
+            db_enrollment.status = "in_progress"
         
         db_enrollment.updated_at = datetime.utcnow()
         db_enrollment.updated_by = updated_by

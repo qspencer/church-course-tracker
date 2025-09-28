@@ -1,4 +1,4 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -230,12 +230,16 @@ describe('AuthComponent', () => {
   });
 
   describe('navigation on authentication', () => {
-    it('should navigate to dashboard if already authenticated', () => {
-      authServiceSpy.isAuthenticated$ = of(true);
-      
-      component.ngOnInit();
+  it('should navigate to dashboard if already authenticated', fakeAsync(() => {
+    // Set up the observable to emit true immediately
+    authServiceSpy.isAuthenticated$ = of(true);
+    
+    // Initialize component
+    component.ngOnInit();
+    tick(); // Wait for the subscription to be processed
+    fixture.detectChanges();
 
-      expect(routerSpy.navigate).toHaveBeenCalledWith(['/dashboard']);
-    });
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/dashboard']);
+  }));
   });
 });

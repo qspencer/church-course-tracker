@@ -186,7 +186,7 @@ class TestCourseSchemas:
     def test_course_create_valid(self):
         """Test valid CourseCreate schema"""
         course_data = {
-            "name": "Introduction to Faith",
+            "title": "Introduction to Faith",
             "description": "Basic course on Christian faith",
             "planning_center_event_id": "evt_123",
             "planning_center_event_name": "Introduction to Faith",
@@ -198,7 +198,7 @@ class TestCourseSchemas:
         }
         
         course = CourseCreate(**course_data)
-        assert course.name == "Introduction to Faith"
+        assert course.title == "Introduction to Faith"
         assert course.planning_center_event_id == "evt_123"
         assert course.max_capacity == 50
         assert course.is_active is True
@@ -206,12 +206,12 @@ class TestCourseSchemas:
     def test_course_update_partial(self):
         """Test CourseUpdate with partial data"""
         update_data = {
-            "name": "Updated Course Name",
+            "title": "Updated Course Name",
             "max_capacity": 75
         }
         
         course_update = CourseUpdate(**update_data)
-        assert course_update.name == "Updated Course Name"
+        assert course_update.title == "Updated Course Name"
         assert course_update.max_capacity == 75
         assert course_update.description is None  # Not provided
 

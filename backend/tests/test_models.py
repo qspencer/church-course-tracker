@@ -134,7 +134,7 @@ class TestCourseModel:
         db_session.commit()
         
         assert course.id is not None
-        assert course.name == "Introduction to Faith"
+        assert course.title == "Introduction to Faith"
         assert course.planning_center_event_id == "evt_123"
         assert course.max_capacity == 50
         assert course.current_registrations == 0

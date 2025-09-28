@@ -25,9 +25,9 @@ class AuditLogCreate(AuditLogBase):
 
 
 class AuditLog(AuditLogBase):
-    """Schema for audit log response"""
+    """Full schema for audit log (response model)"""
     id: int
     changed_at: datetime
-    
+
     class Config:
         from_attributes = True

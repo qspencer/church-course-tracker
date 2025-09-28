@@ -2,7 +2,7 @@
 CourseEnrollment API endpoints (Maps to Planning Center Registrations)
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from typing import List, Optional
 
@@ -77,8 +77,8 @@ async def create_enrollment(
 
 @router.post("/bulk", response_model=List[CourseEnrollment], status_code=status.HTTP_201_CREATED)
 async def bulk_enroll(
-    course_id: int,
-    people_ids: List[int],
+    course_id: int = Query(..., description="Course ID"),
+    people_ids: List[int] = Query(..., description="List of people IDs to enroll"),
     db: Session = Depends(get_db)
 ):
     """Bulk enroll multiple people in a course"""

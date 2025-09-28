@@ -10,6 +10,7 @@ from datetime import datetime
 from app.core.config import settings
 from app.schemas.sync import SyncResponse, SyncStatus
 from app.models.member import People as MemberModel
+from app.services.mock_planning_center_service import MockPlanningCenterService
 
 
 class SyncService:
@@ -20,9 +21,14 @@ class SyncService:
         self.api_url = settings.PLANNING_CENTER_API_URL
         self.app_id = settings.PLANNING_CENTER_APP_ID
         self.secret = settings.PLANNING_CENTER_SECRET
+        self.mock_service = MockPlanningCenterService()
+        self.use_mock = settings.USE_MOCK_PLANNING_CENTER or settings.ENVIRONMENT == "development" or not self.app_id or not self.secret
     
     async def test_connection(self) -> bool:
         """Test connection to Planning Center API"""
+        if self.use_mock:
+            return await self.mock_service.test_connection()
+        
         try:
             async with httpx.AsyncClient() as client:
                 headers = self._get_auth_headers()
@@ -41,31 +47,37 @@ class SyncService:
             raise ValueError("Database session required for sync")
         
         try:
-            async with httpx.AsyncClient() as client:
-                headers = self._get_auth_headers()
-                
-                # Fetch people from Planning Center
-                response = await client.get(
-                    f"{self.api_url}/people/v2/people",
-                    headers=headers,
-                    params={"per_page": 100}
-                )
-                response.raise_for_status()
-                
-                data = response.json()
-                people = data.get("data", [])
-                
-                synced_count = 0
-                for person in people:
-                    if await self._sync_person(person):
-                        synced_count += 1
-                
-                return SyncResponse(
-                    success=True,
-                    records_synced=synced_count,
-                    message=f"Successfully synced {synced_count} members",
-                    sync_time=datetime.utcnow()
-                )
+            if self.use_mock:
+                # Use mock service for development
+                people_data = await self.mock_service.get_people(limit=100, offset=0)
+                people = people_data.get("data", [])
+            else:
+                # Use real Planning Center API
+                async with httpx.AsyncClient() as client:
+                    headers = self._get_auth_headers()
+                    
+                    # Fetch people from Planning Center
+                    response = await client.get(
+                        f"{self.api_url}/people/v2/people",
+                        headers=headers,
+                        params={"per_page": 100}
+                    )
+                    response.raise_for_status()
+                    
+                    data = response.json()
+                    people = data.get("data", [])
+            
+            synced_count = 0
+            for person in people:
+                if await self._sync_person(person):
+                    synced_count += 1
+            
+            return SyncResponse(
+                success=True,
+                records_synced=synced_count,
+                message=f"Successfully synced {synced_count} members",
+                sync_time=datetime.utcnow()
+            )
                 
         except Exception as e:
             return SyncResponse(
