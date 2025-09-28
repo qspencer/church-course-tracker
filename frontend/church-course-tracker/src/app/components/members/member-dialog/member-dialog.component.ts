@@ -19,35 +19,36 @@ export class MemberDialogComponent implements OnInit {
   isEditing: boolean;
   isLoading = false;
 
-  constructor(
-    private fb: FormBuilder,
-    private memberService: MemberService,
-    private snackBar: MatSnackBar,
-    public dialogRef: MatDialogRef<MemberDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: MemberDialogData
-  ) {
-    this.isEditing = !!data.member;
-    
-    this.memberForm = this.fb.group({
-      first_name: ['', [Validators.required, Validators.minLength(2)]],
-      last_name: ['', [Validators.required, Validators.minLength(2)]],
-      email: ['', [Validators.email]],
-      phone: [''],
-      planning_center_id: ['']
-    });
-  }
+         constructor(
+           private fb: FormBuilder,
+           private memberService: MemberService,
+           private snackBar: MatSnackBar,
+           public dialogRef: MatDialogRef<MemberDialogComponent>,
+           @Inject(MAT_DIALOG_DATA) public data: MemberDialogData
+         ) {
+           this.isEditing = !!data.member;
+           
+           this.memberForm = this.fb.group({
+             first_name: ['', [Validators.required, Validators.minLength(2)]],
+             last_name: ['', [Validators.required, Validators.minLength(2)]],
+             email: ['', [Validators.email]],
+             phone: [''],
+             planning_center_id: ['']
+           });
+         }
 
-  ngOnInit(): void {
-    if (this.isEditing && this.data.member) {
-      this.memberForm.patchValue({
-        first_name: this.data.member.first_name,
-        last_name: this.data.member.last_name,
-        email: this.data.member.email,
-        phone: this.data.member.phone,
-        planning_center_id: this.data.member.planning_center_id
-      });
-    }
-  }
+         ngOnInit(): void {
+           // Initialize form values if editing
+           if (this.isEditing && this.data.member) {
+             this.memberForm.patchValue({
+               first_name: this.data.member.first_name,
+               last_name: this.data.member.last_name,
+               email: this.data.member.email,
+               phone: this.data.member.phone,
+               planning_center_id: this.data.member.planning_center_id
+             });
+           }
+         }
 
   onSubmit(): void {
     if (this.memberForm.valid) {
