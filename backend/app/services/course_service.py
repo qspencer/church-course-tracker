@@ -4,7 +4,7 @@ Course service layer (Maps to Planning Center Events)
 
 from sqlalchemy.orm import Session
 from typing import List, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 
 from app.schemas.course import CourseCreate, CourseUpdate
 from app.models.course import Course as CourseModel
@@ -35,9 +35,9 @@ class CourseService:
     
     def create_course(self, course: CourseCreate, created_by: Optional[int] = None) -> CourseModel:
         """Create a new course"""
-        db_course = CourseModel(**course.dict())
-        db_course.created_at = datetime.utcnow()
-        db_course.updated_at = datetime.utcnow()
+        db_course = CourseModel(**course.model_dump())
+        db_course.created_at = datetime.now(timezone.utc)
+        db_course.updated_at = datetime.now(timezone.utc)
         db_course.created_by = created_by
         
         self.db.add(db_course)
@@ -51,11 +51,11 @@ class CourseService:
         if not db_course:
             return None
         
-        update_data = course_update.dict(exclude_unset=True)
+        update_data = course_update.model_dump(exclude_unset=True)
         for field, value in update_data.items():
             setattr(db_course, field, value)
         
-        db_course.updated_at = datetime.utcnow()
+        db_course.updated_at = datetime.now(timezone.utc)
         db_course.updated_by = updated_by
         self.db.commit()
         self.db.refresh(db_course)
@@ -80,12 +80,14 @@ class CourseService:
         
         if existing_course:
             # Update existing course
+            existing_course.title = pc_event_data.get("title", pc_event_data.get("name", existing_course.title))
+            existing_course.description = pc_event_data.get("description", existing_course.description)
             existing_course.planning_center_event_name = pc_event_data.get("name")
             existing_course.event_start_date = pc_event_data.get("start_date")
             existing_course.event_end_date = pc_event_data.get("end_date")
             existing_course.max_capacity = pc_event_data.get("max_capacity")
             existing_course.current_registrations = pc_event_data.get("current_registrations", 0)
-            existing_course.updated_at = datetime.utcnow()
+            existing_course.updated_at = datetime.now(timezone.utc)
             existing_course.updated_by = updated_by
             self.db.commit()
             self.db.refresh(existing_course)
@@ -93,7 +95,7 @@ class CourseService:
         else:
             # Create new course
             course_data = CourseCreate(
-                title=pc_event_data.get("name", "Unknown Course"),
+                title=pc_event_data.get("title", pc_event_data.get("name", "Unknown Course")),
                 description=pc_event_data.get("description"),
                 planning_center_event_id=pc_event_id,
                 planning_center_event_name=pc_event_data.get("name"),

@@ -133,7 +133,7 @@ class ContentAuditLog(Base):
     __tablename__ = "content_audit_logs"
 
     id = Column(Integer, primary_key=True, index=True)
-    content_id = Column(Integer, ForeignKey("course_content.id"), nullable=False)
+    content_id = Column(Integer, ForeignKey("course_content.id"), nullable=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     
     # Change details

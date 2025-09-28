@@ -4,7 +4,7 @@ Course Content Pydantic Schemas
 This module defines the Pydantic schemas for course content management API.
 """
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 from typing import Optional, List, Dict, Any
 from datetime import datetime
 from enum import Enum
@@ -73,17 +73,19 @@ class CourseContentCreate(CourseContentBase):
     # Metadata
     duration: Optional[int] = Field(None, ge=0)  # Duration in seconds
 
-    @validator('external_url')
-    def validate_external_url(cls, v, values):
+    @field_validator('external_url')
+    @classmethod
+    def validate_external_url(cls, v, info):
         """Validate external URL when content type is external_link"""
-        if values.get('content_type') == ContentType.EXTERNAL_LINK and not v:
+        if info.data.get('content_type') == ContentType.EXTERNAL_LINK and not v:
             raise ValueError('external_url is required for external_link content type')
         return v
 
-    @validator('embedded_content')
-    def validate_embedded_content(cls, v, values):
+    @field_validator('embedded_content')
+    @classmethod
+    def validate_embedded_content(cls, v, info):
         """Validate embedded content when content type is embedded"""
-        if values.get('content_type') == ContentType.EMBEDDED and not v:
+        if info.data.get('content_type') == ContentType.EMBEDDED and not v:
             raise ValueError('embedded_content is required for embedded content type')
         return v
 

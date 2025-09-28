@@ -9,7 +9,7 @@ import os
 import uuid
 import mimetypes
 from typing import List, Optional, Dict, Any, BinaryIO
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy.orm import Session
 from sqlalchemy import and_, or_, desc, func
 from fastapi import UploadFile, HTTPException, status
@@ -75,7 +75,7 @@ class ContentService:
         
         # Create module
         db_module = CourseModule(
-            **module_data.dict(),
+            **module_data.model_dump(),
             created_by=user_id,
             updated_by=user_id
         )
@@ -190,7 +190,7 @@ class ContentService:
         
         # Create content
         db_content = CourseContent(
-            **content_data.dict(),
+            **content_data.model_dump(),
             storage_type=storage_type,
             created_by=user_id,
             updated_by=user_id
@@ -206,7 +206,7 @@ class ContentService:
             user_id=user_id,
             action="create",
             change_summary=f"Created content: {content_data.title}",
-            new_values=content_data.dict()
+            new_values=content_data.model_dump()
         )
         
         return db_content
@@ -309,12 +309,12 @@ class ContentService:
         }
         
         # Update fields
-        update_data = content_data.dict(exclude_unset=True)
+        update_data = content_data.model_dump(exclude_unset=True)
         for field, value in update_data.items():
             setattr(db_content, field, value)
         
         db_content.updated_by = user_id
-        db_content.updated_at = datetime.utcnow()
+        db_content.updated_at = datetime.now(timezone.utc)
         
         self.db.commit()
         self.db.refresh(db_content)
@@ -407,7 +407,7 @@ class ContentService:
     
     def log_content_access(self, access_data: ContentAccessLogCreate) -> ContentAccessLog:
         """Log content access"""
-        db_access = ContentAccessLog(**access_data.dict())
+        db_access = ContentAccessLog(**access_data.model_dump())
         self.db.add(db_access)
         self.db.commit()
         self.db.refresh(db_access)

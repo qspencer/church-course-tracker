@@ -295,7 +295,7 @@ class TestCourseService:
         db_session.commit()
         
         update_data = CourseUpdate(
-            name="Updated Course Name",
+            title="Updated Course Name",
             max_capacity=75
         )
         
