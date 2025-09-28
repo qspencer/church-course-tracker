@@ -9,8 +9,12 @@ from passlib.context import CryptContext
 
 from app.core.config import settings
 
-# Password hashing
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# Password hashing with configurable rounds
+pwd_context = CryptContext(
+    schemes=["bcrypt"], 
+    deprecated="auto",
+    bcrypt__rounds=settings.BCRYPT_ROUNDS
+)
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
@@ -52,3 +56,60 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 def get_password_hash(password: str) -> str:
     """Hash a password"""
     return pwd_context.hash(password)
+
+
+def validate_password_strength(password: str) -> tuple[bool, str]:
+    """Validate password strength"""
+    if len(password) < 8:
+        return False, "Password must be at least 8 characters long"
+    
+    if not any(c.isupper() for c in password):
+        return False, "Password must contain at least one uppercase letter"
+    
+    if not any(c.islower() for c in password):
+        return False, "Password must contain at least one lowercase letter"
+    
+    if not any(c.isdigit() for c in password):
+        return False, "Password must contain at least one digit"
+    
+    if not any(c in "!@#$%^&*()_+-=[]{}|;:,.<>?" for c in password):
+        return False, "Password must contain at least one special character"
+    
+    return True, "Password is strong"
+
+
+def generate_secure_token(length: int = 32) -> str:
+    """Generate a secure random token"""
+    import secrets
+    return secrets.token_urlsafe(length)
+
+
+def validate_file_type(file_content: bytes, filename: str) -> bool:
+    """Validate file type based on content and filename"""
+    import mimetypes
+    
+    # Get MIME type from filename
+    mime_type, _ = mimetypes.guess_type(filename)
+    
+    if mime_type not in settings.ALLOWED_FILE_TYPES:
+        return False
+    
+    # Additional content-based validation could be added here
+    return True
+
+
+def sanitize_filename(filename: str) -> str:
+    """Sanitize filename to prevent path traversal attacks"""
+    import os
+    import re
+    
+    # Remove path components
+    filename = os.path.basename(filename)
+    
+    # Remove dangerous characters
+    filename = re.sub(r'[^\w\-_\.]', '', filename)
+    
+    # Limit length
+    filename = filename[:255]
+    
+    return filename

@@ -3,7 +3,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { of, throwError } from 'rxjs';
+import { of, throwError, BehaviorSubject } from 'rxjs';
 
 // Angular Material
 import { MatCardModule } from '@angular/material/card';
@@ -230,16 +230,31 @@ describe('AuthComponent', () => {
   });
 
   describe('navigation on authentication', () => {
-  it('should navigate to dashboard if already authenticated', fakeAsync(() => {
-    // Set up the observable to emit true immediately
-    authServiceSpy.isAuthenticated$ = of(true);
-    
-    // Initialize component
-    component.ngOnInit();
-    tick(); // Wait for the subscription to be processed
-    fixture.detectChanges();
+    it('should navigate to dashboard if already authenticated', fakeAsync(() => {
+      // Reset spy calls from previous tests
+      routerSpy.navigate.calls.reset();
+      
+      // Create a Subject to control the emission timing
+      const authSubject = new BehaviorSubject(false);
+      authServiceSpy.isAuthenticated$ = authSubject.asObservable();
+      
+      // Create a new component instance to ensure the spy is properly configured
+      const testFixture = TestBed.createComponent(AuthComponent);
+      const testComponent = testFixture.componentInstance;
+      
+      // Initialize the new component - this sets up the subscription
+      testComponent.ngOnInit();
+      
+      // Process the initial subscription (should not navigate with false)
+      tick();
+      testFixture.detectChanges();
+      
+      // Now emit true to trigger navigation
+      authSubject.next(true);
+      tick();
+      testFixture.detectChanges();
 
-    expect(routerSpy.navigate).toHaveBeenCalledWith(['/dashboard']);
-  }));
+      expect(routerSpy.navigate).toHaveBeenCalledWith(['/dashboard']);
+    }));
   });
 });
