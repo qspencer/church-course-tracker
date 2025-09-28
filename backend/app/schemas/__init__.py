@@ -8,6 +8,14 @@ from .role import Role, RoleCreate, RoleUpdate
 from .course import Course, CourseCreate, CourseUpdate
 from .content import Content, ContentCreate, ContentUpdate
 from .content_type import ContentType, ContentTypeCreate, ContentTypeUpdate
+from .course_content import (
+    CourseModule, CourseModuleCreate, CourseModuleUpdate,
+    CourseContent, CourseContentCreate, CourseContentUpdate,
+    ContentAccessLog, ContentAccessLogCreate,
+    ContentAuditLog, ContentAuditLogCreate,
+    ContentUploadResponse, ContentDownloadRequest, ContentProgressUpdate,
+    CourseContentSummary
+)
 from .certification import Certification, CertificationCreate, CertificationUpdate
 from .people_campus import PeopleCampus, PeopleCampusCreate, PeopleCampusUpdate
 from .people_role import PeopleRole, PeopleRoleCreate, PeopleRoleUpdate
@@ -36,6 +44,12 @@ __all__ = [
     "Course", "CourseCreate", "CourseUpdate",
     "Content", "ContentCreate", "ContentUpdate",
     "ContentType", "ContentTypeCreate", "ContentTypeUpdate",
+    "CourseModule", "CourseModuleCreate", "CourseModuleUpdate",
+    "CourseContent", "CourseContentCreate", "CourseContentUpdate",
+    "ContentAccessLog", "ContentAccessLogCreate",
+    "ContentAuditLog", "ContentAuditLogCreate",
+    "ContentUploadResponse", "ContentDownloadRequest", "ContentProgressUpdate",
+    "CourseContentSummary",
     "Certification", "CertificationCreate", "CertificationUpdate",
     
     # Relationship schemas

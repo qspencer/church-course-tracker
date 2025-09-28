@@ -14,7 +14,7 @@ class Course(Base):
     __tablename__ = "courses"
     
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String(200), nullable=False, index=True)
+    title = Column(String(200), nullable=False, index=True)
     description = Column(Text, nullable=True)
     duration_weeks = Column(Integer, nullable=True)
     prerequisites = Column(JSON, nullable=True)  # List of prerequisite course IDs
@@ -25,6 +25,11 @@ class Course(Base):
     max_capacity = Column(Integer, nullable=True)
     current_registrations = Column(Integer, default=0, nullable=False)
     is_active = Column(Boolean, default=True, nullable=False)
+    
+    # Content settings
+    content_unlock_mode = Column(String(20), default="immediate", nullable=False)  # 'immediate' or 'progressive'
+    max_file_size_mb = Column(Integer, default=1024, nullable=False)  # Configurable file size limit
+    
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     created_by = Column(Integer, nullable=True)
@@ -32,6 +37,8 @@ class Course(Base):
     
     # Relationships
     course_enrollments = relationship("CourseEnrollment", back_populates="course", cascade="all, delete-orphan")
-    content = relationship("Content", back_populates="course", cascade="all, delete-orphan")
+    content = relationship("Content", back_populates="course", cascade="all, delete-orphan")  # Legacy content model
+    course_content = relationship("CourseContent", back_populates="course", cascade="all, delete-orphan")  # New content model
+    modules = relationship("CourseModule", back_populates="course", cascade="all, delete-orphan")
     course_role = relationship("CourseRole", back_populates="course", cascade="all, delete-orphan")
     certification_courses = relationship("Certification", secondary="certification_required_courses", back_populates="required_courses")

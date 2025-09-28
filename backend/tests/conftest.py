@@ -31,6 +31,9 @@ db_module.SessionLocal = TestingSessionLocal
 from app.core.database import Base, get_db
 from main import app
 
+# Import all models to ensure they are registered with SQLAlchemy
+from app.models import *
+
 # Disable TrustedHostMiddleware for tests
 app.user_middleware = [mw for mw in app.user_middleware if 'TrustedHostMiddleware' not in str(mw)]
 
@@ -48,15 +51,17 @@ def db_session():
     # Create all tables
     Base.metadata.create_all(bind=engine)
     
-    # Create session
-    session = TestingSessionLocal()
-    
-    try:
-        yield session
-    finally:
-        session.close()
-        # Drop all tables after test
-        Base.metadata.drop_all(bind=engine)
+    connection = engine.connect()
+    transaction = connection.begin()
+    session = TestingSessionLocal(bind=connection)
+
+    # Yield the session to the test
+    yield session
+
+    # Rollback the transaction and close the session after the test
+    session.close()
+    transaction.rollback()
+    connection.close()
 
 
 @pytest.fixture(scope="function")
@@ -87,7 +92,8 @@ def sample_user_data():
         "email": "test@example.com",
         "full_name": "Test User",
         "role": "staff",
-        "is_active": True
+        "is_active": True,
+        "hashed_password": "hashed_password_123"
     }
 
 
@@ -142,7 +148,7 @@ def sample_role_data():
 def sample_course_data():
     """Sample course data for testing."""
     return {
-        "name": "Introduction to Faith",
+        "title": "Introduction to Faith",
         "description": "Basic course on Christian faith",
         "planning_center_event_id": "evt_123",
         "planning_center_event_name": "Introduction to Faith",

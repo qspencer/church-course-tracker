@@ -1,0 +1,170 @@
+<div class="course-content-container">
+  <div class="header">
+    <h1>{{ course?.title || 'Course Content' }}</h1>
+    <p class="course-description" *ngIf="course?.description">{{ course?.description }}</p>
+  </div>
+
+  <div class="content" *ngIf="!isLoading">
+    <div class="tabs">
+      <mat-tab-group [(selectedIndex)]="viewMode" (selectedIndexChange)="setViewMode($event === 0 ? 'content' : $event === 1 ? 'modules' : 'summary')">
+        
+        <!-- Content Tab -->
+        <mat-tab label="Content">
+          <div class="content-list">
+            <div *ngFor="let content of contentItems" class="content-item">
+              <div class="content-info">
+                <mat-icon>{{ getContentTypeIcon(content.content_type) }}</mat-icon>
+                <div class="content-details">
+                  <h3>{{ content.title }}</h3>
+                  <p *ngIf="content.description">{{ content.description }}</p>
+                  <div class="content-meta">
+                    <span class="content-type">{{ getContentTypeDisplayName(content.content_type) }}</span>
+                    <span *ngIf="content.file_size" class="file-size">{{ formatFileSize(content.file_size) }}</span>
+                    <span *ngIf="content.duration" class="duration">{{ formatDuration(content.duration) }}</span>
+                  </div>
+                </div>
+              </div>
+              <div class="content-actions">
+                <button mat-button color="primary" (click)="viewContent(content)">
+                  <mat-icon>visibility</mat-icon>
+                  View
+                </button>
+                <button mat-button color="accent" (click)="downloadContent(content)" *ngIf="isFileContent(content)">
+                  <mat-icon>download</mat-icon>
+                  Download
+                </button>
+                <button mat-button color="warn" (click)="editContent(content)" *ngIf="canEditContent()">
+                  <mat-icon>edit</mat-icon>
+                  Edit
+                </button>
+                <button mat-button color="warn" (click)="deleteContent(content)" *ngIf="canDeleteContent()">
+                  <mat-icon>delete</mat-icon>
+                  Delete
+                </button>
+              </div>
+            </div>
+            
+            <div *ngIf="contentItems.length === 0" class="no-content">
+              <p>No content available for this course.</p>
+              <button mat-raised-button color="primary" (click)="createContent()" *ngIf="canCreateContent()">
+                <mat-icon>add</mat-icon>
+                Add Content
+              </button>
+            </div>
+          </div>
+        </mat-tab>
+
+        <!-- Modules Tab -->
+        <mat-tab label="Modules" *ngIf="canManageContent()">
+          <div class="modules-list">
+            <div *ngFor="let module of modules" class="module-item">
+              <div class="module-info">
+                <h3>{{ module.title }}</h3>
+                <p *ngIf="module.description">{{ module.description }}</p>
+                <div class="module-meta">
+                  <span>{{ getContentForModule(module.id).length }} content items</span>
+                </div>
+              </div>
+              <div class="module-actions">
+                <button mat-button color="primary" (click)="selectModule(module.id)">
+                  <mat-icon>visibility</mat-icon>
+                  View Content
+                </button>
+                <button mat-button color="accent" (click)="editModule(module)">
+                  <mat-icon>edit</mat-icon>
+                  Edit
+                </button>
+                <button mat-button color="warn" (click)="deleteModule(module)">
+                  <mat-icon>delete</mat-icon>
+                  Delete
+                </button>
+              </div>
+            </div>
+            
+            <div *ngIf="modules.length === 0" class="no-modules">
+              <p>No modules created for this course.</p>
+              <button mat-raised-button color="primary" (click)="createModule()">
+                <mat-icon>add</mat-icon>
+                Create Module
+              </button>
+            </div>
+          </div>
+        </mat-tab>
+
+        <!-- Summary Tab -->
+        <mat-tab label="Summary" *ngIf="canManageContent() && contentSummary">
+          <div class="summary-content">
+            <div class="summary-stats">
+              <div class="stat-item">
+                <h3>{{ contentSummary.total_modules }}</h3>
+                <p>Total Modules</p>
+              </div>
+              <div class="stat-item">
+                <h3>{{ contentSummary.total_content_items }}</h3>
+                <p>Total Content Items</p>
+              </div>
+              <div class="stat-item">
+                <h3>{{ formatFileSize(contentSummary.total_file_size) }}</h3>
+                <p>Total File Size</p>
+              </div>
+            </div>
+            
+            <div class="content-type-breakdown">
+              <h3>Content by Type</h3>
+              <div class="type-stats">
+                <div *ngFor="let type of contentSummary.content_by_type | keyvalue" class="type-stat">
+                  <span class="type-name">{{ type.key }}</span>
+                  <span class="type-count">{{ type.value }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </mat-tab>
+
+        <!-- Audit Logs Tab -->
+        <mat-tab label="Audit Logs" *ngIf="canViewAuditLogs()">
+          <div class="audit-content">
+            <h2>Content Audit Logs</h2>
+            <p class="audit-description">Track changes made to course content items</p>
+            
+            <div *ngIf="auditLogs.length === 0" class="no-audit-logs">
+              <mat-icon>history</mat-icon>
+              <h3>No audit logs found</h3>
+              <p>No changes have been made to content items in this course.</p>
+            </div>
+            
+            <div *ngIf="auditLogs.length > 0" class="audit-logs">
+              <mat-list>
+                <mat-list-item *ngFor="let log of auditLogs" class="audit-log-item">
+                  <mat-icon matListItemIcon>{{ getAuditActionIcon(log.action) }}</mat-icon>
+                  <div matListItemTitle>
+                    <span class="audit-action">{{ getAuditActionDisplayName(log.action) }}</span>
+                    <span class="audit-content">Content Item #{{ log.record_id }}</span>
+                  </div>
+                  <div matListItemLine>
+                    <span class="audit-timestamp">{{ formatAuditTimestamp(log.changed_at) }}</span>
+                    <span class="audit-user" *ngIf="log.changed_by">by User #{{ log.changed_by }}</span>
+                  </div>
+                  <div matListItemLine *ngIf="log.old_values || log.new_values" class="audit-changes">
+                    <div *ngIf="log.old_values" class="old-values">
+                      <strong>Old:</strong> {{ log.old_values | json }}
+                    </div>
+                    <div *ngIf="log.new_values" class="new-values">
+                      <strong>New:</strong> {{ log.new_values | json }}
+                    </div>
+                  </div>
+                </mat-list-item>
+              </mat-list>
+            </div>
+          </div>
+        </mat-tab>
+        
+      </mat-tab-group>
+    </div>
+  </div>
+
+  <div *ngIf="isLoading" class="loading">
+    <mat-spinner></mat-spinner>
+    <p>Loading course content...</p>
+  </div>
+</div>

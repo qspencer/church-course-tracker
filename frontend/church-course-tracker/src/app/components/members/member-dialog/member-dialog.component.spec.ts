@@ -43,6 +43,10 @@ describe('MemberDialogComponent', () => {
     const memberSpy = jasmine.createSpyObj('MemberService', ['createMember', 'updateMember']);
     const matDialogRefSpy = jasmine.createSpyObj('MatDialogRef', ['close']);
     const matSnackBarSpy = jasmine.createSpyObj('MatSnackBar', ['open']);
+    
+    // Set up default return values for service methods
+    memberSpy.createMember.and.returnValue(of(mockMember));
+    memberSpy.updateMember.and.returnValue(of(mockMember));
 
     await TestBed.configureTestingModule({
       declarations: [MemberDialogComponent],
@@ -69,6 +73,10 @@ describe('MemberDialogComponent', () => {
     memberServiceSpy = TestBed.inject(MemberService) as jasmine.SpyObj<MemberService>;
     dialogRefSpy = TestBed.inject(MatDialogRef) as jasmine.SpyObj<MatDialogRef<MemberDialogComponent>>;
     snackBarSpy = TestBed.inject(MatSnackBar) as jasmine.SpyObj<MatSnackBar>;
+    
+    // Initialize component properly
+    component.ngOnInit();
+    fixture.detectChanges();
   });
 
   it('should create', () => {
@@ -76,30 +84,45 @@ describe('MemberDialogComponent', () => {
   });
 
   it('should initialize in editing mode when member provided', () => {
+    // Component should already be initialized in beforeEach
     expect(component.isEditing).toBe(true);
+    expect(component.data.member).toEqual(mockMember);
   });
 
   describe('form initialization', () => {
     it('should initialize form with validators', () => {
       fixture.detectChanges();
       
+      // Clear the fields and mark as touched to trigger validation
+      component.memberForm.get('first_name')?.setValue('');
+      component.memberForm.get('last_name')?.setValue('');
+      component.memberForm.get('first_name')?.markAsTouched();
+      component.memberForm.get('last_name')?.markAsTouched();
+      
       expect(component.memberForm.get('first_name')?.hasError('required')).toBe(true);
       expect(component.memberForm.get('last_name')?.hasError('required')).toBe(true);
     });
 
-    it('should patch form values when editing', () => {
-      component.ngOnInit();
-
-      expect(component.memberForm.get('first_name')?.value).toBe(mockMember.first_name);
-      expect(component.memberForm.get('last_name')?.value).toBe(mockMember.last_name);
-      expect(component.memberForm.get('email')?.value).toBe(mockMember.email);
-      expect(component.memberForm.get('phone')?.value).toBe(mockMember.phone);
-      expect(component.memberForm.get('planning_center_id')?.value).toBe(mockMember.planning_center_id);
-    });
+  it('should patch form values when editing', () => {
+    // Component should already be initialized in beforeEach
+    expect(component.isEditing).toBe(true);
+    expect(component.data.member).toEqual(mockMember);
+    
+    expect(component.memberForm.get('first_name')?.value).toBe(mockMember.first_name);
+    expect(component.memberForm.get('last_name')?.value).toBe(mockMember.last_name);
+    expect(component.memberForm.get('email')?.value).toBe(mockMember.email);
+    expect(component.memberForm.get('phone')?.value).toBe(mockMember.phone);
+    expect(component.memberForm.get('planning_center_id')?.value).toBe(mockMember.planning_center_id);
+  });
   });
 
   describe('onSubmit for editing', () => {
-    beforeEach(() => {
+    it('should update member when editing', () => {
+      // Component should already be initialized in global beforeEach
+      // Verify we're in editing mode
+      expect(component.isEditing).toBe(true);
+      
+      // Then patch the form with updated values
       component.memberForm.patchValue({
         first_name: 'John',
         last_name: 'Updated',
@@ -107,9 +130,6 @@ describe('MemberDialogComponent', () => {
         phone: '999-888-7777',
         planning_center_id: 'pc456'
       });
-    });
-
-    it('should update member when editing', () => {
       memberServiceSpy.updateMember.and.returnValue(of(mockMember));
 
       component.onSubmit();
@@ -126,12 +146,13 @@ describe('MemberDialogComponent', () => {
     });
 
     it('should handle update error', () => {
+      // Component should already be initialized in global beforeEach
       memberServiceSpy.updateMember.and.returnValue(throwError(() => new Error('Update error')));
-      spyOn(console, 'error');
+      const consoleErrorSpy = spyOn(console, 'error');
 
       component.onSubmit();
 
-      expect(console.error).toHaveBeenCalledWith('Error updating member:', jasmine.any(Error));
+      expect(consoleErrorSpy).toHaveBeenCalledWith('Error updating member:', jasmine.any(Error));
       expect(component.isLoading).toBe(false);
     });
   });
@@ -202,6 +223,9 @@ describe('MemberDialogComponent', () => {
 
   describe('getErrorMessage', () => {
     it('should return required error message', () => {
+      // Set the field to empty and mark as touched to trigger validation
+      component.memberForm.get('first_name')?.setValue('');
+      component.memberForm.get('first_name')?.markAsTouched();
       const message = component.getErrorMessage('first_name');
       expect(message).toBe('first name is required');
     });
@@ -227,52 +251,112 @@ describe('MemberDialogComponent', () => {
   });
 
   describe('template rendering', () => {
-    beforeEach(() => {
-      fixture.detectChanges();
+    let templateFixture: ComponentFixture<MemberDialogComponent>;
+    let templateComponent: MemberDialogComponent;
+
+    beforeEach(async () => {
+      // Create a fresh component instance for template tests
+      // Reset TestBed to ensure clean state
+      TestBed.resetTestingModule();
+      
+      await TestBed.configureTestingModule({
+        declarations: [MemberDialogComponent],
+        imports: [
+          ReactiveFormsModule,
+          BrowserAnimationsModule,
+          MatDialogModule,
+          MatFormFieldModule,
+          MatInputModule,
+          MatButtonModule,
+          MatIconModule,
+          MatProgressSpinnerModule
+        ],
+        providers: [
+          { provide: MemberService, useValue: memberServiceSpy },
+          { provide: MatDialogRef, useValue: dialogRefSpy },
+          { provide: MAT_DIALOG_DATA, useValue: mockDialogData },
+          { provide: MatSnackBar, useValue: snackBarSpy }
+        ]
+      }).compileComponents();
+
+      templateFixture = TestBed.createComponent(MemberDialogComponent);
+      templateComponent = templateFixture.componentInstance;
+      templateComponent.ngOnInit();
+      templateFixture.detectChanges();
     });
 
     it('should display correct title for editing', () => {
-      const compiled = fixture.nativeElement;
-      expect(compiled.querySelector('h2').textContent).toBe('Edit Member');
+      // Ensure component is in editing mode
+      expect(templateComponent.isEditing).toBe(true);
+      expect(templateComponent.data.member).toEqual(mockMember);
+      const compiled = templateFixture.nativeElement;
+      expect(compiled.querySelector('h2').textContent.trim()).toBe('Edit Member');
     });
 
     it('should display correct button text for editing', () => {
-      const compiled = fixture.nativeElement;
+      // Ensure component is in editing mode
+      expect(templateComponent.isEditing).toBe(true);
+      expect(templateComponent.data.member).toEqual(mockMember);
+      const compiled = templateFixture.nativeElement;
       const submitButton = compiled.querySelector('button[color="primary"]');
       expect(submitButton.textContent.trim()).toBe('Update');
     });
 
     it('should show loading spinner when loading', () => {
-      component.isLoading = true;
-      fixture.detectChanges();
+      templateComponent.isLoading = true;
+      templateFixture.detectChanges();
 
-      const compiled = fixture.nativeElement;
+      const compiled = templateFixture.nativeElement;
       expect(compiled.querySelector('mat-spinner')).toBeTruthy();
     });
   });
 
   describe('create mode', () => {
+    let createFixture: ComponentFixture<MemberDialogComponent>;
+    let createComponent: MemberDialogComponent;
+
     beforeEach(async () => {
-      // Recreate component in create mode
-      const createDialogData = { member: null };
+      // Reset TestBed to allow reconfiguration
+      TestBed.resetTestingModule();
       
-      TestBed.overrideProvider(MAT_DIALOG_DATA, { useValue: createDialogData });
-      fixture = TestBed.createComponent(MemberDialogComponent);
-      component = fixture.componentInstance;
-      fixture.detectChanges();
+      // Create a new test module for create mode
+      await TestBed.configureTestingModule({
+        declarations: [MemberDialogComponent],
+        imports: [
+          ReactiveFormsModule,
+          BrowserAnimationsModule,
+          MatDialogModule,
+          MatFormFieldModule,
+          MatInputModule,
+          MatButtonModule,
+          MatIconModule,
+          MatProgressSpinnerModule
+        ],
+        providers: [
+          { provide: MemberService, useValue: memberServiceSpy },
+          { provide: MatDialogRef, useValue: dialogRefSpy },
+          { provide: MAT_DIALOG_DATA, useValue: { member: null } },
+          { provide: MatSnackBar, useValue: snackBarSpy }
+        ]
+      }).compileComponents();
+
+      createFixture = TestBed.createComponent(MemberDialogComponent);
+      createComponent = createFixture.componentInstance;
+      createFixture.detectChanges();
     });
 
+
     it('should initialize in create mode', () => {
-      expect(component.isEditing).toBe(false);
+      expect(createComponent.isEditing).toBe(false);
     });
 
     it('should display correct title for creating', () => {
-      const compiled = fixture.nativeElement;
-      expect(compiled.querySelector('h2').textContent).toBe('Add New Member');
+      const compiled = createFixture.nativeElement;
+      expect(compiled.querySelector('h2').textContent.trim()).toBe('Add New Member');
     });
 
     it('should display correct button text for creating', () => {
-      const compiled = fixture.nativeElement;
+      const compiled = createFixture.nativeElement;
       const submitButton = compiled.querySelector('button[color="primary"]');
       expect(submitButton.textContent.trim()).toBe('Create');
     });

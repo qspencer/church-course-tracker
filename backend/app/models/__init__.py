@@ -8,6 +8,7 @@ from .role import Role
 from .course import Course
 from .content import Content
 from .content_type import ContentType
+from .course_content import CourseModule, CourseContent, ContentAccessLog, ContentAuditLog
 from .certification import Certification
 from .people_campus import PeopleCampus
 from .people_role import PeopleRole
@@ -29,6 +30,10 @@ __all__ = [
     "Course",
     "Content",
     "ContentType",
+    "CourseModule",
+    "CourseContent",
+    "ContentAccessLog",
+    "ContentAuditLog",
     "Certification",
     "PeopleCampus",
     "PeopleRole",

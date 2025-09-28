@@ -79,3 +79,9 @@ frontend/church-course-tracker/node_modules/
 # Temporary files
 *.tmp
 *.temp
+infrastructure/.terraform/modules/
+# Terraform
+infrastructure/.terraform/
+infrastructure/.terraform.lock.hcl
+infrastructure/terraform.tfstate*
+infrastructure/tfplan

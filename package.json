@@ -1,0 +1,27 @@
+{
+  "name": "church-course-tracker",
+  "version": "1.0.0",
+  "description": "A comprehensive learning management system designed specifically for churches to track course enrollments, monitor member progress, and generate detailed reports on educational content.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:ui": "playwright test --ui",
+    "test:debug": "playwright test --debug",
+    "test:report": "playwright show-report",
+    "test:auth": "playwright test tests/auth.spec.ts",
+    "test:navigation": "playwright test tests/navigation.spec.ts",
+    "test:courses": "playwright test tests/courses.spec.ts",
+    "test:api": "playwright test tests/api.spec.ts",
+    "test:performance": "playwright test tests/performance.spec.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@playwright/test": "^1.55.1"
+  }
+}

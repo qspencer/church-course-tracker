@@ -39,7 +39,14 @@ def verify_token(token: str) -> Optional[int]:
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verify a password against its hash"""
-    return pwd_context.verify(plain_password, hashed_password)
+    # Handle both bcrypt and simple SHA256 hashes
+    try:
+        # Try bcrypt first (for regular users)
+        return pwd_context.verify(plain_password, hashed_password)
+    except (ValueError, AttributeError, Exception):
+        # Fall back to simple SHA256 for admin user
+        import hashlib
+        return hashlib.sha256(plain_password.encode()).hexdigest() == hashed_password
 
 
 def get_password_hash(password: str) -> str:

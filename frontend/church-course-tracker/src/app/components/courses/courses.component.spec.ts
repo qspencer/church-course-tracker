@@ -90,6 +90,7 @@ describe('CoursesComponent', () => {
 
     // Setup default return values
     courseServiceSpy.getCourses.and.returnValue(of(mockCourses));
+    authServiceSpy.hasAnyRole.and.returnValue(true);
   });
 
   it('should create', () => {

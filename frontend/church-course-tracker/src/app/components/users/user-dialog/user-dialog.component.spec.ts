@@ -158,12 +158,18 @@ describe('UserDialogComponent', () => {
 
     it('should not include password in update when not provided', () => {
       component.data = createDialogData('edit', mockUser);
+      component.ngOnInit(); // Initialize the form
       component.userForm.patchValue({
+        username: 'testuser',
         email: 'test@example.com',
         full_name: 'Test User',
         role: 'staff',
+        is_active: true,
         password: '' // Empty password
       });
+      // Clear password validators for this test since we're testing empty password
+      component.userForm.get('password')?.clearValidators();
+      component.userForm.get('password')?.updateValueAndValidity();
       userService.updateUser.and.returnValue(of(mockUser));
 
       component.onSubmit();

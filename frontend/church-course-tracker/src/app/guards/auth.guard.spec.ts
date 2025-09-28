@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
-import { of } from 'rxjs';
+import { of, BehaviorSubject } from 'rxjs';
 import { AuthGuard } from './auth.guard';
 import { AuthService } from '../services/auth.service';
 
@@ -8,10 +8,12 @@ describe('AuthGuard', () => {
   let guard: AuthGuard;
   let authServiceSpy: jasmine.SpyObj<AuthService>;
   let routerSpy: jasmine.SpyObj<Router>;
+  let isAuthenticatedSubject: BehaviorSubject<boolean>;
 
   beforeEach(() => {
+    isAuthenticatedSubject = new BehaviorSubject<boolean>(true);
     const authSpy = jasmine.createSpyObj('AuthService', [], {
-      isAuthenticated$: of(true)
+      isAuthenticated$: isAuthenticatedSubject.asObservable()
     });
     const routerSpyObj = jasmine.createSpyObj('Router', ['createUrlTree']);
 
@@ -33,7 +35,7 @@ describe('AuthGuard', () => {
   });
 
   it('should allow access when authenticated', (done) => {
-    authServiceSpy.isAuthenticated$ = of(true);
+    isAuthenticatedSubject.next(true);
 
     guard.canActivate().subscribe(result => {
       expect(result).toBe(true);
@@ -43,8 +45,10 @@ describe('AuthGuard', () => {
 
   it('should redirect to auth when not authenticated', (done) => {
     const urlTree = {} as any;
-    authServiceSpy.isAuthenticated$ = of(false);
     routerSpy.createUrlTree.and.returnValue(urlTree);
+    
+    // Update the auth service to return unauthenticated state
+    isAuthenticatedSubject.next(false);
 
     guard.canActivate().subscribe(result => {
       expect(result).toEqual(urlTree);

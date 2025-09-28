@@ -93,7 +93,7 @@ class CourseService:
         else:
             # Create new course
             course_data = CourseCreate(
-                name=pc_event_data.get("name", "Unknown Course"),
+                title=pc_event_data.get("name", "Unknown Course"),
                 description=pc_event_data.get("description"),
                 planning_center_event_id=pc_event_id,
                 planning_center_event_name=pc_event_data.get("name"),

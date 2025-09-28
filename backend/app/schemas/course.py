@@ -9,7 +9,7 @@ from datetime import datetime
 
 class CourseBase(BaseModel):
     """Base course schema"""
-    name: str = Field(..., min_length=1, max_length=200)
+    title: str = Field(..., min_length=1, max_length=200)
     description: Optional[str] = Field(None, max_length=1000)
     duration_weeks: Optional[int] = Field(None, ge=1)
     prerequisites: Optional[List[str]] = Field(None)
@@ -29,7 +29,7 @@ class CourseCreate(CourseBase):
 
 class CourseUpdate(BaseModel):
     """Schema for updating a course"""
-    name: Optional[str] = Field(None, min_length=1, max_length=200)
+    title: Optional[str] = Field(None, min_length=1, max_length=200)
     description: Optional[str] = Field(None, max_length=1000)
     duration_weeks: Optional[int] = Field(None, ge=1)
     prerequisites: Optional[List[str]] = None

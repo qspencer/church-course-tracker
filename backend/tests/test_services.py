@@ -227,7 +227,7 @@ class TestCourseService:
         """Test getting all courses"""
         course1 = Course(**sample_course_data)
         course2 = Course(
-            name="Advanced Faith",
+            title="Advanced Faith",
             description="Advanced course on Christian faith",
             planning_center_event_id="evt_456",
             is_active=True
@@ -239,8 +239,8 @@ class TestCourseService:
         courses = service.get_courses()
         
         assert len(courses) == 2
-        assert courses[0].name == "Introduction to Faith"
-        assert courses[1].name == "Advanced Faith"
+        assert courses[0].title == "Introduction to Faith"
+        assert courses[1].title == "Advanced Faith"
     
     def test_get_course(self, db_session, sample_course_data):
         """Test getting a specific course"""
@@ -252,7 +252,7 @@ class TestCourseService:
         found_course = service.get_course(course.id)
         
         assert found_course is not None
-        assert found_course.name == "Introduction to Faith"
+        assert found_course.title == "Introduction to Faith"
         assert found_course.planning_center_event_id == "evt_123"
     
     def test_get_course_by_pc_event_id(self, db_session, sample_course_data):
@@ -265,13 +265,13 @@ class TestCourseService:
         found_course = service.get_course_by_pc_event_id("evt_123")
         
         assert found_course is not None
-        assert found_course.name == "Introduction to Faith"
+        assert found_course.title == "Introduction to Faith"
         assert found_course.planning_center_event_id == "evt_123"
     
     def test_create_course(self, db_session):
         """Test creating a course"""
         course_data = CourseCreate(
-            name="Introduction to Faith",
+            title="Introduction to Faith",
             description="Basic course on Christian faith",
             planning_center_event_id="evt_123",
             max_capacity=50,
@@ -282,7 +282,7 @@ class TestCourseService:
         created_course = service.create_course(course_data)
         
         assert created_course.id is not None
-        assert created_course.name == "Introduction to Faith"
+        assert created_course.title == "Introduction to Faith"
         assert created_course.planning_center_event_id == "evt_123"
         assert created_course.max_capacity == 50
         assert created_course.created_at is not None
@@ -303,7 +303,7 @@ class TestCourseService:
         updated_course = service.update_course(course.id, update_data)
         
         assert updated_course is not None
-        assert updated_course.name == "Updated Course Name"
+        assert updated_course.title == "Updated Course Name"
         assert updated_course.max_capacity == 75
         assert updated_course.description == "Basic course on Christian faith"  # Unchanged
     
@@ -326,7 +326,7 @@ class TestCourseService:
         """Test syncing new course from Planning Center"""
         pc_event_data = {
             "id": "evt_123",
-            "name": "Introduction to Faith",
+            "title": "Introduction to Faith",
             "description": "Basic course on Christian faith",
             "start_date": datetime(2024, 2, 1, 9, 0),
             "end_date": datetime(2024, 2, 1, 12, 0),
@@ -339,7 +339,7 @@ class TestCourseService:
         
         assert synced_course.id is not None
         assert synced_course.planning_center_event_id == "evt_123"
-        assert synced_course.name == "Introduction to Faith"
+        assert synced_course.title == "Introduction to Faith"
         assert synced_course.max_capacity == 50
         assert synced_course.current_registrations == 25
     
@@ -363,7 +363,7 @@ class TestCourseService:
         synced_course = service.sync_from_planning_center(pc_event_data)
         
         assert synced_course.id == course.id  # Same record
-        assert synced_course.name == "Updated Course Name"
+        assert synced_course.title == "Updated Course Name"
         assert synced_course.description == "Updated description"
         assert synced_course.max_capacity == 75
         assert synced_course.current_registrations == 50
@@ -710,7 +710,7 @@ class TestPlanningCenterSyncService:
             "data": [
                 {
                     "id": "evt_123",
-                    "name": "Introduction to Faith",
+                    "title": "Introduction to Faith",
                     "description": "Basic course",
                     "max_capacity": 50
                 }

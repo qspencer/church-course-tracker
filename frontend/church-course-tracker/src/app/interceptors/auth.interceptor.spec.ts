@@ -55,7 +55,13 @@ describe('AuthInterceptor', () => {
   });
 
   it('should retry request with new token on 401 error', () => {
-    authServiceSpy.getToken.and.returnValue('old-token');
+    // Set up the mock to return old token first, then new token
+    let tokenCallCount = 0;
+    authServiceSpy.getToken.and.callFake(() => {
+      tokenCallCount++;
+      return tokenCallCount === 1 ? 'old-token' : 'new-token';
+    });
+    
     authServiceSpy.refreshToken.and.returnValue(of({
       access_token: 'new-token',
       token_type: 'Bearer',
@@ -68,9 +74,6 @@ describe('AuthInterceptor', () => {
     const req1 = httpMock.expectOne('/test');
     expect(req1.request.headers.get('Authorization')).toBe('Bearer old-token');
     req1.flush({}, { status: 401, statusText: 'Unauthorized' });
-
-    // Update mock to return new token
-    authServiceSpy.getToken.and.returnValue('new-token');
 
     // Second request with new token
     const req2 = httpMock.expectOne('/test');

@@ -84,6 +84,11 @@ church-course-tracker/
    - Backend API: http://localhost:8000
    - API Documentation: http://localhost:8000/docs
 
+4. Log in with default admin credentials:
+   - Username: `Admin`
+   - Email: `course.tracker.admin@eastgate.church`
+   - Password: `Matthew778*`
+
 #### Option 2: Local Development
 
 **Backend Setup:**
@@ -114,7 +119,12 @@ church-course-tracker/
    alembic upgrade head
    ```
 
-6. Start the backend server:
+6. Create the default admin user:
+   ```bash
+   python create_default_admin.py
+   ```
+
+7. Start the backend server:
    ```bash
    uvicorn main:app --reload
    ```
