@@ -1,0 +1,5 @@
+username,email,password,full_name,role,is_active
+admin,admin@church.com,admin123,Administrator,admin,true
+staff,staff@church.com,staff123,Church Staff,staff,true
+viewer,viewer@church.com,viewer123,Course Viewer,viewer,true
+pastor,pastor@church.com,pastor123,Pastor John,admin,true

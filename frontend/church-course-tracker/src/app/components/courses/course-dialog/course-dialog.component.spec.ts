@@ -81,8 +81,8 @@ describe('CourseDialogComponent', () => {
     expect(component.isEditing).toBe(true);
     expect(component.data.course).toEqual(mockCourse);
     
-    // Trigger ngOnInit to patch form values
-    component.ngOnInit();
+    // Trigger change detection to ensure ngOnInit runs
+    fixture.detectChanges();
     
     // Check that the form is populated with course data
     expect(component.courseForm.get('title')?.value).toBe(mockCourse.title);

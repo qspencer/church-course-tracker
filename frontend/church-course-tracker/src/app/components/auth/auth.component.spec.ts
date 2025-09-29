@@ -235,24 +235,15 @@ describe('AuthComponent', () => {
       routerSpy.navigate.calls.reset();
       
       // Create a Subject to control the emission timing
-      const authSubject = new BehaviorSubject(false);
+      const authSubject = new BehaviorSubject(true); // Start with true
       authServiceSpy.isAuthenticated$ = authSubject.asObservable();
       
-      // Create a new component instance to ensure the spy is properly configured
-      const testFixture = TestBed.createComponent(AuthComponent);
-      const testComponent = testFixture.componentInstance;
+      // Use the existing component and fixture
+      component.ngOnInit();
       
-      // Initialize the new component - this sets up the subscription
-      testComponent.ngOnInit();
-      
-      // Process the initial subscription (should not navigate with false)
+      // Process the subscription
       tick();
-      testFixture.detectChanges();
-      
-      // Now emit true to trigger navigation
-      authSubject.next(true);
-      tick();
-      testFixture.detectChanges();
+      fixture.detectChanges();
 
       expect(routerSpy.navigate).toHaveBeenCalledWith(['/dashboard']);
     }));

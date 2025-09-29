@@ -1,0 +1,772 @@
+<testsuites id="" name="" tests="189" failures="0" skipped="189" errors="0" time="0.6390579999999998">
+<testsuite name="course-content-advanced.spec.ts" timestamp="2025-09-29T01:22:24.010Z" hostname="chromium" tests="27" failures="0" skipped="27" time="0" errors="0">
+<testcase name="Course Content File Operations › Admin can upload files to course content" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content File Operations › Admin can download uploaded files" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content File Operations › File upload shows validation errors for invalid files" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content File Operations › Staff can upload files but not download audit logs" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content File Operations › Viewer cannot upload files" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Progress Tracking › User can track progress for video content" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Progress Tracking › User can mark content as complete" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Progress Tracking › Progress is persisted across sessions" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Progress Tracking › Admin can view user progress reports" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Audit Logs › Admin can view content audit logs" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Audit Logs › Audit logs show user actions and timestamps" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Audit Logs › Staff cannot view audit logs" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Audit Logs › Audit logs are updated when content is modified" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Summary and Reports › Admin can view course content summary" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Summary and Reports › Content summary shows module breakdown" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Summary and Reports › Content summary shows content type breakdown" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Summary and Reports › Staff can view content summary but not detailed reports" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Role-Based Access › Admin has full access to all content operations" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Role-Based Access › Staff can manage content but not view audit logs" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Role-Based Access › Viewer can access content but not manage it" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Error Handling › File upload shows error for invalid file types" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Error Handling › Progress tracking shows error for invalid values" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Error Handling › Content access shows error for non-existent content" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Error Handling › Unauthorized access shows appropriate error messages" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Performance and Usability › File upload shows progress indicator" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Performance and Usability › Content list loads efficiently with many items" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Performance and Usability › Progress tracking updates in real-time" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="course-content-advanced.spec.ts" timestamp="2025-09-29T01:22:24.010Z" hostname="firefox" tests="27" failures="0" skipped="27" time="0" errors="0">
+<testcase name="Course Content File Operations › Admin can upload files to course content" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content File Operations › Admin can download uploaded files" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content File Operations › File upload shows validation errors for invalid files" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content File Operations › Staff can upload files but not download audit logs" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content File Operations › Viewer cannot upload files" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Progress Tracking › User can track progress for video content" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Progress Tracking › User can mark content as complete" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Progress Tracking › Progress is persisted across sessions" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Progress Tracking › Admin can view user progress reports" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Audit Logs › Admin can view content audit logs" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Audit Logs › Audit logs show user actions and timestamps" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Audit Logs › Staff cannot view audit logs" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Audit Logs › Audit logs are updated when content is modified" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Summary and Reports › Admin can view course content summary" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Summary and Reports › Content summary shows module breakdown" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Summary and Reports › Content summary shows content type breakdown" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Summary and Reports › Staff can view content summary but not detailed reports" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Role-Based Access › Admin has full access to all content operations" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Role-Based Access › Staff can manage content but not view audit logs" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Role-Based Access › Viewer can access content but not manage it" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Error Handling › File upload shows error for invalid file types" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Error Handling › Progress tracking shows error for invalid values" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Error Handling › Content access shows error for non-existent content" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Error Handling › Unauthorized access shows appropriate error messages" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Performance and Usability › File upload shows progress indicator" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Performance and Usability › Content list loads efficiently with many items" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Performance and Usability › Progress tracking updates in real-time" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="course-content-advanced.spec.ts" timestamp="2025-09-29T01:22:24.010Z" hostname="webkit" tests="27" failures="0" skipped="27" time="0" errors="0">
+<testcase name="Course Content File Operations › Admin can upload files to course content" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content File Operations › Admin can download uploaded files" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content File Operations › File upload shows validation errors for invalid files" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content File Operations › Staff can upload files but not download audit logs" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content File Operations › Viewer cannot upload files" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Progress Tracking › User can track progress for video content" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Progress Tracking › User can mark content as complete" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Progress Tracking › Progress is persisted across sessions" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Progress Tracking › Admin can view user progress reports" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Audit Logs › Admin can view content audit logs" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Audit Logs › Audit logs show user actions and timestamps" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Audit Logs › Staff cannot view audit logs" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Audit Logs › Audit logs are updated when content is modified" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Summary and Reports › Admin can view course content summary" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Summary and Reports › Content summary shows module breakdown" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Summary and Reports › Content summary shows content type breakdown" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Summary and Reports › Staff can view content summary but not detailed reports" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Role-Based Access › Admin has full access to all content operations" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Role-Based Access › Staff can manage content but not view audit logs" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Role-Based Access › Viewer can access content but not manage it" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Error Handling › File upload shows error for invalid file types" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Error Handling › Progress tracking shows error for invalid values" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Error Handling › Content access shows error for non-existent content" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Error Handling › Unauthorized access shows appropriate error messages" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Performance and Usability › File upload shows progress indicator" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Performance and Usability › Content list loads efficiently with many items" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Performance and Usability › Progress tracking updates in real-time" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="course-content-advanced.spec.ts" timestamp="2025-09-29T01:22:24.010Z" hostname="Mobile Chrome" tests="27" failures="0" skipped="27" time="0" errors="0">
+<testcase name="Course Content File Operations › Admin can upload files to course content" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content File Operations › Admin can download uploaded files" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content File Operations › File upload shows validation errors for invalid files" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content File Operations › Staff can upload files but not download audit logs" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content File Operations › Viewer cannot upload files" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Progress Tracking › User can track progress for video content" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Progress Tracking › User can mark content as complete" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Progress Tracking › Progress is persisted across sessions" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Progress Tracking › Admin can view user progress reports" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Audit Logs › Admin can view content audit logs" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Audit Logs › Audit logs show user actions and timestamps" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Audit Logs › Staff cannot view audit logs" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Audit Logs › Audit logs are updated when content is modified" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Summary and Reports › Admin can view course content summary" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Summary and Reports › Content summary shows module breakdown" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Summary and Reports › Content summary shows content type breakdown" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Summary and Reports › Staff can view content summary but not detailed reports" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Role-Based Access › Admin has full access to all content operations" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Role-Based Access › Staff can manage content but not view audit logs" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Role-Based Access › Viewer can access content but not manage it" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Error Handling › File upload shows error for invalid file types" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Error Handling › Progress tracking shows error for invalid values" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Error Handling › Content access shows error for non-existent content" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Error Handling › Unauthorized access shows appropriate error messages" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Performance and Usability › File upload shows progress indicator" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Performance and Usability › Content list loads efficiently with many items" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Performance and Usability › Progress tracking updates in real-time" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="course-content-advanced.spec.ts" timestamp="2025-09-29T01:22:24.010Z" hostname="Mobile Safari" tests="27" failures="0" skipped="27" time="0" errors="0">
+<testcase name="Course Content File Operations › Admin can upload files to course content" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content File Operations › Admin can download uploaded files" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content File Operations › File upload shows validation errors for invalid files" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content File Operations › Staff can upload files but not download audit logs" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content File Operations › Viewer cannot upload files" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Progress Tracking › User can track progress for video content" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Progress Tracking › User can mark content as complete" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Progress Tracking › Progress is persisted across sessions" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Progress Tracking › Admin can view user progress reports" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Audit Logs › Admin can view content audit logs" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Audit Logs › Audit logs show user actions and timestamps" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Audit Logs › Staff cannot view audit logs" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Audit Logs › Audit logs are updated when content is modified" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Summary and Reports › Admin can view course content summary" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Summary and Reports › Content summary shows module breakdown" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Summary and Reports › Content summary shows content type breakdown" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Summary and Reports › Staff can view content summary but not detailed reports" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Role-Based Access › Admin has full access to all content operations" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Role-Based Access › Staff can manage content but not view audit logs" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Role-Based Access › Viewer can access content but not manage it" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Error Handling › File upload shows error for invalid file types" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Error Handling › Progress tracking shows error for invalid values" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Error Handling › Content access shows error for non-existent content" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Error Handling › Unauthorized access shows appropriate error messages" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Performance and Usability › File upload shows progress indicator" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Performance and Usability › Content list loads efficiently with many items" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Performance and Usability › Progress tracking updates in real-time" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="course-content-advanced.spec.ts" timestamp="2025-09-29T01:22:24.010Z" hostname="Microsoft Edge" tests="27" failures="0" skipped="27" time="0" errors="0">
+<testcase name="Course Content File Operations › Admin can upload files to course content" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content File Operations › Admin can download uploaded files" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content File Operations › File upload shows validation errors for invalid files" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content File Operations › Staff can upload files but not download audit logs" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content File Operations › Viewer cannot upload files" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Progress Tracking › User can track progress for video content" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Progress Tracking › User can mark content as complete" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Progress Tracking › Progress is persisted across sessions" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Progress Tracking › Admin can view user progress reports" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Audit Logs › Admin can view content audit logs" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Audit Logs › Audit logs show user actions and timestamps" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Audit Logs › Staff cannot view audit logs" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Audit Logs › Audit logs are updated when content is modified" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Summary and Reports › Admin can view course content summary" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Summary and Reports › Content summary shows module breakdown" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Summary and Reports › Content summary shows content type breakdown" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Summary and Reports › Staff can view content summary but not detailed reports" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Role-Based Access › Admin has full access to all content operations" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Role-Based Access › Staff can manage content but not view audit logs" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Role-Based Access › Viewer can access content but not manage it" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Error Handling › File upload shows error for invalid file types" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Error Handling › Progress tracking shows error for invalid values" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Error Handling › Content access shows error for non-existent content" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Error Handling › Unauthorized access shows appropriate error messages" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Performance and Usability › File upload shows progress indicator" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Performance and Usability › Content list loads efficiently with many items" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Performance and Usability › Progress tracking updates in real-time" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="course-content-advanced.spec.ts" timestamp="2025-09-29T01:22:24.010Z" hostname="Google Chrome" tests="27" failures="0" skipped="27" time="0" errors="0">
+<testcase name="Course Content File Operations › Admin can upload files to course content" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content File Operations › Admin can download uploaded files" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content File Operations › File upload shows validation errors for invalid files" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content File Operations › Staff can upload files but not download audit logs" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content File Operations › Viewer cannot upload files" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Progress Tracking › User can track progress for video content" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Progress Tracking › User can mark content as complete" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Progress Tracking › Progress is persisted across sessions" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Progress Tracking › Admin can view user progress reports" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Audit Logs › Admin can view content audit logs" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Audit Logs › Audit logs show user actions and timestamps" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Audit Logs › Staff cannot view audit logs" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Audit Logs › Audit logs are updated when content is modified" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Summary and Reports › Admin can view course content summary" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Summary and Reports › Content summary shows module breakdown" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Summary and Reports › Content summary shows content type breakdown" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Summary and Reports › Staff can view content summary but not detailed reports" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Role-Based Access › Admin has full access to all content operations" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Role-Based Access › Staff can manage content but not view audit logs" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Role-Based Access › Viewer can access content but not manage it" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Error Handling › File upload shows error for invalid file types" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Error Handling › Progress tracking shows error for invalid values" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Error Handling › Content access shows error for non-existent content" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Error Handling › Unauthorized access shows appropriate error messages" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Performance and Usability › File upload shows progress indicator" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Performance and Usability › Content list loads efficiently with many items" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Course Content Performance and Usability › Progress tracking updates in real-time" classname="course-content-advanced.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+</testsuites>

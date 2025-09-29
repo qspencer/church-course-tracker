@@ -53,6 +53,11 @@ class Settings(BaseSettings):
     DATABASE_POOL_TIMEOUT: int = int(os.getenv("DATABASE_POOL_TIMEOUT", "30"))
     DATABASE_POOL_RECYCLE: int = int(os.getenv("DATABASE_POOL_RECYCLE", "3600"))
     
+    # CSV Data Loading
+    LOAD_CSV_DATA: bool = os.getenv("LOAD_CSV_DATA", "false").lower() == "true"
+    CSV_DATA_DIR: str = os.getenv("CSV_DATA_DIR", "data/csv")
+    FORCE_RELOAD_CSV: bool = os.getenv("FORCE_RELOAD_CSV", "false").lower() == "true"
+    
     # AWS Configuration
     AWS_ACCESS_KEY_ID: Optional[str] = os.getenv("AWS_ACCESS_KEY_ID")
     AWS_SECRET_ACCESS_KEY: Optional[str] = os.getenv("AWS_SECRET_ACCESS_KEY")

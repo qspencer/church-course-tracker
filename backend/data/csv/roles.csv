@@ -1,0 +1,4 @@
+name,description,permissions,is_active
+admin,System Administrator,all,true
+staff,Church Staff,"manage_courses,manage_users",true
+viewer,Course Viewer,view_courses,true

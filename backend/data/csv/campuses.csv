@@ -1,0 +1,4 @@
+name,address,phone,email,is_active
+Main Campus,"123 Church St, Anytown, CA 12345",555-1234,main@church.com,true
+North Campus,"456 North Ave, Anytown, CA 12346",555-5678,north@church.com,true
+South Campus,"789 South Blvd, Anytown, CA 12347",555-9012,south@church.com,true
