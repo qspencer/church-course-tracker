@@ -15,6 +15,7 @@ backend_dir = Path(__file__).parent.parent
 sys.path.insert(0, str(backend_dir))
 
 from app.core.csv_loader import CSVDataLoader, create_sample_csv_files, load_csv_data_on_startup
+from app.core.enhanced_csv_loader import EnhancedCSVDataLoader, clear_csv_data_only, get_csv_data_summary
 from app.core.database import get_db
 from app.core.config import settings
 import logging
@@ -143,10 +144,35 @@ def show_data_summary():
         print(f"❌ Error getting data summary: {e}")
 
 
+def show_csv_data_summary():
+    """Show summary of CSV-loaded data only"""
+    try:
+        results = get_csv_data_summary()
+        print("\n📊 CSV Data Summary (CSV-loaded data only):")
+        print("=" * 50)
+        print(f"  CSV Users: {results.get('csv_users', 0)}")
+        print(f"  CSV Courses: {results.get('csv_courses', 0)}")
+        print(f"  CSV Modules: {results.get('csv_modules', 0)}")
+        print(f"  CSV Content: {results.get('csv_content', 0)}")
+        print(f"  CSV People: {results.get('csv_people', 0)}")
+        print(f"  CSV Campuses: {results.get('csv_campuses', 0)}")
+        print(f"  CSV Roles: {results.get('csv_roles', 0)}")
+        print(f"  CSV Enrollments: {results.get('csv_enrollments', 0)}")
+        
+        total_csv = sum(results.values())
+        if total_csv > 0:
+            print(f"\n✅ Total CSV-loaded records: {total_csv}")
+            print("💡 Use 'clear-csv' command to remove only CSV data")
+        else:
+            print("\n📝 No CSV data found in database")
+    except Exception as e:
+        print(f"❌ Error getting CSV data summary: {e}")
+
+
 def main():
     """Main CLI interface"""
     parser = argparse.ArgumentParser(description="CSV Data Manager for Church Course Tracker")
-    parser.add_argument('command', choices=['create', 'load', 'clear', 'summary', 'full-setup'], 
+    parser.add_argument('command', choices=['create', 'load', 'clear', 'summary', 'full-setup', 'clear-csv', 'csv-summary'], 
                        help='Command to execute')
     parser.add_argument('--force', action='store_true', 
                        help='Force reload data even if it already exists')
@@ -183,6 +209,12 @@ def main():
             print("\n🎉 Full setup completed successfully!")
             print("\nYou can now start the application with CSV data loading enabled.")
             print("Set LOAD_CSV_DATA=true in your environment variables.")
+    
+    elif args.command == 'clear-csv':
+        clear_csv_data_only()
+        
+    elif args.command == 'csv-summary':
+        show_csv_data_summary()
 
 
 if __name__ == "__main__":
