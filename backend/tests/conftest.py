@@ -8,7 +8,7 @@ import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from fastapi.testclient import TestClient
-from datetime import datetime, date
+from datetime import datetime, date, timezone
 
 # Override database configuration for tests
 os.environ["DATABASE_URL"] = "sqlite:///:memory:"
@@ -19,7 +19,10 @@ SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL, 
-    connect_args={"check_same_thread": False}
+    connect_args={"check_same_thread": False},
+    pool_pre_ping=True,
+    pool_recycle=3600,
+    echo=False
 )
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
@@ -70,20 +73,22 @@ def event_loop():
 @pytest.fixture(scope="function")
 def db_session():
     """Create a fresh database session for each test."""
-    # Create all tables
+    # Drop all tables and recreate them for each test
+    Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
     
-    connection = engine.connect()
-    transaction = connection.begin()
-    session = TestingSessionLocal(bind=connection)
+    session = TestingSessionLocal()
 
     # Yield the session to the test
     yield session
 
-    # Rollback the transaction and close the session after the test
-    session.close()
-    transaction.rollback()
-    connection.close()
+    # Clean up the session after the test
+    try:
+        session.rollback()
+    except Exception:
+        pass
+    finally:
+        session.close()
 
 
 @pytest.fixture(scope="function")
@@ -224,7 +229,7 @@ def sample_enrollment_data():
     return {
         "people_id": 1,  # Will be set in test
         "course_id": 1,  # Will be set in test
-        "enrollment_date": datetime.utcnow(),
+        "enrollment_date": datetime.now(timezone.utc),
         "status": "enrolled",
         "progress_percentage": 0.0,
         "planning_center_synced": False,

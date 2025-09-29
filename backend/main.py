@@ -13,6 +13,7 @@ import logging
 
 from app.core.config import settings
 from app.api.v1.api import api_router
+from app.core.csv_loader import load_csv_data_on_startup
 
 # Configure logging
 logging.basicConfig(level=getattr(logging, settings.LOG_LEVEL))
@@ -183,6 +184,26 @@ if settings.RATE_LIMIT_ENABLED:
 
 # Include API router
 app.include_router(api_router, prefix="/api/v1")
+
+
+@app.on_event("startup")
+async def startup_event():
+    """Application startup event handler"""
+    logger.info("Starting Church Course Tracker API...")
+    
+    # Load CSV data if enabled
+    try:
+        load_csv_data_on_startup()
+    except Exception as e:
+        logger.error(f"Error loading CSV data on startup: {e}")
+    
+    logger.info("Application startup completed")
+
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Application shutdown event handler"""
+    logger.info("Shutting down Church Course Tracker API...")
 
 @app.get("/")
 async def root():
