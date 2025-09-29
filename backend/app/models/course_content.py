@@ -42,6 +42,10 @@ class CourseModule(Base):
     order_index = Column(Integer, nullable=False, default=0)
     is_active = Column(Boolean, default=True, nullable=False)
     
+    # CSV source tracking
+    data_source = Column(String(20), nullable=True)  # 'csv', 'api', 'manual', etc.
+    csv_loaded_at = Column(DateTime(timezone=True), nullable=True)  # When loaded from CSV
+    
     # Timestamps
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
@@ -87,6 +91,10 @@ class CourseContent(Base):
     # Organization
     order_index = Column(Integer, nullable=False, default=0)
     is_active = Column(Boolean, default=True, nullable=False)
+    
+    # CSV source tracking
+    data_source = Column(String(20), nullable=True)  # 'csv', 'api', 'manual', etc.
+    csv_loaded_at = Column(DateTime(timezone=True), nullable=True)  # When loaded from CSV
     
     # Timestamps
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
