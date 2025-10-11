@@ -1,0 +1,99 @@
+CHURCH COURSE TRACKER - VISUAL ER DIAGRAM
+==========================================
+
+                    ┌─────────────────┐
+                    │     USERS       │
+                    │  (Staff/Admin)  │
+                    └─────────────────┘
+                           │
+                           │ (manages)
+                           │
+                    ┌─────────────────┐
+                    │     PEOPLE      │
+                    │  (Church       │
+                    │   Members)     │
+                    └─────────────────┘
+                           │
+                           │ (1:N)
+                           │
+                    ┌─────────────────┐    ┌─────────────────┐
+                    │PEOPLE_CAMPUS    │◄───┤     CAMPUS      │
+                    │ (Junction)      │    │  (Locations)    │
+                    └─────────────────┘    └─────────────────┘
+                           │
+                           │ (N:1)
+                           │
+                    ┌─────────────────┐
+                    │     PEOPLE      │
+                    │  (Church       │
+                    │   Members)     │
+                    └─────────────────┘
+                           │
+                           │ (enrolls in)
+                           │
+                    ┌─────────────────┐    ┌─────────────────┐
+                    │COURSE_ENROLLMENT│◄───┤     COURSES     │
+                    │ (Junction)      │    │  (Events)       │
+                    └─────────────────┘    └─────────────────┘
+                           │                       │
+                           │ (tracks progress)     │ (contains)
+                           │                       │
+                    ┌─────────────────┐    ┌─────────────────┐
+                    │    PROGRESS     │◄───┤    CONTENT      │
+                    │ (Completion)    │    │ (Course Items) │
+                    └─────────────────┘    └─────────────────┘
+
+KEY RELATIONSHIPS:
+==================
+
+1. PEOPLE ──(1:N)──► COURSE_ENROLLMENT ◄──(1:N)── COURSES
+   - One person can enroll in multiple courses
+   - One course can have multiple enrollments
+
+2. PEOPLE ──(N:M)──► CAMPUS (via PEOPLE_CAMPUS)
+   - Many-to-many relationship between people and campuses
+
+3. COURSE_ENROLLMENT ──(1:N)──► PROGRESS
+   - One enrollment tracks multiple content completions
+
+4. COURSES ──(1:N)──► CONTENT
+   - One course contains multiple content items
+
+5. CONTENT ──(1:N)──► PROGRESS
+   - One content item can have multiple progress records
+
+PLANNING CENTER INTEGRATION:
+============================
+
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│  PC Events      │───►│    COURSES      │    │  PC Registrations│
+│                 │    │                 │    │                 │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+                                │                       │
+                                │                       │
+                                ▼                       ▼
+                       ┌─────────────────┐    ┌─────────────────┐
+                       │    CONTENT      │    │COURSE_ENROLLMENT│
+                       │                 │    │                 │
+                       └─────────────────┘    └─────────────────┘
+                                │                       │
+                                │                       │
+                                ▼                       ▼
+                       ┌─────────────────┐    ┌─────────────────┐
+                       │    PROGRESS     │◄───┤    PROGRESS     │
+                       │                 │    │                 │
+                       └─────────────────┘    └─────────────────┘
+
+DATA SOURCE TRACKING:
+=====================
+
+All tables include:
+- data_source (String): 'csv', 'api', 'manual', etc.
+- csv_loaded_at (DateTime): When loaded from CSV
+- created_at (DateTime): Record creation time
+- updated_at (DateTime): Last update time
+
+This allows for:
+- Selective data clearing (remove only CSV data)
+- Audit trail of data changes
+- Source identification for data management
