@@ -26,14 +26,14 @@ output "cloudfront_hosted_zone_id" {
   value       = aws_cloudfront_distribution.main.hosted_zone_id
 }
 
-output "alb_dns_name" {
-  description = "Application Load Balancer DNS name"
-  value       = aws_lb.main.dns_name
+output "api_gateway_endpoint" {
+  description = "API Gateway endpoint URL"
+  value       = aws_apigatewayv2_api.main.api_endpoint
 }
 
-output "alb_zone_id" {
-  description = "Application Load Balancer zone ID"
-  value       = aws_lb.main.zone_id
+output "api_gateway_domain" {
+  description = "API Gateway custom domain name"
+  value       = aws_apigatewayv2_domain_name.main.domain_name
 }
 
 output "ecs_cluster_name" {
@@ -80,7 +80,7 @@ output "application_url" {
 
 output "api_url" {
   description = "API URL (ALB)"
-  value       = "http://${aws_lb.main.dns_name}"
+  value       = aws_apigatewayv2_api.main.api_endpoint
 }
 
 # Domain information
