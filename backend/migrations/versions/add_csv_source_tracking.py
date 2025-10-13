@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = 'add_csv_source_tracking'
-down_revision = None
+down_revision = '002'
 branch_labels = None
 depends_on = None
 
