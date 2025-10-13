@@ -205,135 +205,20 @@ resource "aws_cloudfront_distribution" "main" {
 }
 
 # ECS Cluster is defined in ecs.tf
-
-# Application Load Balancer
-resource "aws_lb" "main" {
-  name               = "${var.app_name}-alb"
-  internal           = false
-  load_balancer_type = "application"
-  security_groups    = [aws_security_group.alb.id]
-  subnets            = module.vpc.public_subnets
-  
-  tags = {
-    Environment = var.environment
-    Application = var.app_name
-  }
-}
-
-# ALB Target Group
-resource "aws_lb_target_group" "backend" {
-  name        = "cct-backend-tg-v2"
-  port        = 8000
-  protocol    = "HTTP"
-  vpc_id      = module.vpc.vpc_id
-  target_type = "ip"
-  
-  health_check {
-    enabled             = true
-    healthy_threshold   = 2
-    unhealthy_threshold = 2
-    timeout             = 5
-    interval            = 30
-    path                = "/health"
-    matcher             = "200"
-    port                = "traffic-port"
-    protocol            = "HTTP"
-  }
-  
-  tags = {
-    Environment = var.environment
-    Application = var.app_name
-  }
-}
-
-# ALB HTTP Listener (redirects to HTTPS)
-resource "aws_lb_listener" "backend_http" {
-  load_balancer_arn = aws_lb.main.arn
-  port              = "80"
-  protocol          = "HTTP"
-  
-  default_action {
-    type = "redirect"
-    redirect {
-      port        = "443"
-      protocol    = "HTTPS"
-      status_code = "HTTP_301"
-    }
-  }
-}
-
-# ALB HTTPS Listener
-resource "aws_lb_listener" "backend_https" {
-  load_balancer_arn = aws_lb.main.arn
-  port              = "443"
-  protocol          = "HTTPS"
-  ssl_policy        = "ELBSecurityPolicy-TLS-1-2-2017-01"
-  certificate_arn   = aws_acm_certificate_validation.api_quentinspencer_com.certificate_arn
-  
-  default_action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.backend.arn
-  }
-}
-
-# ALB Listener Rule for API routing
-resource "aws_lb_listener_rule" "api_rule" {
-  listener_arn = aws_lb_listener.backend_https.arn
-  priority     = 100
-
-  action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.backend.arn
-  }
-
-  condition {
-    path_pattern {
-      values = ["/api/*"]
-    }
-  }
-}
+# API Gateway is defined in api_gateway.tf (replaces ALB for cost savings)
 
 # Security Groups
-resource "aws_security_group" "alb" {
-  name_prefix = "${var.app_name}-alb-"
-  vpc_id      = module.vpc.vpc_id
-  
-  ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-  
-  ingress {
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-  
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-  
-  tags = {
-    Environment = var.environment
-    Application = var.app_name
-  }
-}
-
 resource "aws_security_group" "ecs" {
   name_prefix = "${var.app_name}-ecs-"
   vpc_id      = module.vpc.vpc_id
+  description = "Security group for ECS tasks"
   
   ingress {
     from_port       = 8000
     to_port         = 8000
     protocol        = "tcp"
-    security_groups = [aws_security_group.alb.id]
+    security_groups = [aws_security_group.api_gateway_vpc_link.id]
+    description     = "Allow traffic from API Gateway VPC Link"
   }
   
   egress {
@@ -341,6 +226,7 @@ resource "aws_security_group" "ecs" {
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
+    description = "Allow all outbound traffic"
   }
   
   tags = {
@@ -464,7 +350,7 @@ resource "aws_acm_certificate_validation" "apps_quentinspencer_com" {
   validation_record_fqdns = [for record in aws_route53_record.apps_quentinspencer_com_validation : record.fqdn]
   
   timeouts {
-    create = "10m"
+    create = "45m"
   }
 }
 
@@ -474,7 +360,7 @@ resource "aws_acm_certificate_validation" "api_quentinspencer_com" {
   validation_record_fqdns = [for record in aws_route53_record.api_quentinspencer_com_validation : record.fqdn]
   
   timeouts {
-    create = "10m"
+    create = "45m"
   }
 }
 
@@ -491,16 +377,16 @@ resource "aws_route53_record" "apps_quentinspencer_com" {
   }
 }
 
-# Route 53 A record for api.quentinspencer.com pointing to ALB
+# Route 53 A record for api.quentinspencer.com pointing to API Gateway
 resource "aws_route53_record" "api_quentinspencer_com" {
   zone_id = aws_route53_zone.quentinspencer_com.zone_id
   name    = "api.quentinspencer.com"
   type    = "A"
   
   alias {
-    name                   = aws_lb.main.dns_name
-    zone_id                = aws_lb.main.zone_id
-    evaluate_target_health = true
+    name                   = aws_apigatewayv2_domain_name.main.domain_name_configuration[0].target_domain_name
+    zone_id                = aws_apigatewayv2_domain_name.main.domain_name_configuration[0].hosted_zone_id
+    evaluate_target_health = false
   }
 }
 

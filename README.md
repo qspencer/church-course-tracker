@@ -39,8 +39,9 @@ The Church Course Tracker is a modern, cloud-native web application that enables
 - **CloudFront CDN**: Global content delivery network
 - **Route 53 DNS**: Custom domain management
 - **SSL/TLS**: Automatic HTTPS with ACM certificates
-- **Application Load Balancer**: High availability and scaling
+- **API Gateway HTTP API**: Cost-optimized API routing (saves ~$15/month vs ALB)
 - **CloudWatch**: Monitoring and logging
+- **Service Discovery**: Automatic service registration
 
 ## 🏗️ Architecture
 
@@ -282,18 +283,22 @@ The system integrates with Planning Center through a mock API that simulates:
 ## 🚀 CI/CD Pipeline
 
 ### GitHub Actions Workflows
-- **Deploy**: Automated deployment to AWS
-- **E2E Tests**: End-to-end testing on multiple browsers
-- **Security Scanning**: Dependency vulnerability checks
-- **Performance Testing**: Automated performance monitoring
+- **Backend Tests**: Automated Python tests with coverage reports
+- **Frontend Tests**: Angular unit and integration tests  
+- **E2E Tests**: Playwright tests on multiple browsers
+- **Deploy**: Automated deployment to AWS on push to main
+- **Database Migrations**: Automatic schema updates
 
 ### Deployment Process
 1. Code push triggers GitHub Actions
-2. Tests run on multiple environments
+2. Tests run on multiple environments (Backend, Frontend, E2E)
 3. Docker images built and pushed to ECR
-4. Infrastructure updated with Terraform
+4. Database migrations executed automatically
 5. Application deployed to ECS Fargate
-6. Health checks and monitoring activated
+6. CloudFront cache invalidated
+7. Health checks and monitoring activated
+
+**See `docs/CI_CD_SETUP.md` for detailed setup instructions.**
 
 ## 📈 Monitoring & Observability
 

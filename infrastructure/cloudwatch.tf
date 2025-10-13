@@ -11,16 +11,7 @@ resource "aws_cloudwatch_log_group" "backend" {
   }
 }
 
-# CloudWatch Log Group for ALB
-resource "aws_cloudwatch_log_group" "alb" {
-  name              = "/aws/applicationloadbalancer/${var.app_name}"
-  retention_in_days = 30
-  
-  tags = {
-    Environment = var.environment
-    Application = var.app_name
-  }
-}
+# CloudWatch Log Group for API Gateway is defined in api_gateway.tf
 
 # CloudWatch Dashboard
 resource "aws_cloudwatch_dashboard" "main" {
@@ -56,16 +47,16 @@ resource "aws_cloudwatch_dashboard" "main" {
         
         properties = {
           metrics = [
-            ["AWS/ApplicationELB", "TargetResponseTime", "LoadBalancer", aws_lb.main.arn_suffix],
-            [".", "RequestCount", ".", "."],
-            [".", "HTTPCode_Target_2XX_Count", ".", "."],
-            [".", "HTTPCode_Target_4XX_Count", ".", "."],
-            [".", "HTTPCode_Target_5XX_Count", ".", "."]
+            ["AWS/ApiGateway", "Count", "ApiId", aws_apigatewayv2_api.main.id],
+            [".", "4XXError", ".", "."],
+            [".", "5XXError", ".", "."],
+            [".", "Latency", ".", "."],
+            [".", "IntegrationLatency", ".", "."]
           ]
           view    = "timeSeries"
           stacked = false
           region  = var.aws_region
-          title   = "Application Load Balancer Metrics"
+          title   = "API Gateway Metrics"
           period  = 300
         }
       },
