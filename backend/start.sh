@@ -3,11 +3,8 @@
 # Church Course Tracker - ECS Startup Script
 echo "🚀 Starting Church Course Tracker..."
 
-# Set environment variables
-export DATABASE_URL="postgresql://postgres:qicBHo2ypeSkuyrU@church-course-tracker-db.cmn082g02d5u.us-east-1.rds.amazonaws.com:5432/church_course_tracker"
-export AWS_REGION="us-east-1"
-export AWS_S3_BUCKET="church-course-tracker-uploads-p33k2b23"
-export ENVIRONMENT="production"
+# Environment variables are set by ECS task definition
+# No need to override them here
 
 # Run database migrations
 echo "📊 Running database migrations..."
