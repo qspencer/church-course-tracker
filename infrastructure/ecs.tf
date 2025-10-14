@@ -44,7 +44,7 @@ resource "aws_ecs_task_definition" "backend" {
         },
         {
           name  = "DATABASE_URL"
-          value = "postgresql://postgres:${var.db_password}@${aws_db_instance.main.endpoint}:5432/church_course_tracker"
+          value = "postgresql://postgres:${var.db_password}@${aws_db_instance.main.address}:${aws_db_instance.main.port}/church_course_tracker"
         },
         {
           name  = "AWS_S3_BUCKET"
