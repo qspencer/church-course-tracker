@@ -1,0 +1,79 @@
+{
+  "family": "church-course-tracker-backend",
+  "taskRoleArn": "arn:aws:iam::334581603621:role/church-course-tracker-ecs-task-role",
+  "executionRoleArn": "arn:aws:iam::334581603621:role/church-course-tracker-ecs-execution-role",
+  "networkMode": "awsvpc",
+  "containerDefinitions": [
+    {
+      "name": "backend",
+      "image": "334581603621.dkr.ecr.us-east-1.amazonaws.com/church-course-tracker-backend:latest",
+      "cpu": 0,
+      "portMappings": [
+        {
+          "containerPort": 8000,
+          "hostPort": 8000,
+          "protocol": "tcp"
+        }
+      ],
+      "essential": true,
+      "environment": [
+        {
+          "name": "AWS_REGION",
+          "value": "us-east-1"
+        },
+        {
+          "name": "DATABASE_URL",
+          "value": "postgresql://postgres:qicBHo2ypeSkuyrU@church-course-tracker-db.cmn082g02d5u.us-east-1.rds.amazonaws.com:5432/church_course_tracker"
+        },
+        {
+          "name": "AWS_S3_BUCKET",
+          "value": "church-course-tracker-uploads-hp35od11"
+        },
+        {
+          "name": "ENVIRONMENT",
+          "value": "development"
+        }
+      ],
+      "mountPoints": [],
+      "volumesFrom": [],
+      "secrets": [
+        {
+          "name": "SECRET_KEY",
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:334581603621:secret:church-course-tracker-secrets-iUkKE9"
+        },
+        {
+          "name": "PLANNING_CENTER_APP_ID",
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:334581603621:secret:church-course-tracker-secrets-iUkKE9:PLANNING_CENTER_APP_ID::"
+        },
+        {
+          "name": "PLANNING_CENTER_SECRET",
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:334581603621:secret:church-course-tracker-secrets-iUkKE9:PLANNING_CENTER_SECRET::"
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/church-course-tracker-backend",
+          "awslogs-region": "us-east-1",
+          "awslogs-stream-prefix": "ecs"
+        }
+      },
+      "healthCheck": {
+        "command": [
+          "CMD-SHELL",
+          "python3 /app/health_check.py || exit 1"
+        ],
+        "interval": 30,
+        "timeout": 10,
+        "retries": 3,
+        "startPeriod": 60
+      },
+      "systemControls": []
+    }
+  ],
+  "requiresCompatibilities": [
+    "FARGATE"
+  ],
+  "cpu": "512",
+  "memory": "1024"
+}
