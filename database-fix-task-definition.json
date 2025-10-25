@@ -1,0 +1,24 @@
+{
+  "family": "database-fix-task",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "256",
+  "memory": "512",
+  "executionRoleArn": "arn:aws:iam::334581603621:role/church-course-tracker-ecs-execution-role",
+  "taskRoleArn": "arn:aws:iam::334581603621:role/church-course-tracker-ecs-task-role",
+  "containerDefinitions": [
+    {
+      "name": "database-fix",
+      "image": "334581603621.dkr.ecr.us-east-1.amazonaws.com/church-course-tracker:database-fix-v3",
+      "essential": true,
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/database-fix",
+          "awslogs-region": "us-east-1",
+          "awslogs-stream-prefix": "ecs"
+        }
+      }
+    }
+  ]
+}

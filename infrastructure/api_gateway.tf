@@ -59,7 +59,7 @@ resource "aws_service_discovery_service" "backend" {
   }
 
   health_check_custom_config {
-    failure_threshold = 1
+    failure_threshold = 3
   }
 
   tags = {
@@ -73,7 +73,7 @@ resource "aws_apigatewayv2_integration" "backend" {
   api_id             = aws_apigatewayv2_api.main.id
   integration_type   = "HTTP_PROXY"
   integration_method = "ANY"
-  integration_uri    = aws_service_discovery_service.backend.arn
+  integration_uri    = "arn:aws:elasticloadbalancing:us-east-1:334581603621:listener/app/church-course-tracker-alb-v2/e6311536feb13363/4d31f2e6fde3c2ff"
   connection_type    = "VPC_LINK"
   connection_id      = aws_apigatewayv2_vpc_link.main.id
 

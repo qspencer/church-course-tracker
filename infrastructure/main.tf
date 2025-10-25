@@ -45,7 +45,7 @@ resource "aws_db_instance" "main" {
   identifier = "${var.app_name}-db"
   
   engine         = "postgres"
-  engine_version = "15.7"
+  engine_version = "15.12"
   instance_class = "db.t3.micro"  # Smallest instance for cost optimization
   
   allocated_storage     = 20

@@ -163,17 +163,17 @@ test.describe('Audit and Security Tests', () => {
     test('API endpoints respect role permissions', async ({ page }) => {
       // Test admin API access
       await loginAs(page, testUsers.admin);
-      const adminResponse = await page.request.get('https://api.quentinspencer.com/api/v1/audit/');
+      const adminResponse = await page.request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/audit/');
       expect(adminResponse.status()).toBe(200);
 
       // Test staff API access (should be denied)
       await loginAs(page, testUsers.staff);
-      const staffResponse = await page.request.get('https://api.quentinspencer.com/api/v1/audit/');
+      const staffResponse = await page.request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/audit/');
       expect(staffResponse.status()).toBe(403);
 
       // Test viewer API access (should be denied)
       await loginAs(page, testUsers.viewer);
-      const viewerResponse = await page.request.get('https://api.quentinspencer.com/api/v1/audit/');
+      const viewerResponse = await page.request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/audit/');
       expect(viewerResponse.status()).toBe(403);
     });
 
@@ -183,7 +183,7 @@ test.describe('Audit and Security Tests', () => {
       // Make multiple rapid requests
       const requests = [];
       for (let i = 0; i < 10; i++) {
-        requests.push(page.request.get('https://api.quentinspencer.com/api/v1/courses/'));
+        requests.push(page.request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/'));
       }
       
       const responses = await Promise.all(requests);
@@ -193,7 +193,7 @@ test.describe('Audit and Security Tests', () => {
     });
 
     test('CORS headers are properly set', async ({ page }) => {
-      const response = await page.request.get('https://api.quentinspencer.com/api/v1/health');
+      const response = await page.request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/health');
       const headers = response.headers();
       
       expect(headers['access-control-allow-origin']).toBe('https://apps.quentinspencer.com');

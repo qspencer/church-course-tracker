@@ -1,0 +1,30 @@
+{
+  "family": "church-course-tracker-backend",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "256",
+  "memory": "512",
+  "executionRoleArn": "arn:aws:iam::334581603621:role/church-course-tracker-ecs-execution-role",
+  "taskRoleArn": "arn:aws:iam::334581603621:role/church-course-tracker-ecs-task-role",
+  "containerDefinitions": [
+    {
+      "name": "backend",
+      "image": "334581603621.dkr.ecr.us-east-1.amazonaws.com/church-course-tracker:fix-and-start-v2",
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 8000,
+          "protocol": "tcp"
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/church-course-tracker-backend",
+          "awslogs-region": "us-east-1",
+          "awslogs-stream-prefix": "ecs"
+        }
+      }
+    }
+  ]
+}

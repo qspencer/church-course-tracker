@@ -63,7 +63,7 @@ test.describe('Comprehensive Role-Based Testing', () => {
 
     test('API endpoints are accessible', async ({ page }) => {
       // Test API health endpoint
-      const response = await page.request.get('https://api.quentinspencer.com/api/v1/health');
+      const response = await page.request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/health');
       expect(response.status()).toBe(200);
       
       const data = await response.json();
@@ -194,9 +194,9 @@ test.describe('Comprehensive Role-Based Testing', () => {
     test('API endpoints respond correctly', async ({ page }) => {
       // Test various API endpoints
       const endpoints = [
-        'https://api.quentinspencer.com/api/v1/health',
-        'https://api.quentinspencer.com/api/v1/courses/',
-        'https://api.quentinspencer.com/api/v1/users/'
+        'https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/health',
+        'https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/',
+        'https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/users/'
       ];
 
       for (const endpoint of endpoints) {
@@ -210,7 +210,7 @@ test.describe('Comprehensive Role-Based Testing', () => {
     });
 
     test('CORS headers are present', async ({ page }) => {
-      const response = await page.request.get('https://api.quentinspencer.com/api/v1/health');
+      const response = await page.request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/health');
       const headers = response.headers();
       
       const corsHeaders = [
@@ -242,7 +242,7 @@ test.describe('Comprehensive Role-Based Testing', () => {
 
     test('API response times', async ({ page }) => {
       const startTime = Date.now();
-      const response = await page.request.get('https://api.quentinspencer.com/api/v1/health');
+      const response = await page.request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/health');
       const responseTime = Date.now() - startTime;
       
       console.log(`API response time: ${responseTime}ms`);

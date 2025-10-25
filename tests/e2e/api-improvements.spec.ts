@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('API Improvements Verification', () => {
   test('Enhanced health endpoint provides comprehensive status', async ({ request }) => {
-    const response = await request.get('https://api.quentinspencer.com/health');
+    const response = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/health');
     expect(response.status()).toBe(200);
     
     const data = await response.json();
@@ -31,7 +31,7 @@ test.describe('API Improvements Verification', () => {
   });
 
   test('CORS headers are properly configured', async ({ request }) => {
-    const response = await request.get('https://api.quentinspencer.com/api/v1/courses/');
+    const response = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/');
     expect(response.status()).toBe(200);
     
     const headers = response.headers();
@@ -58,7 +58,7 @@ test.describe('API Improvements Verification', () => {
   });
 
   test('Security headers are properly configured', async ({ request }) => {
-    const response = await request.get('https://api.quentinspencer.com/api/v1/courses/');
+    const response = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/');
     expect(response.status()).toBe(200);
     
     const headers = response.headers();
@@ -91,7 +91,7 @@ test.describe('API Improvements Verification', () => {
   });
 
   test('Rate limiting headers are present', async ({ request }) => {
-    const response = await request.get('https://api.quentinspencer.com/api/v1/courses/');
+    const response = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/');
     expect(response.status()).toBe(200);
     
     const headers = response.headers();
@@ -119,7 +119,7 @@ test.describe('API Improvements Verification', () => {
     // Make multiple rapid requests to test rate limiting
     const requests = [];
     for (let i = 0; i < 15; i++) {
-      requests.push(request.get('https://api.quentinspencer.com/api/v1/courses/'));
+      requests.push(request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/'));
     }
     
     const responses = await Promise.all(requests);
@@ -156,7 +156,7 @@ test.describe('API Improvements Verification', () => {
 
   test('API performance is maintained with new features', async ({ request }) => {
     const startTime = Date.now();
-    const response = await request.get('https://api.quentinspencer.com/api/v1/courses/');
+    const response = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/');
     const responseTime = Date.now() - startTime;
     
     expect(response.status()).toBe(200);
@@ -174,14 +174,14 @@ test.describe('API Improvements Verification', () => {
     ];
     
     for (const endpoint of endpoints) {
-      const response = await request.get(`https://api.quentinspencer.com${endpoint}`);
+      const response = await request.get(`https://tinev5iszf.execute-api.us-east-1.amazonaws.com${endpoint}`);
       expect(response.status()).toBe(200);
       console.log(`✓ Endpoint ${endpoint} working correctly`);
     }
   });
 
   test('Authentication still works with new middleware', async ({ request }) => {
-    const response = await request.post('https://api.quentinspencer.com/api/v1/auth/login', {
+    const response = await request.post('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/auth/login', {
       data: {
         username: 'admin',
         password: 'admin123'

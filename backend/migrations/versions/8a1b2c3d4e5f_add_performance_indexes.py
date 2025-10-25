@@ -23,7 +23,7 @@ def upgrade():
     op.create_index('idx_courses_is_active', 'courses', ['is_active'])
     op.create_index('idx_courses_created_at', 'courses', ['created_at'])
     op.create_index('idx_courses_event_dates', 'courses', ['event_start_date', 'event_end_date'])
-    op.create_index('idx_courses_title_active', 'courses', ['title', 'is_active'])
+    op.create_index('idx_courses_name_active', 'courses', ['name', 'is_active'])
     
     # User model indexes
     op.create_index('idx_users_role', 'users', ['role'])
@@ -142,7 +142,7 @@ def downgrade():
     op.drop_index('idx_users_role', 'users')
     
     # Drop course indexes
-    op.drop_index('idx_courses_title_active', 'courses')
+    op.drop_index('idx_courses_name_active', 'courses')
     op.drop_index('idx_courses_event_dates', 'courses')
     op.drop_index('idx_courses_created_at', 'courses')
     op.drop_index('idx_courses_is_active', 'courses')

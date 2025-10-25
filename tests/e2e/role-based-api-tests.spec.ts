@@ -9,7 +9,7 @@ const testUsers = {
 
 // Helper function to get auth token
 async function getAuthToken(request: any, user: typeof testUsers.admin): Promise<string> {
-  const response = await request.post('https://api.quentinspencer.com/api/v1/auth/login', {
+  const response = await request.post('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/auth/login', {
     data: user
   });
   
@@ -27,13 +27,13 @@ test.describe('Role-Based API Tests', () => {
       const token = await getAuthToken(request, testUsers.admin);
       
       // Test courses endpoint
-      const coursesResponse = await request.get('https://api.quentinspencer.com/api/v1/courses/', {
+      const coursesResponse = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       expect(coursesResponse.status()).toBe(200);
       
       // Test users endpoint
-      const usersResponse = await request.get('https://api.quentinspencer.com/api/v1/users/', {
+      const usersResponse = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/users/', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       expect(usersResponse.status()).toBe(200);
@@ -45,7 +45,7 @@ test.describe('Role-Based API Tests', () => {
       const token = await getAuthToken(request, testUsers.admin);
       
       // Test user creation (if endpoint exists)
-      const createUserResponse = await request.post('https://api.quentinspencer.com/api/v1/users/', {
+      const createUserResponse = await request.post('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/users/', {
         headers: { 'Authorization': `Bearer ${token}` },
         data: {
           username: 'testuser',
@@ -63,7 +63,7 @@ test.describe('Role-Based API Tests', () => {
       const token = await getAuthToken(request, testUsers.admin);
       
       // Test audit endpoint
-      const auditResponse = await request.get('https://api.quentinspencer.com/api/v1/audit/', {
+      const auditResponse = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/audit/', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       
@@ -77,7 +77,7 @@ test.describe('Role-Based API Tests', () => {
       const token = await getAuthToken(request, testUsers.staff);
       
       // Test courses endpoint
-      const coursesResponse = await request.get('https://api.quentinspencer.com/api/v1/courses/', {
+      const coursesResponse = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       expect(coursesResponse.status()).toBe(200);
@@ -89,7 +89,7 @@ test.describe('Role-Based API Tests', () => {
       const token = await getAuthToken(request, testUsers.staff);
       
       // Test audit endpoint (should be denied)
-      const auditResponse = await request.get('https://api.quentinspencer.com/api/v1/audit/', {
+      const auditResponse = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/audit/', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       
@@ -104,7 +104,7 @@ test.describe('Role-Based API Tests', () => {
       const token = await getAuthToken(request, testUsers.viewer);
       
       // Test courses endpoint (should work)
-      const coursesResponse = await request.get('https://api.quentinspencer.com/api/v1/courses/', {
+      const coursesResponse = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       expect(coursesResponse.status()).toBe(200);
@@ -116,7 +116,7 @@ test.describe('Role-Based API Tests', () => {
       const token = await getAuthToken(request, testUsers.viewer);
       
       // Test users endpoint (should be denied)
-      const usersResponse = await request.get('https://api.quentinspencer.com/api/v1/users/', {
+      const usersResponse = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/users/', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       
@@ -128,7 +128,7 @@ test.describe('Role-Based API Tests', () => {
 
   test.describe('Authentication and Authorization Tests', () => {
     test('Valid authentication returns token', async ({ request }) => {
-      const response = await request.post('https://api.quentinspencer.com/api/v1/auth/login', {
+      const response = await request.post('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/auth/login', {
         data: testUsers.admin
       });
       
@@ -143,7 +143,7 @@ test.describe('Role-Based API Tests', () => {
     });
 
     test('Invalid authentication is rejected', async ({ request }) => {
-      const response = await request.post('https://api.quentinspencer.com/api/v1/auth/login', {
+      const response = await request.post('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/auth/login', {
         data: { username: 'invalid', password: 'invalid' }
       });
       
@@ -154,7 +154,7 @@ test.describe('Role-Based API Tests', () => {
     test('Token-based authentication works', async ({ request }) => {
       const token = await getAuthToken(request, testUsers.admin);
       
-      const response = await request.get('https://api.quentinspencer.com/api/v1/courses/', {
+      const response = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       
@@ -163,7 +163,7 @@ test.describe('Role-Based API Tests', () => {
     });
 
     test('Invalid token is rejected', async ({ request }) => {
-      const response = await request.get('https://api.quentinspencer.com/api/v1/courses/', {
+      const response = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/', {
         headers: { 'Authorization': 'Bearer invalid-token' }
       });
       
@@ -174,7 +174,7 @@ test.describe('Role-Based API Tests', () => {
 
   test.describe('API Security Tests', () => {
     test('API handles missing authentication', async ({ request }) => {
-      const response = await request.get('https://api.quentinspencer.com/api/v1/courses/');
+      const response = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/');
       
       // Should either require authentication (401) or allow public access (200)
       expect([200, 401]).toContain(response.status());
@@ -182,7 +182,7 @@ test.describe('Role-Based API Tests', () => {
     });
 
     test('API handles malformed requests', async ({ request }) => {
-      const response = await request.post('https://api.quentinspencer.com/api/v1/auth/login', {
+      const response = await request.post('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/auth/login', {
         data: { invalid: 'data' }
       });
       
@@ -193,7 +193,7 @@ test.describe('Role-Based API Tests', () => {
     test('API rate limiting works', async ({ request }) => {
       const requests = [];
       for (let i = 0; i < 20; i++) {
-        requests.push(request.get('https://api.quentinspencer.com/api/v1/courses/'));
+        requests.push(request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/'));
       }
       
       const responses = await Promise.all(requests);
@@ -209,7 +209,7 @@ test.describe('Role-Based API Tests', () => {
 
   test.describe('Data Validation Tests', () => {
     test('API returns proper data structure', async ({ request }) => {
-      const response = await request.get('https://api.quentinspencer.com/api/v1/courses/');
+      const response = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/');
       expect(response.status()).toBe(200);
       
       const data = await response.json();
@@ -219,7 +219,7 @@ test.describe('Role-Based API Tests', () => {
     });
 
     test('API handles pagination parameters', async ({ request }) => {
-      const response = await request.get('https://api.quentinspencer.com/api/v1/courses/?limit=5&offset=0');
+      const response = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/?limit=5&offset=0');
       expect(response.status()).toBe(200);
       
       const data = await response.json();
@@ -229,7 +229,7 @@ test.describe('Role-Based API Tests', () => {
     });
 
     test('API handles filtering parameters', async ({ request }) => {
-      const response = await request.get('https://api.quentinspencer.com/api/v1/courses/?active=true');
+      const response = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/?active=true');
       expect(response.status()).toBe(200);
       
       const data = await response.json();
@@ -242,7 +242,7 @@ test.describe('Role-Based API Tests', () => {
   test.describe('Performance Tests', () => {
     test('API response times are acceptable', async ({ request }) => {
       const startTime = Date.now();
-      const response = await request.get('https://api.quentinspencer.com/api/v1/courses/');
+      const response = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/');
       const responseTime = Date.now() - startTime;
       
       expect(response.status()).toBe(200);
@@ -254,7 +254,7 @@ test.describe('Role-Based API Tests', () => {
     test('API handles concurrent requests', async ({ request }) => {
       const requests = [];
       for (let i = 0; i < 10; i++) {
-        requests.push(request.get('https://api.quentinspencer.com/api/v1/courses/'));
+        requests.push(request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/'));
       }
       
       const responses = await Promise.all(requests);

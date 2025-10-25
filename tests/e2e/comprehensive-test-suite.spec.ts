@@ -9,7 +9,7 @@ const testUsers = {
 
 // Helper function to get auth token
 async function getAuthToken(request: any, user: typeof testUsers.admin): Promise<string> {
-  const response = await request.post('https://api.quentinspencer.com/api/v1/auth/login', {
+  const response = await request.post('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/auth/login', {
     data: user
   });
   
@@ -24,7 +24,7 @@ async function getAuthToken(request: any, user: typeof testUsers.admin): Promise
 test.describe('Church Course Tracker - Comprehensive Test Suite', () => {
   test.describe('API Health and Connectivity', () => {
     test('API is accessible and responding', async ({ request }) => {
-      const response = await request.get('https://api.quentinspencer.com/api/v1/courses/');
+      const response = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/');
       expect(response.status()).toBe(200);
       
       const data = await response.json();
@@ -35,7 +35,7 @@ test.describe('Church Course Tracker - Comprehensive Test Suite', () => {
 
     test('API response times are acceptable', async ({ request }) => {
       const startTime = Date.now();
-      const response = await request.get('https://api.quentinspencer.com/api/v1/courses/');
+      const response = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/');
       const responseTime = Date.now() - startTime;
       
       expect(response.status()).toBe(200);
@@ -47,7 +47,7 @@ test.describe('Church Course Tracker - Comprehensive Test Suite', () => {
     test('API handles concurrent requests', async ({ request }) => {
       const requests = [];
       for (let i = 0; i < 5; i++) {
-        requests.push(request.get('https://api.quentinspencer.com/api/v1/courses/'));
+        requests.push(request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/'));
       }
       
       const responses = await Promise.all(requests);
@@ -62,7 +62,7 @@ test.describe('Church Course Tracker - Comprehensive Test Suite', () => {
 
   test.describe('Authentication System', () => {
     test('Admin authentication works', async ({ request }) => {
-      const response = await request.post('https://api.quentinspencer.com/api/v1/auth/login', {
+      const response = await request.post('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/auth/login', {
         data: testUsers.admin
       });
       
@@ -76,7 +76,7 @@ test.describe('Church Course Tracker - Comprehensive Test Suite', () => {
     });
 
     test('Invalid credentials are rejected', async ({ request }) => {
-      const response = await request.post('https://api.quentinspencer.com/api/v1/auth/login', {
+      const response = await request.post('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/auth/login', {
         data: { username: 'invalid', password: 'invalid' }
       });
       
@@ -87,7 +87,7 @@ test.describe('Church Course Tracker - Comprehensive Test Suite', () => {
     test('Token-based authentication works', async ({ request }) => {
       const token = await getAuthToken(request, testUsers.admin);
       
-      const response = await request.get('https://api.quentinspencer.com/api/v1/courses/', {
+      const response = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       
@@ -101,13 +101,13 @@ test.describe('Church Course Tracker - Comprehensive Test Suite', () => {
       const token = await getAuthToken(request, testUsers.admin);
       
       // Test courses endpoint
-      const coursesResponse = await request.get('https://api.quentinspencer.com/api/v1/courses/', {
+      const coursesResponse = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       expect(coursesResponse.status()).toBe(200);
       
       // Test users endpoint
-      const usersResponse = await request.get('https://api.quentinspencer.com/api/v1/users/', {
+      const usersResponse = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/users/', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       expect(usersResponse.status()).toBe(200);
@@ -117,12 +117,12 @@ test.describe('Church Course Tracker - Comprehensive Test Suite', () => {
 
     test('Non-admin users cannot authenticate', async ({ request }) => {
       // Test staff authentication (should fail)
-      const staffResponse = await request.post('https://api.quentinspencer.com/api/v1/auth/login', {
+      const staffResponse = await request.post('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/auth/login', {
         data: testUsers.staff
       });
       
       // Test viewer authentication (should fail)
-      const viewerResponse = await request.post('https://api.quentinspencer.com/api/v1/auth/login', {
+      const viewerResponse = await request.post('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/auth/login', {
         data: testUsers.viewer
       });
       
@@ -136,7 +136,7 @@ test.describe('Church Course Tracker - Comprehensive Test Suite', () => {
 
   test.describe('Data Management', () => {
     test('Courses endpoint returns proper data structure', async ({ request }) => {
-      const response = await request.get('https://api.quentinspencer.com/api/v1/courses/');
+      const response = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/');
       expect(response.status()).toBe(200);
       
       const data = await response.json();
@@ -146,7 +146,7 @@ test.describe('Church Course Tracker - Comprehensive Test Suite', () => {
     });
 
     test('Users endpoint returns proper data structure', async ({ request }) => {
-      const response = await request.get('https://api.quentinspencer.com/api/v1/users/');
+      const response = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/users/');
       expect(response.status()).toBe(200);
       
       const data = await response.json();
@@ -156,7 +156,7 @@ test.describe('Church Course Tracker - Comprehensive Test Suite', () => {
     });
 
     test('API handles query parameters', async ({ request }) => {
-      const response = await request.get('https://api.quentinspencer.com/api/v1/courses/?limit=5&offset=0');
+      const response = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/?limit=5&offset=0');
       expect(response.status()).toBe(200);
       
       const data = await response.json();
@@ -168,7 +168,7 @@ test.describe('Church Course Tracker - Comprehensive Test Suite', () => {
 
   test.describe('Security Features', () => {
     test('API handles malformed requests', async ({ request }) => {
-      const response = await request.post('https://api.quentinspencer.com/api/v1/auth/login', {
+      const response = await request.post('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/auth/login', {
         data: { invalid: 'data' }
       });
       
@@ -177,7 +177,7 @@ test.describe('Church Course Tracker - Comprehensive Test Suite', () => {
     });
 
     test('API handles missing authentication gracefully', async ({ request }) => {
-      const response = await request.get('https://api.quentinspencer.com/api/v1/courses/');
+      const response = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/');
       
       // Should either require authentication (401) or allow public access (200)
       expect([200, 401]).toContain(response.status());
@@ -185,7 +185,7 @@ test.describe('Church Course Tracker - Comprehensive Test Suite', () => {
     });
 
     test('API error handling works', async ({ request }) => {
-      const response = await request.get('https://api.quentinspencer.com/api/v1/nonexistent/');
+      const response = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/nonexistent/');
       expect(response.status()).toBe(404);
       console.log('✓ API error handling works correctly');
     });
@@ -197,7 +197,7 @@ test.describe('Church Course Tracker - Comprehensive Test Suite', () => {
       const requests = [];
       
       for (let i = 0; i < 10; i++) {
-        requests.push(request.get('https://api.quentinspencer.com/api/v1/courses/'));
+        requests.push(request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/'));
       }
       
       const responses = await Promise.all(requests);
@@ -213,11 +213,11 @@ test.describe('Church Course Tracker - Comprehensive Test Suite', () => {
 
     test('API handles different HTTP methods', async ({ request }) => {
       // Test GET
-      const getResponse = await request.get('https://api.quentinspencer.com/api/v1/courses/');
+      const getResponse = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/');
       expect(getResponse.status()).toBe(200);
       
       // Test POST (login)
-      const postResponse = await request.post('https://api.quentinspencer.com/api/v1/auth/login', {
+      const postResponse = await request.post('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/auth/login', {
         data: { username: 'admin', password: 'admin123' }
       });
       expect(postResponse.status()).toBe(200);
@@ -230,7 +230,7 @@ test.describe('Church Course Tracker - Comprehensive Test Suite', () => {
     test('Audit endpoint is prepared for future implementation', async ({ request }) => {
       const token = await getAuthToken(request, testUsers.admin);
       
-      const response = await request.get('https://api.quentinspencer.com/api/v1/audit/', {
+      const response = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/audit/', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       
@@ -242,7 +242,7 @@ test.describe('Church Course Tracker - Comprehensive Test Suite', () => {
     test('User management endpoints are prepared', async ({ request }) => {
       const token = await getAuthToken(request, testUsers.admin);
       
-      const response = await request.post('https://api.quentinspencer.com/api/v1/users/', {
+      const response = await request.post('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/users/', {
         headers: { 'Authorization': `Bearer ${token}` },
         data: { username: 'test', email: 'test@example.com' }
       });
@@ -255,7 +255,7 @@ test.describe('Church Course Tracker - Comprehensive Test Suite', () => {
 
   test.describe('Integration Readiness', () => {
     test('API is ready for frontend integration', async ({ request }) => {
-      const response = await request.get('https://api.quentinspencer.com/api/v1/courses/');
+      const response = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/');
       expect(response.status()).toBe(200);
       
       const data = await response.json();
@@ -265,7 +265,7 @@ test.describe('Church Course Tracker - Comprehensive Test Suite', () => {
     });
 
     test('API supports CORS for frontend access', async ({ request }) => {
-      const response = await request.get('https://api.quentinspencer.com/api/v1/courses/');
+      const response = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/');
       const headers = response.headers();
       
       // Check for CORS headers (may not be present yet)
