@@ -18,6 +18,63 @@ else
     alembic stamp head
     if [ $? -eq 0 ]; then
         echo "✅ Database stamped successfully. Continuing..."
+        # Since we stamped, manually add the data_source columns if they don't exist
+        echo "🔧 Checking and adding data_source columns if needed..."
+        python3 << 'PYTHON_SCRIPT'
+import os
+import psycopg2
+
+DATABASE_URL = os.getenv("DATABASE_URL")
+if DATABASE_URL:
+    # Parse database URL
+    # postgresql://user:pass@host:port/dbname
+    parts = DATABASE_URL.replace('postgresql://', '').split('/')
+    userpass = parts[0].split('@')[0]
+    user, password = userpass.split(':')
+    hostport = parts[0].split('@')[1]
+    host, port = hostport.split(':')
+    dbname = parts[1]
+    
+    try:
+        conn = psycopg2.connect(
+            host=host,
+            port=port,
+            user=user,
+            password=password,
+            database=dbname
+        )
+        cur = conn.cursor()
+        
+        # Check and add data_source columns for each table
+        tables = ['users', 'role', 'campus', 'people', 'courses', 'course_modules', 'course_content', 'course_enrollment']
+        
+        for table in tables:
+            # Check if column exists
+            cur.execute("""
+                SELECT column_name 
+                FROM information_schema.columns 
+                WHERE table_name=%s AND column_name='data_source'
+            """, (table,))
+            
+            if not cur.fetchone():
+                print(f"Adding data_source column to {table}...")
+                try:
+                    cur.execute(f'ALTER TABLE {table} ADD COLUMN data_source VARCHAR(20)')
+                    cur.execute(f'ALTER TABLE {table} ADD COLUMN csv_loaded_at TIMESTAMP WITH TIME ZONE')
+                    conn.commit()
+                    print(f"✅ Added columns to {table}")
+                except Exception as e:
+                    print(f"⚠️  Could not add columns to {table}: {e}")
+                    conn.rollback()
+            else:
+                print(f"✅ {table} already has data_source column")
+        
+        cur.close()
+        conn.close()
+        print("✅ Data source columns check complete")
+    except Exception as e:
+        print(f"⚠️  Could not add data_source columns: {e}")
+PYTHON_SCRIPT
     else
         echo "⚠️  Could not stamp database. Continuing anyway..."
     fi
