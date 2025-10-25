@@ -30,8 +30,7 @@ python3 /app/create_admin_standalone.py
 if [ $? -eq 0 ]; then
     echo "✅ Admin user setup completed!"
 else
-    echo "❌ Admin user setup failed!"
-    exit 1
+    echo "⚠️  Admin user setup failed - user may already exist. Continuing..."
 fi
 
 # Start the application
