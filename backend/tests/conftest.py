@@ -5,6 +5,7 @@ Test configuration and fixtures
 import pytest
 import asyncio
 import os
+import subprocess
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from fastapi.testclient import TestClient
@@ -16,6 +17,14 @@ os.environ["RATE_LIMIT_ENABLED"] = "false"
 
 # Test database URL - use the migrated database for tests
 SQLALCHEMY_DATABASE_URL = "sqlite:///./data/church_course_tracker.db"
+
+# Run migrations on the test database before tests
+print("🔄 Running migrations on test database...")
+try:
+    subprocess.run(["alembic", "upgrade", "head"], cwd=".", check=True, capture_output=True)
+    print("✅ Migrations completed")
+except Exception as e:
+    print(f"⚠️  Migration failed: {e}")
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL, 
