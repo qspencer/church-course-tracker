@@ -6,9 +6,15 @@ echo "🚀 Starting Church Course Tracker..."
 # Environment variables are set by ECS task definition
 # No need to override them here
 
-# Skip database migrations for now due to corrupted migration history
-echo "⚠️  Skipping database migrations due to corrupted migration history"
-echo "📊 Database schema should already be up to date"
+# Run database migrations
+echo "🔄 Running database migrations..."
+alembic upgrade head
+
+if [ $? -eq 0 ]; then
+    echo "✅ Database migrations completed successfully!"
+else
+    echo "⚠️  Database migrations failed, but continuing anyway..."
+fi
 
 # Create default admin user if it doesn't exist
 echo "👤 Creating default admin user..."
