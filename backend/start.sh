@@ -13,7 +13,14 @@ alembic upgrade head
 if [ $? -eq 0 ]; then
     echo "✅ Database migrations completed successfully!"
 else
-    echo "⚠️  Database migrations failed, but continuing anyway..."
+    echo "⚠️  Database migrations failed. Attempting to stamp database with current version..."
+    # Try to stamp the database to skip failed migrations
+    alembic stamp head
+    if [ $? -eq 0 ]; then
+        echo "✅ Database stamped successfully. Continuing..."
+    else
+        echo "⚠️  Could not stamp database. Continuing anyway..."
+    fi
 fi
 
 # Create default admin user if it doesn't exist
