@@ -18,9 +18,14 @@ else
     alembic stamp head
     if [ $? -eq 0 ]; then
         echo "✅ Database stamped successfully. Continuing..."
-        # Since we stamped, manually add the data_source columns if they don't exist
-        echo "🔧 Checking and adding data_source columns if needed..."
-        python3 << 'PYTHON_SCRIPT'
+    else
+        echo "⚠️  Could not stamp database. Continuing anyway..."
+    fi
+fi
+
+# Manually add the data_source columns if they don't exist (always check)
+echo "🔧 Checking and adding data_source columns if needed..."
+python3 << 'PYTHON_SCRIPT'
 import os
 import psycopg2
 
@@ -75,10 +80,6 @@ if DATABASE_URL:
     except Exception as e:
         print(f"⚠️  Could not add data_source columns: {e}")
 PYTHON_SCRIPT
-    else
-        echo "⚠️  Could not stamp database. Continuing anyway..."
-    fi
-fi
 
 # Create default admin user if it doesn't exist
 echo "👤 Creating default admin user..."
