@@ -1,6 +1,6 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://api.quentinspencer.com/api/v1',
+  apiUrl: 'https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1',
   appName: 'Church Course Tracker',
   version: '1.0.0',
   // Add other production-specific configurations

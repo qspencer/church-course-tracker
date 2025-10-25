@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Working API Tests', () => {
   test('API courses endpoint responds correctly', async ({ request }) => {
-    const response = await request.get('https://api.quentinspencer.com/api/v1/courses/');
+    const response = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/');
     expect(response.status()).toBe(200);
     
     const data = await response.json();
@@ -11,7 +11,7 @@ test.describe('Working API Tests', () => {
   });
 
   test('API users endpoint responds correctly', async ({ request }) => {
-    const response = await request.get('https://api.quentinspencer.com/api/v1/users/');
+    const response = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/users/');
     expect(response.status()).toBe(200);
     
     const data = await response.json();
@@ -20,7 +20,7 @@ test.describe('Working API Tests', () => {
   });
 
   test('API authentication endpoint works', async ({ request }) => {
-    const response = await request.post('https://api.quentinspencer.com/api/v1/auth/login', {
+    const response = await request.post('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/auth/login', {
       data: {
         username: 'admin',
         password: 'admin123'
@@ -35,7 +35,7 @@ test.describe('Working API Tests', () => {
   });
 
   test('API authentication with invalid credentials fails', async ({ request }) => {
-    const response = await request.post('https://api.quentinspencer.com/api/v1/auth/login', {
+    const response = await request.post('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/auth/login', {
       data: {
         username: 'invalid',
         password: 'invalid'
@@ -48,7 +48,7 @@ test.describe('Working API Tests', () => {
 
   test('API response times are acceptable', async ({ request }) => {
     const startTime = Date.now();
-    const response = await request.get('https://api.quentinspencer.com/api/v1/courses/');
+    const response = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/');
     const responseTime = Date.now() - startTime;
     
     expect(response.status()).toBe(200);
@@ -58,11 +58,11 @@ test.describe('Working API Tests', () => {
 
   test('API handles different HTTP methods', async ({ request }) => {
     // Test GET
-    const getResponse = await request.get('https://api.quentinspencer.com/api/v1/courses/');
+    const getResponse = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/');
     expect(getResponse.status()).toBe(200);
     
     // Test POST (login)
-    const postResponse = await request.post('https://api.quentinspencer.com/api/v1/auth/login', {
+    const postResponse = await request.post('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/auth/login', {
       data: { username: 'admin', password: 'admin123' }
     });
     expect(postResponse.status()).toBe(200);
@@ -71,7 +71,7 @@ test.describe('Working API Tests', () => {
   });
 
   test('API returns proper JSON format', async ({ request }) => {
-    const response = await request.get('https://api.quentinspencer.com/api/v1/courses/');
+    const response = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/');
     expect(response.status()).toBe(200);
     
     const data = await response.json();
@@ -84,7 +84,7 @@ test.describe('Working API Tests', () => {
   test('API handles concurrent requests', async ({ request }) => {
     const requests = [];
     for (let i = 0; i < 5; i++) {
-      requests.push(request.get('https://api.quentinspencer.com/api/v1/courses/'));
+      requests.push(request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/'));
     }
     
     const responses = await Promise.all(requests);
@@ -98,7 +98,7 @@ test.describe('Working API Tests', () => {
 
   test('API error handling works', async ({ request }) => {
     // Test 404 endpoint
-    const response = await request.get('https://api.quentinspencer.com/api/v1/nonexistent/');
+    const response = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/nonexistent/');
     expect(response.status()).toBe(404);
     
     console.log('✓ API error handling works correctly');

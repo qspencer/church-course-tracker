@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('API Endpoint Tests', () => {
   test('API health endpoint is accessible', async ({ request }) => {
-    const response = await request.get('https://api.quentinspencer.com/api/v1/health');
+    const response = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/health');
     expect(response.status()).toBe(200);
     
     const data = await response.json();
@@ -10,7 +10,7 @@ test.describe('API Endpoint Tests', () => {
   });
 
   test('API courses endpoint responds', async ({ request }) => {
-    const response = await request.get('https://api.quentinspencer.com/api/v1/courses/');
+    const response = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/');
     expect(response.status()).toBe(200);
     
     const data = await response.json();
@@ -18,7 +18,7 @@ test.describe('API Endpoint Tests', () => {
   });
 
   test('API users endpoint responds', async ({ request }) => {
-    const response = await request.get('https://api.quentinspencer.com/api/v1/users/');
+    const response = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/users/');
     expect(response.status()).toBe(200);
     
     const data = await response.json();
@@ -26,7 +26,7 @@ test.describe('API Endpoint Tests', () => {
   });
 
   test('API authentication endpoint works', async ({ request }) => {
-    const response = await request.post('https://api.quentinspencer.com/api/v1/auth/login', {
+    const response = await request.post('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/auth/login', {
       data: {
         username: 'admin',
         password: 'admin123'
@@ -40,7 +40,7 @@ test.describe('API Endpoint Tests', () => {
   });
 
   test('API CORS headers are present', async ({ request }) => {
-    const response = await request.get('https://api.quentinspencer.com/api/v1/health');
+    const response = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/health');
     const headers = response.headers();
     
     expect(headers['access-control-allow-origin']).toBeDefined();
@@ -52,7 +52,7 @@ test.describe('API Endpoint Tests', () => {
     // Make multiple rapid requests to test rate limiting
     const requests = [];
     for (let i = 0; i < 10; i++) {
-      requests.push(request.get('https://api.quentinspencer.com/api/v1/health'));
+      requests.push(request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/health'));
     }
     
     const responses = await Promise.all(requests);
@@ -63,7 +63,7 @@ test.describe('API Endpoint Tests', () => {
   });
 
   test('API security headers are present', async ({ request }) => {
-    const response = await request.get('https://api.quentinspencer.com/api/v1/health');
+    const response = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/health');
     const headers = response.headers();
     
     expect(headers['x-content-type-options']).toBe('nosniff');

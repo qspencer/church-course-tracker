@@ -284,17 +284,17 @@ test.describe('Role-Based Access Control', () => {
     test('API endpoints respect role permissions', async ({ page }) => {
       // Test admin API access
       await loginAs(page, testUsers.admin);
-      const adminResponse = await page.request.get('https://api.quentinspencer.com/api/v1/audit/');
+      const adminResponse = await page.request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/audit/');
       expect(adminResponse.status()).toBe(200);
 
       // Test staff API access (should be denied for audit)
       await loginAs(page, testUsers.staff);
-      const staffResponse = await page.request.get('https://api.quentinspencer.com/api/v1/audit/');
+      const staffResponse = await page.request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/audit/');
       expect(staffResponse.status()).toBe(403);
 
       // Test viewer API access (should be denied for audit)
       await loginAs(page, testUsers.viewer);
-      const viewerResponse = await page.request.get('https://api.quentinspencer.com/api/v1/audit/');
+      const viewerResponse = await page.request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/audit/');
       expect(viewerResponse.status()).toBe(403);
     });
   });

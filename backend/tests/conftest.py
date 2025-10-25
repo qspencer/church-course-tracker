@@ -11,11 +11,11 @@ from fastapi.testclient import TestClient
 from datetime import datetime, date, timezone
 
 # Override database configuration for tests
-os.environ["DATABASE_URL"] = "sqlite:///:memory:"
+os.environ["DATABASE_URL"] = "sqlite:///./data/church_course_tracker.db"
 os.environ["RATE_LIMIT_ENABLED"] = "false"
 
-# Test database URL - use in-memory SQLite for tests
-SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
+# Test database URL - use the migrated database for tests
+SQLALCHEMY_DATABASE_URL = "sqlite:///./data/church_course_tracker.db"
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL, 
@@ -73,8 +73,8 @@ def event_loop():
 @pytest.fixture(scope="function")
 def db_session():
     """Create a fresh database session for each test."""
-    # Drop all tables and recreate them for each test
-    Base.metadata.drop_all(bind=engine)
+    # Use the existing migrated database - don't drop/recreate tables
+    # Just ensure tables exist (they should from migrations)
     Base.metadata.create_all(bind=engine)
     
     session = TestingSessionLocal()
