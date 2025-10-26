@@ -1,7 +1,7 @@
 import { test, expect, Page } from '@playwright/test';
 
 const testUsers = {
-  admin: { username: 'admin', password: 'admin123' },
+  admin: { username: "Admin", password: "Matthew778*"' },
   staff: { username: 'staff', password: 'staff123' },
   viewer: { username: 'viewer', password: 'viewer123' }
 };
