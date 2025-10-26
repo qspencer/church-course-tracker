@@ -183,8 +183,8 @@ test.describe('API Improvements Verification', () => {
   test('Authentication still works with new middleware', async ({ request }) => {
     const response = await request.post('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/auth/login', {
       data: {
-        username: 'admin',
-        password: 'admin123'
+        username: "Admin",
+        password: "Admin123!"
       }
     });
     

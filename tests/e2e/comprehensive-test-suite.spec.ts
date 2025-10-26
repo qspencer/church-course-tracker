@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 // Test data for different roles
 const testUsers = {
-  admin: { username: 'admin', password: 'admin123' },
+  admin: { username: "Admin", password: "Admin123!" },
   staff: { username: 'staff', password: 'staff123' },
   viewer: { username: 'viewer', password: 'viewer123' }
 };
@@ -218,7 +218,7 @@ test.describe('Church Course Tracker - Comprehensive Test Suite', () => {
       
       // Test POST (login)
       const postResponse = await request.post('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/auth/login', {
-        data: { username: 'admin', password: 'admin123' }
+        data: { username: "Admin", password: "Admin123!" }
       });
       expect(postResponse.status()).toBe(200);
       
