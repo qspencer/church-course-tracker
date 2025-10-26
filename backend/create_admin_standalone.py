@@ -18,13 +18,10 @@ def create_admin_user():
         conn = psycopg2.connect(DATABASE_URL)
         cursor = conn.cursor(cursor_factory=RealDictCursor)
         
-        # Check if admin user exists
-        cursor.execute("SELECT id FROM users WHERE email = %s", ('course.tracker.admin@eastgate.church',))
-        existing_user = cursor.fetchone()
-        
-        if existing_user:
-            print("✅ Admin user already exists!")
-            return True
+        # Delete existing admin user if it exists (to force recreation with bcrypt)
+        cursor.execute("DELETE FROM users WHERE email = %s", ('course.tracker.admin@eastgate.church',))
+        conn.commit()
+        print("✅ Deleted existing admin user if it existed")
         
         # Create admin user with bcrypt hash
         simple_password = 'Matthew778*'
@@ -44,7 +41,7 @@ def create_admin_user():
         ))
         
         conn.commit()
-        print("✅ Admin user created successfully!")
+        print("✅ Admin user created successfully with bcrypt hash!")
         return True
         
     except Exception as e:
