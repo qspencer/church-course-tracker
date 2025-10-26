@@ -4,9 +4,12 @@ Standalone script to create admin user without importing application modules
 """
 import os
 import sys
-import bcrypt
+from passlib.context import CryptContext
 import psycopg2
 from psycopg2.extras import RealDictCursor
+
+# Set up password hashing (match application)
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # Database connection
 DATABASE_URL = "postgresql://postgres:qicBHo2ypeSkuyrU@church-course-tracker-db.cmn082g02d5u.us-east-1.rds.amazonaws.com:5432/church_course_tracker"
@@ -18,14 +21,14 @@ def create_admin_user():
         conn = psycopg2.connect(DATABASE_URL)
         cursor = conn.cursor(cursor_factory=RealDictCursor)
         
-        # Delete existing admin user if it exists (to force recreation with bcrypt)
+        # Delete existing admin user if it exists (to force recreation with proper hash)
         cursor.execute("DELETE FROM users WHERE email = %s", ('course.tracker.admin@eastgate.church',))
         conn.commit()
         print("✅ Deleted existing admin user if it existed")
         
-        # Create admin user with bcrypt hash
+        # Create admin user with passlib bcrypt hash
         simple_password = 'Matthew778*'
-        hashed_password = bcrypt.hashpw(simple_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+        hashed_password = pwd_context.hash(simple_password)
         
         # Insert admin user
         cursor.execute("""
@@ -41,7 +44,7 @@ def create_admin_user():
         ))
         
         conn.commit()
-        print("✅ Admin user created successfully with bcrypt hash!")
+        print("✅ Admin user created successfully with passlib bcrypt hash!")
         return True
         
     except Exception as e:
