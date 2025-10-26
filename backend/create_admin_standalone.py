@@ -4,15 +4,12 @@ Standalone script to create admin user without importing application modules
 """
 import os
 import sys
+import bcrypt
 import psycopg2
 from psycopg2.extras import RealDictCursor
-from passlib.context import CryptContext
 
 # Database connection
 DATABASE_URL = "postgresql://postgres:qicBHo2ypeSkuyrU@church-course-tracker-db.cmn082g02d5u.us-east-1.rds.amazonaws.com:5432/church_course_tracker"
-
-# Use the same password context as the application
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto", bcrypt__rounds=12)
 
 def create_admin_user():
     """Create admin user directly in database"""
@@ -26,10 +23,10 @@ def create_admin_user():
         conn.commit()
         print("✅ Deleted existing admin user if it existed")
         
-        # Create admin user with passlib bcrypt hash (same as application)
+        # Create admin user with bcrypt hash (direct bcrypt, not passlib)
         simple_password = 'Admin123!'
-        # Use passlib's hash method (same as get_password_hash in security.py)
-        hashed_password = pwd_context.hash(simple_password)
+        # Hash password using bcrypt directly
+        hashed_password = bcrypt.hashpw(simple_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
         
         # Insert admin user
         cursor.execute("""

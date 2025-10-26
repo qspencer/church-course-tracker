@@ -48,9 +48,14 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
         # Try bcrypt first (for regular users)
         return pwd_context.verify(plain_password, hashed_password)
     except (ValueError, AttributeError, Exception):
-        # Fall back to simple SHA256 for admin user
-        import hashlib
-        return hashlib.sha256(plain_password.encode()).hexdigest() == hashed_password
+        # Try raw bcrypt verification (for direct bcrypt hashes)
+        try:
+            import bcrypt
+            return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password.encode('utf-8'))
+        except Exception:
+            # Fall back to simple SHA256 for old admin user
+            import hashlib
+            return hashlib.sha256(plain_password.encode()).hexdigest() == hashed_password
 
 
 def get_password_hash(password: str) -> str:
