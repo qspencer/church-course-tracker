@@ -25,11 +25,15 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY . .
 
+# Copy admin user creation script
+COPY create_admin_standalone.py /app/create_admin_standalone.py
+
 # Create uploads directory
 RUN mkdir -p /tmp/uploads
 
-# Make startup script executable
+# Make startup scripts executable
 RUN chmod +x /app/start.sh
+RUN chmod +x /app/create_admin_standalone.py
 
 # Create non-root user
 RUN adduser --disabled-password --gecos '' appuser && \
