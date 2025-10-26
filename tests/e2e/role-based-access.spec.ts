@@ -22,8 +22,9 @@ const testUsers = {
 // Helper function to login with specific role
 async function loginAs(page: Page, user: typeof testUsers.admin) {
   await page.goto('https://apps.quentinspencer.com/auth');
-  await page.fill('input[name="username"]', user.username);
-  await page.fill('input[name="password"]', user.password);
+   await page.waitForTimeout(2000); // Wait for Angular to initialize
+  await page.fill('input[formControlName="username"]', user.username);
+  await page.fill('input[formControlName="password"]', user.password);
   await page.click('button[type="submit"]');
   await page.waitForURL('https://apps.quentinspencer.com/dashboard');
 }
@@ -363,8 +364,9 @@ test.describe('Role-Based Access Control', () => {
 
     test('Invalid credentials show error message', async ({ page }) => {
       await page.goto('https://apps.quentinspencer.com/auth');
-      await page.fill('input[name="username"]', 'invalid');
-      await page.fill('input[name="password"]', 'invalid');
+   await page.waitForTimeout(2000); // Wait for Angular to initialize
+      await page.fill('input[formControlName="username"]', 'invalid');
+      await page.fill('input[formControlName="password"]', 'invalid');
       await page.click('button[type="submit"]');
       
       await expect(page.locator('text=Invalid credentials')).toBeVisible();

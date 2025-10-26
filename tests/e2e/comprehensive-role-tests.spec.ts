@@ -23,8 +23,9 @@ const testUsers = {
 async function loginAs(page: Page, user: typeof testUsers.admin) {
   try {
     await page.goto('https://apps.quentinspencer.com/auth', { waitUntil: 'networkidle' });
-    await page.fill('input[name="username"]', user.username);
-    await page.fill('input[name="password"]', user.password);
+    await page.waitForTimeout(2000); // Wait for Angular to initialize
+    await page.fill('input[formControlName="username"]', user.username);
+    await page.fill('input[formControlName="password"]', user.password);
     await page.click('button[type="submit"]');
     await page.waitForURL('**/dashboard', { timeout: 10000 });
   } catch (error) {

@@ -20,8 +20,8 @@ test('Debug frontend loading', async ({ page }) => {
   console.log('Error elements found:', errorElements.length);
   
   // Check for login form elements
-  const usernameInput = await page.locator('input[name="username"]').count();
-  const passwordInput = await page.locator('input[name="password"]').count();
+  const usernameInput = await page.locator('input[formControlName="username"]').count();
+  const passwordInput = await page.locator('input[formControlName="password"]').count();
   const loginForm = await page.locator('form').count();
   
   console.log('Username inputs:', usernameInput);
