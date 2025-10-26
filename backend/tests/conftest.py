@@ -88,6 +88,29 @@ def db_session():
     
     session = TestingSessionLocal()
 
+    # Clean up test data before each test
+    try:
+        # Delete test data in reverse order of dependencies
+        session.execute("DELETE FROM content_access_log")
+        session.execute("DELETE FROM content_audit_log")
+        session.execute("DELETE FROM content_completion")
+        session.execute("DELETE FROM course_content")
+        session.execute("DELETE FROM course_modules")
+        session.execute("DELETE FROM course_enrollment")
+        session.execute("DELETE FROM certification_progress")
+        session.execute("DELETE FROM certification")
+        session.execute("DELETE FROM courses")
+        session.execute("DELETE FROM people_campus")
+        session.execute("DELETE FROM people_role")
+        session.execute("DELETE FROM people")
+        session.execute("DELETE FROM campus")
+        session.execute("DELETE FROM role")
+        session.execute("DELETE FROM users WHERE email != 'course.tracker.admin@eastgate.church'")
+        session.commit()
+    except Exception as e:
+        session.rollback()
+        print(f"Warning: Could not clean test data: {e}")
+
     # Yield the session to the test
     yield session
 
