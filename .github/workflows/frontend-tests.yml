@@ -30,16 +30,10 @@ jobs:
         cd frontend/church-course-tracker
         npm ci
     
-    - name: Run linting
-      run: |
-        cd frontend/church-course-tracker
-        npm run lint
-      continue-on-error: true
-    
     - name: Run tests
       run: |
         cd frontend/church-course-tracker
-        npm run test:headless
+        npx ng test --browsers=ChromeHeadless --watch=false --code-coverage
     
     - name: Build
       run: |
