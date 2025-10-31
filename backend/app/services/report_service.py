@@ -12,6 +12,7 @@ from app.schemas.report import ReportResponse, ReportData, ReportType
 from app.models.course import Course as CourseModel
 from app.models.enrollment import CourseEnrollment as EnrollmentModel
 from app.models.progress import ContentCompletion as ProgressModel
+from app.models.member import People as PeopleModel
 
 
 class ReportService:
@@ -22,17 +23,23 @@ class ReportService:
     
     def get_dashboard_stats(self) -> Dict[str, Any]:
         """Get dashboard statistics"""
-        # Get total courses
-        total_courses = self.db.query(CourseModel).count()
+        # Use SQLAlchemy func.count with specific columns to avoid loading models with missing columns
+        from sqlalchemy import func
+        
+        # Get total courses - use direct count query to avoid loading model columns
+        total_courses = self.db.query(func.count(CourseModel.id)).scalar() or 0
         
         # Get total enrollments
-        total_enrollments = self.db.query(EnrollmentModel).count()
+        total_enrollments = self.db.query(func.count(EnrollmentModel.id)).scalar() or 0
         
-        # Get active courses
-        active_courses = self.db.query(CourseModel).filter(CourseModel.is_active == True).count()
+        # Get active courses - use direct count with filter
+        active_courses = self.db.query(func.count(CourseModel.id)).filter(CourseModel.is_active == True).scalar() or 0
         
         # Get completed enrollments
-        completed_enrollments = self.db.query(EnrollmentModel).filter(EnrollmentModel.status == "completed").count()
+        completed_enrollments = self.db.query(func.count(EnrollmentModel.id)).filter(EnrollmentModel.status == "completed").scalar() or 0
+        
+        # Get total members
+        total_members = self.db.query(func.count(PeopleModel.id)).filter(PeopleModel.is_active == True).scalar() or 0
         
         # Calculate completion rate
         completion_rate = (completed_enrollments / total_enrollments * 100) if total_enrollments > 0 else 0
@@ -42,6 +49,7 @@ class ReportService:
             "active_courses": active_courses,
             "total_enrollments": total_enrollments,
             "completed_enrollments": completed_enrollments,
+            "total_members": total_members,
             "completion_rate": round(completion_rate, 2)
         }
     
