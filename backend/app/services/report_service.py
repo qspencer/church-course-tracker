@@ -101,9 +101,9 @@ class ReportService:
         if course_id:
             query = query.filter(EnrollmentModel.course_id == course_id)
         if start_date:
-            query = query.filter(EnrollmentModel.enrolled_at >= start_date)
+            query = query.filter(EnrollmentModel.enrollment_date >= start_date)
         if end_date:
-            query = query.filter(EnrollmentModel.enrolled_at <= end_date)
+            query = query.filter(EnrollmentModel.enrollment_date <= end_date)
         
         enrollments = query.all()
         
@@ -113,9 +113,9 @@ class ReportService:
         for enrollment in enrollments:
             rows.append([
                 enrollment.id,
-                enrollment.course.name if enrollment.course else "N/A",
-                f"{enrollment.member.first_name} {enrollment.member.last_name}" if enrollment.member else "N/A",
-                enrollment.enrolled_at.strftime("%Y-%m-%d"),
+                enrollment.course.title if enrollment.course else "N/A",
+                f"{enrollment.people.first_name} {enrollment.people.last_name}" if enrollment.people else "N/A",
+                enrollment.enrollment_date.strftime("%Y-%m-%d") if enrollment.enrollment_date else "N/A",
                 enrollment.status,
                 enrollment.notes or ""
             ])
@@ -231,6 +231,6 @@ class ReportService:
         """Count enrollments by course"""
         course_counts = {}
         for enrollment in enrollments:
-            course_name = enrollment.course.name if enrollment.course else "Unknown"
+            course_name = enrollment.course.title if enrollment.course else "Unknown"
             course_counts[course_name] = course_counts.get(course_name, 0) + 1
         return course_counts
