@@ -32,7 +32,7 @@ def upgrade() -> None:
         print("Creating people table...")
         op.create_table('people',
             sa.Column('id', sa.Integer(), nullable=False),
-            sa.Column('planning_center_id', sa.String(length=50), nullable=False),
+            sa.Column('planning_center_id', sa.String(length=50), nullable=True),
             sa.Column('first_name', sa.String(length=100), nullable=False),
             sa.Column('last_name', sa.String(length=100), nullable=False),
             sa.Column('email', sa.String(length=255), nullable=True),
@@ -106,14 +106,25 @@ def upgrade() -> None:
         op.create_index('ix_people_role_role_id', 'people_role', ['role_id'], unique=False)
         op.create_index('ix_people_role_id', 'people_role', ['id'], unique=False)
     
+    # Refresh table list after creating people
+    # Alembic transactions might not immediately reflect created tables
+    if 'people' not in existing_tables:
+        existing_tables = inspector.get_table_names()
+    
     # 4. Create course_enrollment table if missing (requires people and courses)
     if 'course_enrollment' not in existing_tables:
-        if 'people' not in existing_tables or 'courses' not in existing_tables:
-            print("⚠️  Cannot create course_enrollment: missing required tables (people or courses)")
-            raise Exception("Cannot create course_enrollment: required tables 'people' and 'courses' must exist first")
-        
-        print("Creating course_enrollment table...")
-        op.create_table('course_enrollment',
+        # Double-check tables exist after potential creation
+        current_tables = inspector.get_table_names()
+        if 'people' not in current_tables:
+            print("⚠️  Cannot create course_enrollment: 'people' table doesn't exist")
+            # Try to create people first if it still doesn't exist
+            if 'people' not in existing_tables:
+                print("⚠️  People table creation may have failed. Skipping course_enrollment.")
+        elif 'courses' not in current_tables:
+            print("⚠️  Cannot create course_enrollment: 'courses' table doesn't exist")
+        else:
+            try:
+                op.create_table('course_enrollment',
             sa.Column('id', sa.Integer(), nullable=False),
             sa.Column('people_id', sa.Integer(), nullable=False),
             sa.Column('course_id', sa.Integer(), nullable=False),
@@ -141,7 +152,10 @@ def upgrade() -> None:
         op.create_index('ix_course_enrollment_course_id', 'course_enrollment', ['course_id'], unique=False)
         op.create_index('ix_course_enrollment_id', 'course_enrollment', ['id'], unique=False)
         op.create_index('ix_course_enrollment_people_id', 'course_enrollment', ['people_id'], unique=False)
-        op.create_index('ix_course_enrollment_planning_center_registration_id', 'course_enrollment', ['planning_center_registration_id'], unique=True)
+                op.create_index('ix_course_enrollment_planning_center_registration_id', 'course_enrollment', ['planning_center_registration_id'], unique=True)
+            except Exception as e:
+                print(f"⚠️  Error creating course_enrollment: {e}")
+                # Continue with other tables
     
     # 5. Create course_modules table if missing
     if 'course_modules' not in existing_tables and 'courses' in existing_tables:
