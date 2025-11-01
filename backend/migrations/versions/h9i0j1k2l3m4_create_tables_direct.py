@@ -62,9 +62,13 @@ def upgrade() -> None:
         op.execute("CREATE INDEX ix_people_id ON people (id)")
         op.execute("CREATE UNIQUE INDEX ix_people_planning_center_id ON people (planning_center_id)")
         op.execute("CREATE INDEX ix_people_email ON people (email)")
+        print("✅ People table created successfully")
+        # Refresh table list after creating people
         existing_tables = inspector.get_table_names()
     
     # 2. Create course_enrollment table
+    # Refresh table list to ensure we see the newly created people table
+    existing_tables = inspector.get_table_names()
     if 'course_enrollment' not in existing_tables:
         if 'people' in existing_tables and 'courses' in existing_tables:
             print("Creating course_enrollment table...")
