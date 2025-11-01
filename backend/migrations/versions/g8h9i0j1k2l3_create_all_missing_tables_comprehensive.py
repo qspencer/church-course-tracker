@@ -61,8 +61,12 @@ def upgrade() -> None:
         op.create_index('ix_people_id', 'people', ['id'], unique=False)
         op.create_index('ix_people_planning_center_id', 'people', ['planning_center_id'], unique=True)
         op.create_index('ix_people_email', 'people', ['email'], unique=False)
+        # Refresh table list after creating people
+        existing_tables = inspector.get_table_names()
     
     # 2. Create people_campus junction table if missing
+    # Refresh table list to ensure we have latest state
+    existing_tables = inspector.get_table_names()
     if 'people_campus' not in existing_tables and 'people' in existing_tables and 'campus' in existing_tables:
         print("Creating people_campus table...")
         op.create_table('people_campus',
@@ -85,6 +89,8 @@ def upgrade() -> None:
         op.create_index('ix_people_campus_id', 'people_campus', ['id'], unique=False)
     
     # 3. Create people_role junction table if missing
+    # Refresh table list
+    existing_tables = inspector.get_table_names()
     if 'people_role' not in existing_tables and 'people' in existing_tables and 'role' in existing_tables:
         print("Creating people_role table...")
         op.create_table('people_role',
@@ -106,12 +112,9 @@ def upgrade() -> None:
         op.create_index('ix_people_role_role_id', 'people_role', ['role_id'], unique=False)
         op.create_index('ix_people_role_id', 'people_role', ['id'], unique=False)
     
-    # Refresh table list after creating people
-    # Alembic transactions might not immediately reflect created tables
-    if 'people' not in existing_tables:
-        existing_tables = inspector.get_table_names()
-    
     # 4. Create course_enrollment table if missing (requires people and courses)
+    # Refresh table list to ensure we have latest state
+    existing_tables = inspector.get_table_names()
     if 'course_enrollment' not in existing_tables:
         # Double-check tables exist after potential creation
         current_tables = inspector.get_table_names()
@@ -158,6 +161,8 @@ def upgrade() -> None:
                 # Continue with other tables
     
     # 5. Create course_modules table if missing
+    # Refresh table list
+    existing_tables = inspector.get_table_names()
     if 'course_modules' not in existing_tables and 'courses' in existing_tables:
         print("Creating course_modules table...")
         op.create_table('course_modules',
@@ -180,6 +185,8 @@ def upgrade() -> None:
         op.create_index('ix_course_modules_course_id', 'course_modules', ['course_id'], unique=False)
     
     # 6. Create content_completion table if missing (requires course_enrollment)
+    # Refresh table list
+    existing_tables = inspector.get_table_names()
     if 'content_completion' not in existing_tables:
         if 'course_enrollment' not in existing_tables:
             print("⚠️  Skipping content_completion: course_enrollment table doesn't exist yet")
