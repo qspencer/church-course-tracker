@@ -6,7 +6,7 @@ import pytest
 import asyncio
 import os
 import subprocess
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from fastapi.testclient import TestClient
 from datetime import datetime, date, timezone
@@ -14,6 +14,11 @@ from datetime import datetime, date, timezone
 # Override database configuration for tests
 os.environ["DATABASE_URL"] = "sqlite:///./data/church_course_tracker.db"
 os.environ["RATE_LIMIT_ENABLED"] = "false"
+
+# Mock Planning Center credentials for tests
+os.environ["PLANNING_CENTER_APP_ID"] = "test_app_id"
+os.environ["PLANNING_CENTER_SECRET"] = "test_secret"
+os.environ["PLANNING_CENTER_ACCESS_TOKEN"] = "test_token"
 
 # Test database URL - use the migrated database for tests
 SQLALCHEMY_DATABASE_URL = "sqlite:///./data/church_course_tracker.db"
@@ -91,21 +96,28 @@ def db_session():
     # Clean up test data before each test
     try:
         # Delete test data in reverse order of dependencies
-        session.execute("DELETE FROM content_access_log")
-        session.execute("DELETE FROM content_audit_log")
-        session.execute("DELETE FROM content_completion")
-        session.execute("DELETE FROM course_content")
-        session.execute("DELETE FROM course_modules")
-        session.execute("DELETE FROM course_enrollment")
-        session.execute("DELETE FROM certification_progress")
-        session.execute("DELETE FROM certification")
-        session.execute("DELETE FROM courses")
-        session.execute("DELETE FROM people_campus")
-        session.execute("DELETE FROM people_role")
-        session.execute("DELETE FROM people")
-        session.execute("DELETE FROM campus")
-        session.execute("DELETE FROM role")
-        session.execute("DELETE FROM users WHERE email != 'course.tracker.admin@eastgate.church'")
+        session.execute(text("DELETE FROM content_access_logs"))
+        session.execute(text("DELETE FROM content_audit_logs"))
+        session.execute(text("DELETE FROM content_completion"))
+        session.execute(text("DELETE FROM course_content"))
+        session.execute(text("DELETE FROM course_modules"))
+        session.execute(text("DELETE FROM course_enrollment"))
+        session.execute(text("DELETE FROM certification_progress"))
+        session.execute(text("DELETE FROM certification"))
+        session.execute(text("DELETE FROM courses"))
+        session.execute(text("DELETE FROM content_type"))
+        session.execute(text("DELETE FROM content"))
+        session.execute(text("DELETE FROM planning_center_events_cache"))
+        session.execute(text("DELETE FROM planning_center_registrations_cache"))
+        session.execute(text("DELETE FROM planning_center_sync_log"))
+        session.execute(text("DELETE FROM planning_center_webhook_events"))
+        session.execute(text("DELETE FROM audit_log"))
+        session.execute(text("DELETE FROM people_campus"))
+        session.execute(text("DELETE FROM people_role"))
+        session.execute(text("DELETE FROM people"))
+        session.execute(text("DELETE FROM campus"))
+        session.execute(text("DELETE FROM role"))
+        session.execute(text("DELETE FROM users WHERE email != 'course.tracker.admin@eastgate.church'"))
         session.commit()
     except Exception as e:
         session.rollback()
@@ -282,7 +294,7 @@ def admin_token(db_session):
         email="admin@test.com",
         full_name="Admin User",
         role="admin",
-        hashed_password=get_password_hash("password"),
+        hashed_password="test_hash",  # Use a simple hash for tests
         is_active=True
     )
     db_session.add(admin_user)
@@ -310,7 +322,7 @@ def staff_token(db_session):
         email="staff@test.com",
         full_name="Staff User",
         role="staff",
-        hashed_password=get_password_hash("password"),
+        hashed_password="test_hash",  # Use a simple hash for tests
         is_active=True
     )
     db_session.add(staff_user)
@@ -338,7 +350,7 @@ def viewer_token(db_session):
         email="viewer@test.com",
         full_name="Viewer User",
         role="viewer",
-        hashed_password=get_password_hash("password"),
+        hashed_password="test_hash",  # Use a simple hash for tests
         is_active=True
     )
     db_session.add(viewer_user)
@@ -349,5 +361,33 @@ def viewer_token(db_session):
     access_token_expires = timedelta(minutes=30)
     access_token = create_access_token(
         data={"sub": str(viewer_user.id)}, expires_delta=access_token_expires
+    )
+    return access_token
+
+
+@pytest.fixture
+def user_token(db_session):
+    """Create a test regular user and return their token."""
+    from app.core.security import create_access_token, get_password_hash
+    from app.models.user import User
+    from datetime import timedelta
+    
+    # Create regular user in database
+    user = User(
+        username="user",
+        email="user@test.com",
+        full_name="Regular User",
+        role="user",
+        hashed_password="test_hash",  # Use a simple hash for tests
+        is_active=True
+    )
+    db_session.add(user)
+    db_session.commit()
+    db_session.refresh(user)
+    
+    # Create a token for regular user
+    access_token_expires = timedelta(minutes=30)
+    access_token = create_access_token(
+        data={"sub": str(user.id)}, expires_delta=access_token_expires
     )
     return access_token

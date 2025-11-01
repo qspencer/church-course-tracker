@@ -127,7 +127,11 @@ if settings.RATE_LIMIT_ENABLED:
     @app.middleware("http")
     async def rate_limit_middleware(request: Request, call_next):
         """Enhanced rate limiting middleware with proper headers"""
-        client_ip = request.client.host
+        # Use X-Forwarded-For header if available (API Gateway/Load Balancer)
+        client_ip = request.headers.get("X-Forwarded-For", request.headers.get("X-Real-IP", request.client.host))
+        # If multiple IPs (proxy chain), use the first one
+        if "," in str(client_ip):
+            client_ip = str(client_ip).split(",")[0].strip()
         current_time = time.time()
         
         # Clean old entries

@@ -8,7 +8,7 @@ I have successfully implemented a comprehensive AWS deployment strategy for your
 - **Complete VPC setup** with public/private subnets
 - **RDS PostgreSQL database** with automated backups
 - **ECS Fargate cluster** with auto-scaling
-- **Application Load Balancer** with SSL termination
+- **API Gateway HTTP API** with VPC Link (cost-optimized)
 - **S3 buckets** for static assets and file uploads
 - **CloudFront CDN** for global content delivery
 - **Security groups** and IAM roles with least privilege

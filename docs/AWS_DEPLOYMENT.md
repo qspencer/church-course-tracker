@@ -11,7 +11,7 @@ The application is deployed using the following AWS services:
 - **Database**: RDS PostgreSQL (Managed database)
 - **File Storage**: S3 (Course content and uploads)
 - **CDN**: CloudFront (Global content delivery)
-- **API Gateway**: HTTP API with VPC Link (replacing ALB for cost optimization)
+- **API Gateway**: HTTP API with VPC Link (cost-optimized API routing)
 - **Monitoring**: CloudWatch (Logs, metrics, and alarms)
 
 ## 📋 Prerequisites
@@ -100,7 +100,7 @@ The application is deployed using the following AWS services:
    aws ecs describe-services --cluster church-course-tracker-cluster --services church-course-tracker-service
    
    # Check application health via API Gateway
-   curl https://tinev5iszf.execute-api.us-east-1.amazonaws.com/health
+   curl https://api.quentinspencer.com/health
    
    # Check application logs for any errors
    aws logs tail /ecs/church-course-tracker-backend --follow --region us-east-1
@@ -145,13 +145,13 @@ https://console.aws.amazon.com/cloudwatch/home?region=us-east-1#dashboards:name=
 
 ### Key Metrics
 - **ECS Service**: CPU and memory utilization
-- **Application Load Balancer**: Response time, request count, error rates
+- **API Gateway**: Response time, request count, error rates
 - **RDS Database**: CPU, connections, storage
 - **S3**: Storage usage and request metrics
 
 ### Logs
 - **Application Logs**: `/ecs/church-course-tracker-backend`
-- **ALB Logs**: `/aws/applicationloadbalancer/church-course-tracker`
+- **API Gateway Logs**: `/aws/apigateway/church-course-tracker`
 - **Database Logs**: RDS logs in CloudWatch
 
 ## 🔒 Security Considerations
@@ -159,7 +159,7 @@ https://console.aws.amazon.com/cloudwatch/home?region=us-east-1#dashboards:name=
 ### Network Security
 - VPC with private and public subnets
 - Security groups restricting access
-- ALB with SSL/TLS termination
+- API Gateway with SSL/TLS termination
 - CloudFront with HTTPS enforcement
 
 ### Data Security
@@ -386,7 +386,7 @@ aws ecs describe-services --cluster church-course-tracker-cluster --services chu
 aws logs tail /ecs/church-course-tracker-backend --follow --region us-east-1
 
 # Test API endpoint
-curl -s -o /dev/null -w "%{http_code}" https://tinev5iszf.execute-api.us-east-1.amazonaws.com/health
+curl -s -o /dev/null -w "%{http_code}" https://api.quentinspencer.com/health
 
 # Reset database (emergency)
 python3 fix_database_docker.py

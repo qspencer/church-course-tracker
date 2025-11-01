@@ -4,7 +4,7 @@ import { test, expect, Page } from '@playwright/test';
 const testUsers = {
   admin: {
     username: "Admin",
-    password: "Admin123!"',
+    password: 'Admin123!',
     role: 'admin'
   },
   staff: {

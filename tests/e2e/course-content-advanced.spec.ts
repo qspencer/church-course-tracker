@@ -9,7 +9,7 @@ import { test, expect } from '@playwright/test';
 
 // Test users for different roles
 const testUsers = {
-  admin: { username: "Admin", password: "Admin123!"' },
+  admin: { username: "Admin", password: 'Admin123!' },
   staff: { username: 'staff', password: 'staff123' },
   viewer: { username: 'viewer', password: 'viewer123' }
 };

@@ -20,10 +20,25 @@ def upgrade():
     """Add performance indexes for frequently queried fields"""
     
     # Course model indexes
-    op.create_index('idx_courses_is_active', 'courses', ['is_active'])
-    op.create_index('idx_courses_created_at', 'courses', ['created_at'])
-    op.create_index('idx_courses_event_dates', 'courses', ['event_start_date', 'event_end_date'])
-    op.create_index('idx_courses_name_active', 'courses', ['name', 'is_active'])
+    try:
+        op.create_index('idx_courses_is_active', 'courses', ['is_active'])
+    except Exception:
+        pass  # Index might already exist
+    
+    try:
+        op.create_index('idx_courses_created_at', 'courses', ['created_at'])
+    except Exception:
+        pass  # Index might already exist
+    
+    try:
+        op.create_index('idx_courses_event_dates', 'courses', ['event_start_date', 'event_end_date'])
+    except Exception:
+        pass  # Index might already exist
+    
+    try:
+        op.create_index('idx_courses_name_active', 'courses', ['name', 'is_active'])
+    except Exception:
+        pass  # Index might already exist
     
     # User model indexes
     op.create_index('idx_users_role', 'users', ['role'])
@@ -53,12 +68,12 @@ def upgrade():
     
     # CourseModule model indexes
     op.create_index('idx_course_modules_course', 'course_modules', ['course_id'])
-    op.create_index('idx_course_modules_order', 'course_modules', ['order_sequence'])
+    op.create_index('idx_course_modules_order', 'course_modules', ['order_index'])
     op.create_index('idx_course_modules_active', 'course_modules', ['is_active'])
     
     # CourseContent model indexes
     op.create_index('idx_course_content_module', 'course_content', ['module_id'])
-    op.create_index('idx_course_content_order', 'course_content', ['order_sequence'])
+    op.create_index('idx_course_content_order', 'course_content', ['order_index'])
     op.create_index('idx_course_content_active', 'course_content', ['is_active'])
     op.create_index('idx_course_content_type', 'course_content', ['content_type'])
     

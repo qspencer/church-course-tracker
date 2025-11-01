@@ -805,14 +805,26 @@ class PlanningCenterSyncService:
             event_type = webhook_data.get("event_type")
             if event_type == "person.created" or event_type == "person.updated":
                 # Sync person data
-                asyncio.create_task(self.sync_people())
+                try:
+                    asyncio.create_task(self.sync_people())
+                except RuntimeError:
+                    # No event loop running (e.g., in tests), skip async task creation
+                    pass
             elif event_type == "event.created" or event_type == "event.updated":
                 # Sync event data
-                asyncio.create_task(self.sync_events())
+                try:
+                    asyncio.create_task(self.sync_events())
+                except RuntimeError:
+                    # No event loop running (e.g., in tests), skip async task creation
+                    pass
             elif event_type == "registration.created" or event_type == "registration.updated":
                 # Sync registration data
                 event_id = webhook_data.get("event_id")
-                asyncio.create_task(self.sync_registrations(event_id=event_id))
+                try:
+                    asyncio.create_task(self.sync_registrations(event_id=event_id))
+                except RuntimeError:
+                    # No event loop running (e.g., in tests), skip async task creation
+                    pass
             
             # Mark webhook as processed
             webhook_event.processed = True

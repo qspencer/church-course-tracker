@@ -40,7 +40,11 @@ class Settings(BaseSettings):
     ]
     ALLOWED_ORIGINS: List[str] = [
         "https://apps.quentinspencer.com",
-        "https://apps.eastgate.church"
+        "https://apps.eastgate.church",
+        "http://localhost:4200",
+        "http://localhost:3000",
+        "http://localhost:8000",
+        "https://api.quentinspencer.com"  # API Gateway origin
     ]
     
     # Database

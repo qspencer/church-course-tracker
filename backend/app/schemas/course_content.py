@@ -137,6 +137,13 @@ class ContentAccessLogBase(BaseModel):
     time_spent: Optional[int] = Field(None, ge=0)  # Time in seconds
 
 
+class ContentAccessLogRequest(ContentAccessLogBase):
+    """Schema for content access log API request (without content_id and user_id)"""
+    ip_address: Optional[str] = None
+    user_agent: Optional[str] = None
+    session_id: Optional[str] = None
+
+
 class ContentAccessLogCreate(ContentAccessLogBase):
     """Schema for creating content access logs"""
     content_id: int = Field(..., gt=0)
@@ -208,7 +215,6 @@ class ContentDownloadRequest(BaseModel):
 
 class ContentProgressUpdate(BaseModel):
     """Schema for updating content progress"""
-    content_id: int = Field(..., gt=0)
     progress_percentage: int = Field(..., ge=0, le=100)
     time_spent: Optional[int] = Field(None, ge=0)
 

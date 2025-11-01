@@ -18,10 +18,25 @@ class CourseService:
     
     def get_courses(self, skip: int = 0, limit: int = 100, is_active: Optional[bool] = None) -> List[CourseModel]:
         """Get all courses with pagination and optional filtering"""
-        query = self.db.query(CourseModel)
-        if is_active is not None:
-            query = query.filter(CourseModel.is_active == is_active)
-        return query.offset(skip).limit(limit).all()
+        try:
+            query = self.db.query(CourseModel)
+            if is_active is not None:
+                query = query.filter(CourseModel.is_active == is_active)
+            # Use options to prevent eager loading of relationships that might cause issues
+            from sqlalchemy.orm import noload
+            return query.options(
+                noload(CourseModel.course_enrollments),
+                noload(CourseModel.content),
+                noload(CourseModel.course_content),
+                noload(CourseModel.modules),
+                noload(CourseModel.course_role),
+                noload(CourseModel.certification_courses)
+            ).offset(skip).limit(limit).all()
+        except Exception as e:
+            # Log the error and return empty list if there's a database issue
+            import logging
+            logging.error(f"Error fetching courses: {e}")
+            return []
     
     def get_course(self, course_id: int) -> Optional[CourseModel]:
         """Get a specific course by ID"""

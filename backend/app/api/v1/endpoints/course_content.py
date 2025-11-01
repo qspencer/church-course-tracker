@@ -15,7 +15,7 @@ from app.services.content_service import ContentService
 from app.schemas.course_content import (
     CourseModule, CourseModuleCreate, CourseModuleUpdate,
     CourseContent, CourseContentCreate, CourseContentUpdate,
-    ContentAccessLog, ContentAccessLogCreate,
+    ContentAccessLog, ContentAccessLogRequest, ContentAccessLogCreate,
     ContentAuditLog, ContentUploadResponse, ContentDownloadRequest,
     ContentProgressUpdate, CourseContentSummary
 )
@@ -275,17 +275,26 @@ async def download_content(
 @router.post("/{content_id}/access", response_model=ContentAccessLog)
 async def log_content_access(
     content_id: int,
-    access_data: ContentAccessLogCreate,
+    access_data: ContentAccessLogRequest,
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_active_user)
 ):
     """Log content access (view, download, complete)"""
-    # Ensure the access log is for the current user
-    access_data.user_id = current_user["id"]
-    access_data.content_id = content_id
+    # Create a new access log with user and content info
+    from app.schemas.course_content import ContentAccessLogCreate
+    access_log_data = ContentAccessLogCreate(
+        access_type=access_data.access_type,
+        progress_percentage=access_data.progress_percentage,
+        time_spent=access_data.time_spent,
+        ip_address=access_data.ip_address,
+        user_agent=access_data.user_agent,
+        session_id=access_data.session_id,
+        content_id=content_id,
+        user_id=current_user["id"]
+    )
     
     content_service = ContentService(db)
-    return content_service.log_content_access(access_data)
+    return content_service.log_content_access(access_log_data)
 
 
 @router.put("/{content_id}/progress")

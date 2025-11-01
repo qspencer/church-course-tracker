@@ -84,8 +84,8 @@ class TestAuditEndpoints:
         assert response.status_code == 200
         data = response.json()
         assert "total_logs" in data
-        assert "tables_affected" in data
-        assert "actions_performed" in data
+        assert "table_breakdown" in data
+        assert "action_breakdown" in data
         assert "table_breakdown" in data
         assert "action_breakdown" in data
     
@@ -120,8 +120,8 @@ class TestAuditEndpoints:
         assert response.status_code == 200
         data = response.json()
         assert "total_logs" in data
-        assert "tables_affected" in data
-        assert "actions_performed" in data
+        assert "table_breakdown" in data
+        assert "action_breakdown" in data
     
     def test_get_audit_logs_by_table(self, client: TestClient, admin_token):
         """Test getting audit logs by table"""
@@ -152,7 +152,7 @@ class TestAuditEndpoints:
     def test_get_audit_logs_by_record(self, client: TestClient, admin_token):
         """Test getting audit logs by record"""
         response = client.get(
-            "/api/v1/audit/table/courses/records/123",
+            "/api/v1/audit/table/courses?record_id=123",
             headers={"Authorization": f"Bearer {admin_token}"}
         )
         
@@ -162,14 +162,14 @@ class TestAuditEndpoints:
     
     def test_get_audit_logs_by_record_unauthorized(self, client: TestClient):
         """Test getting audit logs by record without authentication"""
-        response = client.get("/api/v1/audit/table/courses/records/123")
+        response = client.get("/api/v1/audit/table/courses?record_id=123")
         
         assert response.status_code == 401
     
     def test_get_audit_logs_by_record_forbidden(self, client: TestClient, viewer_token):
         """Test getting audit logs by record with insufficient permissions"""
         response = client.get(
-            "/api/v1/audit/table/courses/records/123",
+            "/api/v1/audit/table/courses?record_id=123",
             headers={"Authorization": f"Bearer {viewer_token}"}
         )
         
@@ -259,7 +259,7 @@ class TestAuditEndpointsValidation:
     
     def test_get_audit_logs_invalid_offset(self, client: TestClient, admin_token):
         """Test getting audit logs with invalid offset"""
-        params = {"offset": -1}
+        params = {"skip": -1}
         
         response = client.get(
             "/api/v1/audit/",
@@ -305,7 +305,7 @@ class TestAuditEndpointsValidation:
     def test_get_audit_logs_by_record_invalid_record_id(self, client: TestClient, admin_token):
         """Test getting audit logs by record with invalid record ID"""
         response = client.get(
-            "/api/v1/audit/table/courses/records/invalid",
+            "/api/v1/audit/table/courses?record_id=invalid",
             headers={"Authorization": f"Bearer {admin_token}"}
         )
         
@@ -330,7 +330,7 @@ class TestAuditEndpointsErrorHandling:
     def test_get_audit_logs_by_nonexistent_record(self, client: TestClient, admin_token):
         """Test getting audit logs by nonexistent record"""
         response = client.get(
-            "/api/v1/audit/table/courses/records/999",
+            "/api/v1/audit/table/courses?record_id=999",
             headers={"Authorization": f"Bearer {admin_token}"}
         )
         
@@ -376,8 +376,8 @@ class TestAuditEndpointsStaffAccess:
         assert response.status_code == 200
         data = response.json()
         assert "total_logs" in data
-        assert "tables_affected" in data
-        assert "actions_performed" in data
+        assert "table_breakdown" in data
+        assert "action_breakdown" in data
     
     def test_get_audit_logs_by_table_staff_access(self, client: TestClient, staff_token):
         """Test that staff users can access audit logs by table"""
@@ -393,7 +393,7 @@ class TestAuditEndpointsStaffAccess:
     def test_get_audit_logs_by_record_staff_access(self, client: TestClient, staff_token):
         """Test that staff users can access audit logs by record"""
         response = client.get(
-            "/api/v1/audit/table/courses/records/123",
+            "/api/v1/audit/table/courses?record_id=123",
             headers={"Authorization": f"Bearer {staff_token}"}
         )
         
@@ -483,5 +483,5 @@ class TestAuditEndpointsComplexQueries:
         assert response.status_code == 200
         data = response.json()
         assert "total_logs" in data
-        assert "tables_affected" in data
-        assert "actions_performed" in data
+        assert "table_breakdown" in data
+        assert "action_breakdown" in data

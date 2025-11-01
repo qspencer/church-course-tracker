@@ -166,13 +166,15 @@ class TestCourseContentProgressWorkflows:
         
         # Step 2: Log initial access
         with patch('app.api.v1.endpoints.course_content.ContentService.log_content_access') as mock_log:
+            from datetime import datetime
             mock_log.return_value = {
                 "id": 1,
                 "content_id": content.id,
                 "user_id": 1,
                 "access_type": "view",
                 "progress_percentage": 0,
-                "time_spent": 0
+                "time_spent": 0,
+                "access_timestamp": datetime.utcnow().isoformat()
             }
             
             access_data = {
@@ -197,7 +199,8 @@ class TestCourseContentProgressWorkflows:
                 "user_id": 1,
                 "access_type": "view",
                 "progress_percentage": 50,
-                "time_spent": 300
+                "time_spent": 300,
+                "access_timestamp": datetime.utcnow().isoformat()
             }
             
             progress_data = {
@@ -221,7 +224,8 @@ class TestCourseContentProgressWorkflows:
                 "user_id": 1,
                 "access_type": "complete",
                 "progress_percentage": 100,
-                "time_spent": 600
+                "time_spent": 600,
+                "access_timestamp": datetime.utcnow().isoformat()
             }
             
             complete_data = {
@@ -302,11 +306,25 @@ class TestCourseContentAuditWorkflows:
         }
         
         with patch('app.api.v1.endpoints.course_content.ContentService.update_content') as mock_update:
-            mock_update.return_value = {
-                "id": content.id,
-                "title": "Updated Audit Test Content",
-                "description": "Updated description"
-            }
+            # Create a mock CourseContent object
+            from app.models.course_content import CourseContent as CourseContentModel
+            from datetime import datetime
+            
+            updated_content = CourseContentModel(
+                id=content.id,
+                course_id=course.id,
+                title="Updated Audit Test Content",
+                description="Updated description",
+                content_type=ContentType.DOCUMENT,
+                storage_type=StorageType.DATABASE,
+                order_index=1,
+                created_at=datetime.utcnow(),
+                updated_at=datetime.utcnow(),
+                is_active=True,
+                download_count=0,
+                view_count=0
+            )
+            mock_update.return_value = updated_content
             
             update_response = client.put(
                 f"/api/v1/content/{content.id}",
@@ -318,24 +336,25 @@ class TestCourseContentAuditWorkflows:
         
         # Step 3: Retrieve audit logs
         with patch('app.api.v1.endpoints.course_content.ContentService.get_audit_logs') as mock_audit:
-            mock_audit.return_value = [
-                {
-                    "id": 1,
-                    "content_id": content.id,
-                    "user_id": 1,
-                    "action": "create",
-                    "change_timestamp": "2024-01-01T00:00:00Z",
-                    "change_summary": "Content created"
-                },
-                {
-                    "id": 2,
-                    "content_id": content.id,
-                    "user_id": 1,
-                    "action": "update",
-                    "change_timestamp": "2024-01-01T01:00:00Z",
-                    "change_summary": "Content updated"
-                }
-            ]
+            from app.models.course_content import ContentAuditLog
+            
+            audit_log1 = ContentAuditLog(
+                id=1,
+                content_id=content.id,
+                user_id=1,
+                action="create",
+                change_timestamp=datetime.utcnow(),
+                change_summary="Content created"
+            )
+            audit_log2 = ContentAuditLog(
+                id=2,
+                content_id=content.id,
+                user_id=1,
+                action="update",
+                change_timestamp=datetime.utcnow(),
+                change_summary="Content updated"
+            )
+            mock_audit.return_value = [audit_log1, audit_log2]
             
             audit_response = client.get(
                 f"/api/v1/content/{content.id}/audit-logs",
@@ -356,19 +375,44 @@ class TestCourseContentAuditWorkflows:
         db_session.commit()
         db_session.refresh(course)
         
+        # Create mock content and modules
+        from app.models.course_content import CourseContent, CourseModule, ContentType, StorageType
+        from datetime import datetime
+        
+        module1 = CourseModule(
+            id=1, course_id=course.id, title="Module 1", order_index=1, 
+            is_active=True, created_at=datetime.utcnow()
+        )
+        module2 = CourseModule(
+            id=2, course_id=course.id, title="Module 2", order_index=2, 
+            is_active=True, created_at=datetime.utcnow()
+        )
+        
+        content1 = CourseContent(
+            id=1, course_id=course.id, module_id=1, title="Document 1",
+            content_type=ContentType.DOCUMENT, storage_type=StorageType.DATABASE,
+            order_index=1, file_size=1024, created_at=datetime.utcnow(),
+            is_active=True, download_count=0, view_count=0, updated_at=datetime.utcnow()
+        )
+        content2 = CourseContent(
+            id=2, course_id=course.id, module_id=1, title="Video 1",
+            content_type=ContentType.VIDEO, storage_type=StorageType.S3,
+            order_index=2, file_size=2048, created_at=datetime.utcnow(),
+            is_active=True, download_count=0, view_count=0, updated_at=datetime.utcnow()
+        )
+        content3 = CourseContent(
+            id=3, course_id=course.id, module_id=2, title="Audio 1",
+            content_type=ContentType.AUDIO, storage_type=StorageType.DATABASE,
+            order_index=3, file_size=512, created_at=datetime.utcnow(),
+            is_active=True, download_count=0, view_count=0, updated_at=datetime.utcnow()
+        )
+        
         # Mock content summary service
         with patch('app.api.v1.endpoints.course_content.ContentService.get_content') as mock_content, \
              patch('app.api.v1.endpoints.course_content.ContentService.get_modules') as mock_modules:
             
-            mock_content.return_value = [
-                {"id": 1, "title": "Document 1", "content_type": "document", "order_index": 1},
-                {"id": 2, "title": "Video 1", "content_type": "video", "order_index": 2},
-                {"id": 3, "title": "Audio 1", "content_type": "audio", "order_index": 3}
-            ]
-            mock_modules.return_value = [
-                {"id": 1, "title": "Module 1", "order_index": 1, "is_active": True},
-                {"id": 2, "title": "Module 2", "order_index": 2, "is_active": True}
-            ]
+            mock_content.return_value = [content1, content2, content3]
+            mock_modules.return_value = [module1, module2]
             
             response = client.get(
                 f"/api/v1/content/course/{course.id}/summary",
@@ -379,9 +423,10 @@ class TestCourseContentAuditWorkflows:
             data = response.json()
             assert data["course_id"] == course.id
             assert data["total_modules"] == 2
-            assert data["total_content"] == 3
-            assert len(data["modules"]) == 2
-            assert len(data["content_items"]) == 3
+            assert data["total_content_items"] == 3
+            assert data["total_file_size"] == 3584  # 1024 + 2048 + 512
+            assert "content_by_type" in data
+            assert "recent_uploads" in data
 
 
 class TestCourseContentRoleBasedWorkflows:

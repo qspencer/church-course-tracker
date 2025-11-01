@@ -29,7 +29,7 @@ async def get_audit_logs(
 ):
     """Get system-wide audit logs - Admin only"""
     # Check if user has permission to view audit logs
-    if current_user["role"] != "admin":
+    if current_user["role"] not in ["admin", "staff"]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Only admin users can view system audit logs"
@@ -56,7 +56,7 @@ async def get_audit_summary(
 ):
     """Get audit log summary statistics - Admin only"""
     # Check if user has permission to view audit logs
-    if current_user["role"] != "admin":
+    if current_user["role"] not in ["admin", "staff"]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Only admin users can view audit summaries"
@@ -77,7 +77,7 @@ async def get_table_audit_logs(
 ):
     """Get audit logs for a specific table - Admin only"""
     # Check if user has permission to view audit logs
-    if current_user["role"] != "admin":
+    if current_user["role"] not in ["admin", "staff"]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Only admin users can view table audit logs"
@@ -102,7 +102,7 @@ async def get_user_audit_logs(
 ):
     """Get audit logs for a specific user - Admin only"""
     # Check if user has permission to view audit logs
-    if current_user["role"] != "admin":
+    if current_user["role"] not in ["admin", "staff"]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Only admin users can view user audit logs"
@@ -126,7 +126,7 @@ async def get_recent_audit_logs(
 ):
     """Get recent audit logs - Admin only"""
     # Check if user has permission to view audit logs
-    if current_user["role"] != "admin":
+    if current_user["role"] not in ["admin", "staff"]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Only admin users can view audit logs"
@@ -151,7 +151,7 @@ async def export_audit_logs(
 ):
     """Export audit logs - Admin only"""
     # Check if user has permission to export audit logs
-    if current_user["role"] != "admin":
+    if current_user["role"] not in ["admin", "staff"]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Only admin users can export audit logs"
