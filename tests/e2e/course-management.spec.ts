@@ -2,7 +2,7 @@ import { test, expect, Page } from '@playwright/test';
 
 // Test data
 const testUsers = {
-  admin: { username: "Admin", password: 'Admin123!' },
+  admin: { username: "admin", password: 'admin123' },
   staff: { username: 'staff', password: 'staff123' },
   viewer: { username: 'viewer', password: 'viewer123' }
 };

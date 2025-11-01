@@ -3,8 +3,8 @@ import { test, expect, Page } from '@playwright/test';
 // Test data for different roles
 const testUsers = {
   admin: {
-    username: "Admin",
-    password: 'Admin123!',
+    username: "admin",
+    password: 'admin123',
     role: 'admin'
   },
   staff: {

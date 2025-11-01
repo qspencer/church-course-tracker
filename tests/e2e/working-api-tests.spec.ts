@@ -22,8 +22,8 @@ test.describe('Working API Tests', () => {
   test('API authentication endpoint works', async ({ request }) => {
     const response = await request.post('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/auth/login', {
       data: {
-        username: "Admin",
-        password: "Admin123!"
+        username: "admin",
+        password: "admin123"
       }
     });
     
@@ -63,7 +63,7 @@ test.describe('Working API Tests', () => {
     
     // Test POST (login)
     const postResponse = await request.post('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/auth/login', {
-      data: { username: "Admin", password: "Admin123!" }
+      data: { username: "admin", password: "admin123" }
     });
     expect(postResponse.status()).toBe(200);
     

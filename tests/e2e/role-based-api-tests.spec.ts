@@ -1,8 +1,10 @@
 import { test, expect } from '@playwright/test';
 
 // Test data for different roles
+// Note: Using actual admin credentials that exist in production
+// Staff and viewer users may need to be created in the database first
 const testUsers = {
-  admin: { username: "Admin", password: "Admin123!" },
+  admin: { username: "admin", password: "admin123" },  // Using actual production admin
   staff: { username: 'staff', password: 'staff123' },
   viewer: { username: 'viewer', password: 'viewer123' }
 };
