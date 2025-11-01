@@ -23,6 +23,51 @@ else
     fi
 fi
 
+# Check database tables and migration state
+echo "🔍 Checking database schema..."
+python3 << 'DB_CHECK_SCRIPT'
+import os
+import psycopg2
+
+DATABASE_URL = os.getenv("DATABASE_URL")
+if DATABASE_URL:
+    try:
+        parts = DATABASE_URL.replace('postgresql://', '').split('/')
+        userpass = parts[0].split('@')[0]
+        user, password = userpass.split(':')
+        hostport = parts[0].split('@')[1]
+        host, port = hostport.split(':')
+        dbname = parts[1]
+        
+        conn = psycopg2.connect(host=host, port=port, database=dbname, user=user, password=password)
+        cur = conn.cursor()
+        
+        # Get all tables
+        cur.execute("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' ORDER BY table_name;")
+        tables = cur.fetchall()
+        print("📋 Database tables found:")
+        for table in tables:
+            print(f"   - {table[0]}")
+        
+        table_names = [t[0] for t in tables]
+        print("\n🔑 Key table status:")
+        print(f"   course_enrollment: {'✓ EXISTS' if 'course_enrollment' in table_names else '✗ MISSING'}")
+        print(f"   people: {'✓ EXISTS' if 'people' in table_names else '✗ MISSING'}")
+        print(f"   courses: {'✓ EXISTS' if 'courses' in table_names else '✗ MISSING'}")
+        print(f"   users: {'✓ EXISTS' if 'users' in table_names else '✗ MISSING'}")
+        print(f"   enrollments: {'✓ EXISTS' if 'enrollments' in table_names else '✗ MISSING'}")
+        
+        if 'alembic_version' in table_names:
+            cur.execute("SELECT version_num FROM alembic_version;")
+            version = cur.fetchone()
+            print(f"\n📦 Migration version: {version[0] if version else 'None'}")
+        
+        cur.close()
+        conn.close()
+    except Exception as e:
+        print(f"⚠️  Could not check database schema: {e}")
+DB_CHECK_SCRIPT
+
 # Manually add the data_source columns if they don't exist (always check)
 echo "🔧 Checking and adding data_source columns if needed..."
 python3 << 'PYTHON_SCRIPT'
