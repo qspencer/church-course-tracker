@@ -8,11 +8,11 @@ import bcrypt
 import psycopg2
 from psycopg2.extras import RealDictCursor
 
-# Get database URL from environment or use default
-DATABASE_URL = os.getenv("DATABASE_URL")
+# Get database URL from environment or use default (same as create_admin_standalone.py)
+DATABASE_URL = os.getenv("DATABASE_URL") or "postgresql://postgres:qicBHo2ypeSkuyrU@church-course-tracker-db.cmn082g02d5u.us-east-1.rds.amazonaws.com:5432/church_course_tracker"
 
 if not DATABASE_URL:
-    print("❌ DATABASE_URL environment variable not set")
+    print("❌ DATABASE_URL not set")
     sys.exit(1)
 
 def create_user(username: str, email: str, full_name: str, password: str, role: str):
