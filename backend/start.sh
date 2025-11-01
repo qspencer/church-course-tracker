@@ -136,6 +136,16 @@ else
     echo "⚠️  Admin user setup failed - user may already exist. Continuing..."
 fi
 
+# Create test users (staff and viewer) for E2E testing
+echo "👥 Creating test users for E2E testing..."
+python3 /app/create_test_users_standalone.py
+
+if [ $? -eq 0 ]; then
+    echo "✅ Test users setup completed!"
+else
+    echo "⚠️  Test users setup failed - users may already exist. Continuing..."
+fi
+
 # Start the application
 echo "🚀 Starting FastAPI application..."
 exec uvicorn main:app --host 0.0.0.0 --port 8000 --workers 4
