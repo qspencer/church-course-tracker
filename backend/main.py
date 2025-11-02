@@ -270,8 +270,6 @@ async def health_check():
 async def health_check_v1():
     """Comprehensive health check endpoint (v1 API path)"""
     return await get_health_status()
-    
-    return health_status
 
 if __name__ == "__main__":
     uvicorn.run(
