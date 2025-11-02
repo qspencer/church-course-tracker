@@ -59,13 +59,12 @@ resource "aws_service_discovery_service" "backend" {
   }
 
   # HTTP health check: Service Discovery will check /health endpoint
-  # FailureThreshold: 1 means one failed check marks instance unhealthy
+  # FailureThreshold: 3 means 3 consecutive failures mark instance unhealthy
   # This allows Service Discovery to automatically monitor instance health
   health_check_config {
-    type                            = "HTTP"
-    resource_path                   = "/health"
-    failure_threshold               = 3  # Allow 3 failures before marking unhealthy
-    request_interval                = 10  # Check every 10 seconds
+    type            = "HTTP"
+    resource_path   = "/health"
+    failure_threshold = 3  # Allow 3 consecutive failures before marking unhealthy
   }
 
   tags = {
