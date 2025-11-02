@@ -218,9 +218,8 @@ async def root():
         "status": "running"
     }
 
-@app.get("/health")
-async def health_check():
-    """Comprehensive health check endpoint"""
+async def get_health_status():
+    """Shared health check logic"""
     from app.core.database import SessionLocal
     from sqlalchemy import text
     import time
@@ -259,6 +258,18 @@ async def health_check():
     except Exception as e:
         health_status["checks"]["security"] = f"unhealthy: {str(e)}"
         health_status["status"] = "unhealthy"
+    
+    return health_status
+
+@app.get("/health")
+async def health_check():
+    """Comprehensive health check endpoint"""
+    return await get_health_status()
+
+@app.get("/api/v1/health")
+async def health_check_v1():
+    """Comprehensive health check endpoint (v1 API path)"""
+    return await get_health_status()
     
     return health_status
 
