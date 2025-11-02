@@ -58,12 +58,9 @@ resource "aws_service_discovery_service" "backend" {
     routing_policy = "MULTIVALUE"
   }
 
-  # HealthCheckCustomConfig: Let ECS manage health, Service Discovery trusts ECS status
-  # FailureThreshold: 1 means if ECS marks task unhealthy, Service Discovery removes it
-  # This allows ECS health checks to control Service Discovery health status
-  health_check_custom_config {
-    failure_threshold = 1
-  }
+  # No health check configuration - Service Discovery will mark instances as available
+  # ECS handles task lifecycle and automatically registers/deregisters instances
+  # When tasks are healthy and running, they are registered and available for routing
 
   tags = {
     Environment = var.environment
