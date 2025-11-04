@@ -142,226 +142,238 @@ if DATABASE_URL:
             except Exception as e:
                 print(f"⚠️  Could not add planning_center_event_name column: {e}")
                 conn.rollback()
-       else:
-           print("✅ courses already has planning_center_event_name column")
+        else:
+            print("✅ courses already has planning_center_event_name column")
        
-       # Check and add event_start_date column to courses table
-       print("\n🔧 Checking event_start_date column in courses table...")
-       cur.execute("""
-           SELECT column_name 
-           FROM information_schema.columns 
-           WHERE table_name='courses' AND column_name='event_start_date'
-       """)
-       
-       if not cur.fetchone():
-           print("Adding event_start_date column to courses...")
-           try:
-               cur.execute('ALTER TABLE courses ADD COLUMN event_start_date TIMESTAMP WITH TIME ZONE')
-               conn.commit()
-               print("✅ Added event_start_date column to courses")
-           except Exception as e:
-               print(f"⚠️  Could not add event_start_date column: {e}")
-               conn.rollback()
-       else:
-           print("✅ courses already has event_start_date column")
-       
-       # Check and add event_end_date column to courses table
-       print("\n🔧 Checking event_end_date column in courses table...")
-       cur.execute("""
-           SELECT column_name 
-           FROM information_schema.columns 
-           WHERE table_name='courses' AND column_name='event_end_date'
-       """)
-       
-       if not cur.fetchone():
-           print("Adding event_end_date column to courses...")
-           try:
-               cur.execute('ALTER TABLE courses ADD COLUMN event_end_date TIMESTAMP WITH TIME ZONE')
-               conn.commit()
-               print("✅ Added event_end_date column to courses")
-           except Exception as e:
-               print(f"⚠️  Could not add event_end_date column: {e}")
-               conn.rollback()
-       else:
-           print("✅ courses already has event_end_date column")
-       
-       # Check and add max_capacity column to courses table
-       print("\n🔧 Checking max_capacity column in courses table...")
-       cur.execute("""
-           SELECT column_name 
-           FROM information_schema.columns 
-           WHERE table_name='courses' AND column_name='max_capacity'
-       """)
-       
-       if not cur.fetchone():
-           print("Adding max_capacity column to courses...")
-           try:
-               cur.execute('ALTER TABLE courses ADD COLUMN max_capacity INTEGER')
-               conn.commit()
-               print("✅ Added max_capacity column to courses")
-           except Exception as e:
-               print(f"⚠️  Could not add max_capacity column: {e}")
-               conn.rollback()
-       else:
-           print("✅ courses already has max_capacity column")
-       
-       # Check and add current_registrations column to courses table
-       print("\n🔧 Checking current_registrations column in courses table...")
-       cur.execute("""
-           SELECT column_name 
-           FROM information_schema.columns 
-           WHERE table_name='courses' AND column_name='current_registrations'
-       """)
-       
-       if not cur.fetchone():
-           print("Adding current_registrations column to courses...")
-           try:
-               cur.execute('ALTER TABLE courses ADD COLUMN current_registrations INTEGER DEFAULT 0 NOT NULL')
-               conn.commit()
-               print("✅ Added current_registrations column to courses")
-           except Exception as e:
-               print(f"⚠️  Could not add current_registrations column: {e}")
-               conn.rollback()
-       else:
-           print("✅ courses already has current_registrations column")
-       
-       # Check and add content_unlock_mode column to courses table
-       print("\n🔧 Checking content_unlock_mode column in courses table...")
-       cur.execute("""
-           SELECT column_name 
-           FROM information_schema.columns 
-           WHERE table_name='courses' AND column_name='content_unlock_mode'
-       """)
-       
-       if not cur.fetchone():
-           print("Adding content_unlock_mode column to courses...")
-           try:
-               cur.execute("ALTER TABLE courses ADD COLUMN content_unlock_mode VARCHAR(20) DEFAULT 'immediate' NOT NULL")
-               conn.commit()
-               print("✅ Added content_unlock_mode column to courses")
-           except Exception as e:
-               print(f"⚠️  Could not add content_unlock_mode column: {e}")
-               conn.rollback()
-       else:
-           print("✅ courses already has content_unlock_mode column")
-       
-       # Check and add max_file_size_mb column to courses table
-       print("\n🔧 Checking max_file_size_mb column in courses table...")
-       cur.execute("""
-           SELECT column_name 
-           FROM information_schema.columns 
-           WHERE table_name='courses' AND column_name='max_file_size_mb'
-       """)
-       
-       if not cur.fetchone():
-           print("Adding max_file_size_mb column to courses...")
-           try:
-               cur.execute('ALTER TABLE courses ADD COLUMN max_file_size_mb INTEGER DEFAULT 1024 NOT NULL')
-               conn.commit()
-               print("✅ Added max_file_size_mb column to courses")
-           except Exception as e:
-               print(f"⚠️  Could not add max_file_size_mb column: {e}")
-               conn.rollback()
-       else:
-           print("✅ courses already has max_file_size_mb column")
-       
-       # Check and add created_by and updated_by columns to role table
-       print("\n🔧 Checking created_by column in role table...")
-       cur.execute("""
-           SELECT column_name 
-           FROM information_schema.columns 
-           WHERE table_name='role' AND column_name='created_by'
-       """)
-       
-       if not cur.fetchone():
-           print("Adding created_by column to role...")
-           try:
-               cur.execute('ALTER TABLE role ADD COLUMN created_by INTEGER')
-               conn.commit()
-               print("✅ Added created_by column to role")
-           except Exception as e:
-               print(f"⚠️  Could not add created_by column: {e}")
-               conn.rollback()
-       else:
-           print("✅ role already has created_by column")
-       
-       print("\n🔧 Checking updated_by column in role table...")
-       cur.execute("""
-           SELECT column_name 
-           FROM information_schema.columns 
-           WHERE table_name='role' AND column_name='updated_by'
-       """)
-       
-       if not cur.fetchone():
-           print("Adding updated_by column to role...")
-           try:
-               cur.execute('ALTER TABLE role ADD COLUMN updated_by INTEGER')
-               conn.commit()
-               print("✅ Added updated_by column to role")
-           except Exception as e:
-               print(f"⚠️  Could not add updated_by column: {e}")
-               conn.rollback()
-       else:
-           print("✅ role already has updated_by column")
-       
-       # Check and add title column to course_modules table
-       print("\n🔧 Checking title column in course_modules table...")
-       cur.execute("""
-           SELECT column_name 
-           FROM information_schema.columns 
-           WHERE table_name='course_modules' AND column_name='title'
-       """)
-       
-       if not cur.fetchone():
-           print("Adding title column to course_modules...")
-           try:
-               cur.execute("ALTER TABLE course_modules ADD COLUMN title VARCHAR(200) NOT NULL DEFAULT ''")
-               conn.commit()
-               print("✅ Added title column to course_modules")
-           except Exception as e:
-               print(f"⚠️  Could not add title column: {e}")
-               conn.rollback()
-       else:
-           print("✅ course_modules already has title column")
-       
-       # Check and add missing columns to course_content table
-       # Note: content_type and storage_type are Enum types, but we use VARCHAR for compatibility
-       # The application will handle enum conversion
-       course_content_columns = [
-           ('title', "VARCHAR(200) NOT NULL DEFAULT ''"),
-           ('description', 'TEXT'),
-           ('module_id', 'INTEGER'),
-           ('storage_type', "VARCHAR(50) NOT NULL DEFAULT 'database'"),
-           ('file_name', 'VARCHAR(255)'),
-           ('file_size', 'INTEGER'),
-           ('file_path', 'VARCHAR(500)'),
-           ('mime_type', 'VARCHAR(100)'),
-           ('external_url', 'VARCHAR(1000)'),
-           ('embedded_content', 'TEXT'),
-           ('duration', 'INTEGER'),
-           ('download_count', 'INTEGER NOT NULL DEFAULT 0'),
-           ('view_count', 'INTEGER NOT NULL DEFAULT 0'),
-       ]
-       
-       for col_name, col_def in course_content_columns:
-           print(f"\n🔧 Checking {col_name} column in course_content table...")
-           cur.execute("""
-               SELECT column_name 
-               FROM information_schema.columns 
-               WHERE table_name='course_content' AND column_name=%s
-           """, (col_name,))
-           
-           if not cur.fetchone():
-               print(f"Adding {col_name} column to course_content...")
-               try:
-                   cur.execute(f'ALTER TABLE course_content ADD COLUMN {col_name} {col_def}')
-                   conn.commit()
-                   print(f"✅ Added {col_name} column to course_content")
-               except Exception as e:
-                   print(f"⚠️  Could not add {col_name} column: {e}")
-                   conn.rollback()
-           else:
-               print(f"✅ course_content already has {col_name} column")
+        if not cur.fetchone():
+            print("Adding planning_center_event_name column to courses...")
+            try:
+                cur.execute('ALTER TABLE courses ADD COLUMN planning_center_event_name VARCHAR(200)')
+                conn.commit()
+                print("✅ Added planning_center_event_name column to courses")
+            except Exception as e:
+                print(f"⚠️  Could not add planning_center_event_name column: {e}")
+                conn.rollback()
+        else:
+            print("✅ courses already has planning_center_event_name column")
+        
+        # Check and add event_start_date column to courses table
+        print("\n🔧 Checking event_start_date column in courses table...")
+        cur.execute("""
+            SELECT column_name 
+            FROM information_schema.columns 
+            WHERE table_name='courses' AND column_name='event_start_date'
+        """)
+        
+        if not cur.fetchone():
+            print("Adding event_start_date column to courses...")
+            try:
+                cur.execute('ALTER TABLE courses ADD COLUMN event_start_date TIMESTAMP WITH TIME ZONE')
+                conn.commit()
+                print("✅ Added event_start_date column to courses")
+            except Exception as e:
+                print(f"⚠️  Could not add event_start_date column: {e}")
+                conn.rollback()
+        else:
+            print("✅ courses already has event_start_date column")
+        
+        # Check and add event_end_date column to courses table
+        print("\n🔧 Checking event_end_date column in courses table...")
+        cur.execute("""
+            SELECT column_name 
+            FROM information_schema.columns 
+            WHERE table_name='courses' AND column_name='event_end_date'
+        """)
+        
+        if not cur.fetchone():
+            print("Adding event_end_date column to courses...")
+            try:
+                cur.execute('ALTER TABLE courses ADD COLUMN event_end_date TIMESTAMP WITH TIME ZONE')
+                conn.commit()
+                print("✅ Added event_end_date column to courses")
+            except Exception as e:
+                print(f"⚠️  Could not add event_end_date column: {e}")
+                conn.rollback()
+        else:
+            print("✅ courses already has event_end_date column")
+        
+        # Check and add max_capacity column to courses table
+        print("\n🔧 Checking max_capacity column in courses table...")
+        cur.execute("""
+            SELECT column_name 
+            FROM information_schema.columns 
+            WHERE table_name='courses' AND column_name='max_capacity'
+        """)
+        
+        if not cur.fetchone():
+            print("Adding max_capacity column to courses...")
+            try:
+                cur.execute('ALTER TABLE courses ADD COLUMN max_capacity INTEGER')
+                conn.commit()
+                print("✅ Added max_capacity column to courses")
+            except Exception as e:
+                print(f"⚠️  Could not add max_capacity column: {e}")
+                conn.rollback()
+        else:
+            print("✅ courses already has max_capacity column")
+        
+        # Check and add current_registrations column to courses table
+        print("\n🔧 Checking current_registrations column in courses table...")
+        cur.execute("""
+            SELECT column_name 
+            FROM information_schema.columns 
+            WHERE table_name='courses' AND column_name='current_registrations'
+        """)
+        
+        if not cur.fetchone():
+            print("Adding current_registrations column to courses...")
+            try:
+                cur.execute('ALTER TABLE courses ADD COLUMN current_registrations INTEGER DEFAULT 0 NOT NULL')
+                conn.commit()
+                print("✅ Added current_registrations column to courses")
+            except Exception as e:
+                print(f"⚠️  Could not add current_registrations column: {e}")
+                conn.rollback()
+        else:
+            print("✅ courses already has current_registrations column")
+        
+        # Check and add content_unlock_mode column to courses table
+        print("\n🔧 Checking content_unlock_mode column in courses table...")
+        cur.execute("""
+            SELECT column_name 
+            FROM information_schema.columns 
+            WHERE table_name='courses' AND column_name='content_unlock_mode'
+        """)
+        
+        if not cur.fetchone():
+            print("Adding content_unlock_mode column to courses...")
+            try:
+                cur.execute("ALTER TABLE courses ADD COLUMN content_unlock_mode VARCHAR(20) DEFAULT 'immediate' NOT NULL")
+                conn.commit()
+                print("✅ Added content_unlock_mode column to courses")
+            except Exception as e:
+                print(f"⚠️  Could not add content_unlock_mode column: {e}")
+                conn.rollback()
+        else:
+            print("✅ courses already has content_unlock_mode column")
+        
+        # Check and add max_file_size_mb column to courses table
+        print("\n🔧 Checking max_file_size_mb column in courses table...")
+        cur.execute("""
+            SELECT column_name 
+            FROM information_schema.columns 
+            WHERE table_name='courses' AND column_name='max_file_size_mb'
+        """)
+        
+        if not cur.fetchone():
+            print("Adding max_file_size_mb column to courses...")
+            try:
+                cur.execute('ALTER TABLE courses ADD COLUMN max_file_size_mb INTEGER DEFAULT 1024 NOT NULL')
+                conn.commit()
+                print("✅ Added max_file_size_mb column to courses")
+            except Exception as e:
+                print(f"⚠️  Could not add max_file_size_mb column: {e}")
+                conn.rollback()
+        else:
+            print("✅ courses already has max_file_size_mb column")
+        
+        # Check and add created_by and updated_by columns to role table
+        print("\n🔧 Checking created_by column in role table...")
+        cur.execute("""
+            SELECT column_name 
+            FROM information_schema.columns 
+            WHERE table_name='role' AND column_name='created_by'
+        """)
+        
+        if not cur.fetchone():
+            print("Adding created_by column to role...")
+            try:
+                cur.execute('ALTER TABLE role ADD COLUMN created_by INTEGER')
+                conn.commit()
+                print("✅ Added created_by column to role")
+            except Exception as e:
+                print(f"⚠️  Could not add created_by column: {e}")
+                conn.rollback()
+        else:
+            print("✅ role already has created_by column")
+        
+        print("\n🔧 Checking updated_by column in role table...")
+        cur.execute("""
+            SELECT column_name 
+            FROM information_schema.columns 
+            WHERE table_name='role' AND column_name='updated_by'
+        """)
+        
+        if not cur.fetchone():
+            print("Adding updated_by column to role...")
+            try:
+                cur.execute('ALTER TABLE role ADD COLUMN updated_by INTEGER')
+                conn.commit()
+                print("✅ Added updated_by column to role")
+            except Exception as e:
+                print(f"⚠️  Could not add updated_by column: {e}")
+                conn.rollback()
+        else:
+            print("✅ role already has updated_by column")
+        
+        # Check and add title column to course_modules table
+        print("\n🔧 Checking title column in course_modules table...")
+        cur.execute("""
+            SELECT column_name 
+            FROM information_schema.columns 
+            WHERE table_name='course_modules' AND column_name='title'
+        """)
+        
+        if not cur.fetchone():
+            print("Adding title column to course_modules...")
+            try:
+                cur.execute("ALTER TABLE course_modules ADD COLUMN title VARCHAR(200) NOT NULL DEFAULT ''")
+                conn.commit()
+                print("✅ Added title column to course_modules")
+            except Exception as e:
+                print(f"⚠️  Could not add title column: {e}")
+                conn.rollback()
+        else:
+            print("✅ course_modules already has title column")
+        
+        # Check and add missing columns to course_content table
+        # Note: content_type and storage_type are Enum types, but we use VARCHAR for compatibility
+        # The application will handle enum conversion
+        course_content_columns = [
+            ('title', "VARCHAR(200) NOT NULL DEFAULT ''"),
+            ('description', 'TEXT'),
+            ('module_id', 'INTEGER'),
+            ('storage_type', "VARCHAR(50) NOT NULL DEFAULT 'database'"),
+            ('file_name', 'VARCHAR(255)'),
+            ('file_size', 'INTEGER'),
+            ('file_path', 'VARCHAR(500)'),
+            ('mime_type', 'VARCHAR(100)'),
+            ('external_url', 'VARCHAR(1000)'),
+            ('embedded_content', 'TEXT'),
+            ('duration', 'INTEGER'),
+            ('download_count', 'INTEGER NOT NULL DEFAULT 0'),
+            ('view_count', 'INTEGER NOT NULL DEFAULT 0'),
+        ]
+        
+        for col_name, col_def in course_content_columns:
+            print(f"\n🔧 Checking {col_name} column in course_content table...")
+            cur.execute("""
+                SELECT column_name 
+                FROM information_schema.columns 
+                WHERE table_name='course_content' AND column_name=%s
+            """, (col_name,))
+            
+            if not cur.fetchone():
+                print(f"Adding {col_name} column to course_content...")
+                try:
+                    cur.execute(f'ALTER TABLE course_content ADD COLUMN {col_name} {col_def}')
+                    conn.commit()
+                    print(f"✅ Added {col_name} column to course_content")
+                except Exception as e:
+                    print(f"⚠️  Could not add {col_name} column: {e}")
+                    conn.rollback()
+            else:
+                print(f"✅ course_content already has {col_name} column")
         
         # Check and add username column to users table if missing
         print("\n🔧 Checking username column in users table...")
