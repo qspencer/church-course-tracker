@@ -136,8 +136,48 @@ if DATABASE_URL:
             except Exception as e:
                 print(f"⚠️  Could not add planning_center_event_name column: {e}")
                 conn.rollback()
-        else:
-            print("✅ courses already has planning_center_event_name column")
+       else:
+           print("✅ courses already has planning_center_event_name column")
+       
+       # Check and add event_start_date column to courses table
+       print("\n🔧 Checking event_start_date column in courses table...")
+       cur.execute("""
+           SELECT column_name 
+           FROM information_schema.columns 
+           WHERE table_name='courses' AND column_name='event_start_date'
+       """)
+       
+       if not cur.fetchone():
+           print("Adding event_start_date column to courses...")
+           try:
+               cur.execute('ALTER TABLE courses ADD COLUMN event_start_date TIMESTAMP WITH TIME ZONE')
+               conn.commit()
+               print("✅ Added event_start_date column to courses")
+           except Exception as e:
+               print(f"⚠️  Could not add event_start_date column: {e}")
+               conn.rollback()
+       else:
+           print("✅ courses already has event_start_date column")
+       
+       # Check and add event_end_date column to courses table
+       print("\n🔧 Checking event_end_date column in courses table...")
+       cur.execute("""
+           SELECT column_name 
+           FROM information_schema.columns 
+           WHERE table_name='courses' AND column_name='event_end_date'
+       """)
+       
+       if not cur.fetchone():
+           print("Adding event_end_date column to courses...")
+           try:
+               cur.execute('ALTER TABLE courses ADD COLUMN event_end_date TIMESTAMP WITH TIME ZONE')
+               conn.commit()
+               print("✅ Added event_end_date column to courses")
+           except Exception as e:
+               print(f"⚠️  Could not add event_end_date column: {e}")
+               conn.rollback()
+       else:
+           print("✅ courses already has event_end_date column")
         
         # Check and add username column to users table if missing
         print("\n🔧 Checking username column in users table...")
