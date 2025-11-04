@@ -89,9 +89,11 @@ async def add_security_headers(request: Request, call_next):
     # Additional security headers
     response.headers["X-Download-Options"] = "noopen"
     response.headers["X-Permitted-Cross-Domain-Policies"] = "none"
-    response.headers["Cross-Origin-Embedder-Policy"] = "require-corp"
+    # NOTE: Removed Cross-Origin-Embedder-Policy and Cross-Origin-Resource-Policy
+    # These headers block cross-origin requests, which we need for API access
+    # from apps.quentinspencer.com to api.quentinspencer.com
+    # Cross-Origin-Opener-Policy is safe for APIs
     response.headers["Cross-Origin-Opener-Policy"] = "same-origin"
-    response.headers["Cross-Origin-Resource-Policy"] = "same-origin"
     
     # Only add HSTS in production with HTTPS
     if settings.ENVIRONMENT == "production":
