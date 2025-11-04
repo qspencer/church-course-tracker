@@ -86,8 +86,9 @@ resource "aws_apigatewayv2_integration" "backend" {
   request_parameters = {
     "overwrite:path" = "$request.path"
     # Preserve protocol information - ensure backend knows it's HTTPS
-    "append:header.X-Forwarded-Proto" = "$context.protocol"
-    "append:header.X-Forwarded-Port" = "443"
+    # API Gateway v2 automatically sets X-Forwarded-Proto, but we ensure it's HTTPS
+    "overwrite:header.X-Forwarded-Proto" = "https"
+    "overwrite:header.X-Forwarded-Port" = "443"
   }
 }
 
