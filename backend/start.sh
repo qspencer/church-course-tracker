@@ -325,11 +325,13 @@ if DATABASE_URL:
            print("✅ course_modules already has title column")
        
        # Check and add missing columns to course_content table
+       # Note: content_type and storage_type are Enum types, but we use VARCHAR for compatibility
+       # The application will handle enum conversion
        course_content_columns = [
            ('title', "VARCHAR(200) NOT NULL DEFAULT ''"),
            ('description', 'TEXT'),
            ('module_id', 'INTEGER'),
-           ('storage_type', "VARCHAR(50) NOT NULL DEFAULT 'local'"),
+           ('storage_type', "VARCHAR(50) NOT NULL DEFAULT 'database'"),
            ('file_name', 'VARCHAR(255)'),
            ('file_size', 'INTEGER'),
            ('file_path', 'VARCHAR(500)'),
