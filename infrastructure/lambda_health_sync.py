@@ -93,12 +93,15 @@ def handler(event, context):
                 task_status = task_info['status']
                 
                 # Map ECS health to Service Discovery health
-                if task_health == 'HEALTHY' and task_status == 'RUNNING':
-                    target_health = 'HEALTHY'
-                elif task_health == 'UNHEALTHY' or task_status != 'RUNNING':
+                # UNKNOWN + RUNNING should be treated as HEALTHY (tasks start as UNKNOWN until health checks pass)
+                # Only mark as UNHEALTHY if explicitly unhealthy or not running
+                if task_health == 'UNHEALTHY' or task_status != 'RUNNING':
                     target_health = 'UNHEALTHY'
+                elif task_health == 'HEALTHY' or (task_health == 'UNKNOWN' and task_status == 'RUNNING'):
+                    target_health = 'HEALTHY'
                 else:
-                    target_health = 'UNHEALTHY'  # Default to UNHEALTHY for UNKNOWN
+                    # Very conservative: if we can't determine, default to UNHEALTHY
+                    target_health = 'UNHEALTHY'
             
                 # Only update if health status needs to change
                 if current_health != target_health:
