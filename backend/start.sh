@@ -184,6 +184,86 @@ if DATABASE_URL:
                conn.rollback()
        else:
            print("✅ courses already has event_end_date column")
+       
+       # Check and add max_capacity column to courses table
+       print("\n🔧 Checking max_capacity column in courses table...")
+       cur.execute("""
+           SELECT column_name 
+           FROM information_schema.columns 
+           WHERE table_name='courses' AND column_name='max_capacity'
+       """)
+       
+       if not cur.fetchone():
+           print("Adding max_capacity column to courses...")
+           try:
+               cur.execute('ALTER TABLE courses ADD COLUMN max_capacity INTEGER')
+               conn.commit()
+               print("✅ Added max_capacity column to courses")
+           except Exception as e:
+               print(f"⚠️  Could not add max_capacity column: {e}")
+               conn.rollback()
+       else:
+           print("✅ courses already has max_capacity column")
+       
+       # Check and add current_registrations column to courses table
+       print("\n🔧 Checking current_registrations column in courses table...")
+       cur.execute("""
+           SELECT column_name 
+           FROM information_schema.columns 
+           WHERE table_name='courses' AND column_name='current_registrations'
+       """)
+       
+       if not cur.fetchone():
+           print("Adding current_registrations column to courses...")
+           try:
+               cur.execute('ALTER TABLE courses ADD COLUMN current_registrations INTEGER DEFAULT 0 NOT NULL')
+               conn.commit()
+               print("✅ Added current_registrations column to courses")
+           except Exception as e:
+               print(f"⚠️  Could not add current_registrations column: {e}")
+               conn.rollback()
+       else:
+           print("✅ courses already has current_registrations column")
+       
+       # Check and add content_unlock_mode column to courses table
+       print("\n🔧 Checking content_unlock_mode column in courses table...")
+       cur.execute("""
+           SELECT column_name 
+           FROM information_schema.columns 
+           WHERE table_name='courses' AND column_name='content_unlock_mode'
+       """)
+       
+       if not cur.fetchone():
+           print("Adding content_unlock_mode column to courses...")
+           try:
+               cur.execute("ALTER TABLE courses ADD COLUMN content_unlock_mode VARCHAR(20) DEFAULT 'immediate' NOT NULL")
+               conn.commit()
+               print("✅ Added content_unlock_mode column to courses")
+           except Exception as e:
+               print(f"⚠️  Could not add content_unlock_mode column: {e}")
+               conn.rollback()
+       else:
+           print("✅ courses already has content_unlock_mode column")
+       
+       # Check and add max_file_size_mb column to courses table
+       print("\n🔧 Checking max_file_size_mb column in courses table...")
+       cur.execute("""
+           SELECT column_name 
+           FROM information_schema.columns 
+           WHERE table_name='courses' AND column_name='max_file_size_mb'
+       """)
+       
+       if not cur.fetchone():
+           print("Adding max_file_size_mb column to courses...")
+           try:
+               cur.execute('ALTER TABLE courses ADD COLUMN max_file_size_mb INTEGER DEFAULT 1024 NOT NULL')
+               conn.commit()
+               print("✅ Added max_file_size_mb column to courses")
+           except Exception as e:
+               print(f"⚠️  Could not add max_file_size_mb column: {e}")
+               conn.rollback()
+       else:
+           print("✅ courses already has max_file_size_mb column")
         
         # Check and add username column to users table if missing
         print("\n🔧 Checking username column in users table...")
