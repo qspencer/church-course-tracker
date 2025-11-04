@@ -2,13 +2,15 @@
 User Pydantic schemas
 """
 
-from pydantic import BaseModel, Field, EmailStr
-from typing import Optional
 from datetime import datetime
+from typing import Optional
+
+from pydantic import BaseModel, EmailStr, Field
 
 
 class UserBase(BaseModel):
     """Base user schema"""
+
     username: Optional[str] = Field(None, min_length=1, max_length=50)
     email: EmailStr
     full_name: str = Field(..., min_length=1, max_length=200)
@@ -18,11 +20,13 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
     """Schema for creating a user"""
+
     password: str = Field(..., min_length=8)
 
 
 class UserUpdate(BaseModel):
     """Schema for updating a user"""
+
     username: Optional[str] = Field(None, min_length=1, max_length=50)
     email: Optional[EmailStr] = None
     full_name: Optional[str] = Field(None, min_length=1, max_length=200)
@@ -33,10 +37,11 @@ class UserUpdate(BaseModel):
 
 class User(UserBase):
     """Schema for user response"""
+
     id: int
     created_at: datetime
     updated_at: datetime
     last_login: Optional[datetime] = None
-    
+
     class Config:
         from_attributes = True

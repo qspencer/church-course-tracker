@@ -2,13 +2,15 @@
 Sync Pydantic schemas
 """
 
-from pydantic import BaseModel, Field
-from typing import Optional
 from datetime import datetime
+from typing import Optional
+
+from pydantic import BaseModel, Field
 
 
 class SyncStatus(BaseModel):
     """Sync status schema"""
+
     last_sync: Optional[datetime] = None
     status: str = Field(..., pattern="^(idle|syncing|error)$")
     records_synced: int = 0
@@ -17,6 +19,7 @@ class SyncStatus(BaseModel):
 
 class SyncResponse(BaseModel):
     """Sync response schema"""
+
     success: bool
     records_synced: int
     message: str

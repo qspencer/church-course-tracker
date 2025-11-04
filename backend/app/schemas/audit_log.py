@@ -2,13 +2,15 @@
 AuditLog Pydantic schemas
 """
 
-from pydantic import BaseModel, Field
-from typing import Optional, Dict, Any
 from datetime import datetime
+from typing import Any, Dict, Optional
+
+from pydantic import BaseModel, Field
 
 
 class AuditLogBase(BaseModel):
     """Base audit log schema"""
+
     table_name: str = Field(..., min_length=1, max_length=100)
     record_id: int = Field(..., ge=1)
     action: str = Field(..., pattern="^(insert|update|delete)$")
@@ -21,11 +23,13 @@ class AuditLogBase(BaseModel):
 
 class AuditLogCreate(AuditLogBase):
     """Schema for creating audit log"""
+
     pass
 
 
 class AuditLog(AuditLogBase):
     """Full schema for audit log (response model)"""
+
     id: int
     changed_at: datetime
 

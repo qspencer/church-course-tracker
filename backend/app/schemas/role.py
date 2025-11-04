@@ -2,13 +2,15 @@
 Role Pydantic schemas
 """
 
-from pydantic import BaseModel, Field
-from typing import Optional, List
 from datetime import datetime
+from typing import List, Optional
+
+from pydantic import BaseModel, Field
 
 
 class RoleBase(BaseModel):
     """Base role schema"""
+
     name: str = Field(..., min_length=1, max_length=50)
     description: Optional[str] = None
     permissions: Optional[List[str]] = None
@@ -17,11 +19,13 @@ class RoleBase(BaseModel):
 
 class RoleCreate(RoleBase):
     """Schema for creating a role"""
+
     pass
 
 
 class RoleUpdate(BaseModel):
     """Schema for updating a role"""
+
     name: Optional[str] = Field(None, min_length=1, max_length=50)
     description: Optional[str] = None
     permissions: Optional[List[str]] = None
@@ -30,11 +34,12 @@ class RoleUpdate(BaseModel):
 
 class Role(RoleBase):
     """Schema for role response"""
+
     id: int
     created_at: datetime
     updated_at: datetime
     created_by: Optional[int] = None
     updated_by: Optional[int] = None
-    
+
     class Config:
         from_attributes = True

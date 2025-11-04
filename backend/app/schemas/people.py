@@ -2,13 +2,15 @@
 People Pydantic schemas (from Planning Center)
 """
 
-from pydantic import BaseModel, Field, EmailStr
+from datetime import date, datetime
 from typing import Optional
-from datetime import datetime, date
+
+from pydantic import BaseModel, EmailStr, Field
 
 
 class PeopleBase(BaseModel):
     """Base people schema"""
+
     planning_center_id: str = Field(..., min_length=1, max_length=50)
     first_name: str = Field(..., min_length=1, max_length=100)
     last_name: str = Field(..., min_length=1, max_length=100)
@@ -30,11 +32,13 @@ class PeopleBase(BaseModel):
 
 class PeopleCreate(PeopleBase):
     """Schema for creating a person"""
+
     pass
 
 
 class PeopleUpdate(BaseModel):
     """Schema for updating a person"""
+
     first_name: Optional[str] = Field(None, min_length=1, max_length=100)
     last_name: Optional[str] = Field(None, min_length=1, max_length=100)
     email: Optional[EmailStr] = None
@@ -55,12 +59,13 @@ class PeopleUpdate(BaseModel):
 
 class People(PeopleBase):
     """Schema for people response"""
+
     id: int
     last_synced_at: Optional[datetime] = None
     created_at: datetime
     updated_at: datetime
     created_by: Optional[int] = None
     updated_by: Optional[int] = None
-    
+
     class Config:
         from_attributes = True

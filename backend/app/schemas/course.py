@@ -2,13 +2,15 @@
 Course Pydantic schemas
 """
 
-from pydantic import BaseModel, Field
-from typing import Optional, List
 from datetime import datetime
+from typing import List, Optional
+
+from pydantic import BaseModel, Field
 
 
 class CourseBase(BaseModel):
     """Base course schema"""
+
     title: str = Field(..., min_length=1, max_length=200)
     description: Optional[str] = Field(None, max_length=1000)
     duration_weeks: Optional[int] = Field(None, ge=1)
@@ -24,11 +26,13 @@ class CourseBase(BaseModel):
 
 class CourseCreate(CourseBase):
     """Schema for creating a course"""
+
     pass
 
 
 class CourseUpdate(BaseModel):
     """Schema for updating a course"""
+
     title: Optional[str] = Field(None, min_length=1, max_length=200)
     description: Optional[str] = Field(None, max_length=1000)
     duration_weeks: Optional[int] = Field(None, ge=1)
@@ -44,9 +48,10 @@ class CourseUpdate(BaseModel):
 
 class Course(CourseBase):
     """Schema for course response"""
+
     id: int
     created_at: datetime
     updated_at: datetime
-    
+
     class Config:
         from_attributes = True

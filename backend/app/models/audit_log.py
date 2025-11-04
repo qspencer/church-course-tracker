@@ -2,16 +2,17 @@
 AuditLog SQLAlchemy model
 """
 
-from sqlalchemy import Column, Integer, String, DateTime, Text, JSON
+from sqlalchemy import JSON, Column, DateTime, Integer, String, Text
 from sqlalchemy.sql import func
+
 from app.core.database import Base
 
 
 class AuditLog(Base):
     """AuditLog model for comprehensive audit trail"""
-    
+
     __tablename__ = "audit_log"
-    
+
     id = Column(Integer, primary_key=True, index=True)
     table_name = Column(String(100), nullable=False, index=True)
     record_id = Column(Integer, nullable=False, index=True)

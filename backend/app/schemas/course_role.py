@@ -2,13 +2,15 @@
 CourseRole Pydantic schemas
 """
 
-from pydantic import BaseModel, Field
+from datetime import date, datetime
 from typing import Optional
-from datetime import datetime, date
+
+from pydantic import BaseModel, Field
 
 
 class CourseRoleBase(BaseModel):
     """Base course role schema"""
+
     people_id: int
     course_id: int
     role_type: str = Field(..., pattern="^(teacher|student|assistant|observer)$")
@@ -19,21 +21,26 @@ class CourseRoleBase(BaseModel):
 
 class CourseRoleCreate(CourseRoleBase):
     """Schema for creating a course role"""
+
     pass
 
 
 class CourseRoleUpdate(BaseModel):
     """Schema for updating a course role"""
-    role_type: Optional[str] = Field(None, pattern="^(teacher|student|assistant|observer)$")
+
+    role_type: Optional[str] = Field(
+        None, pattern="^(teacher|student|assistant|observer)$"
+    )
     assigned_by: Optional[int] = None
     is_active: Optional[bool] = None
 
 
 class CourseRole(CourseRoleBase):
     """Schema for course role response"""
+
     id: int
     created_at: datetime
     updated_at: datetime
-    
+
     class Config:
         from_attributes = True

@@ -1,30 +1,32 @@
 # SQLAlchemy models
 
 # Import all models to ensure they are registered with SQLAlchemy
-from .user import User
-from .member import People
+from .audit_log import AuditLog
 from .campus import Campus
-from .role import Role
-from .course import Course
+from .certification import Certification
+from .certification_progress import CertificationProgress
 from .content import Content
 from .content_type import ContentType
-from .course_content import CourseModule, CourseContent, ContentAccessLog, ContentAuditLog
-from .certification import Certification
+from .course import Course
+from .course_content import (ContentAccessLog, ContentAuditLog, CourseContent,
+                             CourseModule)
+from .course_role import CourseRole
+from .enrollment import CourseEnrollment
+from .member import People
 from .people_campus import PeopleCampus
 from .people_role import PeopleRole
-from .enrollment import CourseEnrollment
-from .course_role import CourseRole
-from .certification_progress import CertificationProgress
-from .progress import ContentCompletion
+from .planning_center_events_cache import PlanningCenterEventsCache
+from .planning_center_registrations_cache import \
+    PlanningCenterRegistrationsCache
 from .planning_center_sync_log import PlanningCenterSyncLog
 from .planning_center_webhook_events import PlanningCenterWebhookEvents
-from .planning_center_events_cache import PlanningCenterEventsCache
-from .planning_center_registrations_cache import PlanningCenterRegistrationsCache
-from .audit_log import AuditLog
+from .progress import ContentCompletion
+from .role import Role
+from .user import User
 
 __all__ = [
     "User",
-    "People", 
+    "People",
     "Campus",
     "Role",
     "Course",
@@ -45,5 +47,5 @@ __all__ = [
     "PlanningCenterWebhookEvents",
     "PlanningCenterEventsCache",
     "PlanningCenterRegistrationsCache",
-    "AuditLog"
+    "AuditLog",
 ]
