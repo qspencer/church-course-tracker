@@ -448,6 +448,29 @@ if DATABASE_URL:
             print("✅ users already has last_login column")
             columns_checked.append("users.last_login")
         
+        # Check and add changed_by column to audit_log table if missing
+        print("\n🔧 Checking changed_by column in audit_log table...")
+        cur.execute("""
+            SELECT column_name 
+            FROM information_schema.columns 
+            WHERE table_name='audit_log' AND column_name='changed_by'
+        """)
+        
+        if not cur.fetchone():
+            print("Adding changed_by column to audit_log...")
+            try:
+                cur.execute('ALTER TABLE audit_log ADD COLUMN changed_by INTEGER')
+                conn.commit()
+                print("✅ Added changed_by column to audit_log")
+                columns_added.append("audit_log.changed_by")
+            except Exception as e:
+                print(f"⚠️  Could not add changed_by column: {e}")
+                errors_encountered.append(f"audit_log.changed_by: {e}")
+                conn.rollback()
+        else:
+            print("✅ audit_log already has changed_by column")
+            columns_checked.append("audit_log.changed_by")
+        
         # Summary of column checks
         print("\n" + "=" * 60)
         print("📊 COLUMN CHECK SUMMARY")
