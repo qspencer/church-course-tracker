@@ -128,6 +128,7 @@ async def login(login_data: LoginRequest, db: Session = Depends(get_db)):
     }
 
 
+@router.post("refresh")
 @router.post("/refresh")
 async def refresh_token(
     current_user: dict = Depends(get_current_user), db: Session = Depends(get_db)
