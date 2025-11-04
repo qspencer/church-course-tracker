@@ -264,6 +264,102 @@ if DATABASE_URL:
                conn.rollback()
        else:
            print("✅ courses already has max_file_size_mb column")
+       
+       # Check and add created_by and updated_by columns to role table
+       print("\n🔧 Checking created_by column in role table...")
+       cur.execute("""
+           SELECT column_name 
+           FROM information_schema.columns 
+           WHERE table_name='role' AND column_name='created_by'
+       """)
+       
+       if not cur.fetchone():
+           print("Adding created_by column to role...")
+           try:
+               cur.execute('ALTER TABLE role ADD COLUMN created_by INTEGER')
+               conn.commit()
+               print("✅ Added created_by column to role")
+           except Exception as e:
+               print(f"⚠️  Could not add created_by column: {e}")
+               conn.rollback()
+       else:
+           print("✅ role already has created_by column")
+       
+       print("\n🔧 Checking updated_by column in role table...")
+       cur.execute("""
+           SELECT column_name 
+           FROM information_schema.columns 
+           WHERE table_name='role' AND column_name='updated_by'
+       """)
+       
+       if not cur.fetchone():
+           print("Adding updated_by column to role...")
+           try:
+               cur.execute('ALTER TABLE role ADD COLUMN updated_by INTEGER')
+               conn.commit()
+               print("✅ Added updated_by column to role")
+           except Exception as e:
+               print(f"⚠️  Could not add updated_by column: {e}")
+               conn.rollback()
+       else:
+           print("✅ role already has updated_by column")
+       
+       # Check and add title column to course_modules table
+       print("\n🔧 Checking title column in course_modules table...")
+       cur.execute("""
+           SELECT column_name 
+           FROM information_schema.columns 
+           WHERE table_name='course_modules' AND column_name='title'
+       """)
+       
+       if not cur.fetchone():
+           print("Adding title column to course_modules...")
+           try:
+               cur.execute("ALTER TABLE course_modules ADD COLUMN title VARCHAR(200) NOT NULL DEFAULT ''")
+               conn.commit()
+               print("✅ Added title column to course_modules")
+           except Exception as e:
+               print(f"⚠️  Could not add title column: {e}")
+               conn.rollback()
+       else:
+           print("✅ course_modules already has title column")
+       
+       # Check and add missing columns to course_content table
+       course_content_columns = [
+           ('title', "VARCHAR(200) NOT NULL DEFAULT ''"),
+           ('description', 'TEXT'),
+           ('module_id', 'INTEGER'),
+           ('storage_type', "VARCHAR(50) NOT NULL DEFAULT 'local'"),
+           ('file_name', 'VARCHAR(255)'),
+           ('file_size', 'INTEGER'),
+           ('file_path', 'VARCHAR(500)'),
+           ('mime_type', 'VARCHAR(100)'),
+           ('external_url', 'VARCHAR(1000)'),
+           ('embedded_content', 'TEXT'),
+           ('duration', 'INTEGER'),
+           ('download_count', 'INTEGER NOT NULL DEFAULT 0'),
+           ('view_count', 'INTEGER NOT NULL DEFAULT 0'),
+       ]
+       
+       for col_name, col_def in course_content_columns:
+           print(f"\n🔧 Checking {col_name} column in course_content table...")
+           cur.execute("""
+               SELECT column_name 
+               FROM information_schema.columns 
+               WHERE table_name='course_content' AND column_name=%s
+           """, (col_name,))
+           
+           if not cur.fetchone():
+               print(f"Adding {col_name} column to course_content...")
+               try:
+                   cur.execute(f'ALTER TABLE course_content ADD COLUMN {col_name} {col_def}')
+                   conn.commit()
+                   print(f"✅ Added {col_name} column to course_content")
+               except Exception as e:
+                   print(f"⚠️  Could not add {col_name} column: {e}")
+                   conn.rollback()
+           else:
+               print(f"✅ course_content already has {col_name} column")
         
         # Check and add username column to users table if missing
         print("\n🔧 Checking username column in users table...")
