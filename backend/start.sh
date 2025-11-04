@@ -478,7 +478,20 @@ if DATABASE_URL:
             sys.exit(0)
     except Exception as e:
         print(f"⚠️  Could not add data_source columns: {e}")
+        print(f"❌ FATAL ERROR: Column addition script failed: {e}")
+        sys.exit(1)
 PYTHON_SCRIPT
+
+# Check if the Python script executed successfully
+COLUMN_CHECK_EXIT_CODE=$?
+if [ $COLUMN_CHECK_EXIT_CODE -ne 0 ]; then
+    echo "❌ FATAL ERROR: Column addition script failed with exit code $COLUMN_CHECK_EXIT_CODE"
+    echo "⚠️  Backend will continue, but database schema may be incomplete"
+    # Don't exit - let the backend try to start anyway
+    # exit 1
+else
+    echo "✅ Column addition script completed successfully"
+fi
 
 # Create default admin user if it doesn't exist
 echo "👤 Creating default admin user..."
