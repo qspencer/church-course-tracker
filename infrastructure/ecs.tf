@@ -3,12 +3,12 @@
 # ECS Cluster
 resource "aws_ecs_cluster" "main" {
   name = "${var.app_name}-cluster"
-  
+
   setting {
     name  = "containerInsights"
     value = "enabled"
   }
-  
+
   tags = {
     Environment = var.environment
     Application = var.app_name
@@ -24,19 +24,19 @@ resource "aws_ecs_task_definition" "backend" {
   memory                   = 1024
   execution_role_arn       = aws_iam_role.ecs_execution_role.arn
   task_role_arn            = aws_iam_role.ecs_task_role.arn
-  
+
   container_definitions = jsonencode([
     {
       name  = "backend"
       image = "${aws_ecr_repository.backend.repository_url}:latest"
-      
+
       portMappings = [
         {
           containerPort = 8000
           protocol      = "tcp"
         }
       ]
-      
+
       environment = [
         {
           name  = "ENVIRONMENT"
@@ -55,11 +55,11 @@ resource "aws_ecs_task_definition" "backend" {
           value = var.aws_region
         }
       ]
-      
+
       secrets = [
         {
           name      = "SECRET_KEY"
-          valueFrom = aws_secretsmanager_secret.app_secrets.arn
+          valueFrom = "${aws_secretsmanager_secret.app_secrets.arn}:SECRET_KEY::"
         },
         {
           name      = "PLANNING_CENTER_APP_ID"
@@ -70,7 +70,7 @@ resource "aws_ecs_task_definition" "backend" {
           valueFrom = "${aws_secretsmanager_secret.app_secrets.arn}:PLANNING_CENTER_SECRET::"
         }
       ]
-      
+
       logConfiguration = {
         logDriver = "awslogs"
         options = {
@@ -79,7 +79,7 @@ resource "aws_ecs_task_definition" "backend" {
           awslogs-stream-prefix = "ecs"
         }
       }
-      
+
       healthCheck = {
         command     = ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
         interval    = 30
@@ -89,7 +89,7 @@ resource "aws_ecs_task_definition" "backend" {
       }
     }
   ])
-  
+
   tags = {
     Environment = var.environment
     Application = var.app_name
@@ -103,18 +103,18 @@ resource "aws_ecs_service" "backend" {
   task_definition = aws_ecs_task_definition.backend.arn
   desired_count   = var.min_capacity
   launch_type     = "FARGATE"
-  
+
   network_configuration {
     security_groups  = [aws_security_group.ecs.id]
     subnets          = module.vpc.private_subnets
     assign_public_ip = false
   }
-  
-  service_registries {
-    registry_arn = aws_service_discovery_service.backend.arn
-    port        = 8000
-  }
-  
+
+  # Service Discovery registration removed - using EventBridge + Lambda instead
+  # This prevents ECS from managing Service Discovery instance lifecycle,
+  # which was causing health status to be overwritten
+  # Registration/deregistration now handled by Lambda functions triggered by ECS events
+
   tags = {
     Environment = var.environment
     Application = var.app_name
@@ -137,10 +137,10 @@ resource "aws_appautoscaling_policy" "backend_cpu" {
   resource_id        = aws_appautoscaling_target.backend.resource_id
   scalable_dimension = aws_appautoscaling_target.backend.scalable_dimension
   service_namespace  = aws_appautoscaling_target.backend.service_namespace
-  
+
   target_tracking_scaling_policy_configuration {
     target_value = var.cpu_target_value
-    
+
     predefined_metric_specification {
       predefined_metric_type = "ECSServiceAverageCPUUtilization"
     }
@@ -154,10 +154,10 @@ resource "aws_appautoscaling_policy" "backend_memory" {
   resource_id        = aws_appautoscaling_target.backend.resource_id
   scalable_dimension = aws_appautoscaling_target.backend.scalable_dimension
   service_namespace  = aws_appautoscaling_target.backend.service_namespace
-  
+
   target_tracking_scaling_policy_configuration {
     target_value = var.memory_target_value
-    
+
     predefined_metric_specification {
       predefined_metric_type = "ECSServiceAverageMemoryUtilization"
     }
