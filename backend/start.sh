@@ -144,18 +144,6 @@ if DATABASE_URL:
                 conn.rollback()
         else:
             print("✅ courses already has planning_center_event_name column")
-       
-        if not cur.fetchone():
-            print("Adding planning_center_event_name column to courses...")
-            try:
-                cur.execute('ALTER TABLE courses ADD COLUMN planning_center_event_name VARCHAR(200)')
-                conn.commit()
-                print("✅ Added planning_center_event_name column to courses")
-            except Exception as e:
-                print(f"⚠️  Could not add planning_center_event_name column: {e}")
-                conn.rollback()
-        else:
-            print("✅ courses already has planning_center_event_name column")
         
         # Check and add event_start_date column to courses table
         print("\n🔧 Checking event_start_date column in courses table...")
