@@ -293,12 +293,16 @@ class EnhancedCSVDataLoader:
                 course = Course(
                     title=row["title"],
                     description=row.get("description", ""),
-                    duration_weeks=int(row.get("duration_weeks", 0))
-                    if row.get("duration_weeks")
-                    else None,
-                    max_capacity=int(row.get("max_capacity", 0))
-                    if row.get("max_capacity")
-                    else None,
+                    duration_weeks=(
+                        int(row.get("duration_weeks", 0))
+                        if row.get("duration_weeks")
+                        else None
+                    ),
+                    max_capacity=(
+                        int(row.get("max_capacity", 0))
+                        if row.get("max_capacity")
+                        else None
+                    ),
                     is_active=row.get("is_active", "true").lower() == "true",
                     data_source="csv",
                     csv_loaded_at=self.csv_timestamp,

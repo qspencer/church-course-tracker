@@ -156,11 +156,18 @@ class MockPlanningCenterService:
                     "registration_date": (
                         datetime.now() - timedelta(days=random.randint(1, 30))
                     ).isoformat(),
-                    "notes": random.choice(
-                        ["", "First time attendee", "Returning member", "Special needs"]
-                    )
-                    if random.random() > 0.7
-                    else "",
+                    "notes": (
+                        random.choice(
+                            [
+                                "",
+                                "First time attendee",
+                                "Returning member",
+                                "Special needs",
+                            ]
+                        )
+                        if random.random() > 0.7
+                        else ""
+                    ),
                     "created_at": (
                         datetime.now() - timedelta(days=random.randint(1, 30))
                     ).isoformat(),
@@ -189,12 +196,16 @@ class MockPlanningCenterService:
             "meta": {
                 "total_count": len(self.mock_data["people"]),
                 "count": len(people),
-                "next": f"{self.base_url}/people/v2/people?per_page={limit}&offset={offset + limit}"
-                if offset + limit < len(self.mock_data["people"])
-                else None,
-                "prev": f"{self.base_url}/people/v2/people?per_page={limit}&offset={max(0, offset - limit)}"
-                if offset > 0
-                else None,
+                "next": (
+                    f"{self.base_url}/people/v2/people?per_page={limit}&offset={offset + limit}"
+                    if offset + limit < len(self.mock_data["people"])
+                    else None
+                ),
+                "prev": (
+                    f"{self.base_url}/people/v2/people?per_page={limit}&offset={max(0, offset - limit)}"
+                    if offset > 0
+                    else None
+                ),
             },
         }
 
@@ -219,12 +230,16 @@ class MockPlanningCenterService:
             "meta": {
                 "total_count": len(self.mock_data["events"]),
                 "count": len(events),
-                "next": f"{self.base_url}/registrations/v2/events?per_page={limit}&offset={offset + limit}"
-                if offset + limit < len(self.mock_data["events"])
-                else None,
-                "prev": f"{self.base_url}/registrations/v2/events?per_page={limit}&offset={max(0, offset - limit)}"
-                if offset > 0
-                else None,
+                "next": (
+                    f"{self.base_url}/registrations/v2/events?per_page={limit}&offset={offset + limit}"
+                    if offset + limit < len(self.mock_data["events"])
+                    else None
+                ),
+                "prev": (
+                    f"{self.base_url}/registrations/v2/events?per_page={limit}&offset={max(0, offset - limit)}"
+                    if offset > 0
+                    else None
+                ),
             },
         }
 
@@ -252,12 +267,16 @@ class MockPlanningCenterService:
             "meta": {
                 "total_count": len(registrations),
                 "count": len(paginated_registrations),
-                "next": f"{self.base_url}/registrations/v2/events/{event_id}/registrations?per_page={limit}&offset={offset + limit}"
-                if offset + limit < len(registrations)
-                else None,
-                "prev": f"{self.base_url}/registrations/v2/events/{event_id}/registrations?per_page={limit}&offset={max(0, offset - limit)}"
-                if offset > 0
-                else None,
+                "next": (
+                    f"{self.base_url}/registrations/v2/events/{event_id}/registrations?per_page={limit}&offset={offset + limit}"
+                    if offset + limit < len(registrations)
+                    else None
+                ),
+                "prev": (
+                    f"{self.base_url}/registrations/v2/events/{event_id}/registrations?per_page={limit}&offset={max(0, offset - limit)}"
+                    if offset > 0
+                    else None
+                ),
             },
         }
 
@@ -275,12 +294,16 @@ class MockPlanningCenterService:
             "meta": {
                 "total_count": len(registrations),
                 "count": len(paginated_registrations),
-                "next": f"{self.base_url}/registrations/v2/people/{person_id}/registrations?per_page={limit}&offset={offset + limit}"
-                if offset + limit < len(registrations)
-                else None,
-                "prev": f"{self.base_url}/registrations/v2/people/{person_id}/registrations?per_page={limit}&offset={max(0, offset - limit)}"
-                if offset > 0
-                else None,
+                "next": (
+                    f"{self.base_url}/registrations/v2/people/{person_id}/registrations?per_page={limit}&offset={offset + limit}"
+                    if offset + limit < len(registrations)
+                    else None
+                ),
+                "prev": (
+                    f"{self.base_url}/registrations/v2/people/{person_id}/registrations?per_page={limit}&offset={max(0, offset - limit)}"
+                    if offset > 0
+                    else None
+                ),
             },
         }
 

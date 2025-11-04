@@ -248,9 +248,9 @@ class AuditService:
                     "record_id": log.record_id,
                     "action": log.action,
                     "changed_by": log.changed_by,
-                    "changed_at": log.changed_at.isoformat()
-                    if log.changed_at
-                    else None,
+                    "changed_at": (
+                        log.changed_at.isoformat() if log.changed_at else None
+                    ),
                     "ip_address": log.ip_address,
                     "user_agent": log.user_agent,
                     "old_values": log.old_values,

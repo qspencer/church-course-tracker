@@ -137,12 +137,16 @@ class ReportService:
                 [
                     enrollment.id,
                     enrollment.course.title if enrollment.course else "N/A",
-                    f"{enrollment.people.first_name} {enrollment.people.last_name}"
-                    if enrollment.people
-                    else "N/A",
-                    enrollment.enrollment_date.strftime("%Y-%m-%d")
-                    if enrollment.enrollment_date
-                    else "N/A",
+                    (
+                        f"{enrollment.people.first_name} {enrollment.people.last_name}"
+                        if enrollment.people
+                        else "N/A"
+                    ),
+                    (
+                        enrollment.enrollment_date.strftime("%Y-%m-%d")
+                        if enrollment.enrollment_date
+                        else "N/A"
+                    ),
                     enrollment.status,
                     enrollment.notes or "",
                 ]

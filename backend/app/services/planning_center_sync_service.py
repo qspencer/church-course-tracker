@@ -581,9 +581,9 @@ class PlanningCenterSyncService:
             result = {
                 "people": people_result.get("result") if people_result else None,
                 "events": events_result.get("result") if events_result else None,
-                "registrations": registrations_result.get("result")
-                if registrations_result
-                else None,
+                "registrations": (
+                    registrations_result.get("result") if registrations_result else None
+                ),
             }
 
             self._update_sync_task(
