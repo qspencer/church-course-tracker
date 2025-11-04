@@ -17,6 +17,8 @@ export interface Course {
   updated_at: string;
   created_by?: number;
   updated_by?: number;
+  created_by_user_name?: string;
+  updated_by_user_name?: string;
   content_items?: Content[];
   enrollments_count?: number;
   completion_rate?: number;

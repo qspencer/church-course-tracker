@@ -26,10 +26,13 @@ class CourseService:
             if is_active is not None:
                 query = query.filter(CourseModel.is_active == is_active)
             # Use options to prevent eager loading of relationships that might cause issues
-            from sqlalchemy.orm import noload
+            # But load user relationships for created_by and updated_by
+            from sqlalchemy.orm import noload, joinedload
 
             return (
                 query.options(
+                    joinedload(CourseModel.created_by_user),
+                    joinedload(CourseModel.updated_by_user),
                     noload(CourseModel.course_enrollments),
                     noload(CourseModel.content),
                     noload(CourseModel.course_content),
@@ -50,12 +53,26 @@ class CourseService:
 
     def get_course(self, course_id: int) -> Optional[CourseModel]:
         """Get a specific course by ID"""
-        return self.db.query(CourseModel).filter(CourseModel.id == course_id).first()
+        from sqlalchemy.orm import joinedload
+        return (
+            self.db.query(CourseModel)
+            .options(
+                joinedload(CourseModel.created_by_user),
+                joinedload(CourseModel.updated_by_user),
+            )
+            .filter(CourseModel.id == course_id)
+            .first()
+        )
 
     def get_course_by_pc_event_id(self, pc_event_id: str) -> Optional[CourseModel]:
         """Get a course by Planning Center event ID"""
+        from sqlalchemy.orm import joinedload
         return (
             self.db.query(CourseModel)
+            .options(
+                joinedload(CourseModel.created_by_user),
+                joinedload(CourseModel.updated_by_user),
+            )
             .filter(CourseModel.planning_center_event_id == pc_event_id)
             .first()
         )
@@ -72,7 +89,10 @@ class CourseService:
         self.db.add(db_course)
         self.db.commit()
         self.db.refresh(db_course)
-        return db_course
+        
+        # Query again with user relationships to ensure they're loaded
+        from sqlalchemy.orm import joinedload
+        return self.get_course(db_course.id)
 
     def update_course(
         self,
@@ -93,7 +113,9 @@ class CourseService:
         db_course.updated_by = updated_by
         self.db.commit()
         self.db.refresh(db_course)
-        return db_course
+        
+        # Query again with user relationships to ensure they're loaded
+        return self.get_course(course_id)
 
     def delete_course(self, course_id: int) -> bool:
         """Delete a course"""

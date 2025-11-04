@@ -30,6 +30,11 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
     
+    - name: Create data directory
+      run: |
+        cd backend
+        mkdir -p data
+    
     - name: Run linting
       run: |
         cd backend
@@ -41,6 +46,7 @@ jobs:
     - name: Run tests with coverage
       run: |
         cd backend
+        mkdir -p data
         pytest tests/ -v --cov=app --cov-report=xml --cov-report=term
     
     - name: Upload coverage reports

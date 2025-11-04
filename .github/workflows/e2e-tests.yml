@@ -33,6 +33,7 @@ jobs:
       run: npm test
       env:
         BASE_URL: https://apps.quentinspencer.com
+        PLAYWRIGHT_BASE_URL: https://apps.quentinspencer.com
     
     - name: Upload test results
       uses: actions/upload-artifact@v4

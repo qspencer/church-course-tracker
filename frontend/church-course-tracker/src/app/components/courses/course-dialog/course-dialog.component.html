@@ -80,10 +80,16 @@
         <div class="detail-item">
           <h3 class="detail-label">Created</h3>
           <p class="detail-value">{{ formatDate(course.created_at) }}</p>
+          <p class="detail-value user-name" *ngIf="course.created_by_user_name">
+            by {{ course.created_by_user_name }}
+          </p>
         </div>
         <div class="detail-item">
           <h3 class="detail-label">Last Updated</h3>
           <p class="detail-value">{{ formatDate(course.updated_at) }}</p>
+          <p class="detail-value user-name" *ngIf="course.updated_by_user_name">
+            by {{ course.updated_by_user_name }}
+          </p>
         </div>
       </div>
     </div>

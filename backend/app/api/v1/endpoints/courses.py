@@ -16,6 +16,48 @@ from app.services.course_service import CourseService
 router = APIRouter()
 
 
+def course_to_schema(course_model) -> Course:
+    """Convert Course model to Course schema with user names populated"""
+    course_dict = {
+        "id": course_model.id,
+        "title": course_model.title,
+        "description": course_model.description,
+        "duration_weeks": course_model.duration_weeks,
+        "prerequisites": course_model.prerequisites,
+        "planning_center_event_id": course_model.planning_center_event_id,
+        "planning_center_event_name": course_model.planning_center_event_name,
+        "event_start_date": course_model.event_start_date,
+        "event_end_date": course_model.event_end_date,
+        "max_capacity": course_model.max_capacity,
+        "current_registrations": course_model.current_registrations,
+        "is_active": course_model.is_active,
+        "content_unlock_mode": course_model.content_unlock_mode,
+        "max_file_size_mb": course_model.max_file_size_mb,
+        "created_at": course_model.created_at,
+        "updated_at": course_model.updated_at,
+        "created_by": course_model.created_by,
+        "updated_by": course_model.updated_by,
+        "created_by_user_name": None,
+        "updated_by_user_name": None,
+    }
+    
+    # Populate user names from relationships
+    if course_model.created_by_user:
+        course_dict["created_by_user_name"] = (
+            course_model.created_by_user.full_name 
+            or course_model.created_by_user.username 
+            or course_model.created_by_user.email
+        )
+    if course_model.updated_by_user:
+        course_dict["updated_by_user_name"] = (
+            course_model.updated_by_user.full_name 
+            or course_model.updated_by_user.username 
+            or course_model.updated_by_user.email
+        )
+    
+    return Course(**course_dict)
+
+
 @router.get("", response_model=List[Course])
 @router.get("/", response_model=List[Course])
 async def get_courses(
@@ -26,7 +68,8 @@ async def get_courses(
 ):
     """Get all courses with pagination and optional filtering"""
     course_service = CourseService(db)
-    return course_service.get_courses(skip=skip, limit=limit, is_active=is_active)
+    courses = course_service.get_courses(skip=skip, limit=limit, is_active=is_active)
+    return [course_to_schema(course) for course in courses]
 
 
 @router.get("/{course_id}", response_model=Course)
@@ -38,7 +81,7 @@ async def get_course(course_id: int, db: Session = Depends(get_db)):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Course not found"
         )
-    return course
+    return course_to_schema(course)
 
 
 @router.get("/pc-event/{pc_event_id}", response_model=Course)
@@ -51,7 +94,7 @@ async def get_course_by_pc_event_id(pc_event_id: str, db: Session = Depends(get_
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Course not found for Planning Center event ID",
         )
-    return course
+    return course_to_schema(course)
 
 
 @router.post("", response_model=Course, status_code=status.HTTP_201_CREATED)
@@ -70,7 +113,8 @@ async def create_course(
         )
 
     course_service = CourseService(db)
-    return course_service.create_course(course, created_by=current_user["id"])
+    created_course = course_service.create_course(course, created_by=current_user["id"])
+    return course_to_schema(created_course)
 
 
 @router.put("/{course_id}", response_model=Course)
@@ -96,7 +140,7 @@ async def update_course(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Course not found"
         )
-    return course
+    return course_to_schema(course)
 
 
 @router.delete("/{course_id}", status_code=status.HTTP_204_NO_CONTENT)

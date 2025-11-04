@@ -126,6 +126,14 @@
           line-height: 1.5;
           min-height: 24px;
 
+          &.user-name {
+            font-size: 13px;
+            font-weight: 400;
+            color: #78909c;
+            margin-top: 4px;
+            font-style: italic;
+          }
+
           mat-chip {
             font-size: 13px;
             height: 28px;

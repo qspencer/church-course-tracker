@@ -6,13 +6,13 @@ import pytest
 import asyncio
 import os
 import subprocess
+import pathlib
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from fastapi.testclient import TestClient
 from datetime import datetime, date, timezone
 
 # Override database configuration for tests
-os.environ["DATABASE_URL"] = "sqlite:///./data/church_course_tracker.db"
 os.environ["RATE_LIMIT_ENABLED"] = "false"
 
 # Mock Planning Center credentials for tests
@@ -20,16 +20,34 @@ os.environ["PLANNING_CENTER_APP_ID"] = "test_app_id"
 os.environ["PLANNING_CENTER_SECRET"] = "test_secret"
 os.environ["PLANNING_CENTER_ACCESS_TOKEN"] = "test_token"
 
-# Test database URL - use the migrated database for tests
-SQLALCHEMY_DATABASE_URL = "sqlite:///./data/church_course_tracker.db"
+# Test database URL - will be set below after determining backend directory
+
+# Ensure data directory exists
+# Get the backend directory (where this file is located)
+backend_dir = pathlib.Path(__file__).parent.parent
+data_dir = backend_dir / "data"
+data_dir.mkdir(exist_ok=True)
+
+# Update database path to be relative to backend directory
+SQLALCHEMY_DATABASE_URL = f"sqlite:///{data_dir}/church_course_tracker.db"
+os.environ["DATABASE_URL"] = SQLALCHEMY_DATABASE_URL
 
 # Run migrations on the test database before tests
 print("🔄 Running migrations on test database...")
 try:
-    subprocess.run(["alembic", "upgrade", "head"], cwd=".", check=True, capture_output=True)
+    # Run from backend directory (where alembic.ini is located)
+    result = subprocess.run(
+        ["alembic", "upgrade", "head"],
+        cwd=str(backend_dir),
+        check=True,
+        capture_output=True,
+        text=True
+    )
     print("✅ Migrations completed")
 except Exception as e:
     print(f"⚠️  Migration failed: {e}")
+    # Try alternative approach - create tables directly
+    print("⚠️  Attempting to create tables directly...")
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL, 

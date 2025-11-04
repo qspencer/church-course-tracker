@@ -48,10 +48,12 @@ class Course(Base):
     updated_at = Column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
-    created_by = Column(Integer, nullable=True)
-    updated_by = Column(Integer, nullable=True)
+    created_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+    updated_by = Column(Integer, ForeignKey("users.id"), nullable=True)
 
     # Relationships
+    created_by_user = relationship("User", foreign_keys=[created_by], lazy="select")
+    updated_by_user = relationship("User", foreign_keys=[updated_by], lazy="select")
     course_enrollments = relationship(
         "CourseEnrollment", back_populates="course", cascade="all, delete-orphan"
     )
