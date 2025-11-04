@@ -85,3 +85,4 @@ infrastructure/.terraform/
 infrastructure/.terraform.lock.hcl
 infrastructure/terraform.tfstate*
 infrastructure/tfplan
+backend/venv_lint/
