@@ -29,10 +29,19 @@ export class CourseService {
     }
     // Debug: Log the actual URL being requested
     console.log('CourseService.getCourses - Requesting URL:', this.API_URL);
+    console.log('CourseService.getCourses - Query params:', httpParams.toString());
     
     // Ensure URL is absolute HTTPS (defensive check)
     const url = this.API_URL.startsWith('https://') ? this.API_URL : `https://${this.API_URL.replace(/^https?:\/\//, '')}`;
-    console.log('CourseService.getCourses - Final URL:', url);
+    
+    // Construct full URL with params for logging
+    const fullUrlWithParams = `${url}?${httpParams.toString()}`;
+    console.log('CourseService.getCourses - Final URL (base):', url);
+    console.log('CourseService.getCourses - Final URL (with params):', fullUrlWithParams);
+    
+    if (!fullUrlWithParams.startsWith('https://')) {
+      console.error('❌ CourseService - Full URL with params is NOT HTTPS!', fullUrlWithParams);
+    }
     
     return this.http.get<Course[]>(url, { params: httpParams });
   }

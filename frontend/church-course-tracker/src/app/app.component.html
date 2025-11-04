@@ -4,7 +4,7 @@
     <button mat-icon-button (click)="sidenav.toggle()">
       <mat-icon>menu</mat-icon>
     </button>
-    <span>{{ title }}</span>
+    <span>{{ title }}<span class="version">{{ appVersion }}</span></span>
     <span class="spacer"></span>
     <span *ngIf="currentUser">Welcome, {{ currentUser.full_name }}</span>
     <button mat-icon-button (click)="logout()" matTooltip="Logout">

@@ -1,8 +1,9 @@
+// Version will be injected at build time by the deployment script
 export const environment = {
   production: true,
   apiUrl: 'https://api.quentinspencer.com/api/v1',
   appName: 'Church Course Tracker',
-  version: '1.0.0',
+  version: '0.02',
   // Add other production-specific configurations
   enableAnalytics: true,
   enableErrorReporting: true,

@@ -29,10 +29,19 @@ export class EnrollmentService {
     }
     // Debug: Log the actual URL being requested
     console.log('EnrollmentService.getEnrollments - Requesting URL:', this.API_URL);
+    console.log('EnrollmentService.getEnrollments - Query params:', httpParams.toString());
     
     // Ensure URL is absolute HTTPS (defensive check)
     const url = this.API_URL.startsWith('https://') ? this.API_URL : `https://${this.API_URL.replace(/^https?:\/\//, '')}`;
-    console.log('EnrollmentService.getEnrollments - Final URL:', url);
+    
+    // Construct full URL with params for logging
+    const fullUrlWithParams = `${url}?${httpParams.toString()}`;
+    console.log('EnrollmentService.getEnrollments - Final URL (base):', url);
+    console.log('EnrollmentService.getEnrollments - Final URL (with params):', fullUrlWithParams);
+    
+    if (!fullUrlWithParams.startsWith('https://')) {
+      console.error('❌ EnrollmentService - Full URL with params is NOT HTTPS!', fullUrlWithParams);
+    }
     
     return this.http.get<Enrollment[]>(url, { params: httpParams });
   }

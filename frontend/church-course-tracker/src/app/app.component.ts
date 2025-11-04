@@ -2,6 +2,7 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from './services/auth.service';
 import { MatSidenav } from '@angular/material/sidenav';
+import { environment } from '../environments/environment';
 
 @Component({
   selector: 'app-root',
@@ -11,6 +12,7 @@ import { MatSidenav } from '@angular/material/sidenav';
 export class AppComponent implements OnInit {
   @ViewChild('sidenav') sidenav!: MatSidenav;
   title = 'Church Course Tracker';
+  appVersion = environment.version || '0.01';
   isAuthenticated = false;
   currentUser: any = null;
 

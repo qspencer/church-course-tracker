@@ -2,7 +2,7 @@ export const environment = {
   production: false,
   apiUrl: 'https://api.apps.eastgate.church/api/v1',
   appName: 'Church Course Tracker',
-  version: '1.0.0',
+  version: '0.01',
   enableAnalytics: false,
   enableErrorReporting: false,
   logLevel: 'debug'

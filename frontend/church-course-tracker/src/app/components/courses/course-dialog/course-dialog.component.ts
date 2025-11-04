@@ -7,6 +7,7 @@ import { Course, CourseCreate, CourseUpdate } from '../../../models';
 
 export interface CourseDialogData {
   course: Course | null;
+  viewMode?: boolean; // If true, show read-only view
 }
 
 @Component({
@@ -17,7 +18,9 @@ export interface CourseDialogData {
 export class CourseDialogComponent implements OnInit {
   courseForm: FormGroup;
   isEditing: boolean;
+  viewMode: boolean;
   isLoading = false;
+  course: Course | null = null;
 
   constructor(
     private fb: FormBuilder,
@@ -26,7 +29,9 @@ export class CourseDialogComponent implements OnInit {
     public dialogRef: MatDialogRef<CourseDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: CourseDialogData
   ) {
-    this.isEditing = !!data.course;
+    this.viewMode = data.viewMode || false;
+    this.isEditing = !!data.course && !this.viewMode;
+    this.course = data.course || null;
     
     this.courseForm = this.fb.group({
       title: ['', [Validators.required, Validators.minLength(3)]],
@@ -36,64 +41,141 @@ export class CourseDialogComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    if (this.isEditing && this.data.course) {
-      this.courseForm.patchValue({
-        title: this.data.course.title,
-        description: this.data.course.description,
-        duration_weeks: this.data.course.duration_weeks
-      });
-    }
-  }
-
-  onSubmit(): void {
-    if (this.courseForm.valid) {
-      this.isLoading = true;
-      const formValue = this.courseForm.value;
-
-      if (this.isEditing && this.data.course) {
-        // Update existing course
-        const updateData: CourseUpdate = {
-          title: formValue.title,
-          description: formValue.description,
-          duration_weeks: formValue.duration_weeks
-        };
-
-        this.courseService.updateCourse(this.data.course.id, updateData).subscribe({
-          next: (course) => {
-            this.isLoading = false;
-            this.snackBar.open('Course updated successfully', 'Close', { duration: 3000 });
-            this.dialogRef.close(course);
-          },
-          error: (error) => {
-            this.isLoading = false;
-            console.error('Error updating course:', error);
-          }
-        });
+    if (this.data.course) {
+      if (this.viewMode) {
+        // In view mode, just store the course data
+        this.course = this.data.course;
       } else {
-        // Create new course
-        const createData: CourseCreate = {
-          title: formValue.title,
-          description: formValue.description,
-          duration_weeks: formValue.duration_weeks
-        };
-
-        this.courseService.createCourse(createData).subscribe({
-          next: (course) => {
-            this.isLoading = false;
-            this.snackBar.open('Course created successfully', 'Close', { duration: 3000 });
-            this.dialogRef.close(course);
-          },
-          error: (error) => {
-            this.isLoading = false;
-            console.error('Error creating course:', error);
-          }
+        // In edit mode, populate the form
+        this.courseForm.patchValue({
+          title: this.data.course.title,
+          description: this.data.course.description,
+          duration_weeks: this.data.course.duration_weeks
         });
       }
     }
   }
 
+  onSubmit(): void {
+    // Prevent multiple submissions
+    if (this.isLoading || !this.courseForm.valid) {
+      return;
+    }
+    
+    this.isLoading = true;
+    const formValue = this.courseForm.value;
+
+    if (this.isEditing && this.data.course) {
+      // Update existing course
+      const updateData: CourseUpdate = {
+        title: formValue.title,
+        description: formValue.description,
+        duration_weeks: formValue.duration_weeks
+      };
+
+      this.courseService.updateCourse(this.data.course.id, updateData).subscribe({
+        next: (course) => {
+          this.isLoading = false;
+          this.snackBar.open('Course updated successfully', 'Close', { duration: 3000 });
+          this.dialogRef.close(course);
+        },
+        error: (error) => {
+          this.isLoading = false;
+          console.error('Error updating course:', error);
+          // Extract error message
+          let errorMessage = 'Failed to update course. Please try again.';
+          if (error?.error?.detail) {
+            errorMessage = error.error.detail;
+          } else if (error?.error?.message) {
+            errorMessage = error.error.message;
+          } else if (error?.status === 403) {
+            errorMessage = 'You do not have permission to update courses.';
+          } else if (error?.status === 400) {
+            errorMessage = 'Invalid course data. Please check your input.';
+          }
+          // Error interceptor will also show a snackbar, but we show a more specific one here
+          this.snackBar.open(errorMessage, 'Close', {
+            duration: 5000,
+            horizontalPosition: 'end',
+            verticalPosition: 'top',
+            panelClass: ['error-snackbar']
+          });
+        }
+      });
+    } else {
+      // Create new course
+      const createData: CourseCreate = {
+        title: formValue.title,
+        description: formValue.description,
+        duration_weeks: formValue.duration_weeks
+      };
+
+      this.courseService.createCourse(createData).subscribe({
+        next: (course) => {
+          this.isLoading = false;
+          this.snackBar.open('Course created successfully', 'Close', { duration: 3000 });
+          this.dialogRef.close(course);
+        },
+        error: (error) => {
+          this.isLoading = false;
+          console.error('Error creating course:', error);
+          
+          // If it's an auth error (401), user will be logged out by interceptor
+          // Don't show course-specific error message for auth errors
+          if (error?.status === 401) {
+            // User will be redirected to login by auth service
+            return;
+          }
+          
+          // Extract error message
+          let errorMessage = 'Failed to create course. Please try again.';
+          if (error?.message && error.message.includes('session has expired')) {
+            errorMessage = error.message;
+          } else if (error?.error?.detail) {
+            errorMessage = error.error.detail;
+          } else if (error?.error?.message) {
+            errorMessage = error.error.message;
+          } else if (error?.status === 403) {
+            errorMessage = 'You do not have permission to create courses.';
+          } else if (error?.status === 400) {
+            errorMessage = 'Invalid course data. Please check your input.';
+          }
+          
+          // Error interceptor will also show a snackbar, but we show a more specific one here
+          this.snackBar.open(errorMessage, 'Close', {
+            duration: 5000,
+            horizontalPosition: 'end',
+            verticalPosition: 'top',
+            panelClass: ['error-snackbar']
+          });
+        }
+      });
+    }
+  }
+
   onCancel(): void {
     this.dialogRef.close();
+  }
+
+  onClose(): void {
+    this.dialogRef.close();
+  }
+
+  formatDate(dateString: string | undefined): string {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleString();
+  }
+
+  formatDuration(weeks: number | undefined): string {
+    if (!weeks) return 'N/A';
+    if (weeks === 1) return '1 week';
+    if (weeks < 52) return `${weeks} weeks`;
+    const years = Math.floor(weeks / 52);
+    const remainingWeeks = weeks % 52;
+    if (remainingWeeks === 0) {
+      return years === 1 ? '1 year' : `${years} years`;
+    }
+    return `${years} year${years > 1 ? 's' : ''}, ${remainingWeeks} week${remainingWeeks > 1 ? 's' : ''}`;
   }
 
   getErrorMessage(fieldName: string): string {

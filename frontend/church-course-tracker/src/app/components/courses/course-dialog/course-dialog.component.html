@@ -1,10 +1,95 @@
 <div class="course-dialog">
   <h2 mat-dialog-title>
-    {{ isEditing ? 'Edit Course' : 'Create New Course' }}
+    <span *ngIf="viewMode">Course Details</span>
+    <span *ngIf="!viewMode">{{ isEditing ? 'Edit Course' : 'Create New Course' }}</span>
   </h2>
   
   <mat-dialog-content>
-    <form [formGroup]="courseForm" class="course-form">
+    <!-- View Mode: Read-only display -->
+    <div *ngIf="viewMode && course" class="course-details-view">
+      <div class="detail-section">
+        <h3 class="detail-label">Title</h3>
+        <p class="detail-value">{{ course.title }}</p>
+      </div>
+
+      <div class="detail-section">
+        <h3 class="detail-label">Description</h3>
+        <p class="detail-value">{{ course.description }}</p>
+      </div>
+
+      <div class="detail-row">
+        <div class="detail-item">
+          <h3 class="detail-label">Duration</h3>
+          <p class="detail-value">{{ formatDuration(course.duration_weeks) }}</p>
+        </div>
+        <div class="detail-item">
+          <h3 class="detail-label">Status</h3>
+          <p class="detail-value">
+            <mat-chip [color]="course.is_active ? 'primary' : 'warn'" selected>
+              {{ course.is_active ? 'Active' : 'Inactive' }}
+            </mat-chip>
+          </p>
+        </div>
+      </div>
+
+      <div class="detail-row" *ngIf="course.planning_center_event_name || course.planning_center_event_id">
+        <div class="detail-item" *ngIf="course.planning_center_event_name">
+          <h3 class="detail-label">Planning Center Event</h3>
+          <p class="detail-value">{{ course.planning_center_event_name }}</p>
+        </div>
+        <div class="detail-item" *ngIf="course.planning_center_event_id">
+          <h3 class="detail-label">Event ID</h3>
+          <p class="detail-value">{{ course.planning_center_event_id }}</p>
+        </div>
+      </div>
+
+      <div class="detail-row" *ngIf="course.event_start_date || course.event_end_date">
+        <div class="detail-item" *ngIf="course.event_start_date">
+          <h3 class="detail-label">Event Start Date</h3>
+          <p class="detail-value">{{ formatDate(course.event_start_date) }}</p>
+        </div>
+        <div class="detail-item" *ngIf="course.event_end_date">
+          <h3 class="detail-label">Event End Date</h3>
+          <p class="detail-value">{{ formatDate(course.event_end_date) }}</p>
+        </div>
+      </div>
+
+      <div class="detail-row" *ngIf="course.max_capacity !== null || course.current_registrations !== undefined">
+        <div class="detail-item" *ngIf="course.max_capacity !== null">
+          <h3 class="detail-label">Max Capacity</h3>
+          <p class="detail-value">{{ course.max_capacity }}</p>
+        </div>
+        <div class="detail-item" *ngIf="course.current_registrations !== undefined">
+          <h3 class="detail-label">Current Registrations</h3>
+          <p class="detail-value">{{ course.current_registrations }}</p>
+        </div>
+      </div>
+
+      <div class="detail-row" *ngIf="course.content_unlock_mode || course.max_file_size_mb">
+        <div class="detail-item" *ngIf="course.content_unlock_mode">
+          <h3 class="detail-label">Content Unlock Mode</h3>
+          <p class="detail-value">{{ course.content_unlock_mode }}</p>
+        </div>
+        <div class="detail-item" *ngIf="course.max_file_size_mb">
+          <h3 class="detail-label">Max File Size</h3>
+          <p class="detail-value">{{ course.max_file_size_mb }} MB</p>
+        </div>
+      </div>
+
+      <div class="detail-row">
+        <div class="detail-item">
+          <h3 class="detail-label">Created</h3>
+          <p class="detail-value">{{ formatDate(course.created_at) }}</p>
+        </div>
+        <div class="detail-item">
+          <h3 class="detail-label">Last Updated</h3>
+          <p class="detail-value">{{ formatDate(course.updated_at) }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit/Create Mode: Form -->
+    <form *ngIf="!viewMode" [formGroup]="courseForm" class="course-form">
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Course Title</mat-label>
         <input matInput formControlName="title" placeholder="Enter course title">
@@ -38,10 +123,11 @@
   </mat-dialog-content>
   
   <mat-dialog-actions align="end">
-    <button mat-button (click)="onCancel()" [disabled]="isLoading">
-      Cancel
+    <button mat-button (click)="viewMode ? onClose() : onCancel()" [disabled]="isLoading">
+      {{ viewMode ? 'Close' : 'Cancel' }}
     </button>
     <button 
+      *ngIf="!viewMode"
       mat-raised-button 
       color="primary" 
       (click)="onSubmit()" 

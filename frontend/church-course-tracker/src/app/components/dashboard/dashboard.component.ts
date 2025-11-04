@@ -75,6 +75,7 @@ export class DashboardComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    // Load dashboard data on initialization
     this.loadDashboardData();
   }
 

@@ -122,8 +122,15 @@ export class CoursesComponent implements OnInit {
   }
 
   viewCourseDetails(course: Course): void {
-    // Navigate to course details page or open detailed dialog
-    console.log('View course details:', course);
+    // Open course details dialog in view mode
+    this.dialog.open(CourseDialogComponent, {
+      width: '700px',
+      maxWidth: '90vw',
+      data: { 
+        course: course,
+        viewMode: true 
+      }
+    });
   }
 
   manageCourseContent(course: Course): void {

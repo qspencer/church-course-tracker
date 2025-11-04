@@ -98,3 +98,13 @@ mat-card-subtitle {
     font-size: 20px;
   }
 }
+
+// Error snackbar styling (global - can be used by Material snackbar)
+::ng-deep .error-snackbar {
+  background-color: #f44336 !important;
+  color: white !important;
+  
+  .mat-simple-snackbar-action {
+    color: white !important;
+  }
+}

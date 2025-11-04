@@ -63,6 +63,27 @@ export class AuthComponent implements OnInit {
         error: (error) => {
           this.isLoading = false;
           console.error('Login error:', error);
+          
+          // Show user-friendly error message
+          let errorMessage = 'Login failed. Please check your credentials and try again.';
+          
+          // Extract error message from API response if available
+          if (error?.error?.detail) {
+            errorMessage = error.error.detail;
+          } else if (error?.status === 401) {
+            errorMessage = 'Incorrect username or password. Please try again.';
+          } else if (error?.status === 0 || error?.status === undefined) {
+            errorMessage = 'Unable to connect to the server. Please check your internet connection.';
+          } else if (error?.status >= 500) {
+            errorMessage = 'Server error. Please try again later.';
+          }
+          
+          this.snackBar.open(errorMessage, 'Close', {
+            duration: 5000,
+            horizontalPosition: 'end',
+            verticalPosition: 'top',
+            panelClass: ['error-snackbar']
+          });
         }
       });
     }
@@ -95,6 +116,29 @@ export class AuthComponent implements OnInit {
         error: (error) => {
           this.isLoading = false;
           console.error('Registration error:', error);
+          
+          // Show user-friendly error message
+          let errorMessage = 'Registration failed. Please try again.';
+          
+          // Extract error message from API response if available
+          if (error?.error?.detail) {
+            errorMessage = error.error.detail;
+          } else if (error?.status === 400) {
+            errorMessage = 'Invalid registration data. Please check your input.';
+          } else if (error?.status === 409) {
+            errorMessage = 'Username or email already exists. Please use different credentials.';
+          } else if (error?.status === 0 || error?.status === undefined) {
+            errorMessage = 'Unable to connect to the server. Please check your internet connection.';
+          } else if (error?.status >= 500) {
+            errorMessage = 'Server error. Please try again later.';
+          }
+          
+          this.snackBar.open(errorMessage, 'Close', {
+            duration: 5000,
+            horizontalPosition: 'end',
+            verticalPosition: 'top',
+            panelClass: ['error-snackbar']
+          });
         }
       });
     }

@@ -10,6 +10,10 @@ terraform {
       source  = "hashicorp/random"
       version = "~> 3.0"
     }
+    archive = {
+      source  = "hashicorp/archive"
+      version = "~> 2.0"
+    }
   }
 }
 
@@ -104,6 +108,25 @@ resource "aws_s3_bucket" "static_website" {
   }
 }
 
+# S3 Bucket Versioning (optional, for rollback capability)
+resource "aws_s3_bucket_versioning" "static_website" {
+  bucket = aws_s3_bucket.static_website.id
+  
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+# S3 Bucket Public Access Block (restrict public access, CloudFront uses OAI)
+resource "aws_s3_bucket_public_access_block" "static_website" {
+  bucket = aws_s3_bucket.static_website.id
+  
+  block_public_acls       = true
+  block_public_policy      = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
 # S3 Bucket Policy for CloudFront access
 resource "aws_s3_bucket_policy" "static_website" {
   bucket = aws_s3_bucket.static_website.id
@@ -155,14 +178,87 @@ resource "aws_cloudfront_distribution" "main" {
   default_root_object = "index.html"
   
   default_cache_behavior {
-    allowed_methods        = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
+    allowed_methods        = ["GET", "HEAD", "OPTIONS"]
     cached_methods         = ["GET", "HEAD"]
     target_origin_id       = "S3-${aws_s3_bucket.static_website.id}"
     compress               = true
     viewer_protocol_policy = "redirect-to-https"
     
+    # Use modern cache policy approach (recommended)
+    # For hashed files (JS/CSS with content hash), cache for 1 year
+    # CloudFront will respect Cache-Control headers from S3
+    min_ttl     = 0
+    default_ttl = 86400  # 1 day default (will be overridden by Cache-Control headers)
+    max_ttl     = 31536000  # 1 year max (for hashed files)
+    
     forwarded_values {
       query_string = false
+      headers      = ["Origin", "Access-Control-Request-Headers", "Access-Control-Request-Method"]
+      cookies {
+        forward = "none"
+      }
+    }
+  }
+  
+  # Cache behavior for index.html (never cache, always fetch fresh)
+  ordered_cache_behavior {
+    path_pattern     = "index.html"
+    allowed_methods  = ["GET", "HEAD", "OPTIONS"]
+    cached_methods   = ["GET", "HEAD"]
+    target_origin_id = "S3-${aws_s3_bucket.static_website.id}"
+    compress         = true
+    viewer_protocol_policy = "redirect-to-https"
+    
+    min_ttl     = 0
+    default_ttl = 0
+    max_ttl     = 0
+    
+    forwarded_values {
+      query_string = false
+      headers      = ["Origin", "Access-Control-Request-Headers", "Access-Control-Request-Method"]
+      cookies {
+        forward = "none"
+      }
+    }
+  }
+  
+  # Cache behavior for hashed assets (JS/CSS with content hash) - cache long-term
+  ordered_cache_behavior {
+    path_pattern     = "*.js"
+    allowed_methods  = ["GET", "HEAD", "OPTIONS"]
+    cached_methods   = ["GET", "HEAD"]
+    target_origin_id = "S3-${aws_s3_bucket.static_website.id}"
+    compress         = true
+    viewer_protocol_policy = "redirect-to-https"
+    
+    min_ttl     = 31536000  # 1 year
+    default_ttl = 31536000  # 1 year
+    max_ttl     = 31536000  # 1 year
+    
+    forwarded_values {
+      query_string = false
+      headers      = ["Origin", "Access-Control-Request-Headers", "Access-Control-Request-Method"]
+      cookies {
+        forward = "none"
+      }
+    }
+  }
+  
+  ordered_cache_behavior {
+    path_pattern     = "*.css"
+    allowed_methods  = ["GET", "HEAD", "OPTIONS"]
+    cached_methods   = ["GET", "HEAD"]
+    target_origin_id = "S3-${aws_s3_bucket.static_website.id}"
+    compress         = true
+    viewer_protocol_policy = "redirect-to-https"
+    
+    min_ttl     = 31536000  # 1 year
+    default_ttl = 31536000  # 1 year
+    max_ttl     = 31536000  # 1 year
+    
+    forwarded_values {
+      query_string = false
+      headers      = ["Origin", "Access-Control-Request-Headers", "Access-Control-Request-Method"]
       cookies {
         forward = "none"
       }
@@ -219,6 +315,15 @@ resource "aws_security_group" "ecs" {
     protocol        = "tcp"
     security_groups = [aws_security_group.api_gateway_vpc_link.id]
     description     = "Allow traffic from API Gateway VPC Link"
+  }
+  
+  # Allow Service Discovery HTTP health checks from within VPC
+  ingress {
+    from_port   = 8000
+    to_port     = 8000
+    protocol    = "tcp"
+    cidr_blocks = [module.vpc.vpc_cidr_block]
+    description = "Allow Service Discovery health checks from within VPC"
   }
   
   egress {
@@ -384,6 +489,7 @@ resource "aws_route53_record" "api_quentinspencer_com" {
   type    = "A"
   
   alias {
+    # API Gateway custom domain endpoint
     name                   = aws_apigatewayv2_domain_name.main.domain_name_configuration[0].target_domain_name
     zone_id                = aws_apigatewayv2_domain_name.main.domain_name_configuration[0].hosted_zone_id
     evaluate_target_health = false
