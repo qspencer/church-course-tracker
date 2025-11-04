@@ -68,6 +68,12 @@ if DATABASE_URL:
         print(f"⚠️  Could not check database schema: {e}")
 DB_CHECK_SCRIPT
 
+# Run schema verification script (if available) to check for missing columns
+echo "🔍 Running database schema verification..."
+if [ -f "/app/scripts/verify_database_schema.py" ]; then
+    python3 /app/scripts/verify_database_schema.py 2>&1 | head -100 || echo "⚠️  Schema verification script failed or missing dependencies"
+fi
+
 # Manually add the data_source columns if they don't exist (always check)
 echo "🔧 Checking and adding data_source columns if needed..."
 python3 << 'PYTHON_SCRIPT'
