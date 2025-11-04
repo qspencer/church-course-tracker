@@ -10,7 +10,13 @@ import { Enrollment, EnrollmentCreate, EnrollmentUpdate } from '../models';
 export class EnrollmentService {
   private readonly API_URL = `${environment.apiUrl}/enrollments`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) {
+    // Debug: Log the API URL to verify it's HTTPS
+    console.log('EnrollmentService API_URL:', this.API_URL);
+    if (!this.API_URL.startsWith('https://')) {
+      console.error('❌ EnrollmentService API_URL is NOT HTTPS!', this.API_URL);
+    }
+  }
 
   getEnrollments(params?: any): Observable<Enrollment[]> {
     let httpParams = new HttpParams();
@@ -21,7 +27,14 @@ export class EnrollmentService {
         }
       });
     }
-    return this.http.get<Enrollment[]>(this.API_URL, { params: httpParams });
+    // Debug: Log the actual URL being requested
+    console.log('EnrollmentService.getEnrollments - Requesting URL:', this.API_URL);
+    
+    // Ensure URL is absolute HTTPS (defensive check)
+    const url = this.API_URL.startsWith('https://') ? this.API_URL : `https://${this.API_URL.replace(/^https?:\/\//, '')}`;
+    console.log('EnrollmentService.getEnrollments - Final URL:', url);
+    
+    return this.http.get<Enrollment[]>(url, { params: httpParams });
   }
 
   getEnrollment(id: number): Observable<Enrollment> {

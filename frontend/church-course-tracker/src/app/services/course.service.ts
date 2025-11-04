@@ -10,7 +10,13 @@ import { Course, CourseCreate, CourseUpdate, Content, ContentCreate } from '../m
 export class CourseService {
   private readonly API_URL = `${environment.apiUrl}/courses`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) {
+    // Debug: Log the API URL to verify it's HTTPS
+    console.log('CourseService API_URL:', this.API_URL);
+    if (!this.API_URL.startsWith('https://')) {
+      console.error('❌ CourseService API_URL is NOT HTTPS!', this.API_URL);
+    }
+  }
 
   getCourses(params?: any): Observable<Course[]> {
     let httpParams = new HttpParams();
@@ -21,7 +27,14 @@ export class CourseService {
         }
       });
     }
-    return this.http.get<Course[]>(this.API_URL, { params: httpParams });
+    // Debug: Log the actual URL being requested
+    console.log('CourseService.getCourses - Requesting URL:', this.API_URL);
+    
+    // Ensure URL is absolute HTTPS (defensive check)
+    const url = this.API_URL.startsWith('https://') ? this.API_URL : `https://${this.API_URL.replace(/^https?:\/\//, '')}`;
+    console.log('CourseService.getCourses - Final URL:', url);
+    
+    return this.http.get<Course[]>(url, { params: httpParams });
   }
 
   getCourse(id: number): Observable<Course> {

@@ -9,6 +9,24 @@ export class AuthInterceptor implements HttpInterceptor {
   constructor(private authService: AuthService) {}
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+    // Debug: Log the actual request URL and full details
+    console.log('AuthInterceptor - Request URL:', req.url);
+    console.log('AuthInterceptor - Full Request:', {
+      url: req.url,
+      method: req.method,
+      headers: req.headers.keys(),
+      withCredentials: req.withCredentials
+    });
+    if (!req.url.startsWith('https://')) {
+      console.error('❌ AuthInterceptor - Request URL is NOT HTTPS!', req.url);
+    }
+    
+    // Force absolute URL if it's not already
+    let requestUrl = req.url;
+    if (!requestUrl.startsWith('http://') && !requestUrl.startsWith('https://')) {
+      console.warn('⚠️ Relative URL detected, should be absolute:', requestUrl);
+    }
+    
     const token = this.authService.getToken();
     
     if (token) {
