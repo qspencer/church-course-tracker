@@ -10,17 +10,21 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatListModule } from '@angular/material/list';
+import { MatDialogModule } from '@angular/material/dialog';
 
 // Components and Routing
 import { CourseContentComponent } from './course-content.component';
+import { ContentDialogComponent } from './content-dialog/content-dialog.component';
 import { CourseContentRoutingModule } from './course-content-routing.module';
 
 @NgModule({
   declarations: [
-    CourseContentComponent
+    CourseContentComponent,
+    ContentDialogComponent
   ],
   imports: [
     CommonModule,
@@ -35,9 +39,11 @@ import { CourseContentRoutingModule } from './course-content-routing.module';
     MatProgressSpinnerModule,
     MatTabsModule,
     MatFormFieldModule,
+    MatInputModule,
     MatSelectModule,
     MatSnackBarModule,
-    MatListModule
+    MatListModule,
+    MatDialogModule
   ],
   exports: [
     CourseContentComponent

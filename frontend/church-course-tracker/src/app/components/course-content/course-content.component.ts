@@ -13,6 +13,7 @@ import {
   CourseModuleCreate, CourseContentCreate, CourseContentSummary, Course,
   AuditLog
 } from '../../models';
+import { ContentDialogComponent } from './content-dialog/content-dialog.component';
 
 @Component({
   selector: 'app-course-content',
@@ -259,7 +260,19 @@ export class CourseContentComponent implements OnInit, OnDestroy {
   }
 
   createContent(): void {
-    this.snackBar.open('Content creation not implemented yet', 'Close', { duration: 3000 });
+    this.dialog.open(ContentDialogComponent, {
+      width: '600px',
+      maxWidth: '90vw',
+      data: {
+        courseId: this.courseId,
+        modules: this.modules
+      }
+    }).afterClosed().subscribe((result) => {
+      if (result) {
+        // Reload content after successful creation
+        this.loadData();
+      }
+    });
   }
 
   editModule(module: CourseModule): void {
