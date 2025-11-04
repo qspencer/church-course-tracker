@@ -119,6 +119,26 @@ if DATABASE_URL:
             else:
                 print(f"✅ {table} already has data_source column")
         
+        # Check and add planning_center_event_name column to courses table
+        print("\n🔧 Checking planning_center_event_name column in courses table...")
+        cur.execute("""
+            SELECT column_name 
+            FROM information_schema.columns 
+            WHERE table_name='courses' AND column_name='planning_center_event_name'
+        """)
+        
+        if not cur.fetchone():
+            print("Adding planning_center_event_name column to courses...")
+            try:
+                cur.execute('ALTER TABLE courses ADD COLUMN planning_center_event_name VARCHAR(200)')
+                conn.commit()
+                print("✅ Added planning_center_event_name column to courses")
+            except Exception as e:
+                print(f"⚠️  Could not add planning_center_event_name column: {e}")
+                conn.rollback()
+        else:
+            print("✅ courses already has planning_center_event_name column")
+        
         cur.close()
         conn.close()
         print("✅ Data source columns check complete")
