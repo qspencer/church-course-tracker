@@ -37,6 +37,9 @@ router = APIRouter()
 @router.post(
     "/modules/", response_model=CourseModule, status_code=status.HTTP_201_CREATED
 )
+@router.post(
+    "/modules", response_model=CourseModule, status_code=status.HTTP_201_CREATED
+)
 async def create_module(
     module_data: CourseModuleCreate,
     db: Session = Depends(get_db),
