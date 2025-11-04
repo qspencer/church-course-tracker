@@ -59,9 +59,16 @@ module.exports = function (config) {
           '--disable-gpu',
           '--disable-web-security',
           '--disable-features=VizDisplayCompositor',
-          '--remote-debugging-port=9222'
+          '--remote-debugging-port=9222',
+          '--disable-dev-shm-usage',
+          '--disable-software-rasterizer',
+          '--headless=new'
         ]
       }
-    }
+    },
+    captureTimeout: 60000,
+    browserNoActivityTimeout: 60000,
+    browserDisconnectTimeout: 10000,
+    browserDisconnectTolerance: 3
   });
 };
