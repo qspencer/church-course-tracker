@@ -471,6 +471,29 @@ if DATABASE_URL:
             print("✅ audit_log already has changed_by column")
             columns_checked.append("audit_log.changed_by")
         
+        # Check and add changed_at column to audit_log table if missing
+        print("\n🔧 Checking changed_at column in audit_log table...")
+        cur.execute("""
+            SELECT column_name 
+            FROM information_schema.columns 
+            WHERE table_name='audit_log' AND column_name='changed_at'
+        """)
+        
+        if not cur.fetchone():
+            print("Adding changed_at column to audit_log...")
+            try:
+                cur.execute('ALTER TABLE audit_log ADD COLUMN changed_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP')
+                conn.commit()
+                print("✅ Added changed_at column to audit_log")
+                columns_added.append("audit_log.changed_at")
+            except Exception as e:
+                print(f"⚠️  Could not add changed_at column: {e}")
+                errors_encountered.append(f"audit_log.changed_at: {e}")
+                conn.rollback()
+        else:
+            print("✅ audit_log already has changed_at column")
+            columns_checked.append("audit_log.changed_at")
+        
         # Summary of column checks
         print("\n" + "=" * 60)
         print("📊 COLUMN CHECK SUMMARY")
