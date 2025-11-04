@@ -83,13 +83,11 @@ resource "aws_apigatewayv2_integration" "backend" {
   connection_type    = "VPC_LINK"
   connection_id      = aws_apigatewayv2_vpc_link.main.id
 
-  request_parameters = {
-    "overwrite:path" = "$request.path"
-    # Preserve protocol information - ensure backend knows it's HTTPS
-    # API Gateway v2 automatically sets X-Forwarded-Proto, but we ensure it's HTTPS
-    "overwrite:header.X-Forwarded-Proto" = "https"
-    "overwrite:header.X-Forwarded-Port" = "443"
-  }
+        request_parameters = {
+          "overwrite:path" = "$request.path"
+          # Note: API Gateway v2 automatically sets X-Forwarded-Proto and X-Forwarded-Port
+          # We cannot manually overwrite these headers as they are restricted
+        }
 }
 
 # Default route (catch-all)
