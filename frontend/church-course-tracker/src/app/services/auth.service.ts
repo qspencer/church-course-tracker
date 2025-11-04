@@ -90,12 +90,26 @@ export class AuthService {
   }
 
   refreshToken(): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(`${this.API_URL}/auth/refresh`, {})
-      .pipe(
-        tap(response => {
+    return this.http.post<LoginResponse>(`${this.API_URL}/auth/refresh`, {}).pipe(
+      tap({
+        next: (response) => {
           this.setToken(response.access_token);
-          this.setCurrentUser(response.user);
-        })
-      );
+          if (response.user) {
+            this.setCurrentUser(response.user);
+            this.isAuthenticatedSubject.next(true);
+            this.currentUserSubject.next(response.user);
+          }
+        },
+        error: (error) => {
+          // If refresh fails with 401, the token is invalid/expired
+          // Logout will be handled by the interceptor
+          console.error('Token refresh failed:', error);
+          if (error.status === 401) {
+            // Token is invalid, clear everything and logout
+            this.logout();
+          }
+        }
+      })
+    );
   }
 }
