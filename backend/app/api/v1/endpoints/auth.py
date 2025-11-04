@@ -23,7 +23,9 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
 async def get_current_user(
-    token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)
+    request: Request,
+    token: str = Depends(oauth2_scheme), 
+    db: Session = Depends(get_db)
 ):
     """Get current authenticated user"""
     import logging
@@ -38,15 +40,26 @@ async def get_current_user(
     try:
         from app.core.security import verify_token
         
+        # Log Authorization header for debugging
+        auth_header = request.headers.get("Authorization")
+        if auth_header:
+            auth_preview = auth_header[:30] + "..." if len(auth_header) > 30 else auth_header
+            logger.info(f"Authorization header received: {auth_preview} (length: {len(auth_header)})")
+        else:
+            logger.warning("No Authorization header found in request")
+        
         # Log token info for debugging (first 20 chars only for security)
         token_preview = token[:20] + "..." if len(token) > 20 else token
-        logger.info(f"Validating token: {token_preview} (length: {len(token)})")
+        logger.info(f"Extracted token: {token_preview} (length: {len(token)})")
         
         user_id = verify_token(token)
         if user_id is None:
             logger.warning(f"Token validation failed: user_id is None")
             raise credentials_exception
         logger.info(f"Token validated successfully for user_id: {user_id}")
+    except HTTPException:
+        # Re-raise HTTP exceptions (like credentials_exception)
+        raise
     except Exception as e:
         logger.error(f"Token validation exception: {type(e).__name__}: {str(e)}")
         raise credentials_exception
