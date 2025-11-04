@@ -53,7 +53,7 @@ app.add_middleware(
         "X-Real-IP"
     ],
     expose_headers=[
-        "X-Total-Count", 
+        "X-Total-Count",
         "X-Page-Count",
         "X-Rate-Limit-Limit",
         "X-Rate-Limit-Remaining",
