@@ -21,6 +21,7 @@ async def get_current_user_info(current_user: dict = Depends(get_current_active_
     return current_user
 
 
+@router.get("", response_model=List[User])
 @router.get("/", response_model=List[User])
 async def get_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     """Get all users"""
@@ -40,6 +41,7 @@ async def get_user(user_id: int, db: Session = Depends(get_db)):
     return user
 
 
+@router.post("", response_model=User)
 @router.post("/", response_model=User)
 async def create_user(user: UserCreate, db: Session = Depends(get_db)):
     """Create a new user"""

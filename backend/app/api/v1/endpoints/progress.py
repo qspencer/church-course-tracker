@@ -41,6 +41,7 @@ async def get_progress(progress_id: int, db: Session = Depends(get_db)):
     return progress
 
 
+@router.post("", response_model=ContentCompletion)
 @router.post("/", response_model=ContentCompletion)
 async def create_progress(
     progress: ContentCompletionCreate, db: Session = Depends(get_db)

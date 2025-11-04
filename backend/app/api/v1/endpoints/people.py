@@ -14,6 +14,7 @@ from app.services.people_service import PeopleService
 router = APIRouter()
 
 
+@router.get("", response_model=List[People])
 @router.get("/", response_model=List[People])
 async def get_people(
     skip: int = 0,
@@ -60,6 +61,7 @@ async def search_people(
     return people_service.search_people(search_term, limit=limit)
 
 
+@router.post("", response_model=People, status_code=status.HTTP_201_CREATED)
 @router.post("/", response_model=People, status_code=status.HTTP_201_CREATED)
 async def create_person(person: PeopleCreate, db: Session = Depends(get_db)):
     """Create a new person"""

@@ -16,6 +16,7 @@ from app.services.audit_service import AuditService
 router = APIRouter()
 
 
+@router.get("", response_model=List[AuditLog])
 @router.get("/", response_model=List[AuditLog])
 async def get_audit_logs(
     skip: int = Query(0, ge=0, description="Number of records to skip"),

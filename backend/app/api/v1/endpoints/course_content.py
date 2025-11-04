@@ -130,6 +130,7 @@ async def delete_module(
 # Course Content Endpoints
 
 
+@router.post("", response_model=CourseContent, status_code=status.HTTP_201_CREATED)
 @router.post("/", response_model=CourseContent, status_code=status.HTTP_201_CREATED)
 async def create_content(
     content_data: CourseContentCreate,
