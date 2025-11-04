@@ -20,12 +20,15 @@ logging.basicConfig(level=getattr(logging, settings.LOG_LEVEL))
 logger = logging.getLogger(__name__)
 
 # Create FastAPI application
+# Disable redirect_slashes to prevent redirect issues through API Gateway
+# API Gateway may misinterpret redirects and cause HTTPS->HTTP downgrades
 app = FastAPI(
     title="Church Course Tracker API",
     description="A learning management system for church course tracking",
     version="1.0.0",
     docs_url="/docs" if settings.ENVIRONMENT == "development" else None,
     redoc_url="/redoc" if settings.ENVIRONMENT == "development" else None,
+    redirect_slashes=False,  # Disable to prevent redirect issues
 )
 
 # Add GZip compression middleware

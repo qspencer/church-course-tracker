@@ -58,13 +58,11 @@ resource "aws_service_discovery_service" "backend" {
     routing_policy = "MULTIVALUE"
   }
 
-  # HTTP health check: Service Discovery will check /health endpoint
-  # FailureThreshold: 3 means 3 consecutive failures mark instance unhealthy
-  # This allows Service Discovery to automatically monitor instance health
-  health_check_config {
-    type            = "HTTP"
-    resource_path   = "/health"
-    failure_threshold = 3  # Allow 3 consecutive failures before marking unhealthy
+  # Custom health check: Required for update_instance_custom_health_status API
+  # The Lambda function will sync ECS task health to Service Discovery
+  # Without this config, the update API doesn't work
+  health_check_custom_config {
+    failure_threshold = 1
   }
 
   tags = {
@@ -78,12 +76,18 @@ resource "aws_apigatewayv2_integration" "backend" {
   api_id             = aws_apigatewayv2_api.main.id
   integration_type   = "HTTP_PROXY"
   integration_method = "ANY"
+  # Using Service Discovery ARN (required for VPC_LINK integrations)
+  # Note: Service Discovery filters instances by health status
+  # For custom health checks in private namespaces, we rely on ECS task health
   integration_uri    = aws_service_discovery_service.backend.arn
   connection_type    = "VPC_LINK"
   connection_id      = aws_apigatewayv2_vpc_link.main.id
 
   request_parameters = {
     "overwrite:path" = "$request.path"
+    # Preserve protocol information - ensure backend knows it's HTTPS
+    "append:header.X-Forwarded-Proto" = "$context.protocol"
+    "append:header.X-Forwarded-Port" = "443"
   }
 }
 
