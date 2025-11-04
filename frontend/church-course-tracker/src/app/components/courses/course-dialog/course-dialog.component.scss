@@ -1,6 +1,7 @@
 .course-dialog {
   min-width: 600px;
   max-width: 800px;
+  padding: 24px 32px 24px 32px; // Add padding: top, right, bottom, left
   
   h2 {
     margin: 0 0 8px 0;
@@ -13,7 +14,7 @@
   
   mat-dialog-content {
     padding: 24px 0;
-    max-height: 70vh;
+    max-height: 80vh; // Increased from 70vh to reduce scrollbar
     overflow-y: auto;
   }
   
