@@ -265,12 +265,19 @@ describe('CoursesComponent', () => {
   });
 
   describe('viewCourseDetails', () => {
-    it('should log course details', () => {
-      spyOn(console, 'log');
-
+    it('should open course details dialog in view mode', () => {
       component.viewCourseDetails(mockCourses[0]);
 
-      expect(console.log).toHaveBeenCalledWith('View course details:', mockCourses[0]);
+      expect(dialogSpy.open).toHaveBeenCalled();
+      const callArgs = dialogSpy.open.calls.mostRecent().args;
+      expect(callArgs[1]).toEqual(jasmine.objectContaining({
+        width: '700px',
+        maxWidth: '90vw',
+        data: {
+          course: mockCourses[0],
+          viewMode: true
+        }
+      }));
     });
   });
 
