@@ -38,11 +38,20 @@ export class AuthInterceptor implements HttpInterceptor {
     const token = this.authService.getToken();
     
     if (token) {
+      // Log token info for debugging (first 20 chars only for security)
+      const tokenPreview = token.length > 20 ? token.substring(0, 20) + '...' : token;
+      console.log('AuthInterceptor - Token preview:', tokenPreview, 'Length:', token.length);
+      
       const authReq = req.clone({
         setHeaders: {
           Authorization: `Bearer ${token}`
         }
       });
+      
+      // Log the Authorization header value (first 30 chars only)
+      const authHeader = authReq.headers.get('Authorization');
+      const authHeaderPreview = authHeader && authHeader.length > 30 ? authHeader.substring(0, 30) + '...' : authHeader;
+      console.log('AuthInterceptor - Authorization header:', authHeaderPreview);
       
       return next.handle(authReq).pipe(
         catchError(error => {
@@ -52,6 +61,11 @@ export class AuthInterceptor implements HttpInterceptor {
             return this.authService.refreshToken().pipe(
               switchMap(() => {
                 const newToken = this.authService.getToken();
+                if (!newToken) {
+                  // No token after refresh, logout
+                  this.authService.logout();
+                  return throwError(() => new Error('Authentication failed. Please log in again.'));
+                }
                 const retryReq = authReq.clone({
                   setHeaders: {
                     Authorization: `Bearer ${newToken}`
@@ -61,12 +75,16 @@ export class AuthInterceptor implements HttpInterceptor {
               }),
               catchError(refreshError => {
                 // Refresh failed with 401 - token is invalid/expired
-                // Logout user and redirect to login
+                // Logout user immediately and don't retry the original request
                 console.error('Token refresh failed, logging out user:', refreshError);
-                if (refreshError.status === 401) {
-                  this.authService.logout();
-                }
-                return throwError(() => refreshError);
+                this.authService.logout();
+                // Return the original error, not the refresh error, so components see the right error
+                return throwError(() => ({
+                  ...error,
+                  message: 'Your session has expired. Please log in again.',
+                  status: 401,
+                  statusText: 'Unauthorized'
+                }));
               })
             );
           }

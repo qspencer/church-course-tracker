@@ -32,15 +32,23 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
 
 def verify_token(token: str) -> Optional[int]:
     """Verify JWT token and return user ID"""
+    import logging
+    logger = logging.getLogger(__name__)
+    
     try:
         payload = jwt.decode(
             token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
         )
         user_id: str = payload.get("sub")
         if user_id is None:
+            logger.warning("Token payload missing 'sub' field")
             return None
         return int(user_id)
-    except JWTError:
+    except JWTError as e:
+        logger.warning(f"JWT validation error: {type(e).__name__}: {str(e)}")
+        return None
+    except Exception as e:
+        logger.error(f"Unexpected error verifying token: {type(e).__name__}: {str(e)}")
         return None
 
 

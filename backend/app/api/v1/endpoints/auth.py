@@ -26,6 +26,9 @@ async def get_current_user(
     token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)
 ):
     """Get current authenticated user"""
+    import logging
+    logger = logging.getLogger(__name__)
+    
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -34,11 +37,18 @@ async def get_current_user(
 
     try:
         from app.core.security import verify_token
-
+        
+        # Log token info for debugging (first 20 chars only for security)
+        token_preview = token[:20] + "..." if len(token) > 20 else token
+        logger.info(f"Validating token: {token_preview} (length: {len(token)})")
+        
         user_id = verify_token(token)
         if user_id is None:
+            logger.warning(f"Token validation failed: user_id is None")
             raise credentials_exception
-    except Exception:
+        logger.info(f"Token validated successfully for user_id: {user_id}")
+    except Exception as e:
+        logger.error(f"Token validation exception: {type(e).__name__}: {str(e)}")
         raise credentials_exception
 
     user_service = UserService(db)
