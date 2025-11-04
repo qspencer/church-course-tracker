@@ -16,6 +16,7 @@ from app.services.course_service import CourseService
 router = APIRouter()
 
 
+@router.get("", response_model=List[Course])
 @router.get("/", response_model=List[Course])
 async def get_courses(
     skip: int = 0,
@@ -53,6 +54,7 @@ async def get_course_by_pc_event_id(pc_event_id: str, db: Session = Depends(get_
     return course
 
 
+@router.post("", response_model=Course, status_code=status.HTTP_201_CREATED)
 @router.post("/", response_model=Course, status_code=status.HTTP_201_CREATED)
 async def create_course(
     course: CourseCreate,

@@ -15,6 +15,7 @@ from app.services.enrollment_service import CourseEnrollmentService
 router = APIRouter()
 
 
+@router.get("", response_model=List[CourseEnrollment])
 @router.get("/", response_model=List[CourseEnrollment])
 async def get_enrollments(
     skip: int = 0,
@@ -60,6 +61,7 @@ async def get_enrollment_by_pc_registration_id(
     return enrollment
 
 
+@router.post("", response_model=CourseEnrollment, status_code=status.HTTP_201_CREATED)
 @router.post("/", response_model=CourseEnrollment, status_code=status.HTTP_201_CREATED)
 async def create_enrollment(
     enrollment: CourseEnrollmentCreate, db: Session = Depends(get_db)
