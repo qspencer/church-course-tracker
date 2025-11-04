@@ -139,9 +139,49 @@ if DATABASE_URL:
         else:
             print("✅ courses already has planning_center_event_name column")
         
+        # Check and add username column to users table if missing
+        print("\n🔧 Checking username column in users table...")
+        cur.execute("""
+            SELECT column_name 
+            FROM information_schema.columns 
+            WHERE table_name='users' AND column_name='username'
+        """)
+        
+        if not cur.fetchone():
+            print("Adding username column to users...")
+            try:
+                cur.execute('ALTER TABLE users ADD COLUMN username VARCHAR(50)')
+                conn.commit()
+                print("✅ Added username column to users")
+            except Exception as e:
+                print(f"⚠️  Could not add username column: {e}")
+                conn.rollback()
+        else:
+            print("✅ users already has username column")
+        
+        # Check and add last_login column to users table if missing
+        print("\n🔧 Checking last_login column in users table...")
+        cur.execute("""
+            SELECT column_name 
+            FROM information_schema.columns 
+            WHERE table_name='users' AND column_name='last_login'
+        """)
+        
+        if not cur.fetchone():
+            print("Adding last_login column to users...")
+            try:
+                cur.execute('ALTER TABLE users ADD COLUMN last_login TIMESTAMP WITH TIME ZONE')
+                conn.commit()
+                print("✅ Added last_login column to users")
+            except Exception as e:
+                print(f"⚠️  Could not add last_login column: {e}")
+                conn.rollback()
+        else:
+            print("✅ users already has last_login column")
+        
         cur.close()
         conn.close()
-        print("✅ Data source columns check complete")
+        print("✅ Schema verification and column addition complete")
     except Exception as e:
         print(f"⚠️  Could not add data_source columns: {e}")
 PYTHON_SCRIPT
