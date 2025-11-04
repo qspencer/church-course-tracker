@@ -79,6 +79,12 @@ echo "🔧 Checking and adding data_source columns if needed..."
 python3 << 'PYTHON_SCRIPT'
 import os
 import psycopg2
+import sys
+
+# Track execution status
+columns_added = []
+columns_checked = []
+errors_encountered = []
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 if DATABASE_URL:
@@ -139,11 +145,14 @@ if DATABASE_URL:
                 cur.execute('ALTER TABLE courses ADD COLUMN planning_center_event_name VARCHAR(200)')
                 conn.commit()
                 print("✅ Added planning_center_event_name column to courses")
+                columns_added.append("courses.planning_center_event_name")
             except Exception as e:
                 print(f"⚠️  Could not add planning_center_event_name column: {e}")
+                errors_encountered.append(f"courses.planning_center_event_name: {e}")
                 conn.rollback()
         else:
             print("✅ courses already has planning_center_event_name column")
+            columns_checked.append("courses.planning_center_event_name")
         
         # Check and add event_start_date column to courses table
         print("\n🔧 Checking event_start_date column in courses table...")
@@ -159,11 +168,14 @@ if DATABASE_URL:
                 cur.execute('ALTER TABLE courses ADD COLUMN event_start_date TIMESTAMP WITH TIME ZONE')
                 conn.commit()
                 print("✅ Added event_start_date column to courses")
+                columns_added.append("courses.event_start_date")
             except Exception as e:
                 print(f"⚠️  Could not add event_start_date column: {e}")
+                errors_encountered.append(f"courses.event_start_date: {e}")
                 conn.rollback()
         else:
             print("✅ courses already has event_start_date column")
+            columns_checked.append("courses.event_start_date")
         
         # Check and add event_end_date column to courses table
         print("\n🔧 Checking event_end_date column in courses table...")
@@ -179,11 +191,14 @@ if DATABASE_URL:
                 cur.execute('ALTER TABLE courses ADD COLUMN event_end_date TIMESTAMP WITH TIME ZONE')
                 conn.commit()
                 print("✅ Added event_end_date column to courses")
+                columns_added.append("courses.event_end_date")
             except Exception as e:
                 print(f"⚠️  Could not add event_end_date column: {e}")
+                errors_encountered.append(f"courses.event_end_date: {e}")
                 conn.rollback()
         else:
             print("✅ courses already has event_end_date column")
+            columns_checked.append("courses.event_end_date")
         
         # Check and add max_capacity column to courses table
         print("\n🔧 Checking max_capacity column in courses table...")
@@ -199,11 +214,14 @@ if DATABASE_URL:
                 cur.execute('ALTER TABLE courses ADD COLUMN max_capacity INTEGER')
                 conn.commit()
                 print("✅ Added max_capacity column to courses")
+                columns_added.append("courses.max_capacity")
             except Exception as e:
                 print(f"⚠️  Could not add max_capacity column: {e}")
+                errors_encountered.append(f"courses.max_capacity: {e}")
                 conn.rollback()
         else:
             print("✅ courses already has max_capacity column")
+            columns_checked.append("courses.max_capacity")
         
         # Check and add current_registrations column to courses table
         print("\n🔧 Checking current_registrations column in courses table...")
@@ -219,11 +237,14 @@ if DATABASE_URL:
                 cur.execute('ALTER TABLE courses ADD COLUMN current_registrations INTEGER DEFAULT 0 NOT NULL')
                 conn.commit()
                 print("✅ Added current_registrations column to courses")
+                columns_added.append("courses.current_registrations")
             except Exception as e:
                 print(f"⚠️  Could not add current_registrations column: {e}")
+                errors_encountered.append(f"courses.current_registrations: {e}")
                 conn.rollback()
         else:
             print("✅ courses already has current_registrations column")
+            columns_checked.append("courses.current_registrations")
         
         # Check and add content_unlock_mode column to courses table
         print("\n🔧 Checking content_unlock_mode column in courses table...")
@@ -239,11 +260,14 @@ if DATABASE_URL:
                 cur.execute("ALTER TABLE courses ADD COLUMN content_unlock_mode VARCHAR(20) DEFAULT 'immediate' NOT NULL")
                 conn.commit()
                 print("✅ Added content_unlock_mode column to courses")
+                columns_added.append("courses.content_unlock_mode")
             except Exception as e:
                 print(f"⚠️  Could not add content_unlock_mode column: {e}")
+                errors_encountered.append(f"courses.content_unlock_mode: {e}")
                 conn.rollback()
         else:
             print("✅ courses already has content_unlock_mode column")
+            columns_checked.append("courses.content_unlock_mode")
         
         # Check and add max_file_size_mb column to courses table
         print("\n🔧 Checking max_file_size_mb column in courses table...")
@@ -259,11 +283,14 @@ if DATABASE_URL:
                 cur.execute('ALTER TABLE courses ADD COLUMN max_file_size_mb INTEGER DEFAULT 1024 NOT NULL')
                 conn.commit()
                 print("✅ Added max_file_size_mb column to courses")
+                columns_added.append("courses.max_file_size_mb")
             except Exception as e:
                 print(f"⚠️  Could not add max_file_size_mb column: {e}")
+                errors_encountered.append(f"courses.max_file_size_mb: {e}")
                 conn.rollback()
         else:
             print("✅ courses already has max_file_size_mb column")
+            columns_checked.append("courses.max_file_size_mb")
         
         # Check and add created_by and updated_by columns to role table
         print("\n🔧 Checking created_by column in role table...")
@@ -279,11 +306,14 @@ if DATABASE_URL:
                 cur.execute('ALTER TABLE role ADD COLUMN created_by INTEGER')
                 conn.commit()
                 print("✅ Added created_by column to role")
+                columns_added.append("role.created_by")
             except Exception as e:
                 print(f"⚠️  Could not add created_by column: {e}")
+                errors_encountered.append(f"role.created_by: {e}")
                 conn.rollback()
         else:
             print("✅ role already has created_by column")
+            columns_checked.append("role.created_by")
         
         print("\n🔧 Checking updated_by column in role table...")
         cur.execute("""
@@ -298,11 +328,14 @@ if DATABASE_URL:
                 cur.execute('ALTER TABLE role ADD COLUMN updated_by INTEGER')
                 conn.commit()
                 print("✅ Added updated_by column to role")
+                columns_added.append("role.updated_by")
             except Exception as e:
                 print(f"⚠️  Could not add updated_by column: {e}")
+                errors_encountered.append(f"role.updated_by: {e}")
                 conn.rollback()
         else:
             print("✅ role already has updated_by column")
+            columns_checked.append("role.updated_by")
         
         # Check and add title column to course_modules table
         print("\n🔧 Checking title column in course_modules table...")
@@ -318,11 +351,14 @@ if DATABASE_URL:
                 cur.execute("ALTER TABLE course_modules ADD COLUMN title VARCHAR(200) NOT NULL DEFAULT ''")
                 conn.commit()
                 print("✅ Added title column to course_modules")
+                columns_added.append("course_modules.title")
             except Exception as e:
                 print(f"⚠️  Could not add title column: {e}")
+                errors_encountered.append(f"course_modules.title: {e}")
                 conn.rollback()
         else:
             print("✅ course_modules already has title column")
+            columns_checked.append("course_modules.title")
         
         # Check and add missing columns to course_content table
         # Note: content_type and storage_type are Enum types, but we use VARCHAR for compatibility
@@ -357,11 +393,14 @@ if DATABASE_URL:
                     cur.execute(f'ALTER TABLE course_content ADD COLUMN {col_name} {col_def}')
                     conn.commit()
                     print(f"✅ Added {col_name} column to course_content")
+                    columns_added.append(f"course_content.{col_name}")
                 except Exception as e:
                     print(f"⚠️  Could not add {col_name} column: {e}")
+                    errors_encountered.append(f"course_content.{col_name}: {e}")
                     conn.rollback()
             else:
                 print(f"✅ course_content already has {col_name} column")
+                columns_checked.append(f"course_content.{col_name}")
         
         # Check and add username column to users table if missing
         print("\n🔧 Checking username column in users table...")
@@ -377,11 +416,14 @@ if DATABASE_URL:
                 cur.execute('ALTER TABLE users ADD COLUMN username VARCHAR(50)')
                 conn.commit()
                 print("✅ Added username column to users")
+                columns_added.append("users.username")
             except Exception as e:
                 print(f"⚠️  Could not add username column: {e}")
+                errors_encountered.append(f"users.username: {e}")
                 conn.rollback()
         else:
             print("✅ users already has username column")
+            columns_checked.append("users.username")
         
         # Check and add last_login column to users table if missing
         print("\n🔧 Checking last_login column in users table...")
@@ -397,15 +439,43 @@ if DATABASE_URL:
                 cur.execute('ALTER TABLE users ADD COLUMN last_login TIMESTAMP WITH TIME ZONE')
                 conn.commit()
                 print("✅ Added last_login column to users")
+                columns_added.append("users.last_login")
             except Exception as e:
                 print(f"⚠️  Could not add last_login column: {e}")
+                errors_encountered.append(f"users.last_login: {e}")
                 conn.rollback()
         else:
             print("✅ users already has last_login column")
+            columns_checked.append("users.last_login")
+        
+        # Summary of column checks
+        print("\n" + "=" * 60)
+        print("📊 COLUMN CHECK SUMMARY")
+        print("=" * 60)
+        print(f"✅ Columns checked (already existed): {len(columns_checked)}")
+        print(f"✅ Columns added: {len(columns_added)}")
+        if columns_added:
+            print("\nAdded columns:")
+            for col in columns_added:
+                print(f"  - {col}")
+        if errors_encountered:
+            print(f"\n⚠️  Errors encountered: {len(errors_encountered)}")
+            for error in errors_encountered:
+                print(f"  - {error}")
+        else:
+            print("\n✅ No errors encountered")
+        print("=" * 60)
         
         cur.close()
         conn.close()
-        print("✅ Schema verification and column addition complete")
+        
+        # Exit with error code if there were errors
+        if errors_encountered:
+            print("⚠️  Schema verification completed with errors")
+            sys.exit(1)
+        else:
+            print("✅ Schema verification and column addition complete")
+            sys.exit(0)
     except Exception as e:
         print(f"⚠️  Could not add data_source columns: {e}")
 PYTHON_SCRIPT
