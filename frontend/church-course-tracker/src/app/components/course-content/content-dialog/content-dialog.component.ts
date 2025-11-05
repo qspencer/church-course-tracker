@@ -105,6 +105,7 @@ export class ContentDialogComponent implements OnInit {
 
     if (this.isEditing && this.data.content) {
       // Update existing content
+      // Note: content_type change may affect storage_type, but we'll let the backend handle that
       const updateData: CourseContentUpdate = {
         title: formValue.title,
         description: formValue.description || undefined,
@@ -114,12 +115,42 @@ export class ContentDialogComponent implements OnInit {
         embedded_content: formValue.embedded_content || undefined,
         order_index: formValue.order_index || 0
       };
+      
+      // Store content_type for file upload check
+      const contentType = formValue.content_type;
 
       this.courseContentService.updateContent(this.data.content.id, updateData).subscribe({
         next: (content) => {
-          this.isLoading = false;
-          this.snackBar.open('Content updated successfully', 'Close', { duration: 3000 });
-          this.dialogRef.close(content);
+          // If a replacement file was selected, upload it after content update
+          if (this.selectedFile && this.requiresFile(contentType)) {
+            this.isLoading = true; // Keep loading for file upload
+            this.courseContentService.uploadFile(content.id, this.selectedFile).subscribe({
+              next: (uploadResult) => {
+                this.isLoading = false;
+                this.snackBar.open('Content updated and file replaced successfully', 'Close', { duration: 3000 });
+                this.dialogRef.close(content);
+              },
+              error: (uploadError) => {
+                this.isLoading = false;
+                console.error('Error replacing file:', uploadError);
+                let errorMessage = 'Content updated but file replacement failed. You can try uploading again later.';
+                if (uploadError?.error?.detail) {
+                  errorMessage = `Content updated but file replacement failed: ${uploadError.error.detail}`;
+                }
+                this.snackBar.open(errorMessage, 'Close', {
+                  duration: 5000,
+                  horizontalPosition: 'end',
+                  verticalPosition: 'top',
+                  panelClass: ['error-snackbar']
+                });
+                this.dialogRef.close(content); // Still close dialog even if upload failed
+              }
+            });
+          } else {
+            this.isLoading = false;
+            this.snackBar.open('Content updated successfully', 'Close', { duration: 3000 });
+            this.dialogRef.close(content);
+          }
         },
         error: (error) => {
           this.isLoading = false;
@@ -250,6 +281,14 @@ export class ContentDialogComponent implements OnInit {
   
   getFileName(): string {
     return this.selectedFile ? this.selectedFile.name : 'No file selected';
+  }
+  
+  formatFileSize(bytes: number | undefined): string {
+    if (!bytes || bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   }
 }
 

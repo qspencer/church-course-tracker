@@ -60,8 +60,15 @@
     </mat-form-field>
 
     <div class="file-upload-section" 
-         *ngIf="!isEditing && requiresFile(contentForm.get('content_type')?.value)">
-      <label class="file-upload-label">File Upload</label>
+         *ngIf="requiresFile(contentForm.get('content_type')?.value)">
+      <label class="file-upload-label">{{ isEditing ? 'Replace File' : 'File Upload' }}</label>
+      <div class="file-upload-container" *ngIf="isEditing && data.content?.file_name">
+        <span class="current-file-info">
+          <mat-icon>description</mat-icon>
+          <span>Current file: {{ data.content.file_name }}</span>
+          <span class="file-size" *ngIf="data.content.file_size">({{ formatFileSize(data.content.file_size) }})</span>
+        </span>
+      </div>
       <div class="file-upload-container">
         <input type="file" 
                #fileInput 
@@ -69,12 +76,15 @@
                accept=".pdf,.doc,.docx,.mp4,.avi,.mov,.mp3,.wav,.jpg,.jpeg,.png,.gif"
                style="display: none;">
         <button mat-stroked-button type="button" (click)="fileInput.click()">
-          <mat-icon>attach_file</mat-icon>
-          Choose File
+          <mat-icon>{{ isEditing ? 'swap_horiz' : 'attach_file' }}</mat-icon>
+          {{ isEditing ? 'Choose Replacement File' : 'Choose File' }}
         </button>
-        <span class="file-name">{{ getFileName() }}</span>
+        <span class="file-name" *ngIf="selectedFile">{{ getFileName() }}</span>
       </div>
-      <mat-hint>Upload a file for this content. Supported formats: PDF, DOC, DOCX, MP4, AVI, MOV, MP3, WAV, JPG, PNG, GIF</mat-hint>
+      <mat-hint>
+        {{ isEditing ? 'Upload a new file to replace the existing one. ' : 'Upload a file for this content. ' }}
+        Supported formats: PDF, DOC, DOCX, MP4, AVI, MOV, MP3, WAV, JPG, PNG, GIF
+      </mat-hint>
     </div>
 
     <mat-form-field appearance="outline" class="full-width">
