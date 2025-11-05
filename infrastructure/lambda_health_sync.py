@@ -128,7 +128,21 @@ def handler(event, context):
                 else:
                     logger.debug(f"Instance {instance_id} health already correct: {current_health}")
             else:
-                logger.warning(f"No matching ECS task found for instance {instance_id}")
+                # No matching ECS task found - mark instance as UNHEALTHY
+                # This handles stale instances from stopped tasks
+                logger.warning(f"No matching ECS task found for instance {instance_id} - marking as UNHEALTHY")
+                if current_health != 'UNHEALTHY':
+                    try:
+                        logger.info(f"Marking orphaned instance {instance_id} as UNHEALTHY")
+                        servicediscovery.update_instance_custom_health_status(
+                            ServiceId=SERVICE_DISCOVERY_SERVICE_ID,
+                            InstanceId=instance_id,
+                            Status='UNHEALTHY'
+                        )
+                        logger.info(f"Successfully marked instance {instance_id} as UNHEALTHY")
+                        updated_count += 1
+                    except Exception as e:
+                        logger.error(f"Failed to mark orphaned instance {instance_id} as UNHEALTHY: {str(e)}")
         
         result = {
             'statusCode': 200,
