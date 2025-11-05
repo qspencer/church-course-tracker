@@ -569,6 +569,42 @@ if DATABASE_URL:
             print("ℹ️  course_content table does not have module_name column (this is OK)")
             columns_checked.append("course_content.module_name (does not exist)")
         
+        # Check if content_audit_logs table exists and create it if missing
+        print("\n🔧 Checking content_audit_logs table...")
+        cur.execute("""
+            SELECT table_name 
+            FROM information_schema.tables 
+            WHERE table_name='content_audit_logs'
+        """)
+        
+        if not cur.fetchone():
+            print("Creating content_audit_logs table...")
+            try:
+                cur.execute("""
+                    CREATE TABLE content_audit_logs (
+                        id SERIAL PRIMARY KEY,
+                        content_id INTEGER,
+                        user_id INTEGER NOT NULL,
+                        action VARCHAR(20) NOT NULL,
+                        change_timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+                        old_values JSON,
+                        new_values JSON,
+                        change_summary TEXT,
+                        ip_address VARCHAR(45),
+                        user_agent VARCHAR(500)
+                    )
+                """)
+                conn.commit()
+                print("✅ Created content_audit_logs table")
+                columns_added.append("content_audit_logs (table created)")
+            except Exception as e:
+                print(f"⚠️  Could not create content_audit_logs table: {e}")
+                errors_encountered.append(f"content_audit_logs: {e}")
+                conn.rollback()
+        else:
+            print("✅ content_audit_logs table already exists")
+            columns_checked.append("content_audit_logs")
+        
         # Summary of column checks
         print("\n" + "=" * 60)
         print("📊 COLUMN CHECK SUMMARY")
