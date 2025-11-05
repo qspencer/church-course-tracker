@@ -180,7 +180,8 @@ describe('ErrorInterceptor', () => {
     req.error(errorEvent, { status: 0 });
 
     // Status 0 errors don't have panelClass because status 0 is not >= 400
-    expect(snackBarSpy.open).toHaveBeenCalledWith('A network error occurred', 'Close', {
+    // ErrorEvent message is used when available
+    expect(snackBarSpy.open).toHaveBeenCalledWith('Network error', 'Close', {
       duration: 5000,
       horizontalPosition: 'end',
       verticalPosition: 'top',
