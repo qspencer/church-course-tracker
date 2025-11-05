@@ -8,6 +8,12 @@ echo "🚀 Starting Church Course Tracker..."
 
 # Run database migrations
 echo "🔄 Running database migrations..."
+
+# First, try to fix any multiple head issues
+echo "🔧 Checking for multiple Alembic heads..."
+python3 /app/scripts/fix_alembic_heads.py 2>&1 | head -20
+
+# Then run migrations
 alembic upgrade head
 
 if [ $? -eq 0 ]; then
@@ -21,6 +27,18 @@ else
     else
         echo "⚠️  Could not stamp database. Continuing anyway..."
     fi
+fi
+
+# Validate schema after migrations
+echo "🔍 Validating database schema against models..."
+python3 /app/scripts/schema_validator.py 2>&1 | head -50
+
+SCHEMA_VALIDATION_EXIT_CODE=$?
+if [ $SCHEMA_VALIDATION_EXIT_CODE -ne 0 ]; then
+    echo "⚠️  Schema validation found issues. Running schema fixes..."
+    # Continue - the schema fix script below will handle missing tables/columns
+else
+    echo "✅ Schema validation passed!"
 fi
 
 # Check database tables and migration state
