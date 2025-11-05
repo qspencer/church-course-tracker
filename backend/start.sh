@@ -494,6 +494,81 @@ if DATABASE_URL:
             print("✅ audit_log already has changed_at column")
             columns_checked.append("audit_log.changed_at")
         
+        # Check and add ip_address column to audit_log table if missing
+        print("\n🔧 Checking ip_address column in audit_log table...")
+        cur.execute("""
+            SELECT column_name 
+            FROM information_schema.columns 
+            WHERE table_name='audit_log' AND column_name='ip_address'
+        """)
+        
+        if not cur.fetchone():
+            print("Adding ip_address column to audit_log...")
+            try:
+                cur.execute('ALTER TABLE audit_log ADD COLUMN ip_address VARCHAR(45)')
+                conn.commit()
+                print("✅ Added ip_address column to audit_log")
+                columns_added.append("audit_log.ip_address")
+            except Exception as e:
+                print(f"⚠️  Could not add ip_address column: {e}")
+                errors_encountered.append(f"audit_log.ip_address: {e}")
+                conn.rollback()
+        else:
+            print("✅ audit_log already has ip_address column")
+            columns_checked.append("audit_log.ip_address")
+        
+        # Check and add user_agent column to audit_log table if missing
+        print("\n🔧 Checking user_agent column in audit_log table...")
+        cur.execute("""
+            SELECT column_name 
+            FROM information_schema.columns 
+            WHERE table_name='audit_log' AND column_name='user_agent'
+        """)
+        
+        if not cur.fetchone():
+            print("Adding user_agent column to audit_log...")
+            try:
+                cur.execute('ALTER TABLE audit_log ADD COLUMN user_agent TEXT')
+                conn.commit()
+                print("✅ Added user_agent column to audit_log")
+                columns_added.append("audit_log.user_agent")
+            except Exception as e:
+                print(f"⚠️  Could not add user_agent column: {e}")
+                errors_encountered.append(f"audit_log.user_agent: {e}")
+                conn.rollback()
+        else:
+            print("✅ audit_log already has user_agent column")
+            columns_checked.append("audit_log.user_agent")
+        
+        # Check if module_name column exists in course_content and make it nullable if it's NOT NULL
+        print("\n🔧 Checking module_name column in course_content table...")
+        cur.execute("""
+            SELECT column_name, is_nullable
+            FROM information_schema.columns 
+            WHERE table_name='course_content' AND column_name='module_name'
+        """)
+        
+        module_name_result = cur.fetchone()
+        if module_name_result:
+            is_nullable = module_name_result[1] == 'YES'
+            if not is_nullable:
+                print("Making module_name column nullable in course_content...")
+                try:
+                    cur.execute('ALTER TABLE course_content ALTER COLUMN module_name DROP NOT NULL')
+                    conn.commit()
+                    print("✅ Made module_name column nullable in course_content")
+                    columns_added.append("course_content.module_name (made nullable)")
+                except Exception as e:
+                    print(f"⚠️  Could not make module_name nullable: {e}")
+                    errors_encountered.append(f"course_content.module_name (nullable): {e}")
+                    conn.rollback()
+            else:
+                print("✅ course_content.module_name is already nullable")
+                columns_checked.append("course_content.module_name")
+        else:
+            print("ℹ️  course_content table does not have module_name column (this is OK)")
+            columns_checked.append("course_content.module_name (does not exist)")
+        
         # Summary of column checks
         print("\n" + "=" * 60)
         print("📊 COLUMN CHECK SUMMARY")
