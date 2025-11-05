@@ -66,8 +66,6 @@ module.exports = function (config) {
         ]
       }
     },
-    // Add Chrome flags for CI environment
-    browserFlags: process.env.CI ? ['--no-sandbox', '--disable-dev-shm-usage'] : [],
     captureTimeout: 60000,
     browserNoActivityTimeout: 60000,
     browserDisconnectTimeout: 10000,
