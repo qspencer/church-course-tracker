@@ -61,17 +61,37 @@ describe('ErrorInterceptor', () => {
     });
   });
 
-  it('should not show error message for 401 unauthorized', () => {
-    httpClient.get('/test').subscribe({
+  it('should not show error message for 401 unauthorized on auth endpoints', () => {
+    httpClient.get('/auth/login').subscribe({
       error: (error: HttpErrorResponse) => {
         expect(error.status).toBe(401);
       }
     });
 
-    const req = httpMock.expectOne('/test');
+    const req = httpMock.expectOne('/auth/login');
     req.flush({}, { status: 401, statusText: 'Unauthorized' });
 
+    // 401 on auth endpoints should not show snackbar (handled by auth component)
     expect(snackBarSpy.open).not.toHaveBeenCalled();
+  });
+
+  it('should show error message for 401 unauthorized on non-auth endpoints', () => {
+    httpClient.get('/api/courses').subscribe({
+      error: (error: HttpErrorResponse) => {
+        expect(error.status).toBe(401);
+      }
+    });
+
+    const req = httpMock.expectOne('/api/courses');
+    req.flush({}, { status: 401, statusText: 'Unauthorized' });
+
+    // 401 on non-auth endpoints should show snackbar (expired tokens, etc.)
+    expect(snackBarSpy.open).toHaveBeenCalledWith('Unauthorized. Please log in again.', 'Close', {
+      duration: 5000,
+      horizontalPosition: 'end',
+      verticalPosition: 'top',
+      panelClass: ['error-snackbar']
+    });
   });
 
   it('should show error message for 403 forbidden', () => {

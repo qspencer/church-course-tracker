@@ -489,8 +489,27 @@ describe('CourseContentComponent', () => {
     });
 
     it('should show placeholder for create content', () => {
+      // Initialize component to set courseId and modules
+      component.ngOnInit();
+      
+      // Mock dialog.open to return an object with afterClosed
+      const mockDialogRef = {
+        afterClosed: jasmine.createSpy('afterClosed').and.returnValue(of(null))
+      };
+      dialog.open.and.returnValue(mockDialogRef as any);
+      
       component.createContent();
-      expect(snackBar.open).toHaveBeenCalledWith('Content creation not implemented yet', 'Close', { duration: 3000 });
+      
+      expect(dialog.open).toHaveBeenCalled();
+      const callArgs = dialog.open.calls.mostRecent().args;
+      expect(callArgs[1]).toEqual(jasmine.objectContaining({
+        width: '600px',
+        maxWidth: '90vw',
+        data: {
+          courseId: component.courseId,
+          modules: component.modules
+        }
+      }));
     });
 
     it('should show placeholder for edit module', () => {
