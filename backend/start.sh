@@ -605,6 +605,42 @@ if DATABASE_URL:
             print("✅ content_audit_logs table already exists")
             columns_checked.append("content_audit_logs")
         
+        # Check if content_access_logs table exists and create it if missing
+        print("\n🔧 Checking content_access_logs table...")
+        cur.execute("""
+            SELECT table_name 
+            FROM information_schema.tables 
+            WHERE table_name='content_access_logs'
+        """)
+        
+        if not cur.fetchone():
+            print("Creating content_access_logs table...")
+            try:
+                cur.execute("""
+                    CREATE TABLE content_access_logs (
+                        id SERIAL PRIMARY KEY,
+                        content_id INTEGER NOT NULL,
+                        user_id INTEGER NOT NULL,
+                        access_type VARCHAR(20) NOT NULL,
+                        access_timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+                        ip_address VARCHAR(45),
+                        user_agent VARCHAR(500),
+                        session_id VARCHAR(100),
+                        progress_percentage INTEGER,
+                        time_spent INTEGER
+                    )
+                """)
+                conn.commit()
+                print("✅ Created content_access_logs table")
+                columns_added.append("content_access_logs (table created)")
+            except Exception as e:
+                print(f"⚠️  Could not create content_access_logs table: {e}")
+                errors_encountered.append(f"content_access_logs: {e}")
+                conn.rollback()
+        else:
+            print("✅ content_access_logs table already exists")
+            columns_checked.append("content_access_logs")
+        
         # Summary of column checks
         print("\n" + "=" * 60)
         print("📊 COLUMN CHECK SUMMARY")
