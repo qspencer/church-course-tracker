@@ -48,7 +48,7 @@ module.exports = function (config) {
     colors: true,
     logLevel: config.LOG_INFO,
     autoWatch: !process.env.CI,
-    browsers: process.env.CI ? ['ChromeHeadlessCI'] : ['Chrome'],
+    browsers: process.env.CI ? ['ChromeHeadless'] : ['Chrome'],
     singleRun: !!process.env.CI,
     restartOnFileChange: !process.env.CI,
     customLaunchers: {
@@ -66,6 +66,8 @@ module.exports = function (config) {
         ]
       }
     },
+    // Add Chrome flags for CI environment
+    browserFlags: process.env.CI ? ['--no-sandbox', '--disable-dev-shm-usage'] : [],
     captureTimeout: 60000,
     browserNoActivityTimeout: 60000,
     browserDisconnectTimeout: 10000,
