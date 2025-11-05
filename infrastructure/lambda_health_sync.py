@@ -80,11 +80,31 @@ def handler(event, context):
                 'status': task.get('lastStatus', 'UNKNOWN')
             }
         
+        # Get actual health status for all instances (for custom health checks)
+        instance_ids = [inst.get('Id', '') for inst in instances if inst.get('Id')]
+        health_status_map = {}
+        if instance_ids:
+            try:
+                health_status_response = servicediscovery.get_instances_health_status(
+                    ServiceId=SERVICE_DISCOVERY_SERVICE_ID,
+                    InstanceIds=instance_ids
+                )
+                health_status_map = health_status_response.get('Status', {})
+                logger.info(f"Retrieved health status for {len(health_status_map)} instance(s)")
+            except Exception as e:
+                logger.warning(f"Could not retrieve health status: {str(e)}")
+                # Fall back to attribute-based check
+        
         # Update Service Discovery instance health based on ECS task health
         updated_count = 0
         for instance in instances:
             instance_id = instance.get('Id', '')
-            current_health = instance.get('Attributes', {}).get('AWS_INIT_HEALTH_STATUS', 'UNKNOWN')
+            # For custom health checks, use the actual health status if available
+            # Otherwise fall back to the attribute
+            if instance_id in health_status_map:
+                current_health = health_status_map[instance_id]
+            else:
+                current_health = instance.get('Attributes', {}).get('AWS_INIT_HEALTH_STATUS', 'UNKNOWN')
             
             # Find matching ECS task by instance ID (instance ID = task ID)
             if instance_id in task_map:
