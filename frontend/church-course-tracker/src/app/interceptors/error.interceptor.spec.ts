@@ -104,7 +104,7 @@ describe('ErrorInterceptor', () => {
     const req = httpMock.expectOne('/test');
     req.flush({}, { status: 403, statusText: 'Forbidden' });
 
-    expect(snackBarSpy.open).toHaveBeenCalledWith('Access forbidden', 'Close', {
+    expect(snackBarSpy.open).toHaveBeenCalledWith('Access forbidden. You don\'t have permission to perform this action.', 'Close', {
       duration: 5000,
       horizontalPosition: 'end',
       verticalPosition: 'top',
@@ -122,7 +122,7 @@ describe('ErrorInterceptor', () => {
     const req = httpMock.expectOne('/test');
     req.flush({}, { status: 404, statusText: 'Not Found' });
 
-    expect(snackBarSpy.open).toHaveBeenCalledWith('Resource not found', 'Close', {
+    expect(snackBarSpy.open).toHaveBeenCalledWith('Resource not found.', 'Close', {
       duration: 5000,
       horizontalPosition: 'end',
       verticalPosition: 'top',
@@ -140,7 +140,7 @@ describe('ErrorInterceptor', () => {
     const req = httpMock.expectOne('/test');
     req.flush({}, { status: 500, statusText: 'Internal Server Error' });
 
-    expect(snackBarSpy.open).toHaveBeenCalledWith('Internal server error', 'Close', {
+    expect(snackBarSpy.open).toHaveBeenCalledWith('Internal server error. Please try again later.', 'Close', {
       duration: 5000,
       horizontalPosition: 'end',
       verticalPosition: 'top',
@@ -179,11 +179,12 @@ describe('ErrorInterceptor', () => {
     const errorEvent = new ErrorEvent('Network error', { message: 'Network error' });
     req.error(errorEvent, { status: 0 });
 
-    expect(snackBarSpy.open).toHaveBeenCalledWith(jasmine.stringContaining('error'), 'Close', {
+    // Status 0 errors don't have panelClass because status 0 is not >= 400
+    expect(snackBarSpy.open).toHaveBeenCalledWith('A network error occurred', 'Close', {
       duration: 5000,
       horizontalPosition: 'end',
       verticalPosition: 'top',
-      panelClass: ['error-snackbar']
+      panelClass: []
     });
   });
 });
