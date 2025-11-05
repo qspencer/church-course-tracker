@@ -3,7 +3,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { CourseContentService } from '../../../services/course-content.service';
-import { CourseContent, CourseContentCreate, CourseContentType, StorageType, CourseModule, ContentUploadResponse } from '../../../models';
+import { CourseContent, CourseContentCreate, CourseContentUpdate, CourseContentType, StorageType, CourseModule, ContentUploadResponse } from '../../../models';
 
 export interface ContentDialogData {
   courseId: number;
@@ -105,7 +105,7 @@ export class ContentDialogComponent implements OnInit {
 
     if (this.isEditing && this.data.content) {
       // Update existing content
-      const updateData: Partial<CourseContentCreate> = {
+      const updateData: CourseContentUpdate = {
         title: formValue.title,
         description: formValue.description || undefined,
         content_type: formValue.content_type,

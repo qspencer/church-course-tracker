@@ -284,7 +284,20 @@ export class CourseContentComponent implements OnInit, OnDestroy {
   }
 
   editContent(content: CourseContent): void {
-    this.snackBar.open('Content editing not implemented yet', 'Close', { duration: 3000 });
+    this.dialog.open(ContentDialogComponent, {
+      width: '600px',
+      maxWidth: '90vw',
+      data: {
+        courseId: this.courseId,
+        modules: this.modules,
+        content: content // Pass the content to edit
+      }
+    }).afterClosed().subscribe((result) => {
+      if (result) {
+        // Reload content after successful update
+        this.loadData();
+      }
+    });
   }
 
   deleteContent(content: CourseContent): void {
