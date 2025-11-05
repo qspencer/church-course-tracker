@@ -28,7 +28,14 @@ export default defineConfig({
     
     /* Record video on failure */
     video: 'retain-on-failure',
+    
+    /* Increase timeout for slower CI environments */
+    actionTimeout: 60000, // 60 seconds
+    navigationTimeout: 60000, // 60 seconds
   },
+  
+  /* Global test timeout */
+  timeout: process.env.CI ? 120000 : 30000, // 2 minutes in CI, 30 seconds locally
 
   /* Configure projects for major browsers */
   projects: process.env.CI

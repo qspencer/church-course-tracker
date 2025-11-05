@@ -77,12 +77,16 @@ describe('CourseDialogComponent', () => {
   });
 
   it('should initialize in editing mode when course provided', () => {
-    // Trigger change detection to ensure ngOnInit runs
-    fixture.detectChanges();
+    // Component should have access to injected data
+    expect(component.data).toBeDefined();
+    expect(component.data.course).toEqual(mockCourse);
     
     // The component should be in editing mode because mockDialogData.course is set
     expect(component.isEditing).toBe(true);
-    expect(component.data.course).toEqual(mockCourse);
+    expect(component.course).toEqual(mockCourse);
+    
+    // Trigger change detection to ensure ngOnInit runs and populates the form
+    fixture.detectChanges();
     
     // Check that the form is populated with course data after ngOnInit
     expect(component.courseForm.get('title')?.value).toBe(mockCourse.title);
