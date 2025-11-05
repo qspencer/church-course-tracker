@@ -81,19 +81,24 @@ def handler(event, context):
             }
         
         # Get actual health status for all instances (for custom health checks)
+        # Note: For custom health checks, we need to explicitly update health status
+        # The AWS_INIT_HEALTH_STATUS attribute is just metadata, not the actual health status
         instance_ids = [inst.get('Id', '') for inst in instances if inst.get('Id')]
         health_status_map = {}
         if instance_ids:
             try:
+                # get_instances_health_status expects Instances as a dict mapping instance_id to empty dict
                 health_status_response = servicediscovery.get_instances_health_status(
                     ServiceId=SERVICE_DISCOVERY_SERVICE_ID,
-                    InstanceIds=instance_ids
+                    Instances={inst_id: {} for inst_id in instance_ids}
                 )
+                # The response format is: {'Status': {'instance_id': 'HEALTHY'|'UNHEALTHY'}}
                 health_status_map = health_status_response.get('Status', {})
-                logger.info(f"Retrieved health status for {len(health_status_map)} instance(s)")
+                logger.info(f"Retrieved health status for {len(health_status_map)} instance(s): {health_status_map}")
             except Exception as e:
-                logger.warning(f"Could not retrieve health status: {str(e)}")
-                # Fall back to attribute-based check
+                logger.warning(f"Could not retrieve health status (will use attribute fallback): {str(e)}")
+                # Fall back to attribute-based check - assume UNKNOWN if we can't get status
+                health_status_map = {inst_id: 'UNKNOWN' for inst_id in instance_ids}
         
         # Update Service Discovery instance health based on ECS task health
         updated_count = 0
