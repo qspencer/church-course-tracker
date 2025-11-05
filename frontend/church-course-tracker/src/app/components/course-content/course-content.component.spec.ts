@@ -465,7 +465,7 @@ describe('CourseContentComponent', () => {
     it('should handle download error', () => {
       courseContentService.downloadContent.and.returnValue(throwError('Download failed'));
       component.downloadContent(mockContent);
-      expect(snackBar.open).toHaveBeenCalledWith('Failed to download content', 'Close', { duration: 3000 });
+      expect(snackBar.open).toHaveBeenCalledWith('Failed to download content.', 'Close', { duration: 5000 });
     });
 
     it('should download external content', () => {
