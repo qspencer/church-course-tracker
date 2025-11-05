@@ -3,7 +3,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { CourseContentService } from '../../../services/course-content.service';
-import { CourseContent, CourseContentCreate, CourseContentType, StorageType, CourseModule } from '../../../models';
+import { CourseContent, CourseContentCreate, CourseContentType, StorageType, CourseModule, ContentUploadResponse } from '../../../models';
 
 export interface ContentDialogData {
   courseId: number;
@@ -20,10 +20,19 @@ export class ContentDialogComponent implements OnInit {
   contentForm: FormGroup;
   isEditing: boolean;
   isLoading = false;
+  selectedFile: File | null = null;
   
   // Enums for template
   ContentType = CourseContentType;
   contentTypes = Object.values(CourseContentType);
+  
+  // Content types that require file upload
+  fileContentTypes = [
+    CourseContentType.DOCUMENT,
+    CourseContentType.VIDEO,
+    CourseContentType.AUDIO,
+    CourseContentType.IMAGE
+  ];
 
   constructor(
     private fb: FormBuilder,
@@ -157,9 +166,36 @@ export class ContentDialogComponent implements OnInit {
 
       this.courseContentService.createContent(contentData).subscribe({
         next: (content) => {
-          this.isLoading = false;
-          this.snackBar.open('Content created successfully', 'Close', { duration: 3000 });
-          this.dialogRef.close(content);
+          // If a file was selected, upload it after content creation
+          if (this.selectedFile && this.requiresFile(contentData.content_type)) {
+            this.isLoading = true; // Keep loading for file upload
+            this.courseContentService.uploadFile(content.id, this.selectedFile).subscribe({
+              next: (uploadResult) => {
+                this.isLoading = false;
+                this.snackBar.open('Content created and file uploaded successfully', 'Close', { duration: 3000 });
+                this.dialogRef.close(content);
+              },
+              error: (uploadError) => {
+                this.isLoading = false;
+                console.error('Error uploading file:', uploadError);
+                let errorMessage = 'Content created but file upload failed. You can upload the file later.';
+                if (uploadError?.error?.detail) {
+                  errorMessage = `Content created but file upload failed: ${uploadError.error.detail}`;
+                }
+                this.snackBar.open(errorMessage, 'Close', {
+                  duration: 5000,
+                  horizontalPosition: 'end',
+                  verticalPosition: 'top',
+                  panelClass: ['error-snackbar']
+                });
+                this.dialogRef.close(content); // Still close dialog even if upload failed
+              }
+            });
+          } else {
+            this.isLoading = false;
+            this.snackBar.open('Content created successfully', 'Close', { duration: 3000 });
+            this.dialogRef.close(content);
+          }
         },
         error: (error) => {
           this.isLoading = false;
@@ -199,6 +235,21 @@ export class ContentDialogComponent implements OnInit {
       case CourseContentType.EMBEDDED: return 'Embedded Content';
       default: return 'Unknown';
     }
+  }
+  
+  requiresFile(contentType: CourseContentType): boolean {
+    return this.fileContentTypes.includes(contentType);
+  }
+  
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      this.selectedFile = input.files[0];
+    }
+  }
+  
+  getFileName(): string {
+    return this.selectedFile ? this.selectedFile.name : 'No file selected';
   }
 }
 

@@ -59,6 +59,24 @@
       </mat-error>
     </mat-form-field>
 
+    <div class="file-upload-section" 
+         *ngIf="!isEditing && requiresFile(contentForm.get('content_type')?.value)">
+      <label class="file-upload-label">File Upload</label>
+      <div class="file-upload-container">
+        <input type="file" 
+               #fileInput 
+               (change)="onFileSelected($event)"
+               accept=".pdf,.doc,.docx,.mp4,.avi,.mov,.mp3,.wav,.jpg,.jpeg,.png,.gif"
+               style="display: none;">
+        <button mat-stroked-button type="button" (click)="fileInput.click()">
+          <mat-icon>attach_file</mat-icon>
+          Choose File
+        </button>
+        <span class="file-name">{{ getFileName() }}</span>
+      </div>
+      <mat-hint>Upload a file for this content. Supported formats: PDF, DOC, DOCX, MP4, AVI, MOV, MP3, WAV, JPG, PNG, GIF</mat-hint>
+    </div>
+
     <mat-form-field appearance="outline" class="full-width">
       <mat-label>Order Index</mat-label>
       <input matInput formControlName="order_index" type="number" min="0">

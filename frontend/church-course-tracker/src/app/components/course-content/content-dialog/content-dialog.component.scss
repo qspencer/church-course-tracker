@@ -30,3 +30,40 @@ mat-dialog-actions {
   }
 }
 
+.file-upload-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 8px 0;
+
+  .file-upload-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: rgba(0, 0, 0, 0.6);
+    margin-bottom: 4px;
+  }
+
+  .file-upload-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    button {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .file-name {
+      font-size: 14px;
+      color: rgba(0, 0, 0, 0.87);
+      font-style: italic;
+    }
+  }
+
+  mat-hint {
+    font-size: 12px;
+    margin-top: -4px;
+  }
+}
+
