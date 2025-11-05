@@ -335,7 +335,6 @@ export class CourseContentComponent implements OnInit, OnDestroy {
             errorMessage = 'File not found. The content may not have a file uploaded yet.';
           }
           this.snackBar.open(errorMessage, 'Close', { duration: 5000 });
-          this.snackBar.open('Failed to download content', 'Close', { duration: 3000 });
         }
       });
     } else {
