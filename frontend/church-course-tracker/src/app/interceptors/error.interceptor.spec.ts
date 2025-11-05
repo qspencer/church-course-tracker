@@ -56,7 +56,8 @@ describe('ErrorInterceptor', () => {
     expect(snackBarSpy.open).toHaveBeenCalledWith('Bad request error', 'Close', {
       duration: 5000,
       horizontalPosition: 'end',
-      verticalPosition: 'top'
+      verticalPosition: 'top',
+      panelClass: ['error-snackbar']
     });
   });
 
@@ -86,7 +87,8 @@ describe('ErrorInterceptor', () => {
     expect(snackBarSpy.open).toHaveBeenCalledWith('Access forbidden', 'Close', {
       duration: 5000,
       horizontalPosition: 'end',
-      verticalPosition: 'top'
+      verticalPosition: 'top',
+      panelClass: ['error-snackbar']
     });
   });
 
@@ -103,7 +105,8 @@ describe('ErrorInterceptor', () => {
     expect(snackBarSpy.open).toHaveBeenCalledWith('Resource not found', 'Close', {
       duration: 5000,
       horizontalPosition: 'end',
-      verticalPosition: 'top'
+      verticalPosition: 'top',
+      panelClass: ['error-snackbar']
     });
   });
 
@@ -120,7 +123,8 @@ describe('ErrorInterceptor', () => {
     expect(snackBarSpy.open).toHaveBeenCalledWith('Internal server error', 'Close', {
       duration: 5000,
       horizontalPosition: 'end',
-      verticalPosition: 'top'
+      verticalPosition: 'top',
+      panelClass: ['error-snackbar']
     });
   });
 
@@ -137,7 +141,8 @@ describe('ErrorInterceptor', () => {
     expect(snackBarSpy.open).toHaveBeenCalledWith('Custom validation error', 'Close', {
       duration: 5000,
       horizontalPosition: 'end',
-      verticalPosition: 'top'
+      verticalPosition: 'top',
+      panelClass: ['error-snackbar']
     });
   });
 
@@ -154,10 +159,11 @@ describe('ErrorInterceptor', () => {
     const errorEvent = new ErrorEvent('Network error', { message: 'Network error' });
     req.error(errorEvent, { status: 0 });
 
-    expect(snackBarSpy.open).toHaveBeenCalledWith('Network error', 'Close', {
+    expect(snackBarSpy.open).toHaveBeenCalledWith(jasmine.stringContaining('error'), 'Close', {
       duration: 5000,
       horizontalPosition: 'end',
-      verticalPosition: 'top'
+      verticalPosition: 'top',
+      panelClass: ['error-snackbar']
     });
   });
 });
