@@ -297,6 +297,11 @@ export class CourseContentComponent implements OnInit, OnDestroy {
     } else if (content.content_type === CourseContentType.EMBEDDED && content.embedded_content) {
       this.snackBar.open('Embedded content viewer not implemented yet', 'Close', { duration: 3000 });
     } else {
+      // Check if content has a file before trying to download
+      if (!content.file_path && !content.file_name) {
+        this.snackBar.open('No file uploaded for this content. Please upload a file first.', 'Close', { duration: 5000 });
+        return;
+      }
       this.downloadContent(content);
     }
   }
@@ -305,6 +310,12 @@ export class CourseContentComponent implements OnInit, OnDestroy {
     if (content.storage_type === StorageType.EXTERNAL && content.external_url) {
       window.open(content.external_url, '_blank');
     } else if (content.storage_type === StorageType.DATABASE || content.storage_type === StorageType.S3) {
+      // Check if file exists before attempting download
+      if (!content.file_path && !content.file_name) {
+        this.snackBar.open('No file uploaded for this content. Please upload a file first.', 'Close', { duration: 5000 });
+        return;
+      }
+      
       this.courseContentService.downloadContent(content.id).subscribe({
         next: (blob) => {
           const a = document.createElement('a');
@@ -317,6 +328,13 @@ export class CourseContentComponent implements OnInit, OnDestroy {
         },
         error: (error) => {
           console.error('Error downloading content:', error);
+          let errorMessage = 'Failed to download content.';
+          if (error?.error?.detail) {
+            errorMessage = error.error.detail;
+          } else if (error?.status === 404) {
+            errorMessage = 'File not found. The content may not have a file uploaded yet.';
+          }
+          this.snackBar.open(errorMessage, 'Close', { duration: 5000 });
           this.snackBar.open('Failed to download content', 'Close', { duration: 3000 });
         }
       });

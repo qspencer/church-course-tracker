@@ -419,13 +419,28 @@ class ContentService:
 
         # Get file content
         if content.storage_type == StorageType.DATABASE:
+            if not content.file_path:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="No file uploaded for this content. Please upload a file first.",
+                )
             file_content = self._get_file_from_database(content.file_path)
         elif content.storage_type == StorageType.S3:
+            if not content.file_path:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="No file uploaded for this content. Please upload a file first.",
+                )
             file_content = self._get_file_from_s3(content.file_path)
+        elif content.storage_type == StorageType.EXTERNAL:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Cannot download external content. This content is available via external URL.",
+            )
         else:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Cannot download external content",
+                detail="Cannot download this type of content.",
             )
 
         return {
@@ -573,6 +588,12 @@ class ContentService:
 
     def _get_file_from_database(self, file_path: str) -> bytes:
         """Get file content from database storage"""
+        if not file_path:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="No file path specified. File may not have been uploaded.",
+            )
+        
         if not os.path.exists(file_path):
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail="File not found"
