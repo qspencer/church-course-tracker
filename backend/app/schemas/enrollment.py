@@ -12,13 +12,12 @@ class CourseEnrollmentBase(BaseModel):
     """Base course enrollment schema"""
 
     people_id: Optional[int] = None
-    person_id: Optional[int] = None  # Alias for people_id (frontend uses person_id)
     course_id: int
     
     @model_validator(mode='before')
     @classmethod
     def map_person_id_to_people_id(cls, data):
-        """Map person_id to people_id if provided"""
+        """Map person_id to people_id if provided (for frontend compatibility)"""
         if isinstance(data, dict):
             if 'person_id' in data and 'people_id' not in data:
                 data['people_id'] = data['person_id']
