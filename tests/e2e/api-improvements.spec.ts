@@ -31,8 +31,18 @@ test.describe('API Improvements Verification', () => {
   });
 
   test('CORS headers are properly configured', async ({ request }) => {
-    const response = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/');
-    expect(response.status()).toBe(200);
+    // Make an OPTIONS preflight request to check CORS headers
+    // CORS headers are typically only sent for cross-origin requests or OPTIONS requests
+    const response = await request.options('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/', {
+      headers: {
+        'Origin': 'https://apps.quentinspencer.com',
+        'Access-Control-Request-Method': 'GET',
+        'Access-Control-Request-Headers': 'Content-Type,Authorization'
+      }
+    });
+    
+    // OPTIONS requests should return 200 or 204
+    expect([200, 204]).toContain(response.status());
     
     const headers = response.headers();
     
@@ -50,6 +60,23 @@ test.describe('API Improvements Verification', () => {
       if (headers[header]) {
         corsHeadersFound++;
         console.log(`✓ CORS header ${header}: ${headers[header]}`);
+      }
+    }
+    
+    // For OPTIONS requests, we should find at least some CORS headers
+    // If not found in OPTIONS, try a GET with Origin header
+    if (corsHeadersFound === 0) {
+      const getResponse = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/', {
+        headers: {
+          'Origin': 'https://apps.quentinspencer.com'
+        }
+      });
+      const getHeaders = getResponse.headers();
+      for (const header of corsHeaders) {
+        if (getHeaders[header]) {
+          corsHeadersFound++;
+          console.log(`✓ CORS header ${header}: ${getHeaders[header]}`);
+        }
       }
     }
     
