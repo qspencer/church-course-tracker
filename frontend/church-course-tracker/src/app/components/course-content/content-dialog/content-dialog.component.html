@@ -65,8 +65,8 @@
       <div class="file-upload-container" *ngIf="isEditing && data.content?.file_name">
         <span class="current-file-info">
           <mat-icon>description</mat-icon>
-          <span>Current file: {{ data.content.file_name }}</span>
-          <span class="file-size" *ngIf="data.content.file_size">({{ formatFileSize(data.content.file_size) }})</span>
+          <span>Current file: {{ data.content?.file_name }}</span>
+          <span class="file-size" *ngIf="data.content?.file_size">({{ formatFileSize(data.content!.file_size) }})</span>
         </span>
       </div>
       <div class="file-upload-container">

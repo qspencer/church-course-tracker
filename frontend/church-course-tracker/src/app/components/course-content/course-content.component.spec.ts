@@ -502,6 +502,8 @@ describe('CourseContentComponent', () => {
       
       expect(dialog.open).toHaveBeenCalled();
       const callArgs = dialog.open.calls.mostRecent().args;
+      expect(callArgs).toBeDefined();
+      expect(callArgs.length).toBeGreaterThan(1);
       expect(callArgs[1]).toEqual(jasmine.objectContaining({
         width: '600px',
         maxWidth: '90vw',
@@ -536,6 +538,8 @@ describe('CourseContentComponent', () => {
 
       expect(dialog.open).toHaveBeenCalled();
       const callArgs = dialog.open.calls.mostRecent().args;
+      expect(callArgs).toBeDefined();
+      expect(callArgs.length).toBeGreaterThan(1);
       expect(callArgs[1]).toEqual(jasmine.objectContaining({
         width: '600px',
         maxWidth: '90vw',
