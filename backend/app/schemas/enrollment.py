@@ -84,7 +84,6 @@ class CourseEnrollment(CourseEnrollmentBase):
     updated_by: Optional[int] = None
 
     @computed_field
-    @property
     def person_id(self) -> Optional[int]:
         """Map people_id to person_id for frontend compatibility"""
         return self.people_id
