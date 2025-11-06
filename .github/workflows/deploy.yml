@@ -76,7 +76,8 @@ jobs:
       id: increment-version
       run: |
         chmod +x scripts/increment-version.sh
-        NEW_VERSION=$(scripts/increment-version.sh)
+        # Capture only stdout (version number), status messages go to stderr
+        NEW_VERSION=$(scripts/increment-version.sh 2>/dev/null)
         echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
         echo "✅ Version incremented to $NEW_VERSION"
     
