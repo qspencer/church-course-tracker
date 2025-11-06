@@ -29,9 +29,11 @@ import { MatExpansionModule } from '@angular/material/expansion';
 // App Components
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
+import { InactivityWarningDialogComponent } from './components/inactivity-warning-dialog/inactivity-warning-dialog.component';
 
 // Services
 import { AuthService } from './services/auth.service';
+import { InactivityService } from './services/inactivity.service';
 import { CourseService } from './services/course.service';
 import { EnrollmentService } from './services/enrollment.service';
 import { ProgressService } from './services/progress.service';
@@ -44,7 +46,8 @@ import { ErrorInterceptor } from './interceptors/error.interceptor';
 
 @NgModule({
   declarations: [
-    AppComponent
+    AppComponent,
+    InactivityWarningDialogComponent
   ],
   imports: [
     BrowserModule,
@@ -78,6 +81,7 @@ import { ErrorInterceptor } from './interceptors/error.interceptor';
   ],
   providers: [
     AuthService,
+    InactivityService,
     CourseService,
     EnrollmentService,
     ProgressService,

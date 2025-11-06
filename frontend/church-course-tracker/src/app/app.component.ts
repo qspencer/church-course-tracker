@@ -1,6 +1,7 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from './services/auth.service';
+import { InactivityService } from './services/inactivity.service';
 import { MatSidenav } from '@angular/material/sidenav';
 import { environment } from '../environments/environment';
 
@@ -9,7 +10,7 @@ import { environment } from '../environments/environment';
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, OnDestroy {
   @ViewChild('sidenav') sidenav!: MatSidenav;
   title = 'Church Course Tracker'; // Triggering frontend tests
   appVersion = environment.version || '0.01';
@@ -18,7 +19,8 @@ export class AppComponent implements OnInit {
 
   constructor(
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private inactivityService: InactivityService
   ) {}
 
   ngOnInit(): void {
@@ -29,6 +31,13 @@ export class AppComponent implements OnInit {
     this.authService.currentUser$.subscribe(user => {
       this.currentUser = user;
     });
+
+    // Start inactivity monitoring
+    this.inactivityService.startMonitoring();
+  }
+
+  ngOnDestroy(): void {
+    this.inactivityService.stopMonitoring();
   }
 
   logout(): void {

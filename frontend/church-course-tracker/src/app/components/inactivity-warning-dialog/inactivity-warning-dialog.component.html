@@ -1,0 +1,17 @@
+<div class="inactivity-warning-dialog">
+  <h2 mat-dialog-title>
+    <mat-icon color="warn">warning</mat-icon>
+    Session Timeout Warning
+  </h2>
+  
+  <mat-dialog-content>
+    <p>{{ message }}</p>
+    <p class="time-remaining">Time remaining: <strong>{{ timeRemaining }} minute{{ timeRemaining !== 1 ? 's' : '' }}</strong></p>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button (click)="logoutNow()" color="warn">Logout Now</button>
+    <button mat-raised-button (click)="stayLoggedIn()" color="primary">Stay Logged In</button>
+  </mat-dialog-actions>
+</div>
+
