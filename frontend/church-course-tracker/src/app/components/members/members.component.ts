@@ -109,8 +109,23 @@ export class MembersComponent implements OnInit {
   }
 
   viewMemberDetails(member: Person): void {
-    // Navigate to member details page or open detailed dialog
-    console.log('View member details:', member);
+    // Fetch full member details and open in view mode
+    this.memberService.getMember(member.id).subscribe({
+      next: (fullMember) => {
+        this.dialog.open(MemberDialogComponent, {
+          width: '700px',
+          maxWidth: '90vw',
+          data: {
+            member: fullMember,
+            viewMode: true
+          }
+        });
+      },
+      error: (error) => {
+        console.error('Error loading member details:', error);
+        this.snackBar.open('Failed to load member details', 'Close', { duration: 3000 });
+      }
+    });
   }
 
   viewMemberEnrollments(member: Person): void {

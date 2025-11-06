@@ -7,6 +7,7 @@ import { Person } from '../../../models';
 
 export interface MemberDialogData {
   member: Person | null;
+  viewMode?: boolean;
 }
 
 @Component({
@@ -17,7 +18,9 @@ export interface MemberDialogData {
 export class MemberDialogComponent implements OnInit {
   memberForm: FormGroup;
   isEditing: boolean;
+  viewMode: boolean;
   isLoading = false;
+  member: Person | null = null;
 
          constructor(
            private fb: FormBuilder,
@@ -26,7 +29,9 @@ export class MemberDialogComponent implements OnInit {
            public dialogRef: MatDialogRef<MemberDialogComponent>,
            @Inject(MAT_DIALOG_DATA) public data: MemberDialogData
          ) {
-           this.isEditing = !!data.member;
+           this.viewMode = data.viewMode || false;
+           this.isEditing = !!data.member && !this.viewMode;
+           this.member = data.member || null;
            
            this.memberForm = this.fb.group({
              first_name: ['', [Validators.required, Validators.minLength(2)]],
@@ -38,17 +43,37 @@ export class MemberDialogComponent implements OnInit {
          }
 
          ngOnInit(): void {
-           // Initialize form values if editing
-           if (this.isEditing && this.data.member) {
-             this.memberForm.patchValue({
-               first_name: this.data.member.first_name,
-               last_name: this.data.member.last_name,
-               email: this.data.member.email,
-               phone: this.data.member.phone,
-               planning_center_id: this.data.member.planning_center_id
-             });
+           if (this.data.member) {
+             if (this.viewMode) {
+               // In view mode, just store the member data
+               this.member = this.data.member;
+             } else {
+               // In edit/create mode, populate the form
+               this.memberForm.patchValue({
+                 first_name: this.data.member.first_name,
+                 last_name: this.data.member.last_name,
+                 email: this.data.member.email,
+                 phone: this.data.member.phone,
+                 planning_center_id: this.data.member.planning_center_id
+               });
+             }
            }
          }
+
+  formatDate(date: string | null | undefined): string {
+    if (!date) return 'N/A';
+    try {
+      const dateObj = new Date(date);
+      if (isNaN(dateObj.getTime())) return 'N/A';
+      return dateObj.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    } catch (e) {
+      return 'N/A';
+    }
+  }
 
   onSubmit(): void {
     if (this.memberForm.valid) {
