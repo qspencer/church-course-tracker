@@ -5,7 +5,7 @@ CourseEnrollment Pydantic schemas (Maps to Planning Center Registrations)
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel, Field, field_validator, model_validator
+from pydantic import BaseModel, Field, computed_field, field_validator, model_validator
 
 
 class CourseEnrollmentBase(BaseModel):
@@ -83,5 +83,12 @@ class CourseEnrollment(CourseEnrollmentBase):
     created_by: Optional[int] = None
     updated_by: Optional[int] = None
 
+    @computed_field
+    @property
+    def person_id(self) -> Optional[int]:
+        """Map people_id to person_id for frontend compatibility"""
+        return self.people_id
+
     class Config:
         from_attributes = True
+        populate_by_name = True  # Allow both people_id and person_id
