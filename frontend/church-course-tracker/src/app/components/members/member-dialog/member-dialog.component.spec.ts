@@ -201,12 +201,12 @@ describe('MemberDialogComponent', () => {
 
       component.onSubmit();
 
+      // planning_center_id is removed if empty, so it shouldn't be in the call
       expect(memberServiceSpy.createMember).toHaveBeenCalledWith({
         first_name: 'Jane',
         last_name: 'Smith',
         email: 'jane@example.com',
-        phone: '555-444-3333',
-        planning_center_id: ''
+        phone: '555-444-3333'
       });
       expect(snackBarSpy.open).toHaveBeenCalledWith('Member created successfully', 'Close', { duration: 3000 });
       expect(dialogRefSpy.close).toHaveBeenCalledWith(mockMember);
