@@ -50,7 +50,7 @@ describe('MembersComponent', () => {
   ];
 
   beforeEach(async () => {
-    const memberSpy = jasmine.createSpyObj('MemberService', ['getMembers', 'deleteMember', 'getMemberEnrollments']);
+    const memberSpy = jasmine.createSpyObj('MemberService', ['getMembers', 'deleteMember', 'getMemberEnrollments', 'getMember']);
     const matDialogSpy = jasmine.createSpyObj('MatDialog', ['open']);
     const matSnackBarSpy = jasmine.createSpyObj('MatSnackBar', ['open']);
 
@@ -217,12 +217,24 @@ describe('MembersComponent', () => {
   });
 
   describe('viewMemberDetails', () => {
-    it('should log member details', () => {
-      spyOn(console, 'log');
+    it('should open member details dialog in view mode', () => {
+      memberServiceSpy.getMember.and.returnValue(of(mockMembers[0]));
+      const dialogRefSpy = jasmine.createSpyObj('MatDialogRef', ['afterClosed']);
+      dialogSpy.open.and.returnValue(dialogRefSpy);
 
       component.viewMemberDetails(mockMembers[0]);
 
-      expect(console.log).toHaveBeenCalledWith('View member details:', mockMembers[0]);
+      expect(memberServiceSpy.getMember).toHaveBeenCalledWith(1);
+      expect(dialogSpy.open).toHaveBeenCalled();
+      const callArgs = dialogSpy.open.calls.mostRecent().args;
+      expect(callArgs[1]).toEqual(jasmine.objectContaining({
+        width: '700px',
+        maxWidth: '90vw',
+        data: {
+          member: mockMembers[0],
+          viewMode: true
+        }
+      }));
     });
   });
 

@@ -1,6 +1,7 @@
 .member-dialog {
   min-width: 500px;
   max-width: 700px;
+  padding: 24px 32px 24px 32px; // Add padding: top, right, bottom, left
   
   h2 {
     margin: 0 0 8px 0;
@@ -13,7 +14,7 @@
   
   mat-dialog-content {
     padding: 24px 0;
-    max-height: 80vh;
+    max-height: 85vh; // Increased from 80vh to reduce scrollbar
     overflow-y: auto;
   }
   

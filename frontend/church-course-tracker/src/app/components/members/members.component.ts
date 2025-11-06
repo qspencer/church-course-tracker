@@ -115,6 +115,7 @@ export class MembersComponent implements OnInit {
         this.dialog.open(MemberDialogComponent, {
           width: '700px',
           maxWidth: '90vw',
+          maxHeight: '90vh',
           data: {
             member: fullMember,
             viewMode: true
