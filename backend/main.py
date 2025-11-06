@@ -1,5 +1,6 @@
 """
 Church Course Tracker - Main FastAPI Application
+Triggering backend tests
 """
 
 from fastapi import FastAPI, Request, Response
