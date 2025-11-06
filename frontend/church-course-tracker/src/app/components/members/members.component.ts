@@ -7,6 +7,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { MemberService } from '../../services/member.service';
 import { Person } from '../../models';
 import { MemberDialogComponent } from './member-dialog/member-dialog.component';
+import { MemberEnrollmentsDialogComponent } from './member-enrollments-dialog/member-enrollments-dialog.component';
 import { ConfirmDialogComponent } from '../../shared/confirm-dialog/confirm-dialog.component';
 
 @Component({
@@ -132,11 +133,19 @@ export class MembersComponent implements OnInit {
   viewMemberEnrollments(member: Person): void {
     this.memberService.getMemberEnrollments(member.id).subscribe({
       next: (enrollments) => {
-        console.log('Member enrollments:', enrollments);
-        // Could open a dialog showing enrollments
+        this.dialog.open(MemberEnrollmentsDialogComponent, {
+          width: '600px',
+          maxWidth: '90vw',
+          maxHeight: '90vh',
+          data: {
+            member: member,
+            enrollments: enrollments
+          }
+        });
       },
       error: (error) => {
         console.error('Error loading member enrollments:', error);
+        this.snackBar.open('Failed to load member enrollments', 'Close', { duration: 3000 });
       }
     });
   }

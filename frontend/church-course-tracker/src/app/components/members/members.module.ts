@@ -19,6 +19,7 @@ import { MatChipsModule } from '@angular/material/chips';
 
 import { MembersComponent } from './members.component';
 import { MemberDialogComponent } from './member-dialog/member-dialog.component';
+import { MemberEnrollmentsDialogComponent } from './member-enrollments-dialog/member-enrollments-dialog.component';
 
 const routes: Routes = [
   { path: '', component: MembersComponent }
@@ -27,7 +28,8 @@ const routes: Routes = [
 @NgModule({
   declarations: [
     MembersComponent,
-    MemberDialogComponent
+    MemberDialogComponent,
+    MemberEnrollmentsDialogComponent
   ],
   imports: [
     CommonModule,

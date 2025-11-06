@@ -1,0 +1,145 @@
+.member-enrollments-dialog {
+  min-width: 500px;
+  max-width: 700px;
+  padding: 24px 32px 24px 32px;
+  
+  h2 {
+    margin: 0 0 8px 0;
+    color: #1976d2;
+    font-size: 28px;
+    font-weight: 600;
+    padding-bottom: 16px;
+    border-bottom: 2px solid #e0e0e0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    mat-icon {
+      font-size: 28px;
+      width: 28px;
+      height: 28px;
+    }
+  }
+  
+  mat-dialog-content {
+    padding: 24px 0;
+    max-height: 70vh;
+    overflow-y: auto;
+  }
+
+  .no-enrollments {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    text-align: center;
+
+    mat-icon {
+      font-size: 64px;
+      width: 64px;
+      height: 64px;
+      color: #bdbdbd;
+      margin-bottom: 16px;
+    }
+
+    p {
+      color: #757575;
+      font-size: 16px;
+      margin: 0;
+    }
+  }
+
+  .enrollments-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+
+    .enrollment-item {
+      padding: 16px;
+      background: #ffffff;
+      border-radius: 8px;
+      border: 1px solid #e0e0e0;
+      transition: all 0.2s ease;
+
+      &:hover {
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        border-color: #1976d2;
+      }
+
+      .enrollment-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+
+        h3 {
+          margin: 0;
+          font-size: 18px;
+          font-weight: 600;
+          color: #212121;
+        }
+
+        mat-chip {
+          font-size: 12px;
+          height: 24px;
+          font-weight: 500;
+        }
+      }
+
+      .enrollment-details {
+        .detail-row {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 16px;
+          margin-top: 8px;
+
+          .detail-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+
+            .detail-label {
+              font-size: 11px;
+              font-weight: 600;
+              color: #78909c;
+              text-transform: uppercase;
+              letter-spacing: 0.5px;
+            }
+
+            .detail-value {
+              font-size: 14px;
+              font-weight: 500;
+              color: #424242;
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  mat-dialog-actions {
+    padding: 16px 0 0 0;
+    margin: 0;
+    gap: 8px;
+    border-top: 1px solid #e0e0e0;
+    
+    button {
+      min-width: 100px;
+      padding: 8px 24px;
+    }
+  }
+}
+
+// Responsive design
+@media (max-width: 600px) {
+  .member-enrollments-dialog {
+    min-width: 90vw;
+    padding: 16px 20px 16px 20px;
+
+    .enrollments-list .enrollment-item .enrollment-details .detail-row {
+      grid-template-columns: 1fr;
+    }
+  }
+}
+
