@@ -10,6 +10,12 @@
         
         <!-- Content Tab -->
         <mat-tab label="Content">
+          <div class="content-actions-header">
+            <button mat-raised-button color="primary" (click)="createContent()" *ngIf="canCreateContent()">
+              <mat-icon>add</mat-icon>
+              Add Content
+            </button>
+          </div>
           <div class="content-list">
             <div *ngFor="let content of contentItems" class="content-item">
               <div class="content-info">
