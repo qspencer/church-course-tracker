@@ -86,10 +86,19 @@ describe('CourseDialogComponent', () => {
     // Trigger change detection to ensure ngOnInit runs and populates the form
     fixture.detectChanges();
     
-    // Check that the form is populated with course data after ngOnInit
-    expect(component.courseForm.get('title')?.value).toBe(mockCourse.title);
-    expect(component.courseForm.get('description')?.value).toBe(mockCourse.description);
-    expect(component.courseForm.get('duration_weeks')?.value).toBe(mockCourse.duration_weeks);
+    // Check that the form exists and is populated with course data after ngOnInit
+    expect(component.courseForm).toBeDefined();
+    const titleControl = component.courseForm.get('title');
+    const descriptionControl = component.courseForm.get('description');
+    const durationControl = component.courseForm.get('duration_weeks');
+    
+    expect(titleControl).toBeDefined();
+    expect(descriptionControl).toBeDefined();
+    expect(durationControl).toBeDefined();
+    
+    expect(titleControl?.value).toBe(mockCourse.title);
+    expect(descriptionControl?.value).toBe(mockCourse.description);
+    expect(durationControl?.value).toBe(mockCourse.duration_weeks);
   });
 
   describe('form initialization', () => {
