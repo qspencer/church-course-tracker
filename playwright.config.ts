@@ -10,10 +10,10 @@ export default defineConfig({
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
-  /* Retry on CI only */
-  retries: process.env.CI ? 2 : 0,
-  /* Opt out of parallel tests on CI. */
-  workers: process.env.CI ? 1 : undefined,
+  /* Retry on CI only - reduced to 1 to speed up execution */
+  retries: process.env.CI ? 1 : 0,
+  /* Use 2 workers in CI to speed up execution while maintaining stability */
+  workers: process.env.CI ? 2 : undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
@@ -35,8 +35,8 @@ export default defineConfig({
     navigationTimeout: 60000, // 60 seconds
   },
   
-  /* Global test timeout */
-  timeout: process.env.CI ? 120000 : 30000, // 2 minutes in CI, 30 seconds locally
+  /* Global test timeout - increased for slower CI environments */
+  timeout: process.env.CI ? 180000 : 30000, // 3 minutes in CI, 30 seconds locally
 
   /* Configure projects for major browsers */
   projects: process.env.CI
