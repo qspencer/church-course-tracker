@@ -126,14 +126,14 @@ export class InactivityService implements OnDestroy {
       return;
     }
 
-    const timeRemaining = Math.ceil(this.WARNING_TIME / 1000 / 60); // minutes
+    const timeRemainingMinutes = Math.ceil(this.WARNING_TIME / 1000 / 60); // minutes
 
     this.warningDialogRef = this.dialog.open(InactivityWarningDialogComponent, {
       width: '400px',
       disableClose: true,
       data: {
-        timeRemaining: timeRemaining,
-        message: `You will be logged out due to inactivity in ${timeRemaining} minute${timeRemaining > 1 ? 's' : ''}.`
+        timeRemaining: timeRemainingMinutes,
+        message: `You will be logged out due to inactivity in ${timeRemainingMinutes} minute${timeRemainingMinutes > 1 ? 's' : ''}.`
       }
     });
 
@@ -146,6 +146,8 @@ export class InactivityService implements OnDestroy {
         // User clicked "Logout Now", logout immediately
         this.handleInactivity();
       }
+      // If dialog is closed without action (shouldn't happen with disableClose: true),
+      // the logout timer will still fire
     });
   }
 

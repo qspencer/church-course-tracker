@@ -29,13 +29,6 @@
         </div>
       </div>
 
-      <div class="detail-row" *ngIf="member.planning_center_id">
-        <div class="detail-item">
-          <h3 class="detail-label">Planning Center ID</h3>
-          <p class="detail-value">{{ member.planning_center_id }}</p>
-        </div>
-      </div>
-
       <div class="detail-row" *ngIf="member.address1 || member.city || member.state || member.zip">
         <div class="detail-item full-width">
           <h3 class="detail-label">Address</h3>
@@ -143,13 +136,8 @@
         <mat-error>{{ getErrorMessage('phone') }}</mat-error>
       </mat-form-field>
 
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Planning Center ID</mat-label>
-        <input matInput formControlName="planning_center_id" placeholder="Enter Planning Center ID (optional)">
-        <mat-icon matSuffix>badge</mat-icon>
-        <mat-hint>Optional: ID from Planning Center integration</mat-hint>
-        <mat-error>{{ getErrorMessage('planning_center_id') }}</mat-error>
-      </mat-form-field>
+      <!-- Planning Center ID is hidden but still tracked in the form -->
+      <input type="hidden" formControlName="planning_center_id">
     </form>
   </mat-dialog-content>
   
