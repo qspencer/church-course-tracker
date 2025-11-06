@@ -69,6 +69,31 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
     
+    - name: Install bc (for version calculation)
+      run: sudo apt-get update && sudo apt-get install -y bc
+    
+    - name: Increment version
+      id: increment-version
+      run: |
+        chmod +x scripts/increment-version.sh
+        NEW_VERSION=$(scripts/increment-version.sh)
+        echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+        echo "✅ Version incremented to $NEW_VERSION"
+    
+    - name: Commit version update
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add frontend/church-course-tracker/src/environments/environment.prod.ts
+        if git diff --staged --quiet; then
+          echo "No version changes to commit"
+        else
+          git commit -m "Auto-increment version to ${{ steps.increment-version.outputs.version }} [skip ci]"
+          git push
+        fi
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
     - name: Set up Node.js
       uses: actions/setup-node@v4
       with:
@@ -84,7 +109,7 @@ jobs:
     - name: Build frontend
       run: |
         cd frontend/church-course-tracker
-        npm run build
+        npm run build --configuration=production
       env:
         NODE_ENV: production
     
