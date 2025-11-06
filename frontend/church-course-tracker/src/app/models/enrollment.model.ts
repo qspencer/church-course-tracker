@@ -37,8 +37,23 @@ export interface Person {
   last_name: string;
   email?: string;
   phone?: string;
+  date_of_birth?: string;
+  gender?: string;
+  address1?: string;
+  address2?: string;
+  city?: string;
+  state?: string;
+  zip?: string;
+  household_id?: string;
+  household_name?: string;
+  status?: string;
+  join_date?: string;
+  is_active?: boolean;
+  last_synced_at?: string;
   created_at: string;
   updated_at: string;
+  created_by?: number;
+  updated_by?: number;
   full_name?: string;
 }
 
