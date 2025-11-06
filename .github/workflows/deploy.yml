@@ -91,12 +91,18 @@ jobs:
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
         git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+        
+        # Pull latest changes before committing
+        git pull --rebase origin ${{ github.ref_name }} || echo "Pull failed, continuing..."
+        
         git add frontend/church-course-tracker/src/environments/environment.prod.ts
         if git diff --staged --quiet; then
           echo "No version changes to commit"
         else
           git commit -m "Auto-increment version to ${{ steps.increment-version.outputs.version }} [skip ci]"
-          git push origin HEAD:${{ github.ref }}
+          # Pull again before pushing to handle any concurrent changes
+          git pull --rebase origin ${{ github.ref_name }} || true
+          git push origin HEAD:${{ github.ref_name }} || echo "Push failed, but continuing with build"
         fi
     
     - name: Set up Node.js
