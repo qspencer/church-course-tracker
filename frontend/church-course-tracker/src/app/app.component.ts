@@ -11,7 +11,7 @@ import { environment } from '../environments/environment';
 })
 export class AppComponent implements OnInit {
   @ViewChild('sidenav') sidenav!: MatSidenav;
-  title = 'Church Course Tracker';
+  title = 'Church Course Tracker'; // Triggering frontend tests
   appVersion = environment.version || '0.01';
   isAuthenticated = false;
   currentUser: any = null;
