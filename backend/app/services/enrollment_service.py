@@ -63,7 +63,14 @@ class CourseEnrollmentService:
         self, enrollment: CourseEnrollmentCreate, created_by: Optional[int] = None
     ) -> CourseEnrollmentModel:
         """Create a new enrollment"""
-        db_enrollment = CourseEnrollmentModel(**enrollment.dict())
+        enrollment_dict = enrollment.dict()
+        # Remove person_id if present (we use people_id in the model)
+        enrollment_dict.pop('person_id', None)
+        # Ensure people_id is set
+        if not enrollment_dict.get('people_id'):
+            raise ValueError("people_id is required")
+        
+        db_enrollment = CourseEnrollmentModel(**enrollment_dict)
         db_enrollment.created_at = datetime.utcnow()
         db_enrollment.updated_at = datetime.utcnow()
         db_enrollment.created_by = created_by
