@@ -13,7 +13,8 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-echo -e "${GREEN}📌 Incrementing application version...${NC}"
+# Send status messages to stderr so they don't interfere with version capture
+echo -e "${GREEN}📌 Incrementing application version...${NC}" >&2
 
 # Extract current version from environment.prod.ts
 if [ -f "$ENV_PROD_FILE" ]; then
@@ -24,7 +25,7 @@ if [ -f "$ENV_PROD_FILE" ]; then
         CURRENT_VERSION="0.02"
     fi
     
-    echo -e "${YELLOW}Current version: $CURRENT_VERSION${NC}"
+    echo -e "${YELLOW}Current version: $CURRENT_VERSION${NC}" >&2
     
     # Increment version (0.02 -> 0.03, etc.)
     # Convert to integer (multiply by 100), increment, then divide by 100
@@ -35,7 +36,7 @@ if [ -f "$ENV_PROD_FILE" ]; then
     # Format to 2 decimal places (0.03 instead of 0.3)
     NEW_VERSION=$(printf "%.2f" "$NEW_VERSION")
     
-    echo -e "${GREEN}New version: $NEW_VERSION${NC}"
+    echo -e "${GREEN}New version: $NEW_VERSION${NC}" >&2
     
     # Update environment.prod.ts
     if [[ "$OSTYPE" == "darwin"* ]]; then
@@ -46,12 +47,12 @@ if [ -f "$ENV_PROD_FILE" ]; then
         sed -i "s/version: '.*'/version: '$NEW_VERSION'/g" "$ENV_PROD_FILE"
     fi
     
-    echo -e "${GREEN}✅ Version updated to $NEW_VERSION in environment.prod.ts${NC}"
+    echo -e "${GREEN}✅ Version updated to $NEW_VERSION in environment.prod.ts${NC}" >&2
     
-    # Return the new version for use in other scripts
+    # Return ONLY the version number to stdout (for capture by calling scripts)
     echo "$NEW_VERSION"
 else
-    echo -e "${YELLOW}⚠️  environment.prod.ts not found, using default version 0.03${NC}"
+    echo -e "${YELLOW}⚠️  environment.prod.ts not found, using default version 0.03${NC}" >&2
     echo "0.03"
 fi
 
