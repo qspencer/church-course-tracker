@@ -53,7 +53,12 @@ export class MemberDialogComponent implements OnInit {
   onSubmit(): void {
     if (this.memberForm.valid) {
       this.isLoading = true;
-      const formValue = this.memberForm.value;
+      const formValue = { ...this.memberForm.value };
+      
+      // Remove planning_center_id if it's empty (optional field)
+      if (!formValue.planning_center_id || formValue.planning_center_id.trim() === '') {
+        delete formValue.planning_center_id;
+      }
 
       if (this.isEditing && this.data.member) {
         // Update existing member

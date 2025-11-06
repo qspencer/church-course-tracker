@@ -55,7 +55,15 @@ class PeopleService:
         self, person: PeopleCreate, created_by: Optional[int] = None
     ) -> PeopleModel:
         """Create a new person"""
-        db_person = PeopleModel(**person.dict())
+        person_data = person.dict()
+        
+        # If planning_center_id is not provided or is empty, generate a unique placeholder
+        # This allows manual creation without Planning Center integration
+        if not person_data.get('planning_center_id'):
+            import uuid
+            person_data['planning_center_id'] = f"manual_{uuid.uuid4().hex[:12]}"
+        
+        db_person = PeopleModel(**person_data)
         db_person.created_at = datetime.utcnow()
         db_person.updated_at = datetime.utcnow()
         db_person.created_by = created_by

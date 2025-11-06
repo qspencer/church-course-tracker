@@ -11,7 +11,7 @@ from pydantic import BaseModel, EmailStr, Field
 class PeopleBase(BaseModel):
     """Base people schema"""
 
-    planning_center_id: str = Field(..., min_length=1, max_length=50)
+    planning_center_id: Optional[str] = Field(None, max_length=50)
     first_name: str = Field(..., min_length=1, max_length=100)
     last_name: str = Field(..., min_length=1, max_length=100)
     email: Optional[EmailStr] = None
