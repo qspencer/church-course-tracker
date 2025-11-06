@@ -8,7 +8,9 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
+from app.schemas.enrollment import CourseEnrollment
 from app.schemas.people import People, PeopleCreate, PeopleUpdate
+from app.services.enrollment_service import CourseEnrollmentService
 from app.services.people_service import PeopleService
 
 router = APIRouter()
@@ -92,3 +94,20 @@ async def delete_person(person_id: int, db: Session = Depends(get_db)):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Person not found"
         )
+
+
+@router.get("/{person_id}/enrollments", response_model=List[CourseEnrollment])
+async def get_person_enrollments(person_id: int, db: Session = Depends(get_db)):
+    """Get all enrollments for a specific person"""
+    # Verify person exists
+    people_service = PeopleService(db)
+    person = people_service.get_person(person_id)
+    if not person:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Person not found"
+        )
+    
+    # Get enrollments for this person
+    enrollment_service = CourseEnrollmentService(db)
+    enrollments = enrollment_service.get_enrollments(people_id=person_id)
+    return enrollments
