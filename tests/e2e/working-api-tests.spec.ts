@@ -26,6 +26,7 @@ test.describe('Working API Tests', () => {
   test('API authentication endpoint works', async ({ request }) => {
     if (!ADMIN_USERNAME || !ADMIN_PASSWORD) {
       test.skip('Admin credentials are not configured for API authentication validation');
+      return;
     }
 
     const response = await request.post(`${API_BASE_URL}/api/v1/auth/login`, {
@@ -37,6 +38,7 @@ test.describe('Working API Tests', () => {
 
     if (response.status() === 401) {
       test.skip('Configured admin credentials are not valid in the target environment');
+      return;
     }
 
     expect(response.status()).toBe(200);
@@ -76,6 +78,7 @@ test.describe('Working API Tests', () => {
     // Test POST (login)
     if (!ADMIN_USERNAME || !ADMIN_PASSWORD) {
       test.skip('Admin credentials are not configured for API authentication validation');
+      return;
     }
 
     const postResponse = await request.post(`${API_BASE_URL}/api/v1/auth/login`, {
@@ -84,6 +87,7 @@ test.describe('Working API Tests', () => {
 
     if (postResponse.status() === 401) {
       test.skip('Configured admin credentials are not valid in the target environment');
+      return;
     }
 
     expect(postResponse.status()).toBe(200);

@@ -215,6 +215,7 @@ test.describe('API Improvements Verification', () => {
   test('Authentication still works with new middleware', async ({ request }) => {
     if (!ADMIN_USERNAME || !ADMIN_PASSWORD) {
       test.skip('Admin credentials are not configured for API authentication validation');
+      return;
     }
 
     const response = await request.post(`${API_BASE_URL}/api/v1/auth/login`, {
@@ -226,6 +227,7 @@ test.describe('API Improvements Verification', () => {
 
     if (response.status() === 401) {
       test.skip('Configured admin credentials are not valid in the target environment');
+      return;
     }
 
     expect(response.status()).toBe(200);
