@@ -239,15 +239,27 @@ describe('MembersComponent', () => {
   });
 
   describe('viewMemberEnrollments', () => {
-    it('should fetch and log member enrollments', () => {
+    it('should open enrollments dialog with fetched data', () => {
       const mockEnrollments = [{ id: 1, course_title: 'Test Course' }];
       memberServiceSpy.getMemberEnrollments.and.returnValue(of(mockEnrollments));
-      spyOn(console, 'log');
+      const dialogRefSpy = jasmine.createSpyObj('MatDialogRef', ['afterClosed']);
+      dialogSpy.open.and.returnValue(dialogRefSpy);
 
       component.viewMemberEnrollments(mockMembers[0]);
 
       expect(memberServiceSpy.getMemberEnrollments).toHaveBeenCalledWith(1);
-      expect(console.log).toHaveBeenCalledWith('Member enrollments:', mockEnrollments);
+      expect(dialogSpy.open).toHaveBeenCalled();
+      const dialogArgs = dialogSpy.open.calls.mostRecent().args;
+      expect(dialogArgs[0]).toBeDefined();
+      expect(dialogArgs[1]).toEqual(jasmine.objectContaining({
+        width: '600px',
+        maxWidth: '90vw',
+        maxHeight: '90vh',
+        data: {
+          member: mockMembers[0],
+          enrollments: mockEnrollments
+        }
+      }));
     });
 
     it('should handle enrollments loading error', () => {
