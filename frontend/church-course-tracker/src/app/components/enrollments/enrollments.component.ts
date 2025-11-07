@@ -148,7 +148,21 @@ export class EnrollmentsComponent implements OnInit {
   }
 
   viewEnrollmentDetails(enrollment: Enrollment): void {
-    // Navigate to enrollment details or open detailed dialog
-    console.log('View enrollment details:', enrollment);
+    this.enrollmentService.getEnrollment(enrollment.id).subscribe({
+      next: (fullEnrollment) => {
+        this.dialog.open(EnrollmentDialogComponent, {
+          width: '650px',
+          maxWidth: '95vw',
+          data: {
+            enrollment: fullEnrollment,
+            viewMode: true
+          }
+        });
+      },
+      error: (error) => {
+        console.error('Error loading enrollment details:', error);
+        this.snackBar.open('Failed to load enrollment details', 'Close', { duration: 3000 });
+      }
+    });
   }
 }

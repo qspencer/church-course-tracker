@@ -10,6 +10,7 @@ import { Enrollment, Course, Person, EnrollmentStatus } from '../../../models';
 
 export interface EnrollmentDialogData {
   enrollment: Enrollment | null;
+  viewMode?: boolean;
 }
 
 @Component({
@@ -20,6 +21,7 @@ export interface EnrollmentDialogData {
 export class EnrollmentDialogComponent implements OnInit {
   enrollmentForm: FormGroup;
   isEditing: boolean;
+  viewMode = false;
   isLoading = false;
   courses: Course[] = [];
   members: Person[] = [];
@@ -39,24 +41,31 @@ export class EnrollmentDialogComponent implements OnInit {
     public dialogRef: MatDialogRef<EnrollmentDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: EnrollmentDialogData
   ) {
-    this.isEditing = !!data.enrollment;
+    this.viewMode = !!data.viewMode;
+    this.isEditing = !this.viewMode && !!data.enrollment;
     
     this.enrollmentForm = this.fb.group({
       person_id: ['', [Validators.required]],
       course_id: ['', [Validators.required]],
       status: [EnrollmentStatus.ENROLLED, [Validators.required]]
     });
+
+    if (this.viewMode) {
+      this.enrollmentForm.disable();
+    }
   }
 
   ngOnInit(): void {
-    this.loadData();
-    
-    if (this.isEditing && this.data.enrollment) {
-      this.enrollmentForm.patchValue({
-        person_id: this.data.enrollment.person_id,
-        course_id: this.data.enrollment.course_id,
-        status: this.data.enrollment.status
-      });
+    if (!this.viewMode) {
+      this.loadData();
+
+      if (this.isEditing && this.data.enrollment) {
+        this.enrollmentForm.patchValue({
+          person_id: this.data.enrollment.person_id,
+          course_id: this.data.enrollment.course_id,
+          status: this.data.enrollment.status
+        });
+      }
     }
   }
 
@@ -80,6 +89,9 @@ export class EnrollmentDialogComponent implements OnInit {
   }
 
   onSubmit(): void {
+    if (this.viewMode) {
+      return;
+    }
     if (this.enrollmentForm.valid) {
       this.isLoading = true;
       const formValue = this.enrollmentForm.value;
@@ -140,6 +152,48 @@ export class EnrollmentDialogComponent implements OnInit {
   }
 
   getCourseDisplayName(course: Course): string {
-    return `${course.title} (${course.duration_weeks} weeks)`;
+    const duration = course.duration_weeks ? ` (${course.duration_weeks} weeks)` : '';
+    return `${course.title}${duration}`;
+  }
+
+  getStatusLabel(status: string): string {
+    const match = this.statusOptions.find(option => option.value === status);
+    return match ? match.label : status;
+  }
+
+  getStatusColor(status: string): 'primary' | 'accent' | 'warn' | undefined {
+    if (!status) {
+      return undefined;
+    }
+
+    switch (status.toLowerCase()) {
+      case EnrollmentStatus.COMPLETED:
+        return 'primary';
+      case EnrollmentStatus.IN_PROGRESS:
+        return 'accent';
+      case EnrollmentStatus.DROPPED:
+        return 'warn';
+      default:
+        return undefined;
+    }
+  }
+
+  formatDate(date: string | Date | null | undefined): string {
+    if (!date) {
+      return 'N/A';
+    }
+
+    const parsedDate = typeof date === 'string' ? new Date(date) : date;
+    if (isNaN(parsedDate.getTime())) {
+      return 'N/A';
+    }
+
+    return parsedDate.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit'
+    });
   }
 }

@@ -1,6 +1,6 @@
 <div class="enrollment-dialog">
   <h2 mat-dialog-title>
-    {{ isEditing ? 'Edit Enrollment' : 'Create New Enrollment' }}
+    {{ viewMode ? 'Enrollment Details' : (isEditing ? 'Edit Enrollment' : 'Create New Enrollment') }}
   </h2>
   
   <mat-dialog-content>
@@ -9,7 +9,80 @@
       <p>Loading data...</p>
     </div>
 
-    <form *ngIf="!isLoading" [formGroup]="enrollmentForm" class="enrollment-form">
+    <div *ngIf="viewMode && !isLoading && data.enrollment" class="details-view">
+      <mat-card class="info-card">
+        <mat-card-content>
+          <div class="details-section">
+            <h3>Student Information</h3>
+            <div class="detail-row">
+              <mat-icon>person</mat-icon>
+              <div>
+                <strong>{{ data.enrollment.person?.first_name }} {{ data.enrollment.person?.last_name }}</strong>
+                <div class="secondary" *ngIf="data.enrollment.person?.email">{{ data.enrollment.person?.email }}</div>
+                <div class="secondary" *ngIf="data.enrollment.person?.phone">{{ data.enrollment.person?.phone }}</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="details-section">
+            <h3>Course</h3>
+            <div class="detail-row">
+              <mat-icon>school</mat-icon>
+              <div>
+                <strong>{{ data.enrollment.course?.title || 'N/A' }}</strong>
+                <div class="secondary" *ngIf="data.enrollment.course?.duration_weeks">
+                  Duration: {{ data.enrollment.course?.duration_weeks }} week{{ data.enrollment.course?.duration_weeks === 1 ? '' : 's' }}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="details-section status-progress">
+            <div class="status">
+              <h3>Status</h3>
+              <mat-chip [color]="getStatusColor(data.enrollment.status)" selected>
+                {{ getStatusLabel(data.enrollment.status) }}
+              </mat-chip>
+            </div>
+            <div class="progress">
+              <h3>Progress</h3>
+              <mat-progress-bar 
+                mode="determinate" 
+                [value]="data.enrollment.progress_percentage">
+              </mat-progress-bar>
+              <span class="progress-text">{{ data.enrollment.progress_percentage | number:'1.0-0' }}%</span>
+            </div>
+          </div>
+
+          <div class="details-section">
+            <h3>Timeline</h3>
+            <div class="detail-row">
+              <mat-icon>event</mat-icon>
+              <div>
+                <strong>Enrolled:</strong>
+                <span class="secondary">{{ formatDate(data.enrollment.enrolled_at) }}</span>
+              </div>
+            </div>
+            <div class="detail-row" *ngIf="data.enrollment.completion_date">
+              <mat-icon>flag</mat-icon>
+              <div>
+                <strong>Completed:</strong>
+                <span class="secondary">{{ formatDate(data.enrollment.completion_date) }}</span>
+              </div>
+            </div>
+            <div class="detail-row" *ngIf="data.enrollment.notes">
+              <mat-icon>notes</mat-icon>
+              <div>
+                <strong>Notes:</strong>
+                <span class="secondary">{{ data.enrollment.notes }}</span>
+              </div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <form *ngIf="!viewMode && !isLoading" [formGroup]="enrollmentForm" class="enrollment-form">
       <mat-form-field appearance="outline" class="full-width" *ngIf="!isEditing">
         <mat-label>Student</mat-label>
         <mat-select formControlName="person_id" placeholder="Select a student">
@@ -79,12 +152,13 @@
   
   <mat-dialog-actions align="end">
     <button mat-button (click)="onCancel()" [disabled]="isLoading">
-      Cancel
+      {{ viewMode ? 'Close' : 'Cancel' }}
     </button>
     <button 
       mat-raised-button 
       color="primary" 
       (click)="onSubmit()" 
+      *ngIf="!viewMode"
       [disabled]="!enrollmentForm.valid || isLoading">
       <mat-spinner *ngIf="isLoading" diameter="20"></mat-spinner>
       <span *ngIf="!isLoading">{{ isEditing ? 'Update' : 'Create' }}</span>

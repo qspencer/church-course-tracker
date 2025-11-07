@@ -3,7 +3,15 @@ export interface Enrollment {
   person_id: number;
   course_id: number;
   enrolled_at: string;
-  completed_at?: string;
+  enrollment_date?: string;
+  completion_date?: string | null;
+  notes?: string | null;
+  dependency_override?: boolean;
+  dependency_override_by?: number | null;
+  planning_center_registration_id?: string | null;
+  planning_center_synced?: boolean;
+  registration_status?: string | null;
+  registration_notes?: string | null;
   status: EnrollmentStatus;
   progress_percentage: number;
   created_at: string;
