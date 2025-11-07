@@ -7,6 +7,9 @@ from typing import Optional
 
 from pydantic import BaseModel, Field, computed_field, field_validator, model_validator
 
+from app.schemas.course import Course as CourseSchema
+from app.schemas.people import People as PeopleSchema
+
 
 class CourseEnrollmentBase(BaseModel):
     """Base course enrollment schema"""
@@ -79,14 +82,29 @@ class CourseEnrollment(CourseEnrollmentBase):
     planning_center_registration_id: Optional[str] = None
     created_at: datetime
     updated_at: datetime
+    created_at: datetime
+    updated_at: datetime
     created_by: Optional[int] = None
     updated_by: Optional[int] = None
+    course: Optional[CourseSchema] = None
 
     @computed_field
     @property
     def person_id(self) -> Optional[int]:
         """Map people_id to person_id for frontend compatibility"""
         return self.people_id
+
+    @computed_field
+    @property
+    def person(self) -> Optional[PeopleSchema]:
+        """Expose related person data as `person`"""
+        return getattr(self, "people", None)
+
+    @computed_field
+    @property
+    def enrolled_at(self) -> Optional[datetime]:
+        """Expose enrollment_date as enrolled_at for frontend compatibility"""
+        return self.enrollment_date
 
     class Config:
         from_attributes = True

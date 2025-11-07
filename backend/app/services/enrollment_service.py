@@ -5,7 +5,7 @@ CourseEnrollment service layer (Maps to Planning Center Registrations)
 from datetime import datetime
 from typing import List, Optional
 
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 from app.models.enrollment import CourseEnrollment as CourseEnrollmentModel
 from app.schemas.enrollment import (CourseEnrollmentCreate,
@@ -27,7 +27,13 @@ class CourseEnrollmentService:
         status: Optional[str] = None,
     ) -> List[CourseEnrollmentModel]:
         """Get enrollments with optional filtering"""
-        query = self.db.query(CourseEnrollmentModel)
+        query = (
+            self.db.query(CourseEnrollmentModel)
+            .options(
+                selectinload(CourseEnrollmentModel.people),
+                selectinload(CourseEnrollmentModel.course),
+            )
+        )
 
         if course_id:
             query = query.filter(CourseEnrollmentModel.course_id == course_id)
@@ -42,6 +48,10 @@ class CourseEnrollmentService:
         """Get a specific enrollment by ID"""
         return (
             self.db.query(CourseEnrollmentModel)
+            .options(
+                selectinload(CourseEnrollmentModel.people),
+                selectinload(CourseEnrollmentModel.course),
+            )
             .filter(CourseEnrollmentModel.id == enrollment_id)
             .first()
         )
@@ -52,6 +62,10 @@ class CourseEnrollmentService:
         """Get enrollment by Planning Center registration ID"""
         return (
             self.db.query(CourseEnrollmentModel)
+            .options(
+                selectinload(CourseEnrollmentModel.people),
+                selectinload(CourseEnrollmentModel.course),
+            )
             .filter(
                 CourseEnrollmentModel.planning_center_registration_id
                 == pc_registration_id
