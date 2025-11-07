@@ -31,10 +31,10 @@
             </div>
           </div>
           
-          <div class="detail-row" *ngIf="enrollment.completed_at">
+          <div class="detail-row" *ngIf="enrollment.completion_date">
             <div class="detail-item">
               <span class="detail-label">Completed</span>
-              <span class="detail-value">{{ formatDate(enrollment.completed_at) }}</span>
+              <span class="detail-value">{{ formatDate(enrollment.completion_date) }}</span>
             </div>
           </div>
         </div>
@@ -46,4 +46,5 @@
     <button mat-button (click)="close()">Close</button>
   </mat-dialog-actions>
 </div>
+
 
