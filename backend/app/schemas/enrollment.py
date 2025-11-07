@@ -82,8 +82,6 @@ class CourseEnrollment(CourseEnrollmentBase):
     planning_center_registration_id: Optional[str] = None
     created_at: datetime
     updated_at: datetime
-    created_at: datetime
-    updated_at: datetime
     created_by: Optional[int] = None
     updated_by: Optional[int] = None
     course: Optional[CourseSchema] = None
