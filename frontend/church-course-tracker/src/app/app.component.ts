@@ -42,7 +42,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
   logout(): void {
     this.authService.logout();
-    this.router.navigate(['/auth']);
+    this.router.navigate(['/churchcoursetracker/auth']);
   }
 
   isAdmin(): boolean {

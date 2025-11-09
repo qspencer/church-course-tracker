@@ -21,12 +21,12 @@ const testUsers = {
 
 // Helper function to login with specific role
 async function loginAs(page: Page, user: typeof testUsers.admin) {
-  await page.goto('https://apps.quentinspencer.com/auth');
+  await page.goto('https://apps.quentinspencer.com/churchcoursetracker/auth');
    await page.waitForTimeout(2000); // Wait for Angular to initialize
   await page.fill('input[formControlName="username"]', user.username);
   await page.fill('input[formControlName="password"]', user.password);
   await page.click('button[type="submit"]');
-  await page.waitForURL('https://apps.quentinspencer.com/dashboard');
+  await page.waitForURL('https://apps.quentinspencer.com/churchcoursetracker/dashboard');
 }
 
 // Helper function to check if element is visible
@@ -42,7 +42,7 @@ async function isVisible(page: Page, selector: string): Promise<boolean> {
 test.describe('Role-Based Access Control', () => {
   test.beforeEach(async ({ page }) => {
     // Navigate to the application
-    await page.goto('https://apps.quentinspencer.com');
+    await page.goto('https://apps.quentinspencer.com/churchcoursetracker');
   });
 
   test.describe('Admin Role Tests', () => {
@@ -50,7 +50,7 @@ test.describe('Role-Based Access Control', () => {
       await loginAs(page, testUsers.admin);
 
       // Check dashboard access
-      await expect(page).toHaveURL('https://apps.quentinspencer.com/dashboard');
+      await expect(page).toHaveURL('https://apps.quentinspencer.com/churchcoursetracker/dashboard');
       
       // Admin should see all navigation items
       const adminNavItems = [
@@ -122,7 +122,7 @@ test.describe('Role-Based Access Control', () => {
       await loginAs(page, testUsers.staff);
 
       // Check dashboard access
-      await expect(page).toHaveURL('https://apps.quentinspencer.com/dashboard');
+      await expect(page).toHaveURL('https://apps.quentinspencer.com/churchcoursetracker/dashboard');
       
       // Staff should see operational navigation items
       const staffNavItems = [
@@ -184,11 +184,11 @@ test.describe('Role-Based Access Control', () => {
       await loginAs(page, testUsers.staff);
 
       // Try to access admin URLs directly
-      await page.goto('https://apps.quentinspencer.com/admin');
-      await expect(page).toHaveURL('https://apps.quentinspencer.com/dashboard');
+      await page.goto('https://apps.quentinspencer.com/churchcoursetracker/admin');
+      await expect(page).toHaveURL('https://apps.quentinspencer.com/churchcoursetracker/dashboard');
 
-      await page.goto('https://apps.quentinspencer.com/audit');
-      await expect(page).toHaveURL('https://apps.quentinspencer.com/dashboard');
+      await page.goto('https://apps.quentinspencer.com/churchcoursetracker/audit');
+      await expect(page).toHaveURL('https://apps.quentinspencer.com/churchcoursetracker/dashboard');
     });
   });
 
@@ -197,7 +197,7 @@ test.describe('Role-Based Access Control', () => {
       await loginAs(page, testUsers.viewer);
 
       // Check dashboard access
-      await expect(page).toHaveURL('https://apps.quentinspencer.com/dashboard');
+      await expect(page).toHaveURL('https://apps.quentinspencer.com/churchcoursetracker/dashboard');
       
       // Viewer should see limited navigation items
       const viewerNavItems = [
@@ -261,11 +261,11 @@ test.describe('Role-Based Access Control', () => {
       await loginAs(page, testUsers.viewer);
 
       // Try to access management URLs directly
-      await page.goto('https://apps.quentinspencer.com/users');
-      await expect(page).toHaveURL('https://apps.quentinspencer.com/dashboard');
+      await page.goto('https://apps.quentinspencer.com/churchcoursetracker/users');
+      await expect(page).toHaveURL('https://apps.quentinspencer.com/churchcoursetracker/dashboard');
 
-      await page.goto('https://apps.quentinspencer.com/content');
-      await expect(page).toHaveURL('https://apps.quentinspencer.com/dashboard');
+      await page.goto('https://apps.quentinspencer.com/churchcoursetracker/content');
+      await expect(page).toHaveURL('https://apps.quentinspencer.com/churchcoursetracker/dashboard');
     });
   });
 
@@ -273,13 +273,13 @@ test.describe('Role-Based Access Control', () => {
     test('Users cannot access other roles features', async ({ page }) => {
       // Test staff cannot access admin features
       await loginAs(page, testUsers.staff);
-      await page.goto('https://apps.quentinspencer.com/audit');
-      await expect(page).toHaveURL('https://apps.quentinspencer.com/dashboard');
+      await page.goto('https://apps.quentinspencer.com/churchcoursetracker/audit');
+      await expect(page).toHaveURL('https://apps.quentinspencer.com/churchcoursetracker/dashboard');
 
       // Test viewer cannot access staff features
       await loginAs(page, testUsers.viewer);
-      await page.goto('https://apps.quentinspencer.com/content');
-      await expect(page).toHaveURL('https://apps.quentinspencer.com/dashboard');
+      await page.goto('https://apps.quentinspencer.com/churchcoursetracker/content');
+      await expect(page).toHaveURL('https://apps.quentinspencer.com/churchcoursetracker/dashboard');
     });
 
     test('API endpoints respect role permissions', async ({ page }) => {
@@ -358,12 +358,12 @@ test.describe('Role-Based Access Control', () => {
   test.describe('Error Handling and Security', () => {
     test('Unauthorized access redirects to login', async ({ page }) => {
       // Try to access protected page without login
-      await page.goto('https://apps.quentinspencer.com/dashboard');
-      await expect(page).toHaveURL('https://apps.quentinspencer.com/auth');
+      await page.goto('https://apps.quentinspencer.com/churchcoursetracker/dashboard');
+      await expect(page).toHaveURL('https://apps.quentinspencer.com/churchcoursetracker/auth');
     });
 
     test('Invalid credentials show error message', async ({ page }) => {
-      await page.goto('https://apps.quentinspencer.com/auth');
+      await page.goto('https://apps.quentinspencer.com/churchcoursetracker/auth');
    await page.waitForTimeout(2000); // Wait for Angular to initialize
       await page.fill('input[formControlName="username"]', 'invalid');
       await page.fill('input[formControlName="password"]', 'invalid');
@@ -379,8 +379,8 @@ test.describe('Role-Based Access Control', () => {
       await page.context().clearCookies();
       
       // Try to access protected page
-      await page.goto('https://apps.quentinspencer.com/dashboard');
-      await expect(page).toHaveURL('https://apps.quentinspencer.com/auth');
+      await page.goto('https://apps.quentinspencer.com/churchcoursetracker/dashboard');
+      await expect(page).toHaveURL('https://apps.quentinspencer.com/churchcoursetracker/auth');
     });
   });
 });

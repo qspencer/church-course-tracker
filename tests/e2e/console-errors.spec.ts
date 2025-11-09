@@ -21,7 +21,7 @@ test('Check for console errors that might be breaking routing', async ({ page })
   });
   
   // Navigate to the app
-  await page.goto('https://apps.quentinspencer.com');
+  await page.goto('https://apps.quentinspencer.com/churchcoursetracker');
   
   // Wait for the page to load
   await page.waitForLoadState('networkidle');
@@ -31,7 +31,7 @@ test('Check for console errors that might be breaking routing', async ({ page })
   console.log('Console warnings:', consoleWarnings);
   
   // Try to navigate to /auth and see if there are any errors
-  await page.goto('https://apps.quentinspencer.com/auth');
+  await page.goto('https://apps.quentinspencer.com/churchcoursetracker/auth');
   await page.waitForLoadState('networkidle');
   await page.waitForTimeout(3000);
   

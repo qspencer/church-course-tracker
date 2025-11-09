@@ -56,7 +56,7 @@ export class CourseContentComponent implements OnInit, OnDestroy {
     this.courseId = Number(this.route.snapshot.paramMap.get('courseId'));
     if (isNaN(this.courseId)) {
       this.snackBar.open('Invalid course ID', 'Close', { duration: 3000 });
-      this.router.navigate(['/courses']);
+      this.router.navigate(['/churchcoursetracker/courses']);
       return;
     }
     this.loadData();

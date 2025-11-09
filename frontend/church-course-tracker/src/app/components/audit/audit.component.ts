@@ -18,6 +18,7 @@ import {
   getTableDisplayName,
   formatAuditValues
 } from '../../models';
+import { AuditDetailsDialogComponent } from './audit-details-dialog/audit-details-dialog.component';
 
 @Component({
   selector: 'app-audit',
@@ -158,8 +159,19 @@ export class AuditComponent implements OnInit, OnDestroy {
   }
 
   viewAuditDetails(log: AuditLog): void {
-    // TODO: Implement audit detail dialog
-    console.log('View audit details:', log);
+    const userName =
+      log.changed_by !== undefined && log.changed_by !== null
+        ? this.getUserName(log.changed_by)
+        : 'System';
+
+    this.dialog.open(AuditDetailsDialogComponent, {
+      width: '640px',
+      maxWidth: '95vw',
+      data: {
+        log,
+        userName
+      }
+    });
   }
 
   getUserName(userId: number): string {

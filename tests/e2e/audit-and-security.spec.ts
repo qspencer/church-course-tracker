@@ -7,13 +7,13 @@ const testUsers = {
 };
 
 async function loginAs(page: Page, user: typeof testUsers.admin) {
-  await page.goto('https://apps.quentinspencer.com/auth');
+  await page.goto('https://apps.quentinspencer.com/churchcoursetracker/auth');
   await page.waitForLoadState('networkidle');
   await page.waitForTimeout(2000); // Wait for Angular to initialize
   await page.fill('input[formControlName="username"]', user.username);
   await page.fill('input[formControlName="password"]', user.password);
   await page.click('button[type="submit"]');
-  await page.waitForURL('https://apps.quentinspencer.com/dashboard');
+  await page.waitForURL('https://apps.quentinspencer.com/churchcoursetracker/dashboard');
 }
 
 test.describe('Audit and Security Tests', () => {
@@ -77,8 +77,8 @@ test.describe('Audit and Security Tests', () => {
       await expect(page.locator('text=Audit Logs')).not.toBeVisible();
       
       // Try to access audit logs directly
-      await page.goto('https://apps.quentinspencer.com/audit');
-      await expect(page).toHaveURL('https://apps.quentinspencer.com/dashboard');
+      await page.goto('https://apps.quentinspencer.com/churchcoursetracker/audit');
+      await expect(page).toHaveURL('https://apps.quentinspencer.com/churchcoursetracker/dashboard');
     });
 
     test('Staff can view limited activity logs', async ({ page }) => {
@@ -104,8 +104,8 @@ test.describe('Audit and Security Tests', () => {
       await expect(page.locator('text=Activity Logs')).not.toBeVisible();
       
       // Try to access audit URLs directly
-      await page.goto('https://apps.quentinspencer.com/audit');
-      await expect(page).toHaveURL('https://apps.quentinspencer.com/dashboard');
+      await page.goto('https://apps.quentinspencer.com/churchcoursetracker/audit');
+      await expect(page).toHaveURL('https://apps.quentinspencer.com/churchcoursetracker/dashboard');
     });
   });
 
@@ -116,12 +116,12 @@ test.describe('Audit and Security Tests', () => {
       // Simulate session timeout
       await page.context().clearCookies();
       
-      await page.goto('https://apps.quentinspencer.com/dashboard');
-      await expect(page).toHaveURL('https://apps.quentinspencer.com/auth');
+      await page.goto('https://apps.quentinspencer.com/churchcoursetracker/dashboard');
+      await expect(page).toHaveURL('https://apps.quentinspencer.com/churchcoursetracker/auth');
     });
 
     test('Invalid credentials show error', async ({ page }) => {
-      await page.goto('https://apps.quentinspencer.com/auth');
+      await page.goto('https://apps.quentinspencer.com/churchcoursetracker/auth');
       await page.fill('input[name="username"]', 'invalid');
       await page.fill('input[name="password"]', 'invalid');
       await page.click('button[type="submit"]');
@@ -130,7 +130,7 @@ test.describe('Audit and Security Tests', () => {
     });
 
     test('Account lockout after failed attempts', async ({ page }) => {
-      await page.goto('https://apps.quentinspencer.com/auth');
+      await page.goto('https://apps.quentinspencer.com/churchcoursetracker/auth');
       
       // Attempt multiple failed logins
       for (let i = 0; i < 5; i++) {

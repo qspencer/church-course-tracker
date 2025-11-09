@@ -22,7 +22,7 @@ const testUsers = {
 // Helper function to login with specific role
 async function loginAs(page: Page, user: typeof testUsers.admin) {
   try {
-    await page.goto('https://apps.quentinspencer.com/auth', { waitUntil: 'networkidle' });
+    await page.goto('https://apps.quentinspencer.com/churchcoursetracker/auth', { waitUntil: 'networkidle' });
     await page.waitForTimeout(2000); // Wait for Angular to initialize
     await page.fill('input[formControlName="username"]', user.username);
     await page.fill('input[formControlName="password"]', user.password);
@@ -31,7 +31,7 @@ async function loginAs(page: Page, user: typeof testUsers.admin) {
   } catch (error) {
     console.log('Login failed, trying alternative approach...');
     // Alternative login approach
-    await page.goto('https://apps.quentinspencer.com');
+    await page.goto('https://apps.quentinspencer.com/churchcoursetracker');
     await page.waitForLoadState('networkidle');
   }
 }
@@ -49,12 +49,12 @@ async function isVisible(page: Page, selector: string): Promise<boolean> {
 test.describe('Comprehensive Role-Based Testing', () => {
   test.beforeEach(async ({ page }) => {
     // Navigate to the application
-    await page.goto('https://apps.quentinspencer.com', { waitUntil: 'networkidle' });
+    await page.goto('https://apps.quentinspencer.com/churchcoursetracker', { waitUntil: 'networkidle' });
   });
 
   test.describe('Application Accessibility Tests', () => {
     test('Application loads successfully', async ({ page }) => {
-      await page.goto('https://apps.quentinspencer.com');
+      await page.goto('https://apps.quentinspencer.com/churchcoursetracker');
       await page.waitForLoadState('networkidle');
       
       // Check if the page loads without errors
@@ -74,7 +74,7 @@ test.describe('Comprehensive Role-Based Testing', () => {
 
   test.describe('Authentication Tests', () => {
     test('Login page is accessible', async ({ page }) => {
-      await page.goto('https://apps.quentinspencer.com/auth');
+      await page.goto('https://apps.quentinspencer.com/churchcoursetracker/auth');
       await page.waitForLoadState('networkidle');
       
       // Check for login form elements
@@ -88,7 +88,7 @@ test.describe('Comprehensive Role-Based Testing', () => {
     });
 
     test('Invalid credentials show error', async ({ page }) => {
-      await page.goto('https://apps.quentinspencer.com/auth');
+      await page.goto('https://apps.quentinspencer.com/churchcoursetracker/auth');
       await page.fill('input[name="username"]', 'invalid');
       await page.fill('input[name="password"]', 'invalid');
       await page.click('button[type="submit"]');
@@ -233,7 +233,7 @@ test.describe('Comprehensive Role-Based Testing', () => {
   test.describe('Performance Tests', () => {
     test('Page load performance', async ({ page }) => {
       const startTime = Date.now();
-      await page.goto('https://apps.quentinspencer.com');
+      await page.goto('https://apps.quentinspencer.com/churchcoursetracker');
       await page.waitForLoadState('networkidle');
       const loadTime = Date.now() - startTime;
       
@@ -254,7 +254,7 @@ test.describe('Comprehensive Role-Based Testing', () => {
 
   test.describe('Error Handling Tests', () => {
     test('404 pages are handled gracefully', async ({ page }) => {
-      const response = await page.goto('https://apps.quentinspencer.com/nonexistent-page');
+      const response = await page.goto('https://apps.quentinspencer.com/churchcoursetracker/nonexistent-page');
       expect(response?.status()).toBe(404);
     });
 
@@ -271,7 +271,7 @@ test.describe('Comprehensive Role-Based Testing', () => {
   test.describe('Mobile Responsiveness Tests', () => {
     test('Mobile viewport works', async ({ page }) => {
       await page.setViewportSize({ width: 375, height: 667 });
-      await page.goto('https://apps.quentinspencer.com');
+      await page.goto('https://apps.quentinspencer.com/churchcoursetracker');
       await page.waitForLoadState('networkidle');
       
       // Check if page is responsive

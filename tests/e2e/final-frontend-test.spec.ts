@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test('Final frontend test - verify login form is working', async ({ page }) => {
   // Navigate to the auth route
-  await page.goto('https://apps.quentinspencer.com/auth');
+  await page.goto('https://apps.quentinspencer.com/churchcoursetracker/auth');
   
   // Wait for the page to load
   await page.waitForLoadState('networkidle');

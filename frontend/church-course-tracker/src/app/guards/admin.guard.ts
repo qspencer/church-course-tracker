@@ -19,13 +19,13 @@ export class AdminGuard implements CanActivate {
       map(user => {
         if (!user) {
           // User not authenticated, redirect to login
-          this.router.navigate(['/auth']);
+          this.router.navigate(['/churchcoursetracker/auth']);
           return false;
         }
 
         if (user.role !== 'admin') {
           // User is authenticated but not admin, redirect to dashboard
-          this.router.navigate(['/dashboard']);
+          this.router.navigate(['/churchcoursetracker/dashboard']);
           return false;
         }
 

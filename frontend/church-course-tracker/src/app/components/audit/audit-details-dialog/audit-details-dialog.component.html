@@ -1,0 +1,67 @@
+<h2 mat-dialog-title class="dialog-title">
+  <mat-chip [color]="actionColor" selected>
+    <mat-icon matChipAvatar>{{ actionIcon }}</mat-icon>
+    {{ actionLabel }}
+  </mat-chip>
+  <span class="title-text">
+    {{ tableDisplayName }} Record
+    <small class="record-id">ID #{{ log.record_id }}</small>
+  </span>
+</h2>
+
+<mat-dialog-content class="dialog-content">
+  <div class="meta-section">
+    <div class="meta-item">
+      <span class="label">Changed At</span>
+      <span class="value">{{ formattedTimestamp }}</span>
+    </div>
+    <div class="meta-item">
+      <span class="label">Changed By</span>
+      <span class="value">{{ userName }}</span>
+    </div>
+    <div class="meta-item" *ngIf="log.ip_address">
+      <span class="label">IP Address</span>
+      <span class="value monospace">{{ log.ip_address }}</span>
+    </div>
+    <div class="meta-item" *ngIf="log.user_agent">
+      <span class="label">User Agent</span>
+      <span class="value">{{ log.user_agent }}</span>
+    </div>
+  </div>
+
+  <div class="changes-section" *ngIf="changeEntries.length > 0">
+    <h3>Field Changes</h3>
+    <table class="changes-table">
+      <thead>
+        <tr>
+          <th>Field</th>
+          <th>Previous Value</th>
+          <th>New Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let change of changeEntries">
+          <td class="field-name">
+            <code>{{ change.key }}</code>
+          </td>
+          <td>
+            <pre>{{ formatValue(change.oldValue) }}</pre>
+          </td>
+          <td>
+            <pre>{{ formatValue(change.newValue) }}</pre>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="no-changes" *ngIf="changeEntries.length === 0">
+    <mat-icon color="primary">info</mat-icon>
+    <p>No field-level changes recorded for this audit entry.</p>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="close()">Close</button>
+</mat-dialog-actions>
+

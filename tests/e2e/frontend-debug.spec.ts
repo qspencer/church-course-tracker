@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test('Debug frontend loading', async ({ page }) => {
   // Navigate to the frontend
-  await page.goto('https://apps.quentinspencer.com');
+  await page.goto('https://apps.quentinspencer.com/churchcoursetracker');
   
   // Wait for the page to load
   await page.waitForLoadState('networkidle');

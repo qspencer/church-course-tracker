@@ -24,6 +24,7 @@ import { AdminGuard } from '../../guards/admin.guard';
 
 // Components
 import { AuditComponent } from './audit.component';
+import { AuditDetailsDialogComponent } from './audit-details-dialog/audit-details-dialog.component';
 
 const routes: Routes = [
   {
@@ -35,7 +36,8 @@ const routes: Routes = [
 
 @NgModule({
   declarations: [
-    AuditComponent
+    AuditComponent,
+    AuditDetailsDialogComponent
   ],
   imports: [
     CommonModule,

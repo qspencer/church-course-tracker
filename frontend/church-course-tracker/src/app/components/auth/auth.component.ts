@@ -40,7 +40,7 @@ export class AuthComponent implements OnInit {
     // Check if already authenticated
     this.authService.isAuthenticated$.subscribe(isAuth => {
       if (isAuth) {
-        this.router.navigate(['/dashboard']);
+        this.router.navigate(['/churchcoursetracker/dashboard']);
       }
     });
   }
@@ -58,7 +58,7 @@ export class AuthComponent implements OnInit {
         next: () => {
           this.isLoading = false;
           this.snackBar.open('Login successful!', 'Close', { duration: 3000 });
-          this.router.navigate(['/dashboard']);
+          this.router.navigate(['/churchcoursetracker/dashboard']);
         },
         error: (error) => {
           this.isLoading = false;

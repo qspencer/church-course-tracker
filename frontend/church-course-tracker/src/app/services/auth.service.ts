@@ -41,7 +41,7 @@ export class AuthService {
     localStorage.removeItem(this.USER_KEY);
     this.isAuthenticatedSubject.next(false);
     this.currentUserSubject.next(null);
-    this.router.navigate(['/auth']);
+    this.router.navigate(['/churchcoursetracker/auth']);
   }
 
   register(userData: any): Observable<User> {

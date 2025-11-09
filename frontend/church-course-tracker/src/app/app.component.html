@@ -16,35 +16,35 @@
   <mat-sidenav-container *ngIf="isAuthenticated" class="sidenav-container">
     <mat-sidenav #sidenav mode="side" opened>
       <mat-nav-list>
-        <a mat-list-item routerLink="/dashboard" routerLinkActive="active">
+        <a mat-list-item routerLink="/churchcoursetracker/dashboard" routerLinkActive="active">
           <mat-icon matListItemIcon>dashboard</mat-icon>
           <span matListItemTitle>Dashboard</span>
         </a>
-        <a mat-list-item routerLink="/courses" routerLinkActive="active">
+        <a mat-list-item routerLink="/churchcoursetracker/courses" routerLinkActive="active">
           <mat-icon matListItemIcon>school</mat-icon>
           <span matListItemTitle>Courses</span>
         </a>
-        <a mat-list-item routerLink="/enrollments" routerLinkActive="active">
+        <a mat-list-item routerLink="/churchcoursetracker/enrollments" routerLinkActive="active">
           <mat-icon matListItemIcon>assignment</mat-icon>
           <span matListItemTitle>Enrollments</span>
         </a>
-        <a mat-list-item routerLink="/progress" routerLinkActive="active">
+        <a mat-list-item routerLink="/churchcoursetracker/progress" routerLinkActive="active">
           <mat-icon matListItemIcon>trending_up</mat-icon>
           <span matListItemTitle>Progress</span>
         </a>
-        <a mat-list-item routerLink="/members" routerLinkActive="active">
+        <a mat-list-item routerLink="/churchcoursetracker/members" routerLinkActive="active">
           <mat-icon matListItemIcon>people</mat-icon>
           <span matListItemTitle>Members</span>
         </a>
-        <a mat-list-item *ngIf="isAdmin()" routerLink="/users" routerLinkActive="active">
+        <a mat-list-item *ngIf="isAdmin()" routerLink="/churchcoursetracker/users" routerLinkActive="active">
           <mat-icon matListItemIcon>admin_panel_settings</mat-icon>
           <span matListItemTitle>Users</span>
         </a>
-        <a mat-list-item *ngIf="isAdmin()" routerLink="/audit" routerLinkActive="active">
+        <a mat-list-item *ngIf="isAdmin()" routerLink="/churchcoursetracker/audit" routerLinkActive="active">
           <mat-icon matListItemIcon>history</mat-icon>
           <span matListItemTitle>Audit Logs</span>
         </a>
-        <a mat-list-item routerLink="/reports" routerLinkActive="active">
+        <a mat-list-item routerLink="/churchcoursetracker/reports" routerLinkActive="active">
           <mat-icon matListItemIcon>assessment</mat-icon>
           <span matListItemTitle>Reports</span>
         </a>

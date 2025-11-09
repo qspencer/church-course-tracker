@@ -135,7 +135,7 @@ export class CoursesComponent implements OnInit {
 
   manageCourseContent(course: Course): void {
     // Navigate to course content management page
-    this.router.navigate(['/courses', course.id, 'content']);
+    this.router.navigate(['/churchcoursetracker/courses', course.id, 'content']);
   }
 
   getStatusColor(isActive: boolean): string {

@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test('Debug routing issue', async ({ page }) => {
   // Navigate to the app
-  await page.goto('https://apps.quentinspencer.com');
+  await page.goto('https://apps.quentinspencer.com/churchcoursetracker');
   
   // Wait for the page to load
   await page.waitForLoadState('networkidle');
@@ -43,7 +43,7 @@ test('Debug routing issue', async ({ page }) => {
   console.log('Body content preview:', bodyContent.substring(0, 1000));
   
   // Try navigating to /auth directly
-  await page.goto('https://apps.quentinspencer.com/auth');
+  await page.goto('https://apps.quentinspencer.com/churchcoursetracker/auth');
   await page.waitForLoadState('networkidle');
   await page.waitForTimeout(3000);
   

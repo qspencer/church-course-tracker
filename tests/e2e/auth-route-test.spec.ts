@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test('Test auth route specifically', async ({ page }) => {
   // Navigate directly to the auth route
-  await page.goto('https://apps.quentinspencer.com/auth');
+  await page.goto('https://apps.quentinspencer.com/churchcoursetracker/auth');
   
   // Wait for the page to load
   await page.waitForLoadState('networkidle');

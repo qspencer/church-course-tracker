@@ -7,12 +7,12 @@ const testUsers = {
 };
 
 async function loginAs(page: Page, user: typeof testUsers.admin) {
-  await page.goto('https://apps.quentinspencer.com/auth');
+  await page.goto('https://apps.quentinspencer.com/churchcoursetracker/auth');
    await page.waitForTimeout(2000); // Wait for Angular to initialize
   await page.fill('input[formControlName="username"]', user.username);
   await page.fill('input[formControlName="password"]', user.password);
   await page.click('button[type="submit"]');
-  await page.waitForURL('https://apps.quentinspencer.com/dashboard');
+  await page.waitForURL('https://apps.quentinspencer.com/churchcoursetracker/dashboard');
 }
 
 test.describe('Progress Tracking Tests', () => {
