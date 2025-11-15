@@ -5,12 +5,15 @@ Audit service for managing system-wide audit trails
 import csv
 import io
 import json
+import uuid
 from datetime import date, datetime
-from typing import Any, Dict, List, Optional
+from decimal import Decimal
+from typing import Any, Dict, List, Optional, Set
 
 from fastapi import HTTPException, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy import and_, desc, func, or_, text
+from sqlalchemy.inspection import inspect as sa_inspect
 from sqlalchemy.orm import Session
 
 from app.models.audit_log import AuditLog
@@ -22,13 +25,88 @@ class AuditService:
     def __init__(self, db: Session):
         self.db = db
 
+    # ------------------------------------------------------------------
+    # Serialization helpers
+    # ------------------------------------------------------------------
+    @staticmethod
+    def _serialize_value(value: Any) -> Any:
+        """Convert SQLAlchemy values into JSON-serializable structures."""
+        if isinstance(value, (datetime, date)):
+            return value.isoformat()
+        if isinstance(value, Decimal):
+            return float(value)
+        if isinstance(value, uuid.UUID):
+            return str(value)
+        if hasattr(value, "value") and isinstance(getattr(value, "value"), (str, int)):
+            # Enum values
+            return value.value  # type: ignore[attr-defined]
+        return value
+
+    @staticmethod
+    def serialize_model(
+        instance: Any, exclude: Optional[Set[str]] = None
+    ) -> Dict[str, Any]:
+        """Serialize a SQLAlchemy model to a dictionary suitable for JSON storage."""
+        if instance is None:
+            return {}
+
+        exclude = exclude or set()
+        data: Dict[str, Any] = {}
+        mapper = sa_inspect(instance)
+
+        for attr in mapper.mapper.column_attrs:
+            key = attr.key
+            if key in exclude:
+                continue
+            value = getattr(instance, key, None)
+            data[key] = AuditService._serialize_value(value)
+
+        return data
+
+    # ------------------------------------------------------------------
+    # CRUD helpers
+    # ------------------------------------------------------------------
     def create_audit_log(self, audit_data: AuditLogCreate) -> AuditLog:
         """Create a new audit log entry"""
         audit_log = AuditLog(**audit_data.dict())
         self.db.add(audit_log)
-        self.db.commit()
+        try:
+            self.db.commit()
+        except Exception:
+            self.db.rollback()
+            raise
         self.db.refresh(audit_log)
         return audit_log
+
+    def log_change(
+        self,
+        *,
+        table_name: str,
+        record_id: int,
+        action: str,
+        changed_by: Optional[int] = None,
+        old_values: Optional[Dict[str, Any]] = None,
+        new_values: Optional[Dict[str, Any]] = None,
+        ip_address: Optional[str] = None,
+        user_agent: Optional[str] = None,
+    ) -> AuditLog:
+        """
+        Convenience helper to persist a change in the audit log.
+
+        Parameters mirror the `audit_log` table. `action` should be one of
+        `insert`, `update`, or `delete`.
+        """
+        audit_data = AuditLogCreate(
+            table_name=table_name,
+            record_id=record_id,
+            action=action,
+            changed_by=changed_by,
+            old_values=old_values,
+            new_values=new_values,
+            ip_address=ip_address,
+            user_agent=user_agent,
+        )
+        return self.create_audit_log(audit_data)
 
     def get_audit_logs(
         self,

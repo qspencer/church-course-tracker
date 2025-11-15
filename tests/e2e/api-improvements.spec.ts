@@ -1,8 +1,20 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, APIResponse } from '@playwright/test';
 
-const API_BASE_URL = process.env.API_BASE_URL ?? 'https://tinev5iszf.execute-api.us-east-1.amazonaws.com';
-const ADMIN_USERNAME = process.env.E2E_ADMIN_USERNAME ?? process.env.ADMIN_USERNAME ?? process.env.API_USERNAME;
-const ADMIN_PASSWORD = process.env.E2E_ADMIN_PASSWORD ?? process.env.ADMIN_PASSWORD ?? process.env.API_PASSWORD;
+const env =
+  ((globalThis as unknown as { process?: { env?: Record<string, string | undefined> } }).process?.env) ??
+  {};
+
+const API_BASE_URL = env.API_BASE_URL ?? 'https://tinev5iszf.execute-api.us-east-1.amazonaws.com';
+const ADMIN_USERNAME =
+  env.E2E_ADMIN_USERNAME ??
+  env.ADMIN_USERNAME ??
+  env.API_USERNAME ??
+  'Admin';
+const ADMIN_PASSWORD =
+  env.E2E_ADMIN_PASSWORD ??
+  env.ADMIN_PASSWORD ??
+  env.API_PASSWORD ??
+  'Admin123!';
 
 test.describe('API Improvements Verification', () => {
   test('Enhanced health endpoint provides comprehensive status', async ({ request }) => {
@@ -149,7 +161,7 @@ test.describe('API Improvements Verification', () => {
 
   test('Rate limiting functionality works', async ({ request }) => {
     // Make multiple rapid requests to test rate limiting
-    const requests = [];
+  const requests: Promise<APIResponse>[] = [];
     for (let i = 0; i < 15; i++) {
       requests.push(request.get(`${API_BASE_URL}/api/v1/courses/`));
     }
@@ -214,7 +226,7 @@ test.describe('API Improvements Verification', () => {
 
   test('Authentication still works with new middleware', async ({ request }) => {
     if (!ADMIN_USERNAME || !ADMIN_PASSWORD) {
-      test.skip('Admin credentials are not configured for API authentication validation');
+      test.skip(true, 'Admin credentials are not configured for API authentication validation');
       return;
     }
 
@@ -226,7 +238,7 @@ test.describe('API Improvements Verification', () => {
     });
 
     if (response.status() === 401) {
-      test.skip('Configured admin credentials are not valid in the target environment');
+      test.skip(true, 'Configured admin credentials are not valid in the target environment');
       return;
     }
 

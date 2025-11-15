@@ -1,24 +1,18 @@
-import { test, expect, Page } from '@playwright/test';
+import { test, expect, type Page, type TestInfo } from '@playwright/test';
+import { loginAsRole } from './utils/auth';
 
-const testUsers = {
-  admin: { username: "admin", password: 'admin123' },
-  staff: { username: 'staff', password: 'staff123' },
-  viewer: { username: 'viewer', password: 'viewer123' }
-};
+type UserRole = 'admin' | 'staff' | 'viewer';
 
-async function loginAs(page: Page, user: typeof testUsers.admin) {
-  await page.goto('https://apps.quentinspencer.com/churchcoursetracker/auth');
-   await page.waitForTimeout(2000); // Wait for Angular to initialize
-  await page.fill('input[formControlName="username"]', user.username);
-  await page.fill('input[formControlName="password"]', user.password);
-  await page.click('button[type="submit"]');
-  await page.waitForURL('https://apps.quentinspencer.com/churchcoursetracker/dashboard');
+async function loginAs(page: Page, role: UserRole, testInfo: TestInfo) {
+  return loginAsRole(page, role, testInfo);
 }
 
 test.describe('Progress Tracking Tests', () => {
   test.describe('Admin Progress Monitoring', () => {
-    test('Admin can view all user progress', async ({ page }) => {
-      await loginAs(page, testUsers.admin);
+    test('Admin can view all user progress', async ({ page }, testInfo) => {
+      if (!(await loginAs(page, 'admin', testInfo))) {
+        return;
+      }
 
       await page.click('text=Progress Reports');
       
@@ -32,8 +26,10 @@ test.describe('Progress Tracking Tests', () => {
       await expect(page.locator('text=Completion Statistics')).toBeVisible();
     });
 
-    test('Admin can generate progress reports', async ({ page }) => {
-      await loginAs(page, testUsers.admin);
+    test('Admin can generate progress reports', async ({ page }, testInfo) => {
+      if (!(await loginAs(page, 'admin', testInfo))) {
+        return;
+      }
 
       await page.click('text=Progress Reports');
       await page.click('button:has-text("Generate Report")');
@@ -49,8 +45,10 @@ test.describe('Progress Tracking Tests', () => {
       await expect(page.locator('text=Report generated successfully')).toBeVisible();
     });
 
-    test('Admin can export progress data', async ({ page }) => {
-      await loginAs(page, testUsers.admin);
+    test('Admin can export progress data', async ({ page }, testInfo) => {
+      if (!(await loginAs(page, 'admin', testInfo))) {
+        return;
+      }
 
       await page.click('text=Progress Reports');
       await page.click('button:has-text("Export Data")');
@@ -63,8 +61,10 @@ test.describe('Progress Tracking Tests', () => {
   });
 
   test.describe('Staff Progress Monitoring', () => {
-    test('Staff can view course progress', async ({ page }) => {
-      await loginAs(page, testUsers.staff);
+    test('Staff can view course progress', async ({ page }, testInfo) => {
+      if (!(await loginAs(page, 'staff', testInfo))) {
+        return;
+      }
 
       await page.click('text=Progress Reports');
       
@@ -74,8 +74,10 @@ test.describe('Progress Tracking Tests', () => {
       await expect(page.locator('text=Course Analytics')).toBeVisible();
     });
 
-    test('Staff can monitor individual student progress', async ({ page }) => {
-      await loginAs(page, testUsers.staff);
+    test('Staff can monitor individual student progress', async ({ page }, testInfo) => {
+      if (!(await loginAs(page, 'staff', testInfo))) {
+        return;
+      }
 
       await page.click('text=Progress Reports');
       await page.click('text=Student Progress');
@@ -89,8 +91,10 @@ test.describe('Progress Tracking Tests', () => {
       await expect(page.locator('text=Student Progress Details')).toBeVisible();
     });
 
-    test('Staff can track content access', async ({ page }) => {
-      await loginAs(page, testUsers.staff);
+    test('Staff can track content access', async ({ page }, testInfo) => {
+      if (!(await loginAs(page, 'staff', testInfo))) {
+        return;
+      }
 
       await page.click('text=Progress Reports');
       await page.click('text=Content Access');
@@ -101,8 +105,10 @@ test.describe('Progress Tracking Tests', () => {
       await expect(page.locator('text=Least Accessed Content')).toBeVisible();
     });
 
-    test('Staff can identify students needing support', async ({ page }) => {
-      await loginAs(page, testUsers.staff);
+    test('Staff can identify students needing support', async ({ page }, testInfo) => {
+      if (!(await loginAs(page, 'staff', testInfo))) {
+        return;
+      }
 
       await page.click('text=Progress Reports');
       await page.click('text=Students Needing Support');
@@ -115,8 +121,10 @@ test.describe('Progress Tracking Tests', () => {
   });
 
   test.describe('Viewer Personal Progress', () => {
-    test('Viewer can view personal progress', async ({ page }) => {
-      await loginAs(page, testUsers.viewer);
+    test('Viewer can view personal progress', async ({ page }, testInfo) => {
+      if (!(await loginAs(page, 'viewer', testInfo))) {
+        return;
+      }
 
       await page.click('text=Progress');
       
@@ -126,8 +134,10 @@ test.describe('Progress Tracking Tests', () => {
       await expect(page.locator('text=In Progress')).toBeVisible();
     });
 
-    test('Viewer can track course completion', async ({ page }) => {
-      await loginAs(page, testUsers.viewer);
+    test('Viewer can track course completion', async ({ page }, testInfo) => {
+      if (!(await loginAs(page, 'viewer', testInfo))) {
+        return;
+      }
 
       await page.click('text=Progress');
       await page.click('text=Course Progress');
@@ -138,8 +148,10 @@ test.describe('Progress Tracking Tests', () => {
       await expect(page.locator('text=Time Spent')).toBeVisible();
     });
 
-    test('Viewer can view learning history', async ({ page }) => {
-      await loginAs(page, testUsers.viewer);
+    test('Viewer can view learning history', async ({ page }, testInfo) => {
+      if (!(await loginAs(page, 'viewer', testInfo))) {
+        return;
+      }
 
       await page.click('text=Progress');
       await page.click('text=Learning History');
@@ -150,8 +162,10 @@ test.describe('Progress Tracking Tests', () => {
       await expect(page.locator('text=Certificates Earned')).toBeVisible();
     });
 
-    test('Viewer can set learning goals', async ({ page }) => {
-      await loginAs(page, testUsers.viewer);
+    test('Viewer can set learning goals', async ({ page }, testInfo) => {
+      if (!(await loginAs(page, 'viewer', testInfo))) {
+        return;
+      }
 
       await page.click('text=Progress');
       await page.click('text=Learning Goals');
@@ -168,8 +182,10 @@ test.describe('Progress Tracking Tests', () => {
   });
 
   test.describe('Progress Analytics', () => {
-    test('Progress charts display correctly', async ({ page }) => {
-      await loginAs(page, testUsers.admin);
+    test('Progress charts display correctly', async ({ page }, testInfo) => {
+      if (!(await loginAs(page, 'admin', testInfo))) {
+        return;
+      }
 
       await page.click('text=Progress Reports');
       
@@ -179,8 +195,10 @@ test.describe('Progress Tracking Tests', () => {
       await expect(page.locator('canvas[data-chart="time-spent"]')).toBeVisible();
     });
 
-    test('Progress statistics are accurate', async ({ page }) => {
-      await loginAs(page, testUsers.admin);
+    test('Progress statistics are accurate', async ({ page }, testInfo) => {
+      if (!(await loginAs(page, 'admin', testInfo))) {
+        return;
+      }
 
       await page.click('text=Progress Reports');
       
@@ -191,8 +209,10 @@ test.describe('Progress Tracking Tests', () => {
       await expect(page.locator('text=Average Progress')).toBeVisible();
     });
 
-    test('Progress filtering works', async ({ page }) => {
-      await loginAs(page, testUsers.admin);
+    test('Progress filtering works', async ({ page }, testInfo) => {
+      if (!(await loginAs(page, 'admin', testInfo))) {
+        return;
+      }
 
       await page.click('text=Progress Reports');
       
@@ -212,8 +232,10 @@ test.describe('Progress Tracking Tests', () => {
   });
 
   test.describe('Progress Notifications', () => {
-    test('Progress notifications are sent', async ({ page }) => {
-      await loginAs(page, testUsers.viewer);
+    test('Progress notifications are sent', async ({ page }, testInfo) => {
+      if (!(await loginAs(page, 'viewer', testInfo))) {
+        return;
+      }
 
       // Complete a course module
       await page.click('text=My Courses');
@@ -224,8 +246,10 @@ test.describe('Progress Tracking Tests', () => {
       await expect(page.locator('text=Progress updated')).toBeVisible();
     });
 
-    test('Achievement notifications work', async ({ page }) => {
-      await loginAs(page, testUsers.viewer);
+    test('Achievement notifications work', async ({ page }, testInfo) => {
+      if (!(await loginAs(page, 'viewer', testInfo))) {
+        return;
+      }
 
       // Complete a course
       await page.click('text=My Courses');

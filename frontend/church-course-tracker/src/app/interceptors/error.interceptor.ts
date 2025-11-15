@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, isDevMode } from '@angular/core';
 import { HttpInterceptor, HttpRequest, HttpHandler, HttpEvent, HttpErrorResponse } from '@angular/common/http';
 import { Observable, catchError, throwError } from 'rxjs';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -9,15 +9,17 @@ export class ErrorInterceptor implements HttpInterceptor {
   constructor(private snackBar: MatSnackBar) {}
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    // CRITICAL: Log the FULL URL including query parameters
-    const fullUrl = req.urlWithParams || req.url;
-    console.log('ErrorInterceptor - Request URL (base):', req.url);
-    console.log('ErrorInterceptor - Request URL (with params):', fullUrl);
-    if (!req.url.startsWith('https://')) {
-      console.error('❌ ErrorInterceptor - Request URL is NOT HTTPS!', req.url);
-    }
-    if (fullUrl && !fullUrl.startsWith('https://')) {
-      console.error('❌ ErrorInterceptor - Full URL with params is NOT HTTPS!', fullUrl);
+    // Only log in development mode
+    if (isDevMode()) {
+      const fullUrl = req.urlWithParams || req.url;
+      console.log('ErrorInterceptor - Request URL (base):', req.url);
+      console.log('ErrorInterceptor - Request URL (with params):', fullUrl);
+      if (!req.url.startsWith('https://')) {
+        console.error('❌ ErrorInterceptor - Request URL is NOT HTTPS!', req.url);
+      }
+      if (fullUrl && !fullUrl.startsWith('https://')) {
+        console.error('❌ ErrorInterceptor - Full URL with params is NOT HTTPS!', fullUrl);
+      }
     }
     
     return next.handle(req).pipe(

@@ -4,9 +4,10 @@ Report service layer
 
 import csv
 import io
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.models.course import Course as CourseModel
@@ -80,36 +81,117 @@ class ReportService:
         course_ids: Optional[List[int]] = None,
     ) -> Dict[str, Any]:
         """Get completion trends data"""
-        # For now, return mock data since we don't have real completion data yet
-        # In a real implementation, this would query actual completion data
-
         if not start_date:
             start_date = date.today().replace(day=1)  # First day of current month
         if not end_date:
             end_date = date.today()
 
-        # Generate mock trend data
-        trends = []
-        current_date = start_date
-        while current_date <= end_date:
-            trends.append(
-                {
-                    "date": current_date.strftime("%Y-%m-%d"),
-                    "completions": 0,  # Would be actual completion count
-                    "enrollments": 0,  # Would be actual enrollment count
-                }
-            )
-            # Use timedelta to properly increment date
-            current_date = current_date + timedelta(days=1)
+        from logging import getLogger
 
-        return {
-            "trends": trends,
-            "period": {
-                "start_date": start_date.strftime("%Y-%m-%d"),
-                "end_date": end_date.strftime("%Y-%m-%d"),
-            },
-            "course_ids": course_ids or [],
-        }
+        logger = getLogger(__name__)
+        try:
+            date_filter_start = datetime.combine(start_date, datetime.min.time(), tzinfo=timezone.utc)
+            date_filter_end = datetime.combine(end_date, datetime.max.time(), tzinfo=timezone.utc)
+
+            # Prepare enrollment counts per day
+            enrollment_day = func.date(EnrollmentModel.enrollment_date).label("day")
+            completion_day = func.date(EnrollmentModel.completion_date).label("day")
+
+            enrollment_query = (
+                self.db.query(
+                    enrollment_day,
+                    func.count(EnrollmentModel.id).label("count"),
+                )
+                .filter(
+                    EnrollmentModel.enrollment_date >= date_filter_start,
+                    EnrollmentModel.enrollment_date <= date_filter_end,
+                )
+            )
+
+            if course_ids:
+                enrollment_query = enrollment_query.filter(
+                    EnrollmentModel.course_id.in_(course_ids)
+                )
+
+            enrollment_query = enrollment_query.group_by(enrollment_day).order_by(enrollment_day)
+            enrollment_counts: Dict[date, int] = {}
+            for row in enrollment_query.all():
+                if row.day is not None:
+                    day_value = row.day
+                    if isinstance(day_value, str):
+                        day_value = date.fromisoformat(day_value)
+                    enrollment_counts[day_value] = row.count
+
+            completion_query = (
+                self.db.query(
+                    completion_day,
+                    func.count(EnrollmentModel.id).label("count"),
+                )
+                .filter(
+                    EnrollmentModel.completion_date.isnot(None),
+                    EnrollmentModel.completion_date >= date_filter_start,
+                    EnrollmentModel.completion_date <= date_filter_end,
+                )
+            )
+
+            if course_ids:
+                completion_query = completion_query.filter(
+                    EnrollmentModel.course_id.in_(course_ids)
+                )
+
+            completion_query = completion_query.group_by(completion_day).order_by(completion_day)
+            completion_counts: Dict[date, int] = {}
+            for row in completion_query.all():
+                if row.day is not None:
+                    day_value = row.day
+                    if isinstance(day_value, str):
+                        day_value = date.fromisoformat(day_value)
+                    completion_counts[day_value] = row.count
+
+            trends = []
+            current_date = start_date
+            while current_date <= end_date:
+                trends.append(
+                    {
+                        "date": current_date.strftime("%Y-%m-%d"),
+                        "enrollments": enrollment_counts.get(current_date, 0),
+                        "completions": completion_counts.get(current_date, 0),
+                    }
+                )
+                current_date += timedelta(days=1)
+
+            return {
+                "trends": trends,
+                "period": {
+                    "start_date": start_date.strftime("%Y-%m-%d"),
+                    "end_date": end_date.strftime("%Y-%m-%d"),
+                },
+                "course_ids": course_ids or [],
+            }
+        except Exception as exc:
+            logger.exception("Failed to compute completion trends", exc_info=exc)
+            trends = []
+            current_date = start_date
+            while current_date <= end_date:
+                trends.append(
+                    {
+                        "date": current_date.strftime("%Y-%m-%d"),
+                        "enrollments": 0,
+                        "completions": 0,
+                    }
+                )
+                current_date += timedelta(days=1)
+
+            return {
+                "trends": trends,
+                "period": {
+                    "start_date": start_date.strftime("%Y-%m-%d"),
+                    "end_date": end_date.strftime("%Y-%m-%d"),
+                },
+                "course_ids": course_ids or [],
+                "error": "trend_calculation_failed",
+                "error_detail": str(exc),
+            }
 
     def generate_enrollment_report(
         self,

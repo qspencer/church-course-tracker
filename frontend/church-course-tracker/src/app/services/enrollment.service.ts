@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, isDevMode } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
@@ -11,10 +11,12 @@ export class EnrollmentService {
   private readonly API_URL = `${environment.apiUrl}/enrollments`;
 
   constructor(private http: HttpClient) {
-    // Debug: Log the API URL to verify it's HTTPS
-    console.log('EnrollmentService API_URL:', this.API_URL);
-    if (!this.API_URL.startsWith('https://')) {
-      console.error('❌ EnrollmentService API_URL is NOT HTTPS!', this.API_URL);
+    // Only log in development mode
+    if (isDevMode()) {
+      console.log('EnrollmentService API_URL:', this.API_URL);
+      if (!this.API_URL.startsWith('https://')) {
+        console.error('❌ EnrollmentService API_URL is NOT HTTPS!', this.API_URL);
+      }
     }
   }
 
@@ -27,20 +29,20 @@ export class EnrollmentService {
         }
       });
     }
-    // Debug: Log the actual URL being requested
-    console.log('EnrollmentService.getEnrollments - Requesting URL:', this.API_URL);
-    console.log('EnrollmentService.getEnrollments - Query params:', httpParams.toString());
     
     // Ensure URL is absolute HTTPS (defensive check)
     const url = this.API_URL.startsWith('https://') ? this.API_URL : `https://${this.API_URL.replace(/^https?:\/\//, '')}`;
     
-    // Construct full URL with params for logging
-    const fullUrlWithParams = `${url}?${httpParams.toString()}`;
-    console.log('EnrollmentService.getEnrollments - Final URL (base):', url);
-    console.log('EnrollmentService.getEnrollments - Final URL (with params):', fullUrlWithParams);
-    
-    if (!fullUrlWithParams.startsWith('https://')) {
-      console.error('❌ EnrollmentService - Full URL with params is NOT HTTPS!', fullUrlWithParams);
+    // Only log in development mode
+    if (isDevMode()) {
+      console.log('EnrollmentService.getEnrollments - Requesting URL:', this.API_URL);
+      console.log('EnrollmentService.getEnrollments - Query params:', httpParams.toString());
+      const fullUrlWithParams = `${url}?${httpParams.toString()}`;
+      console.log('EnrollmentService.getEnrollments - Final URL (base):', url);
+      console.log('EnrollmentService.getEnrollments - Final URL (with params):', fullUrlWithParams);
+      if (!fullUrlWithParams.startsWith('https://')) {
+        console.error('❌ EnrollmentService - Full URL with params is NOT HTTPS!', fullUrlWithParams);
+      }
     }
     
     return this.http.get<Enrollment[]>(url, { params: httpParams });

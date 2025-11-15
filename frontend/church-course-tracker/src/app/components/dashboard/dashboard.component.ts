@@ -41,13 +41,23 @@ export class DashboardComponent implements OnInit {
 
   enrollmentTrendsData: ChartData<'line'> = {
     labels: [],
-    datasets: [{
-      label: 'New Enrollments',
-      data: [],
-      borderColor: '#2196F3',
-      backgroundColor: 'rgba(33, 150, 243, 0.1)',
-      tension: 0.4
-    }]
+    datasets: [
+      {
+        label: 'New Enrollments',
+        data: [],
+        borderColor: '#2196F3',
+        backgroundColor: 'rgba(33, 150, 243, 0.1)',
+        tension: 0.4
+      },
+      {
+        label: 'Completions',
+        data: [],
+        borderColor: '#4CAF50',
+        backgroundColor: 'rgba(76, 175, 80, 0.1)',
+        borderDash: [5, 5],
+        tension: 0.4
+      }
+    ]
   };
 
   enrollmentTrendsOptions: ChartConfiguration['options'] = {
@@ -145,15 +155,21 @@ export class DashboardComponent implements OnInit {
       next: (response: CompletionTrendsResponse) => {
         const trends = response.trends || [];
         const labels = trends.map(t => new Date(t.date).toLocaleDateString());
-        const data = trends.map(t => t.enrollments);
+        const enrollmentData = trends.map(t => t.enrollments);
+        const completionData = trends.map(t => t.completions ?? 0);
         
         this.enrollmentTrendsData = {
-          ...this.enrollmentTrendsData,
-          labels: labels,
-          datasets: [{
-            ...this.enrollmentTrendsData.datasets[0],
-            data: data
-          }]
+          labels,
+          datasets: [
+            {
+              ...this.enrollmentTrendsData.datasets[0],
+              data: enrollmentData
+            },
+            {
+              ...this.enrollmentTrendsData.datasets[1],
+              data: completionData
+            }
+          ]
         };
       },
       error: (error) => {
@@ -175,5 +191,24 @@ export class DashboardComponent implements OnInit {
 
   refreshDashboard(): void {
     this.loadDashboardData();
+  }
+
+  getEnrollmentMemberName(enrollment: Enrollment): string {
+    const person = enrollment.person || enrollment.people;
+    if (person) {
+      const first = person.first_name ?? '';
+      const last = person.last_name ?? '';
+      const full = `${first} ${last}`.trim();
+      if (full) {
+        return full;
+      }
+    }
+    const fallbackId =
+      enrollment.person_id ??
+      enrollment.people?.id ??
+      enrollment.person?.id ??
+      enrollment.people_id ?? // legacy compat if backend ever sends
+      enrollment.id;
+    return `Member #${fallbackId}`;
   }
 }

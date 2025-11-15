@@ -1,39 +1,10 @@
-import { test, expect, Page } from '@playwright/test';
+import { test, expect } from '@playwright/test';
+import { API_BASE_URL, APP_BASE_URL, loginAsRole } from './utils/auth';
 
-// Test data for different roles
-const testUsers = {
-  admin: {
-    username: "admin",
-    password: 'admin123',
-    role: 'admin'
-  },
-  staff: {
-    username: 'staff', 
-    password: 'staff123',
-    role: 'staff'
-  },
-  viewer: {
-    username: 'viewer',
-    password: 'viewer123', 
-    role: 'viewer'
-  }
-};
+type UserRole = 'admin' | 'staff' | 'viewer';
 
-// Helper function to login with specific role
-async function loginAs(page: Page, user: typeof testUsers.admin) {
-  try {
-    await page.goto('https://apps.quentinspencer.com/churchcoursetracker/auth', { waitUntil: 'networkidle' });
-    await page.waitForTimeout(2000); // Wait for Angular to initialize
-    await page.fill('input[formControlName="username"]', user.username);
-    await page.fill('input[formControlName="password"]', user.password);
-    await page.click('button[type="submit"]');
-    await page.waitForURL('**/dashboard', { timeout: 10000 });
-  } catch (error) {
-    console.log('Login failed, trying alternative approach...');
-    // Alternative login approach
-    await page.goto('https://apps.quentinspencer.com/churchcoursetracker');
-    await page.waitForLoadState('networkidle');
-  }
+async function loginAs(page: Parameters<typeof loginAsRole>[0], role: UserRole, testInfo: Parameters<typeof loginAsRole>[2]) {
+  return loginAsRole(page, role, testInfo, { timeoutMs: 20000 });
 }
 
 // Helper function to check if element is visible
@@ -49,12 +20,12 @@ async function isVisible(page: Page, selector: string): Promise<boolean> {
 test.describe('Comprehensive Role-Based Testing', () => {
   test.beforeEach(async ({ page }) => {
     // Navigate to the application
-    await page.goto('https://apps.quentinspencer.com/churchcoursetracker', { waitUntil: 'networkidle' });
+    await page.goto(APP_BASE_URL, { waitUntil: 'networkidle' });
   });
 
   test.describe('Application Accessibility Tests', () => {
     test('Application loads successfully', async ({ page }) => {
-      await page.goto('https://apps.quentinspencer.com/churchcoursetracker');
+      await page.goto(APP_BASE_URL);
       await page.waitForLoadState('networkidle');
       
       // Check if the page loads without errors
@@ -64,7 +35,7 @@ test.describe('Comprehensive Role-Based Testing', () => {
 
     test('API endpoints are accessible', async ({ page }) => {
       // Test API health endpoint
-      const response = await page.request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/health');
+      const response = await page.request.get(`${API_BASE_URL}/api/v1/health`);
       expect(response.status()).toBe(200);
       
       const data = await response.json();
@@ -74,7 +45,7 @@ test.describe('Comprehensive Role-Based Testing', () => {
 
   test.describe('Authentication Tests', () => {
     test('Login page is accessible', async ({ page }) => {
-      await page.goto('https://apps.quentinspencer.com/churchcoursetracker/auth');
+      await page.goto(`${APP_BASE_URL}/auth`);
       await page.waitForLoadState('networkidle');
       
       // Check for login form elements
@@ -88,7 +59,7 @@ test.describe('Comprehensive Role-Based Testing', () => {
     });
 
     test('Invalid credentials show error', async ({ page }) => {
-      await page.goto('https://apps.quentinspencer.com/churchcoursetracker/auth');
+      await page.goto(`${APP_BASE_URL}/auth`);
       await page.fill('input[name="username"]', 'invalid');
       await page.fill('input[name="password"]', 'invalid');
       await page.click('button[type="submit"]');
@@ -105,16 +76,16 @@ test.describe('Comprehensive Role-Based Testing', () => {
   });
 
   test.describe('Admin Role Tests', () => {
-    test('Admin can access dashboard', async ({ page }) => {
-      await loginAs(page, testUsers.admin);
+    test('Admin can access dashboard', async ({ page }, testInfo) => {
+      await loginAs(page, 'admin', testInfo);
       
       // Verify dashboard access
       const currentUrl = page.url();
       expect(currentUrl).toContain('dashboard');
     });
 
-    test('Admin navigation elements are present', async ({ page }) => {
-      await loginAs(page, testUsers.admin);
+    test('Admin navigation elements are present', async ({ page }, testInfo) => {
+      await loginAs(page, 'admin', testInfo);
       
       // Check for admin-specific navigation elements
       const navElements = [
@@ -136,16 +107,16 @@ test.describe('Comprehensive Role-Based Testing', () => {
   });
 
   test.describe('Staff Role Tests', () => {
-    test('Staff can access dashboard', async ({ page }) => {
-      await loginAs(page, testUsers.staff);
+    test('Staff can access dashboard', async ({ page }, testInfo) => {
+      await loginAs(page, 'staff', testInfo);
       
       // Verify dashboard access
       const currentUrl = page.url();
       expect(currentUrl).toContain('dashboard');
     });
 
-    test('Staff navigation is limited', async ({ page }) => {
-      await loginAs(page, testUsers.staff);
+    test('Staff navigation is limited', async ({ page }, testInfo) => {
+      await loginAs(page, 'staff', testInfo);
       
       // Staff should see operational elements
       const staffElements = [
@@ -164,16 +135,16 @@ test.describe('Comprehensive Role-Based Testing', () => {
   });
 
   test.describe('Viewer Role Tests', () => {
-    test('Viewer can access dashboard', async ({ page }) => {
-      await loginAs(page, testUsers.viewer);
+    test('Viewer can access dashboard', async ({ page }, testInfo) => {
+      await loginAs(page, 'viewer', testInfo);
       
       // Verify dashboard access
       const currentUrl = page.url();
       expect(currentUrl).toContain('dashboard');
     });
 
-    test('Viewer navigation is limited', async ({ page }) => {
-      await loginAs(page, testUsers.viewer);
+    test('Viewer navigation is limited', async ({ page }, testInfo) => {
+      await loginAs(page, 'viewer', testInfo);
       
       // Viewer should see limited elements
       const viewerElements = [
@@ -195,9 +166,9 @@ test.describe('Comprehensive Role-Based Testing', () => {
     test('API endpoints respond correctly', async ({ page }) => {
       // Test various API endpoints
       const endpoints = [
-        'https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/health',
-        'https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/',
-        'https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/users/'
+        `${API_BASE_URL}/api/v1/health`,
+        `${API_BASE_URL}/api/v1/courses/`,
+        `${API_BASE_URL}/api/v1/users/`
       ];
 
       for (const endpoint of endpoints) {
@@ -211,7 +182,7 @@ test.describe('Comprehensive Role-Based Testing', () => {
     });
 
     test('CORS headers are present', async ({ page }) => {
-      const response = await page.request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/health');
+      const response = await page.request.get(`${API_BASE_URL}/api/v1/health`);
       const headers = response.headers();
       
       const corsHeaders = [
@@ -233,7 +204,7 @@ test.describe('Comprehensive Role-Based Testing', () => {
   test.describe('Performance Tests', () => {
     test('Page load performance', async ({ page }) => {
       const startTime = Date.now();
-      await page.goto('https://apps.quentinspencer.com/churchcoursetracker');
+      await page.goto(APP_BASE_URL);
       await page.waitForLoadState('networkidle');
       const loadTime = Date.now() - startTime;
       
@@ -254,7 +225,7 @@ test.describe('Comprehensive Role-Based Testing', () => {
 
   test.describe('Error Handling Tests', () => {
     test('404 pages are handled gracefully', async ({ page }) => {
-      const response = await page.goto('https://apps.quentinspencer.com/churchcoursetracker/nonexistent-page');
+      const response = await page.goto(`${APP_BASE_URL}/nonexistent-page`);
       expect(response?.status()).toBe(404);
     });
 
@@ -271,7 +242,7 @@ test.describe('Comprehensive Role-Based Testing', () => {
   test.describe('Mobile Responsiveness Tests', () => {
     test('Mobile viewport works', async ({ page }) => {
       await page.setViewportSize({ width: 375, height: 667 });
-      await page.goto('https://apps.quentinspencer.com/churchcoursetracker');
+      await page.goto(APP_BASE_URL);
       await page.waitForLoadState('networkidle');
       
       // Check if page is responsive

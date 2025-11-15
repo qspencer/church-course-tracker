@@ -58,7 +58,7 @@ This document summarizes the comprehensive test suite created for the Church Cou
 - `POST /api/v1/users/` - Prepared for future implementation (422)
 
 ### **Authentication Status**
-- **Admin User**: ✅ Working (`admin` / `admin123`)
+- **Admin User**: ✅ Working (`Admin` / `Admin123!`)
 - **Staff User**: ❌ Not created yet
 - **Viewer User**: ❌ Not created yet
 

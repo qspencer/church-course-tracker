@@ -34,6 +34,7 @@ from app.schemas.course_content import (ContentAccessLogCreate,
                                         CourseContentCreate,
                                         CourseContentUpdate,
                                         CourseModuleCreate, CourseModuleUpdate)
+from app.services.audit_service import AuditService
 
 
 class ContentService:
@@ -673,3 +674,14 @@ class ContentService:
         )
         self.db.add(audit_log)
         self.db.commit()
+        if content_id:
+            action_map = {"create": "insert", "update": "update", "delete": "delete"}
+            audit_action = action_map.get(action, "update")
+            AuditService(self.db).log_change(
+                table_name=CourseContent.__tablename__,
+                record_id=content_id,
+                action=audit_action,
+                changed_by=user_id,
+                old_values=old_values,
+                new_values=new_values,
+            )

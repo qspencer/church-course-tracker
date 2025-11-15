@@ -4,7 +4,7 @@ import { test, expect } from '@playwright/test';
 // Note: Using actual admin credentials that exist in production
 // Staff and viewer users may need to be created in the database first
 const testUsers = {
-  admin: { username: "admin", password: "admin123" },  // Using actual production admin
+  admin: { username: "Admin", password: "Admin123!" },  // Using actual production admin
   staff: { username: 'staff', password: 'staff123' },
   viewer: { username: 'viewer', password: 'viewer123' }
 };
@@ -220,7 +220,7 @@ test.describe('Church Course Tracker - Comprehensive Test Suite', () => {
       
       // Test POST (login)
       const postResponse = await request.post('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/auth/login', {
-        data: { username: "admin", password: "admin123" }
+        data: { username: "Admin", password: "Admin123!" }
       });
       expect(postResponse.status()).toBe(200);
       

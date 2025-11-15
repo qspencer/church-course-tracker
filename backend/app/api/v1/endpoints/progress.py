@@ -9,7 +9,8 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.schemas.progress import (ContentCompletion, ContentCompletionCreate,
-                                  ContentCompletionUpdate)
+                                  ContentCompletionUpdate,
+                                  EnrollmentContentProgress)
 from app.services.progress_service import ProgressService
 
 router = APIRouter()
@@ -27,6 +28,21 @@ async def get_course_progress(course_id: int, db: Session = Depends(get_db)):
     """Get progress for all members in a specific course"""
     progress_service = ProgressService(db)
     return progress_service.get_course_progress(course_id)
+
+
+@router.get(
+    "/enrollment/{enrollment_id}",
+    response_model=List[EnrollmentContentProgress],
+)
+async def get_enrollment_progress(enrollment_id: int, db: Session = Depends(get_db)):
+    """Get progress for each content item within an enrollment's course"""
+    progress_service = ProgressService(db)
+    enrollment_progress = progress_service.get_enrollment_progress(enrollment_id)
+    if enrollment_progress is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Enrollment not found"
+        )
+    return enrollment_progress
 
 
 @router.get("/{progress_id}", response_model=ContentCompletion)

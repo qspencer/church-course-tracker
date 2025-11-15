@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 
 from app.models.member import People as PeopleModel
 from app.schemas.people import PeopleCreate, PeopleUpdate
+from app.services.audit_service import AuditService
 
 
 class PeopleService:
@@ -71,6 +72,13 @@ class PeopleService:
         self.db.add(db_person)
         self.db.commit()
         self.db.refresh(db_person)
+        AuditService(self.db).log_change(
+            table_name=PeopleModel.__tablename__,
+            record_id=db_person.id,
+            action="insert",
+            changed_by=created_by,
+            new_values=AuditService.serialize_model(db_person),
+        )
         return db_person
 
     def update_person(
@@ -83,7 +91,7 @@ class PeopleService:
         db_person = self.get_person(person_id)
         if not db_person:
             return None
-
+        old_values = AuditService.serialize_model(db_person)
         update_data = person_update.dict(exclude_unset=True)
         for field, value in update_data.items():
             setattr(db_person, field, value)
@@ -92,16 +100,33 @@ class PeopleService:
         db_person.updated_by = updated_by
         self.db.commit()
         self.db.refresh(db_person)
+        AuditService(self.db).log_change(
+            table_name=PeopleModel.__tablename__,
+            record_id=db_person.id,
+            action="update",
+            changed_by=updated_by,
+            old_values=old_values,
+            new_values=AuditService.serialize_model(db_person),
+        )
         return db_person
 
-    def delete_person(self, person_id: int) -> bool:
+    def delete_person(self, person_id: int, deleted_by: Optional[int] = None) -> bool:
         """Delete a person"""
         db_person = self.get_person(person_id)
         if not db_person:
             return False
+        old_values = AuditService.serialize_model(db_person)
+        record_id = db_person.id
 
         self.db.delete(db_person)
         self.db.commit()
+        AuditService(self.db).log_change(
+            table_name=PeopleModel.__tablename__,
+            record_id=record_id,
+            action="delete",
+            changed_by=deleted_by,
+            old_values=old_values,
+        )
         return True
 
     def sync_from_planning_center(

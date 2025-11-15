@@ -17,6 +17,8 @@ import { AuthComponent } from './auth.component';
 import { AuthService } from '../../services/auth.service';
 import { User, LoginResponse } from '../../models';
 
+const ROUTE_PREFIX = '/churchcoursetracker';
+
 describe('AuthComponent', () => {
   let component: AuthComponent;
   let fixture: ComponentFixture<AuthComponent>;
@@ -132,7 +134,7 @@ describe('AuthComponent', () => {
       component.onLogin();
 
       expect(snackBarSpy.open).toHaveBeenCalledWith('Login successful!', 'Close', { duration: 3000 });
-      expect(routerSpy.navigate).toHaveBeenCalledWith(['/dashboard']);
+      expect(routerSpy.navigate).toHaveBeenCalledWith([`${ROUTE_PREFIX}/dashboard`]);
       expect(component.isLoading).toBe(false);
     });
 

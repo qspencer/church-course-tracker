@@ -85,6 +85,7 @@ class CourseEnrollment(CourseEnrollmentBase):
     created_by: Optional[int] = None
     updated_by: Optional[int] = None
     course: Optional[CourseSchema] = None
+    people: Optional[PeopleSchema] = None
 
     @computed_field
     @property

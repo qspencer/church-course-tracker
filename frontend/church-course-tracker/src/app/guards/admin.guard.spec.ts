@@ -5,6 +5,8 @@ import { AuthService } from '../services/auth.service';
 import { User } from '../models';
 import { of } from 'rxjs';
 
+const ROUTE_PREFIX = '/churchcoursetracker';
+
 describe('AdminGuard', () => {
   let guard: AdminGuard;
   let authService: jasmine.SpyObj<AuthService>;
@@ -78,7 +80,7 @@ describe('AdminGuard', () => {
 
     guard.canActivate().subscribe(result => {
       expect(result).toBe(false);
-      expect(router.navigate).toHaveBeenCalledWith(['/dashboard']);
+      expect(router.navigate).toHaveBeenCalledWith([`${ROUTE_PREFIX}/dashboard`]);
       done();
     });
   });
@@ -92,7 +94,7 @@ describe('AdminGuard', () => {
 
     guard.canActivate().subscribe(result => {
       expect(result).toBe(false);
-      expect(router.navigate).toHaveBeenCalledWith(['/auth']);
+      expect(router.navigate).toHaveBeenCalledWith([`${ROUTE_PREFIX}/auth`]);
       done();
     });
   });
@@ -117,7 +119,7 @@ describe('AdminGuard', () => {
 
     guard.canActivate().subscribe(result => {
       expect(result).toBe(false);
-      expect(router.navigate).toHaveBeenCalledWith(['/dashboard']);
+      expect(router.navigate).toHaveBeenCalledWith([`${ROUTE_PREFIX}/dashboard`]);
       done();
     });
   });

@@ -3,12 +3,15 @@ Course service layer (Maps to Planning Center Events)
 """
 
 from datetime import datetime, timezone
-from typing import List, Optional
+from typing import Dict, List, Optional
 
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.models.course import Course as CourseModel
+from app.models.enrollment import CourseEnrollment as EnrollmentModel
 from app.schemas.course import CourseCreate, CourseUpdate
+from app.services.audit_service import AuditService
 
 
 class CourseService:
@@ -89,6 +92,13 @@ class CourseService:
         self.db.add(db_course)
         self.db.commit()
         self.db.refresh(db_course)
+        AuditService(self.db).log_change(
+            table_name=CourseModel.__tablename__,
+            record_id=db_course.id,
+            action="insert",
+            changed_by=created_by,
+            new_values=AuditService.serialize_model(db_course),
+        )
         
         # Query again with user relationships to ensure they're loaded
         from sqlalchemy.orm import joinedload
@@ -105,6 +115,7 @@ class CourseService:
         if not db_course:
             return None
 
+        old_values = AuditService.serialize_model(db_course)
         update_data = course_update.model_dump(exclude_unset=True)
         for field, value in update_data.items():
             setattr(db_course, field, value)
@@ -113,18 +124,35 @@ class CourseService:
         db_course.updated_by = updated_by
         self.db.commit()
         self.db.refresh(db_course)
+        AuditService(self.db).log_change(
+            table_name=CourseModel.__tablename__,
+            record_id=db_course.id,
+            action="update",
+            changed_by=updated_by,
+            old_values=old_values,
+            new_values=AuditService.serialize_model(db_course),
+        )
         
         # Query again with user relationships to ensure they're loaded
         return self.get_course(course_id)
 
-    def delete_course(self, course_id: int) -> bool:
+    def delete_course(self, course_id: int, deleted_by: Optional[int] = None) -> bool:
         """Delete a course"""
         db_course = self.get_course(course_id)
         if not db_course:
             return False
+        old_values = AuditService.serialize_model(db_course)
+        record_id = db_course.id
 
         self.db.delete(db_course)
         self.db.commit()
+        AuditService(self.db).log_change(
+            table_name=CourseModel.__tablename__,
+            record_id=record_id,
+            action="delete",
+            changed_by=deleted_by,
+            old_values=old_values,
+        )
         return True
 
     def sync_from_planning_center(
@@ -171,3 +199,20 @@ class CourseService:
                 current_registrations=pc_event_data.get("current_registrations", 0),
             )
             return self.create_course(course_data, created_by=updated_by)
+
+    def get_registration_counts(
+        self, course_ids: Optional[List[int]] = None
+    ) -> Dict[int, int]:
+        """Return enrollment counts per course."""
+        query = self.db.query(
+            EnrollmentModel.course_id, func.count(EnrollmentModel.id)
+        )
+        if course_ids:
+            query = query.filter(EnrollmentModel.course_id.in_(course_ids))
+
+        counts = query.group_by(EnrollmentModel.course_id).all()
+        return {
+            int(course_id): int(count) if count is not None else 0
+            for course_id, count in counts
+            if course_id is not None
+        }

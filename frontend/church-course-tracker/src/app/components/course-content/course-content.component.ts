@@ -2,7 +2,8 @@ import { Component, OnInit, OnDestroy, Input } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject } from 'rxjs';
+import { takeUntil, finalize } from 'rxjs/operators';
 
 import { CourseContentService } from '../../services/course-content.service';
 import { AuthService } from '../../services/auth.service';
@@ -14,6 +15,10 @@ import {
   AuditLog
 } from '../../models';
 import { ContentDialogComponent } from './content-dialog/content-dialog.component';
+import {
+  ConfirmDialogComponent,
+  ConfirmDialogData
+} from '../../shared/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-course-content',
@@ -301,22 +306,90 @@ export class CourseContentComponent implements OnInit, OnDestroy {
   }
 
   deleteContent(content: CourseContent): void {
-    this.snackBar.open('Content deletion not implemented yet', 'Close', { duration: 3000 });
+    const dialogData: ConfirmDialogData = {
+      title: 'Delete Content',
+      message: `Are you sure you want to delete "${content.title}"? This action cannot be undone.`,
+      confirmText: 'Delete',
+      cancelText: 'Cancel'
+    };
+
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '420px',
+      data: dialogData,
+      autoFocus: false
+    });
+
+    dialogRef.afterClosed().subscribe(confirmed => {
+      if (!confirmed) {
+        return;
+      }
+
+      this.isLoading = true;
+      this.courseContentService
+        .deleteContent(content.id)
+        .pipe(
+          finalize(() => {
+            this.isLoading = false;
+          })
+        )
+        .subscribe({
+          next: () => {
+            this.snackBar.open('Content deleted successfully', 'Close', {
+              duration: 3000
+            });
+            this.loadData();
+          },
+          error: error => {
+            console.error('Error deleting content:', error);
+            let errorMessage = 'Failed to delete content. Please try again.';
+            if (error?.error?.detail) {
+              errorMessage = error.error.detail;
+            }
+            this.snackBar.open(errorMessage, 'Close', { duration: 5000 });
+          }
+        });
+    });
   }
 
   viewContent(content: CourseContent): void {
     if (content.content_type === CourseContentType.EXTERNAL_LINK && content.external_url) {
       window.open(content.external_url, '_blank');
-    } else if (content.content_type === CourseContentType.EMBEDDED && content.embedded_content) {
-      this.snackBar.open('Embedded content viewer not implemented yet', 'Close', { duration: 3000 });
-    } else {
-      // Check if content has a file before trying to download
-      if (!content.file_path && !content.file_name) {
-        this.snackBar.open('No file uploaded for this content. Please upload a file first.', 'Close', { duration: 5000 });
-        return;
-      }
-      this.downloadContent(content);
+      return;
     }
+
+    if (content.content_type === CourseContentType.EMBEDDED && content.embedded_content) {
+      this.snackBar.open('Embedded content viewer not implemented yet', 'Close', { duration: 3000 });
+      return;
+    }
+
+    if (!content.file_path && !content.file_name) {
+      // Fetch the latest metadata in case the UI is out of sync (e.g., right after an upload)
+      this.courseContentService.getContentItem(content.id).subscribe({
+        next: refreshedContent => {
+          Object.assign(content, refreshedContent);
+          if (!refreshedContent.file_path && !refreshedContent.file_name) {
+            this.snackBar.open(
+              'No file uploaded for this content. Please upload a file first.',
+              'Close',
+              { duration: 5000 }
+            );
+            return;
+          }
+          this.downloadContent(refreshedContent);
+        },
+        error: error => {
+          console.error('Error refreshing content metadata:', error);
+          this.snackBar.open(
+            'Unable to load the latest file information. Please try again.',
+            'Close',
+            { duration: 5000 }
+          );
+        }
+      });
+      return;
+    }
+
+    this.downloadContent(content);
   }
 
   downloadContent(content: CourseContent): void {
@@ -331,13 +404,31 @@ export class CourseContentComponent implements OnInit, OnDestroy {
       
       this.courseContentService.downloadContent(content.id).subscribe({
         next: (blob) => {
-          const a = document.createElement('a');
           const objectUrl = URL.createObjectURL(blob);
-          a.href = objectUrl;
-          a.download = content.file_name || 'download';
-          a.click();
-          URL.revokeObjectURL(objectUrl);
-          this.snackBar.open('Content downloaded successfully', 'Close', { duration: 3000 });
+          const isPdf =
+            (blob.type && blob.type.toLowerCase().includes('pdf')) ||
+            (content.file_name && content.file_name.toLowerCase().endsWith('.pdf'));
+
+          if (isPdf) {
+            const newWindow = window.open(objectUrl, '_blank');
+            if (!newWindow) {
+              // Pop-up blocked; fallback to download
+              this.triggerFileDownload(content, objectUrl);
+              URL.revokeObjectURL(objectUrl);
+            } else {
+              newWindow.addEventListener(
+                'load',
+                () => {
+                  URL.revokeObjectURL(objectUrl);
+                },
+                { once: true }
+              );
+              this.snackBar.open('Opening PDF in a new tab', 'Close', { duration: 3000 });
+            }
+          } else {
+            this.triggerFileDownload(content, objectUrl);
+            URL.revokeObjectURL(objectUrl);
+          }
         },
         error: (error) => {
           console.error('Error downloading content:', error);
@@ -353,6 +444,14 @@ export class CourseContentComponent implements OnInit, OnDestroy {
     } else {
       this.snackBar.open('Content not available for download', 'Close', { duration: 3000 });
     }
+  }
+
+  private triggerFileDownload(content: CourseContent, objectUrl: string): void {
+    const anchor = document.createElement('a');
+    anchor.href = objectUrl;
+    anchor.download = content.file_name || 'download';
+    anchor.click();
+    this.snackBar.open('Content downloaded successfully', 'Close', { duration: 3000 });
   }
 
   // Audit-related utility functions

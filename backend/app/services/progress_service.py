@@ -5,8 +5,11 @@ Progress service layer
 from datetime import datetime
 from typing import List, Optional
 
+from sqlalchemy.exc import ProgrammingError
 from sqlalchemy.orm import Session
 
+from app.models.course_content import CourseContent as CourseContentModel
+from app.models.enrollment import CourseEnrollment as CourseEnrollmentModel
 from app.models.progress import ContentCompletion as ProgressModel
 from app.schemas.progress import (ContentCompletionCreate,
                                   ContentCompletionUpdate)
@@ -22,8 +25,8 @@ class ProgressService:
         """Get progress for a specific member across all courses"""
         return (
             self.db.query(ProgressModel)
-            .join(ProgressModel.enrollment)
-            .filter(ProgressModel.enrollment.has(member_id=member_id))
+            .join(ProgressModel.course_enrollment)
+            .filter(ProgressModel.course_enrollment.has(people_id=member_id))
             .all()
         )
 
@@ -31,8 +34,8 @@ class ProgressService:
         """Get progress for all members in a specific course"""
         return (
             self.db.query(ProgressModel)
-            .join(ProgressModel.enrollment)
-            .filter(ProgressModel.enrollment.has(course_id=course_id))
+            .join(ProgressModel.course_enrollment)
+            .filter(ProgressModel.course_enrollment.has(course_id=course_id))
             .all()
         )
 
@@ -79,3 +82,80 @@ class ProgressService:
         self.db.delete(db_progress)
         self.db.commit()
         return True
+
+    def get_enrollment_progress(self, enrollment_id: int):
+        """Return progress entries (and placeholders) for a specific enrollment"""
+        enrollment = (
+            self.db.query(CourseEnrollmentModel)
+            .filter(CourseEnrollmentModel.id == enrollment_id)
+            .first()
+        )
+        if not enrollment:
+            return None
+
+        contents = (
+            self.db.query(CourseContentModel)
+            .filter(CourseContentModel.course_id == enrollment.course_id)
+            .order_by(CourseContentModel.order_index, CourseContentModel.id)
+            .all()
+        )
+
+        content_map = {content.id: content for content in contents}
+
+        try:
+            completions = (
+                self.db.query(ProgressModel)
+                .filter(ProgressModel.course_enrollment_id == enrollment_id)
+                .all()
+            )
+        except ProgrammingError as exc:
+            # Older production schema uses the "progress" table instead of "content_completion"
+            # Treat missing table as "no completion records" so the UI still shows placeholders.
+            if "content_completion" in str(exc.orig):
+                completions = []
+                self.db.rollback()
+            else:
+                raise
+
+        completions_by_content = {
+            completion.content_id: completion for completion in completions
+        }
+
+        progress_items = []
+        for content in contents:
+            completion = completions_by_content.get(content.id)
+            status = "not_started"
+            if completion:
+                if completion.completed_at:
+                    status = "completed"
+                elif any(
+                    value is not None
+                    for value in (
+                        completion.time_spent_minutes,
+                        completion.score,
+                        completion.notes,
+                    )
+                ):
+                    status = "in_progress"
+                else:
+                    status = "in_progress"
+
+            progress_items.append(
+                {
+                    "id": completion.id if completion else None,
+                    "enrollment_id": enrollment.id,
+                    "content_id": content.id,
+                    "status": status,
+                    "completed_at": completion.completed_at if completion else None,
+                    "time_spent_minutes": (
+                        completion.time_spent_minutes if completion else None
+                    ),
+                    "score": completion.score if completion else None,
+                    "notes": completion.notes if completion else None,
+                    "created_at": completion.created_at if completion else None,
+                    "updated_at": completion.updated_at if completion else None,
+                    "content": content_map.get(content.id),
+                }
+            )
+
+        return progress_items

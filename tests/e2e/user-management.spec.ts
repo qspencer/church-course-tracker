@@ -1,66 +1,10 @@
 import { test, expect, type Page, type TestInfo } from '@playwright/test';
-
-const RAW_APP_BASE_URL = process.env.APP_BASE_URL ?? 'https://apps.quentinspencer.com';
-const APP_BASE_URL = RAW_APP_BASE_URL.replace(/\/+$/, '');
+import { APP_BASE_URL, credentials, loginAsRole } from './utils/auth';
 
 type UserRole = 'admin' | 'staff' | 'viewer';
 
-const DEFAULT_CREDENTIALS: Record<UserRole, { username: string; password: string }> = {
-  admin: { username: 'admin', password: 'admin123' },
-  staff: { username: 'staff', password: 'staff123' },
-  viewer: { username: 'viewer', password: 'viewer123' }
-};
-
-function loadCredentials(role: UserRole) {
-  const prefix = role.toUpperCase();
-  const username =
-    process.env[`E2E_${prefix}_USERNAME`] ??
-    process.env[`${prefix}_USERNAME`] ??
-    DEFAULT_CREDENTIALS[role]?.username;
-  const password =
-    process.env[`E2E_${prefix}_PASSWORD`] ??
-    process.env[`${prefix}_PASSWORD`] ??
-    DEFAULT_CREDENTIALS[role]?.password;
-
-  if (!username || !password) {
-    return undefined;
-  }
-
-  return { username, password };
-}
-
-const credentials: Record<UserRole, { username: string; password: string } | undefined> = {
-  admin: loadCredentials('admin'),
-  staff: loadCredentials('staff'),
-  viewer: loadCredentials('viewer')
-};
-
 async function loginAs(page: Page, role: UserRole, testInfo: TestInfo) {
-  const user = credentials[role];
-  if (!user) {
-    testInfo.skip(`Credentials for ${role} user are not configured for end-to-end tests`);
-    return undefined;
-  }
-
-  await page.goto(`${APP_BASE_URL}/auth`);
-  await page.waitForLoadState('networkidle');
-  await page.fill('input[formControlName="username"]', user.username);
-  await page.fill('input[formControlName="password"]', user.password);
-  await page.click('button[type="submit"]');
-
-  const navigationSucceeded = await page.waitForURL(`${APP_BASE_URL}/dashboard`, {
-    timeout: 15000
-  }).then(
-    () => true,
-    () => false
-  );
-
-  if (!navigationSucceeded) {
-    testInfo.skip(`Configured ${role} credentials failed to authenticate in the target environment`);
-    return undefined;
-  }
-
-  return user;
+  return loginAsRole(page, role, testInfo);
 }
 
 test.describe('User Management Tests', () => {

@@ -1,32 +1,11 @@
-import { test, expect, Page } from '@playwright/test';
+import { test, expect, type Page, type TestInfo } from '@playwright/test';
+import { loginAsRole } from './utils/auth';
 
-// Test data for different roles
-const testUsers = {
-  admin: {
-    username: "admin",
-    password: 'admin123',
-    role: 'admin'
-  },
-  staff: {
-    username: 'staff',
-    password: 'staff123',
-    role: 'staff'
-  },
-  viewer: {
-    username: 'viewer',
-    password: 'viewer123',
-    role: 'viewer'
-  }
-};
+type UserRole = 'admin' | 'staff' | 'viewer';
 
 // Helper function to login with specific role
-async function loginAs(page: Page, user: typeof testUsers.admin) {
-  await page.goto('https://apps.quentinspencer.com/churchcoursetracker/auth');
-   await page.waitForTimeout(2000); // Wait for Angular to initialize
-  await page.fill('input[formControlName="username"]', user.username);
-  await page.fill('input[formControlName="password"]', user.password);
-  await page.click('button[type="submit"]');
-  await page.waitForURL('https://apps.quentinspencer.com/churchcoursetracker/dashboard');
+async function loginAs(page: Page, role: UserRole, testInfo: TestInfo) {
+  return loginAsRole(page, role, testInfo);
 }
 
 // Helper function to check if element is visible
@@ -46,8 +25,10 @@ test.describe('Role-Based Access Control', () => {
   });
 
   test.describe('Admin Role Tests', () => {
-    test('Admin can access all system features', async ({ page }) => {
-      await loginAs(page, testUsers.admin);
+    test('Admin can access all system features', async ({ page }, testInfo) => {
+      if (!(await loginAs(page, 'admin', testInfo))) {
+        return;
+      }
 
       // Check dashboard access
       await expect(page).toHaveURL('https://apps.quentinspencer.com/churchcoursetracker/dashboard');
@@ -66,8 +47,10 @@ test.describe('Role-Based Access Control', () => {
       }
     });
 
-    test('Admin can manage users', async ({ page }) => {
-      await loginAs(page, testUsers.admin);
+    test('Admin can manage users', async ({ page }, testInfo) => {
+      if (!(await loginAs(page, 'admin', testInfo))) {
+        return;
+      }
 
       // Navigate to users page
       await page.click('text=Users');
@@ -79,8 +62,10 @@ test.describe('Role-Based Access Control', () => {
       await expect(page.locator('button:has-text("Edit User")')).toBeVisible();
     });
 
-    test('Admin can access audit logs', async ({ page }) => {
-      await loginAs(page, testUsers.admin);
+    test('Admin can access audit logs', async ({ page }, testInfo) => {
+      if (!(await loginAs(page, 'admin', testInfo))) {
+        return;
+      }
 
       // Navigate to audit logs
       await page.click('text=Audit Logs');
@@ -92,8 +77,10 @@ test.describe('Role-Based Access Control', () => {
       await expect(page.locator('button:has-text("Filter Logs")')).toBeVisible();
     });
 
-    test('Admin can delete courses', async ({ page }) => {
-      await loginAs(page, testUsers.admin);
+    test('Admin can delete courses', async ({ page }, testInfo) => {
+      if (!(await loginAs(page, 'admin', testInfo))) {
+        return;
+      }
 
       // Navigate to courses
       await page.click('text=Courses');
@@ -104,8 +91,10 @@ test.describe('Role-Based Access Control', () => {
       await expect(deleteButtons.first()).toBeVisible();
     });
 
-    test('Admin can access system settings', async ({ page }) => {
-      await loginAs(page, testUsers.admin);
+    test('Admin can access system settings', async ({ page }, testInfo) => {
+      if (!(await loginAs(page, 'admin', testInfo))) {
+        return;
+      }
 
       // Navigate to system settings
       await page.click('text=System Settings');
@@ -118,8 +107,10 @@ test.describe('Role-Based Access Control', () => {
   });
 
   test.describe('Staff Role Tests', () => {
-    test('Staff can access operational features', async ({ page }) => {
-      await loginAs(page, testUsers.staff);
+    test('Staff can access operational features', async ({ page }, testInfo) => {
+      if (!(await loginAs(page, 'staff', testInfo))) {
+        return;
+      }
 
       // Check dashboard access
       await expect(page).toHaveURL('https://apps.quentinspencer.com/churchcoursetracker/dashboard');
@@ -141,8 +132,10 @@ test.describe('Role-Based Access Control', () => {
       await expect(page.locator('text=System Settings')).not.toBeVisible();
     });
 
-    test('Staff can manage courses and content', async ({ page }) => {
-      await loginAs(page, testUsers.staff);
+    test('Staff can manage courses and content', async ({ page }, testInfo) => {
+      if (!(await loginAs(page, 'staff', testInfo))) {
+        return;
+      }
 
       // Navigate to courses
       await page.click('text=Courses');
@@ -156,8 +149,10 @@ test.describe('Role-Based Access Control', () => {
       await expect(page.locator('button:has-text("Delete")')).not.toBeVisible();
     });
 
-    test('Staff can upload course content', async ({ page }) => {
-      await loginAs(page, testUsers.staff);
+    test('Staff can upload course content', async ({ page }, testInfo) => {
+      if (!(await loginAs(page, 'staff', testInfo))) {
+        return;
+      }
 
       // Navigate to content management
       await page.click('text=Content Management');
@@ -168,8 +163,10 @@ test.describe('Role-Based Access Control', () => {
       await expect(page.locator('button:has-text("Upload File")')).toBeVisible();
     });
 
-    test('Staff can view progress reports', async ({ page }) => {
-      await loginAs(page, testUsers.staff);
+    test('Staff can view progress reports', async ({ page }, testInfo) => {
+      if (!(await loginAs(page, 'staff', testInfo))) {
+        return;
+      }
 
       // Navigate to progress reports
       await page.click('text=Progress Reports');
@@ -180,8 +177,10 @@ test.describe('Role-Based Access Control', () => {
       await expect(page.locator('text=Course Analytics')).toBeVisible();
     });
 
-    test('Staff cannot access admin features', async ({ page }) => {
-      await loginAs(page, testUsers.staff);
+    test('Staff cannot access admin features', async ({ page }, testInfo) => {
+      if (!(await loginAs(page, 'staff', testInfo))) {
+        return;
+      }
 
       // Try to access admin URLs directly
       await page.goto('https://apps.quentinspencer.com/churchcoursetracker/admin');
@@ -193,8 +192,10 @@ test.describe('Role-Based Access Control', () => {
   });
 
   test.describe('Viewer Role Tests', () => {
-    test('Viewer can access limited features', async ({ page }) => {
-      await loginAs(page, testUsers.viewer);
+    test('Viewer can access limited features', async ({ page }, testInfo) => {
+      if (!(await loginAs(page, 'viewer', testInfo))) {
+        return;
+      }
 
       // Check dashboard access
       await expect(page).toHaveURL('https://apps.quentinspencer.com/churchcoursetracker/dashboard');
@@ -216,8 +217,10 @@ test.describe('Role-Based Access Control', () => {
       await expect(page.locator('text=Audit Logs')).not.toBeVisible();
     });
 
-    test('Viewer can view and enroll in courses', async ({ page }) => {
-      await loginAs(page, testUsers.viewer);
+    test('Viewer can view and enroll in courses', async ({ page }, testInfo) => {
+      if (!(await loginAs(page, 'viewer', testInfo))) {
+        return;
+      }
 
       // Navigate to courses
       await page.click('text=My Courses');
@@ -232,8 +235,10 @@ test.describe('Role-Based Access Control', () => {
       await expect(page.locator('button:has-text("Edit Course")')).not.toBeVisible();
     });
 
-    test('Viewer can track personal progress', async ({ page }) => {
-      await loginAs(page, testUsers.viewer);
+    test('Viewer can track personal progress', async ({ page }, testInfo) => {
+      if (!(await loginAs(page, 'viewer', testInfo))) {
+        return;
+      }
 
       // Navigate to progress
       await page.click('text=Progress');
@@ -244,8 +249,10 @@ test.describe('Role-Based Access Control', () => {
       await expect(page.locator('text=Completed Courses')).toBeVisible();
     });
 
-    test('Viewer can manage profile', async ({ page }) => {
-      await loginAs(page, testUsers.viewer);
+    test('Viewer can manage profile', async ({ page }, testInfo) => {
+      if (!(await loginAs(page, 'viewer', testInfo))) {
+        return;
+      }
 
       // Navigate to profile
       await page.click('text=Profile');
@@ -257,8 +264,10 @@ test.describe('Role-Based Access Control', () => {
       await expect(page.locator('input[name="email"]')).toBeVisible();
     });
 
-    test('Viewer cannot access management features', async ({ page }) => {
-      await loginAs(page, testUsers.viewer);
+    test('Viewer cannot access management features', async ({ page }, testInfo) => {
+      if (!(await loginAs(page, 'viewer', testInfo))) {
+        return;
+      }
 
       // Try to access management URLs directly
       await page.goto('https://apps.quentinspencer.com/churchcoursetracker/users');
@@ -270,39 +279,51 @@ test.describe('Role-Based Access Control', () => {
   });
 
   test.describe('Cross-Role Security Tests', () => {
-    test('Users cannot access other roles features', async ({ page }) => {
+    test('Users cannot access other roles features', async ({ page }, testInfo) => {
       // Test staff cannot access admin features
-      await loginAs(page, testUsers.staff);
+      if (!(await loginAs(page, 'staff', testInfo))) {
+        return;
+      }
       await page.goto('https://apps.quentinspencer.com/churchcoursetracker/audit');
       await expect(page).toHaveURL('https://apps.quentinspencer.com/churchcoursetracker/dashboard');
 
       // Test viewer cannot access staff features
-      await loginAs(page, testUsers.viewer);
+      if (!(await loginAs(page, 'viewer', testInfo))) {
+        return;
+      }
       await page.goto('https://apps.quentinspencer.com/churchcoursetracker/content');
       await expect(page).toHaveURL('https://apps.quentinspencer.com/churchcoursetracker/dashboard');
     });
 
-    test('API endpoints respect role permissions', async ({ page }) => {
+    test('API endpoints respect role permissions', async ({ page }, testInfo) => {
       // Test admin API access
-      await loginAs(page, testUsers.admin);
+      if (!(await loginAs(page, 'admin', testInfo))) {
+        return;
+      }
       const adminResponse = await page.request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/audit/');
       expect(adminResponse.status()).toBe(200);
 
       // Test staff API access (should be denied for audit)
-      await loginAs(page, testUsers.staff);
+      if (!(await loginAs(page, 'staff', testInfo))) {
+        return;
+      }
       const staffResponse = await page.request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/audit/');
       expect(staffResponse.status()).toBe(403);
 
       // Test viewer API access (should be denied for audit)
-      await loginAs(page, testUsers.viewer);
+      if (!(await loginAs(page, 'viewer', testInfo))) {
+        return;
+      }
       const viewerResponse = await page.request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/audit/');
       expect(viewerResponse.status()).toBe(403);
     });
   });
 
   test.describe('Role-Specific Workflows', () => {
-    test('Admin course management workflow', async ({ page }) => {
-      await loginAs(page, testUsers.admin);
+    test('Admin course management workflow', async ({ page }, testInfo) => {
+      if (!(await loginAs(page, 'admin', testInfo))) {
+        return;
+      }
 
       // Create course
       await page.click('text=Courses');
@@ -320,8 +341,10 @@ test.describe('Role-Based Access Control', () => {
       await expect(page.locator('text=Test Admin Course')).not.toBeVisible();
     });
 
-    test('Staff content management workflow', async ({ page }) => {
-      await loginAs(page, testUsers.staff);
+    test('Staff content management workflow', async ({ page }, testInfo) => {
+      if (!(await loginAs(page, 'staff', testInfo))) {
+        return;
+      }
 
       // Navigate to content management
       await page.click('text=Content Management');
@@ -338,8 +361,10 @@ test.describe('Role-Based Access Control', () => {
       await expect(page.locator('text=File uploaded successfully')).toBeVisible();
     });
 
-    test('Viewer course enrollment workflow', async ({ page }) => {
-      await loginAs(page, testUsers.viewer);
+    test('Viewer course enrollment workflow', async ({ page }, testInfo) => {
+      if (!(await loginAs(page, 'viewer', testInfo))) {
+        return;
+      }
 
       // Browse courses
       await page.click('text=My Courses');
@@ -372,8 +397,10 @@ test.describe('Role-Based Access Control', () => {
       await expect(page.locator('text=Invalid credentials')).toBeVisible();
     });
 
-    test('Session timeout redirects to login', async ({ page }) => {
-      await loginAs(page, testUsers.admin);
+    test('Session timeout redirects to login', async ({ page }, testInfo) => {
+      if (!(await loginAs(page, 'admin', testInfo))) {
+        return;
+      }
       
       // Simulate session timeout by clearing cookies
       await page.context().clearCookies();

@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session, selectinload
 from app.models.enrollment import CourseEnrollment as CourseEnrollmentModel
 from app.schemas.enrollment import (CourseEnrollmentCreate,
                                     CourseEnrollmentUpdate)
+from app.services.audit_service import AuditService
 
 
 class CourseEnrollmentService:
@@ -92,6 +93,13 @@ class CourseEnrollmentService:
         self.db.add(db_enrollment)
         self.db.commit()
         self.db.refresh(db_enrollment)
+        AuditService(self.db).log_change(
+            table_name=CourseEnrollmentModel.__tablename__,
+            record_id=db_enrollment.id,
+            action="insert",
+            changed_by=created_by,
+            new_values=AuditService.serialize_model(db_enrollment),
+        )
         return db_enrollment
 
     def bulk_enroll(
@@ -120,6 +128,7 @@ class CourseEnrollmentService:
         if not db_enrollment:
             return None
 
+        old_values = AuditService.serialize_model(db_enrollment)
         update_data = enrollment_update.dict(exclude_unset=True)
         for field, value in update_data.items():
             setattr(db_enrollment, field, value)
@@ -128,16 +137,35 @@ class CourseEnrollmentService:
         db_enrollment.updated_by = updated_by
         self.db.commit()
         self.db.refresh(db_enrollment)
+        AuditService(self.db).log_change(
+            table_name=CourseEnrollmentModel.__tablename__,
+            record_id=db_enrollment.id,
+            action="update",
+            changed_by=updated_by,
+            old_values=old_values,
+            new_values=AuditService.serialize_model(db_enrollment),
+        )
         return db_enrollment
 
-    def delete_enrollment(self, enrollment_id: int) -> bool:
+    def delete_enrollment(
+        self, enrollment_id: int, deleted_by: Optional[int] = None
+    ) -> bool:
         """Delete an enrollment"""
         db_enrollment = self.get_enrollment(enrollment_id)
         if not db_enrollment:
             return False
+        old_values = AuditService.serialize_model(db_enrollment)
+        record_id = db_enrollment.id
 
         self.db.delete(db_enrollment)
         self.db.commit()
+        AuditService(self.db).log_change(
+            table_name=CourseEnrollmentModel.__tablename__,
+            record_id=record_id,
+            action="delete",
+            changed_by=deleted_by,
+            old_values=old_values,
+        )
         return True
 
     def sync_from_planning_center(
@@ -186,6 +214,7 @@ class CourseEnrollmentService:
         if not db_enrollment:
             return None
 
+        old_values = AuditService.serialize_model(db_enrollment)
         db_enrollment.progress_percentage = progress_percentage
         if progress_percentage >= 100.0:
             db_enrollment.status = "completed"
@@ -197,4 +226,12 @@ class CourseEnrollmentService:
         db_enrollment.updated_by = updated_by
         self.db.commit()
         self.db.refresh(db_enrollment)
+        AuditService(self.db).log_change(
+            table_name=CourseEnrollmentModel.__tablename__,
+            record_id=db_enrollment.id,
+            action="update",
+            changed_by=updated_by,
+            old_values=old_values,
+            new_values=AuditService.serialize_model(db_enrollment),
+        )
         return db_enrollment

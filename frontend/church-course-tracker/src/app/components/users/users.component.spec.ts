@@ -15,6 +15,8 @@ import { UserService } from '../../services/user.service';
 import { AuthService } from '../../services/auth.service';
 import { User } from '../../models';
 
+const ROUTE_PREFIX = '/churchcoursetracker';
+
 describe('UsersComponent', () => {
   let component: UsersComponent;
   let fixture: ComponentFixture<UsersComponent>;
@@ -129,7 +131,7 @@ describe('UsersComponent', () => {
         'Close',
         { duration: 3000 }
       );
-      expect(router.navigate).toHaveBeenCalledWith(['/dashboard']);
+      expect(router.navigate).toHaveBeenCalledWith([`${ROUTE_PREFIX}/dashboard`]);
       expect(userService.getUsers).not.toHaveBeenCalled();
     });
   });

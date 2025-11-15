@@ -12,7 +12,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
-import { CourseDialogComponent } from './course-dialog.component';
+import { CourseDialogComponent, CourseDialogData } from './course-dialog.component';
 import { CourseService } from '../../../services/course.service';
 import { Course } from '../../../models';
 
@@ -33,9 +33,9 @@ describe('CourseDialogComponent', () => {
     updated_at: '2023-01-01T00:00:00Z'
   };
 
-  const mockDialogData = {
-    course: mockCourse
-  };
+  const createMockDialogData = (): CourseDialogData => ({
+    course: { ...mockCourse }
+  });
 
   beforeEach(async () => {
     const courseSpy = jasmine.createSpyObj('CourseService', ['createCourse', 'updateCourse']);
@@ -60,7 +60,7 @@ describe('CourseDialogComponent', () => {
       providers: [
         { provide: CourseService, useValue: courseSpy },
         { provide: MatDialogRef, useValue: matDialogRefSpy },
-        { provide: MAT_DIALOG_DATA, useValue: mockDialogData },
+        { provide: MAT_DIALOG_DATA, useFactory: createMockDialogData },
         { provide: MatSnackBar, useValue: matSnackBarSpy }
       ]
     }).compileComponents();
@@ -117,7 +117,7 @@ describe('CourseDialogComponent', () => {
     it('should patch form values when editing', () => {
       // Set up the component in editing mode
       component.isEditing = true;
-      component.data.course = mockCourse;
+      component.data.course = { ...mockCourse };
       
       // Trigger ngOnInit to patch the form
       component.ngOnInit();
@@ -133,7 +133,7 @@ describe('CourseDialogComponent', () => {
     beforeEach(() => {
       // Ensure component is in editing mode
       component.isEditing = true;
-      component.data.course = mockCourse;
+      component.data.course = { ...mockCourse };
       
       component.courseForm.patchValue({
         title: 'Updated Course',

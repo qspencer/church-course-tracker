@@ -1,8 +1,20 @@
 import { test, expect } from '@playwright/test';
 
-const API_BASE_URL = process.env.API_BASE_URL ?? 'https://tinev5iszf.execute-api.us-east-1.amazonaws.com';
-const ADMIN_USERNAME = process.env.E2E_ADMIN_USERNAME ?? process.env.ADMIN_USERNAME ?? process.env.API_USERNAME;
-const ADMIN_PASSWORD = process.env.E2E_ADMIN_PASSWORD ?? process.env.ADMIN_PASSWORD ?? process.env.API_PASSWORD;
+const env =
+  ((globalThis as unknown as { process?: { env?: Record<string, string | undefined> } }).process?.env) ??
+  {};
+
+const API_BASE_URL = env.API_BASE_URL ?? 'https://tinev5iszf.execute-api.us-east-1.amazonaws.com';
+const ADMIN_USERNAME =
+  env.E2E_ADMIN_USERNAME ??
+  env.ADMIN_USERNAME ??
+  env.API_USERNAME ??
+  'Admin';
+const ADMIN_PASSWORD =
+  env.E2E_ADMIN_PASSWORD ??
+  env.ADMIN_PASSWORD ??
+  env.API_PASSWORD ??
+  'Admin123!';
 
 test.describe('API Endpoint Tests', () => {
   test('API health endpoint is accessible', async ({ request }) => {

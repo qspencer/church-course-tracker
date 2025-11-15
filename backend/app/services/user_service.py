@@ -4,15 +4,19 @@ User service layer
 
 from datetime import datetime
 from typing import List, Optional
+import logging
 
 from passlib.context import CryptContext
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.models.user import User as UserModel
 from app.schemas.user import UserCreate, UserUpdate
+from app.services.audit_service import AuditService
 
 # Password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+logger = logging.getLogger(__name__)
 
 
 class UserService:
@@ -37,7 +41,9 @@ class UserService:
         """Get a user by username"""
         return self.db.query(UserModel).filter(UserModel.username == username).first()
 
-    def create_user(self, user: UserCreate) -> UserModel:
+    def create_user(
+        self, user: UserCreate, created_by: Optional[int] = None
+    ) -> UserModel:
         """Create a new user"""
         # Hash the password
         hashed_password = pwd_context.hash(user.password)
@@ -53,17 +59,41 @@ class UserService:
             updated_at=datetime.utcnow(),
         )
 
-        self.db.add(db_user)
-        self.db.commit()
-        self.db.refresh(db_user)
-        return db_user
+        try:
+            self.db.add(db_user)
+            self.db.commit()
+            self.db.refresh(db_user)
+            AuditService(self.db).log_change(
+                table_name=UserModel.__tablename__,
+                record_id=db_user.id,
+                action="insert",
+                changed_by=created_by,
+                new_values=AuditService.serialize_model(
+                    db_user, exclude={"hashed_password"}
+                ),
+            )
+            return db_user
+        except IntegrityError as exc:
+            self.db.rollback()
+            logger.exception("Integrity error creating user '%s'", user.username)
+            raise
+        except Exception as exc:
+            self.db.rollback()
+            logger.exception("Unexpected error creating user '%s'", user.username)
+            raise
 
-    def update_user(self, user_id: int, user_update: UserUpdate) -> Optional[UserModel]:
+    def update_user(
+        self,
+        user_id: int,
+        user_update: UserUpdate,
+        updated_by: Optional[int] = None,
+    ) -> Optional[UserModel]:
         """Update an existing user"""
         db_user = self.get_user(user_id)
         if not db_user:
             return None
 
+        old_values = AuditService.serialize_model(db_user, exclude={"hashed_password"})
         update_data = user_update.dict(exclude_unset=True)
 
         # Hash password if provided
@@ -76,18 +106,46 @@ class UserService:
             setattr(db_user, field, value)
 
         db_user.updated_at = datetime.utcnow()
-        self.db.commit()
-        self.db.refresh(db_user)
-        return db_user
+        try:
+            self.db.commit()
+            self.db.refresh(db_user)
+            AuditService(self.db).log_change(
+                table_name=UserModel.__tablename__,
+                record_id=db_user.id,
+                action="update",
+                changed_by=updated_by,
+                old_values=old_values,
+                new_values=AuditService.serialize_model(
+                    db_user, exclude={"hashed_password"}
+                ),
+            )
+            return db_user
+        except IntegrityError as exc:
+            self.db.rollback()
+            logger.exception("Integrity error updating user id=%s", user_id)
+            raise
+        except Exception as exc:
+            self.db.rollback()
+            logger.exception("Unexpected error updating user id=%s", user_id)
+            raise
 
-    def delete_user(self, user_id: int) -> bool:
+    def delete_user(self, user_id: int, deleted_by: Optional[int] = None) -> bool:
         """Delete a user"""
         db_user = self.get_user(user_id)
         if not db_user:
             return False
+        old_values = AuditService.serialize_model(db_user, exclude={"hashed_password"})
+        record_id = db_user.id
 
         self.db.delete(db_user)
         self.db.commit()
+        AuditService(self.db).log_change(
+            table_name=UserModel.__tablename__,
+            record_id=record_id,
+            action="delete",
+            changed_by=deleted_by,
+            old_values=old_values,
+        )
         return True
 
     def verify_password(self, plain_password: str, hashed_password: str) -> bool:

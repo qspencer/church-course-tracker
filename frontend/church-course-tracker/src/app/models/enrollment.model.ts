@@ -1,6 +1,7 @@
 export interface Enrollment {
   id: number;
   person_id: number;
+  people_id?: number;
   course_id: number;
   enrolled_at: string;
   enrollment_date?: string;
@@ -17,6 +18,7 @@ export interface Enrollment {
   created_at: string;
   updated_at: string;
   person?: Person;
+  people?: Person;
   course?: Course;
   progress_items?: Progress[];
 }
@@ -66,13 +68,16 @@ export interface Person {
 }
 
 export interface Progress {
-  id: number;
+  id?: number | null;
   enrollment_id: number;
   content_id: number;
-  completed_at?: string;
   status: ProgressStatus;
-  created_at: string;
-  updated_at: string;
+  completed_at?: string | null;
+  time_spent_minutes?: number | null;
+  score?: number | null;
+  notes?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
   content?: Content;
 }
 

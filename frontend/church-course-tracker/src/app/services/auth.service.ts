@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, isDevMode } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { Router } from '@angular/router';
@@ -103,7 +103,9 @@ export class AuthService {
         error: (error) => {
           // If refresh fails with 401, the token is invalid/expired
           // Logout will be handled by the interceptor
-          console.error('Token refresh failed:', error);
+          if (isDevMode()) {
+            console.error('Token refresh failed:', error);
+          }
           if (error.status === 401) {
             // Token is invalid, clear everything and logout
             this.logout();

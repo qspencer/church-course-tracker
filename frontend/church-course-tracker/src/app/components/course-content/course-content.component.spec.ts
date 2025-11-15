@@ -20,6 +20,8 @@ import {
   CourseContentSummary, AuditLog
 } from '../../models';
 
+const ROUTE_PREFIX = '/churchcoursetracker';
+
 describe('CourseContentComponent', () => {
   let component: CourseContentComponent;
   let fixture: ComponentFixture<CourseContentComponent>;
@@ -119,8 +121,13 @@ describe('CourseContentComponent', () => {
 
   beforeEach(async () => {
     const courseContentServiceSpy = jasmine.createSpyObj('CourseContentService', [
-      'getCourseModules', 'getCourseContent', 'getCourseContentSummary',
-      'downloadContent', 'getContentAuditLogs'
+      'getCourseModules',
+      'getCourseContent',
+      'getCourseContentSummary',
+      'downloadContent',
+      'getContentAuditLogs',
+      'deleteContent',
+      'getContentItem'
     ]);
     const courseServiceSpy = jasmine.createSpyObj('CourseService', ['getCourse']);
     const authServiceSpy = jasmine.createSpyObj('AuthService', ['isAdmin', 'hasAnyRole', 'hasRole']);
@@ -176,6 +183,8 @@ describe('CourseContentComponent', () => {
     courseContentService.getCourseModules.and.returnValue(of([mockModule]));
     courseContentService.getCourseContent.and.returnValue(of([mockContent]));
     courseContentService.getCourseContentSummary.and.returnValue(of(mockSummary));
+    courseContentService.deleteContent.and.returnValue(of(void 0));
+    courseContentService.getContentItem.and.returnValue(of(mockContent));
     auditService.getAuditLogs.and.returnValue(of([mockAuditLog]));
     authService.isAdmin.and.returnValue(true);
     authService.hasAnyRole.and.returnValue(true);
@@ -197,7 +206,7 @@ describe('CourseContentComponent', () => {
       (activatedRoute.snapshot.paramMap.get as jasmine.Spy).and.returnValue('invalid');
       component.ngOnInit();
       expect(snackBar.open).toHaveBeenCalledWith('Invalid course ID', 'Close', { duration: 3000 });
-      expect(router.navigate).toHaveBeenCalledWith(['/courses']);
+      expect(router.navigate).toHaveBeenCalledWith([`${ROUTE_PREFIX}/courses`]);
     });
 
     it('should load data on initialization', () => {
@@ -551,9 +560,32 @@ describe('CourseContentComponent', () => {
       }));
     });
 
-    it('should show placeholder for delete content', () => {
+    it('should not delete content when confirmation is cancelled', () => {
+      const dialogRef = {
+        afterClosed: jasmine.createSpy('afterClosed').and.returnValue(of(false))
+      };
+      dialog.open.and.returnValue(dialogRef as any);
+
       component.deleteContent(mockContent);
-      expect(snackBar.open).toHaveBeenCalledWith('Content deletion not implemented yet', 'Close', { duration: 3000 });
+
+      expect(dialog.open).toHaveBeenCalled();
+      expect(courseContentService.deleteContent).not.toHaveBeenCalled();
+    });
+
+    it('should delete content when confirmation is accepted', () => {
+      const dialogRef = {
+        afterClosed: jasmine.createSpy('afterClosed').and.returnValue(of(true))
+      };
+      dialog.open.and.returnValue(dialogRef as any);
+      courseContentService.deleteContent.and.returnValue(of(void 0));
+      const loadDataSpy = spyOn<any>(component, 'loadData').and.stub();
+      snackBar.open.calls.reset();
+
+      component.deleteContent(mockContent);
+
+      expect(courseContentService.deleteContent).toHaveBeenCalledWith(mockContent.id);
+      expect(loadDataSpy).toHaveBeenCalled();
+      expect(snackBar.open).toHaveBeenCalledWith('Content deleted successfully', 'Close', { duration: 3000 });
     });
   });
 

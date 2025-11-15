@@ -13,6 +13,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
+const ROUTE_PREFIX = '/churchcoursetracker';
+
 describe('AppComponent', () => {
   let component: AppComponent;
   let fixture: ComponentFixture<AppComponent>;
@@ -82,7 +84,7 @@ describe('AppComponent', () => {
   it('should logout and navigate to auth', () => {
     component.logout();
     expect(authServiceSpy.logout).toHaveBeenCalled();
-    expect(routerSpy.navigate).toHaveBeenCalledWith(['/auth']);
+    expect(routerSpy.navigate).toHaveBeenCalledWith([`${ROUTE_PREFIX}/auth`]);
   });
 
   it('should check if user is admin', () => {

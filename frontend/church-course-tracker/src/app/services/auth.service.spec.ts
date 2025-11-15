@@ -6,6 +6,8 @@ import { AuthService } from './auth.service';
 import { LoginRequest, LoginResponse, User } from '../models';
 import { environment } from '../../environments/environment';
 
+const ROUTE_PREFIX = '/churchcoursetracker';
+
 describe('AuthService', () => {
   let service: AuthService;
   let httpMock: HttpTestingController;
@@ -118,7 +120,7 @@ describe('AuthService', () => {
       expect(currentUser).toBeNull();
       expect(service.getToken()).toBeNull();
       expect(service.getCurrentUser()).toBeNull();
-      expect(routerSpy.navigate).toHaveBeenCalledWith(['/auth']);
+      expect(routerSpy.navigate).toHaveBeenCalledWith([`${ROUTE_PREFIX}/auth`]);
     });
   });
 

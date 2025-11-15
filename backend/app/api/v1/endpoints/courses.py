@@ -16,7 +16,7 @@ from app.services.course_service import CourseService
 router = APIRouter()
 
 
-def course_to_schema(course_model) -> Course:
+def course_to_schema(course_model, current_registrations: Optional[int] = None) -> Course:
     """Convert Course model to Course schema with user names populated"""
     course_dict = {
         "id": course_model.id,
@@ -29,7 +29,11 @@ def course_to_schema(course_model) -> Course:
         "event_start_date": course_model.event_start_date,
         "event_end_date": course_model.event_end_date,
         "max_capacity": course_model.max_capacity,
-        "current_registrations": course_model.current_registrations,
+        "current_registrations": (
+            current_registrations
+            if current_registrations is not None
+            else course_model.current_registrations
+        ),
         "is_active": course_model.is_active,
         "content_unlock_mode": course_model.content_unlock_mode,
         "max_file_size_mb": course_model.max_file_size_mb,
@@ -54,6 +58,8 @@ def course_to_schema(course_model) -> Course:
             or course_model.updated_by_user.username 
             or course_model.updated_by_user.email
         )
+    if not course_dict["updated_by_user_name"] and course_dict["created_by_user_name"]:
+        course_dict["updated_by_user_name"] = course_dict["created_by_user_name"]
     
     return Course(**course_dict)
 
@@ -69,7 +75,13 @@ async def get_courses(
     """Get all courses with pagination and optional filtering"""
     course_service = CourseService(db)
     courses = course_service.get_courses(skip=skip, limit=limit, is_active=is_active)
-    return [course_to_schema(course) for course in courses]
+    course_ids = [course.id for course in courses]
+    registration_counts = (
+        course_service.get_registration_counts(course_ids) if course_ids else {}
+    )
+    return [
+        course_to_schema(course, registration_counts.get(course.id)) for course in courses
+    ]
 
 
 @router.get("/{course_id}", response_model=Course)
@@ -81,7 +93,8 @@ async def get_course(course_id: int, db: Session = Depends(get_db)):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Course not found"
         )
-    return course_to_schema(course)
+    registration_counts = course_service.get_registration_counts([course.id])
+    return course_to_schema(course, registration_counts.get(course.id))
 
 
 @router.get("/pc-event/{pc_event_id}", response_model=Course)
@@ -158,7 +171,7 @@ async def delete_course(
         )
 
     course_service = CourseService(db)
-    success = course_service.delete_course(course_id)
+    success = course_service.delete_course(course_id, deleted_by=current_user["id"])
     if not success:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Course not found"

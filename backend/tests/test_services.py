@@ -11,6 +11,7 @@ from app.services.people_service import PeopleService
 from app.services.course_service import CourseService
 from app.services.enrollment_service import CourseEnrollmentService
 from app.services.planning_center_sync_service import PlanningCenterSyncService
+from app.models.audit_log import AuditLog
 from app.models.member import People
 from app.models.course import Course
 from app.models.enrollment import CourseEnrollment
@@ -138,6 +139,16 @@ class TestPeopleService:
         assert created_people.email == "john.doe@example.com"
         assert created_people.created_at is not None
         assert created_people.updated_at is not None
+        logs = (
+            db_session.query(AuditLog)
+            .filter_by(
+                table_name="people",
+                record_id=created_people.id,
+                action="insert",
+            )
+            .all()
+        )
+        assert len(logs) == 1
     
     def test_update_person(self, db_session, sample_people_data):
         """Test updating a person"""
@@ -157,6 +168,16 @@ class TestPeopleService:
         assert updated_people.first_name == "Jane"
         assert updated_people.email == "jane.doe@example.com"
         assert updated_people.last_name == "Doe"  # Unchanged
+        update_logs = (
+            db_session.query(AuditLog)
+            .filter_by(
+                table_name="people",
+                record_id=people.id,
+                action="update",
+            )
+            .all()
+        )
+        assert len(update_logs) == 1
     
     def test_delete_person(self, db_session, sample_people_data):
         """Test deleting a person"""
@@ -172,6 +193,16 @@ class TestPeopleService:
         # Verify person is deleted
         deleted_people = service.get_person(people.id)
         assert deleted_people is None
+        delete_logs = (
+            db_session.query(AuditLog)
+            .filter_by(
+                table_name="people",
+                record_id=people.id,
+                action="delete",
+            )
+            .all()
+        )
+        assert len(delete_logs) == 1
     
     def test_sync_from_planning_center_new_person(self, db_session):
         """Test syncing new person from Planning Center"""
@@ -288,6 +319,16 @@ class TestCourseService:
         assert created_course.max_capacity == 50
         assert created_course.created_at is not None
         assert created_course.updated_at is not None
+        logs = (
+            db_session.query(AuditLog)
+            .filter_by(
+                table_name="courses",
+                record_id=created_course.id,
+                action="insert",
+            )
+            .all()
+        )
+        assert len(logs) == 1
     
     def test_update_course(self, db_session, sample_course_data):
         """Test updating a course"""
@@ -307,6 +348,16 @@ class TestCourseService:
         assert updated_course.title == "Updated Course Name"
         assert updated_course.max_capacity == 75
         assert updated_course.description == "Basic course on Christian faith"  # Unchanged
+        update_logs = (
+            db_session.query(AuditLog)
+            .filter_by(
+                table_name="courses",
+                record_id=course.id,
+                action="update",
+            )
+            .all()
+        )
+        assert len(update_logs) == 1
     
     def test_delete_course(self, db_session, sample_course_data):
         """Test deleting a course"""
@@ -322,6 +373,16 @@ class TestCourseService:
         # Verify course is deleted
         deleted_course = service.get_course(course.id)
         assert deleted_course is None
+        delete_logs = (
+            db_session.query(AuditLog)
+            .filter_by(
+                table_name="courses",
+                record_id=course.id,
+                action="delete",
+            )
+            .all()
+        )
+        assert len(delete_logs) == 1
     
     def test_sync_from_planning_center_new_course(self, db_session):
         """Test syncing new course from Planning Center"""
@@ -497,6 +558,16 @@ class TestCourseEnrollmentService:
         assert created_enrollment.status == "enrolled"
         assert created_enrollment.created_at is not None
         assert created_enrollment.updated_at is not None
+        logs = (
+            db_session.query(AuditLog)
+            .filter_by(
+                table_name="course_enrollment",
+                record_id=created_enrollment.id,
+                action="insert",
+            )
+            .all()
+        )
+        assert len(logs) == 1
     
     def test_update_enrollment(self, db_session, sample_people_data, sample_course_data):
         """Test updating an enrollment"""
@@ -527,6 +598,16 @@ class TestCourseEnrollmentService:
         assert updated_enrollment is not None
         assert updated_enrollment.status == "in_progress"
         assert updated_enrollment.progress_percentage == 50.0
+        update_logs = (
+            db_session.query(AuditLog)
+            .filter_by(
+                table_name="course_enrollment",
+                record_id=enrollment.id,
+                action="update",
+            )
+            .all()
+        )
+        assert len(update_logs) == 1
     
     def test_update_progress(self, db_session, sample_people_data, sample_course_data):
         """Test updating enrollment progress"""
@@ -554,12 +635,32 @@ class TestCourseEnrollmentService:
         assert updated_enrollment.progress_percentage == 75.0
         assert updated_enrollment.status == "in_progress"
         assert updated_enrollment.completion_date is None  # Not 100% yet
+        progress_logs = (
+            db_session.query(AuditLog)
+            .filter_by(
+                table_name="course_enrollment",
+                record_id=enrollment.id,
+                action="update",
+            )
+            .all()
+        )
+        assert len(progress_logs) >= 1
         
         # Test completion
         completed_enrollment = service.update_progress(enrollment.id, 100.0)
         assert completed_enrollment.progress_percentage == 100.0
         assert completed_enrollment.status == "completed"
         assert completed_enrollment.completion_date is not None
+        completion_logs = (
+            db_session.query(AuditLog)
+            .filter_by(
+                table_name="course_enrollment",
+                record_id=enrollment.id,
+                action="update",
+            )
+            .all()
+        )
+        assert len(completion_logs) >= 2
     
     def test_bulk_enroll(self, db_session, sample_course_data):
         """Test bulk enrollment"""
@@ -619,6 +720,16 @@ class TestCourseEnrollmentService:
         # Verify enrollment is deleted
         deleted_enrollment = service.get_enrollment(enrollment.id)
         assert deleted_enrollment is None
+        delete_logs = (
+            db_session.query(AuditLog)
+            .filter_by(
+                table_name="course_enrollment",
+                record_id=enrollment.id,
+                action="delete",
+            )
+            .all()
+        )
+        assert len(delete_logs) == 1
 
 
 class TestPlanningCenterSyncService:

@@ -160,9 +160,9 @@
             </div>
             <div *ngFor="let enrollment of recentEnrollments" class="enrollment-item">
               <div class="enrollment-info">
-                <h4>{{ enrollment.person?.first_name }} {{ enrollment.person?.last_name }}</h4>
-                <p>{{ enrollment.course?.title }}</p>
-                <small>Enrolled {{ enrollment.enrolled_at | date:'short' }}</small>
+                <h4>{{ getEnrollmentMemberName(enrollment) }}</h4>
+                <p>{{ enrollment.course?.title || ('Course #' + (enrollment.course_id || '')) }}</p>
+                <small>Enrolled {{ (enrollment.enrolled_at || enrollment.enrollment_date) | date:'short' }}</small>
               </div>
               <div class="enrollment-progress">
                 <mat-progress-bar 
