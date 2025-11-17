@@ -44,9 +44,18 @@
           <mat-icon matListItemIcon>history</mat-icon>
           <span matListItemTitle>Audit Logs</span>
         </a>
+        <a mat-list-item *ngIf="isStaffOrAdmin()" routerLink="/churchcoursetracker/activity-logs" routerLinkActive="active">
+          <mat-icon matListItemIcon>timeline</mat-icon>
+          <span matListItemTitle>Activity Logs</span>
+        </a>
         <a mat-list-item routerLink="/churchcoursetracker/reports" routerLinkActive="active">
           <mat-icon matListItemIcon>assessment</mat-icon>
           <span matListItemTitle>Reports</span>
+        </a>
+        <mat-divider></mat-divider>
+        <a mat-list-item routerLink="/churchcoursetracker/profile" routerLinkActive="active">
+          <mat-icon matListItemIcon>account_circle</mat-icon>
+          <span matListItemTitle>My Profile</span>
         </a>
       </mat-nav-list>
     </mat-sidenav>

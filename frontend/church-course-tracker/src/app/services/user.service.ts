@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { User, UserCreate, UserUpdate } from '../models';
+import { User, UserCreate, UserUpdate, UserProfileUpdate, ChangePasswordRequest, UserPreference, UserPreferenceUpdate } from '../models';
 
 @Injectable({
   providedIn: 'root'
@@ -34,5 +34,22 @@ export class UserService {
 
   deleteUser(userId: number): Observable<any> {
     return this.http.delete(`${this.API_URL}/${userId}`);
+  }
+
+  // Current user profile methods
+  updateCurrentUserProfile(profile: UserProfileUpdate): Observable<User> {
+    return this.http.patch<User>(`${this.API_URL}/me`, profile);
+  }
+
+  changePassword(passwordData: ChangePasswordRequest): Observable<{ message: string }> {
+    return this.http.patch<{ message: string }>(`${this.API_URL}/me/change-password`, passwordData);
+  }
+
+  getUserPreferences(): Observable<UserPreference> {
+    return this.http.get<UserPreference>(`${this.API_URL}/me/preferences`);
+  }
+
+  updateUserPreferences(preferences: UserPreferenceUpdate): Observable<UserPreference> {
+    return this.http.patch<UserPreference>(`${this.API_URL}/me/preferences`, preferences);
   }
 }

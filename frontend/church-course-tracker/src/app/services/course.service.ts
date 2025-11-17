@@ -83,4 +83,8 @@ export class CourseService {
   getCourseStats(courseId: number): Observable<any> {
     return this.http.get<any>(`${this.API_URL}/${courseId}/stats`);
   }
+
+  getAvailablePrerequisites(): Observable<Course[]> {
+    return this.http.get<Course[]>(`${this.API_URL}/prerequisites/available`);
+  }
 }

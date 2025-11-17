@@ -1,0 +1,165 @@
+<div class="profile-container">
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>account_circle</mat-icon>
+        <span>My Profile</span>
+      </mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+      <mat-tab-group [(selectedIndex)]="selectedTab">
+        <!-- Profile Tab -->
+        <mat-tab label="Profile">
+          <div class="tab-content">
+            <form [formGroup]="profileForm" (ngSubmit)="onSaveProfile()">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Username</mat-label>
+                <input matInput formControlName="username" autocomplete="username">
+                <mat-icon matSuffix>person</mat-icon>
+                <mat-error>{{ getErrorMessage(profileForm, 'username') }}</mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Email</mat-label>
+                <input matInput formControlName="email" type="email" autocomplete="email">
+                <mat-icon matSuffix>email</mat-icon>
+                <mat-error>{{ getErrorMessage(profileForm, 'email') }}</mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Full Name</mat-label>
+                <input matInput formControlName="full_name" autocomplete="name">
+                <mat-icon matSuffix>badge</mat-icon>
+                <mat-error>{{ getErrorMessage(profileForm, 'full_name') }}</mat-error>
+              </mat-form-field>
+
+              <div class="form-actions">
+                <button 
+                  mat-raised-button 
+                  color="primary" 
+                  type="submit"
+                  [disabled]="!profileForm.valid || isSavingProfile">
+                  <mat-spinner *ngIf="isSavingProfile" diameter="20"></mat-spinner>
+                  <span *ngIf="!isSavingProfile">Save Changes</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </mat-tab>
+
+        <!-- Password Tab -->
+        <mat-tab label="Change Password">
+          <div class="tab-content">
+            <form [formGroup]="passwordForm" (ngSubmit)="onChangePassword()">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Current Password</mat-label>
+                <input 
+                  matInput 
+                  [type]="hideCurrentPassword ? 'password' : 'text'" 
+                  formControlName="current_password"
+                  autocomplete="current-password">
+                <button mat-icon-button matSuffix type="button" (click)="hideCurrentPassword = !hideCurrentPassword">
+                  <mat-icon>{{ hideCurrentPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+                </button>
+                <mat-icon matPrefix>lock</mat-icon>
+                <mat-error>{{ getErrorMessage(passwordForm, 'current_password') }}</mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>New Password</mat-label>
+                <input 
+                  matInput 
+                  [type]="hideNewPassword ? 'password' : 'text'" 
+                  formControlName="new_password"
+                  autocomplete="new-password">
+                <button mat-icon-button matSuffix type="button" (click)="hideNewPassword = !hideNewPassword">
+                  <mat-icon>{{ hideNewPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+                </button>
+                <mat-icon matPrefix>lock_outline</mat-icon>
+                <mat-error>{{ getErrorMessage(passwordForm, 'new_password') }}</mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Confirm New Password</mat-label>
+                <input 
+                  matInput 
+                  [type]="hideConfirmPassword ? 'password' : 'text'" 
+                  formControlName="confirm_password"
+                  autocomplete="new-password">
+                <button mat-icon-button matSuffix type="button" (click)="hideConfirmPassword = !hideConfirmPassword">
+                  <mat-icon>{{ hideConfirmPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+                </button>
+                <mat-icon matPrefix>lock_outline</mat-icon>
+                <mat-error>{{ getErrorMessage(passwordForm, 'confirm_password') }}</mat-error>
+              </mat-form-field>
+
+              <div class="form-actions">
+                <button 
+                  mat-raised-button 
+                  color="primary" 
+                  type="submit"
+                  [disabled]="!passwordForm.valid || isChangingPassword">
+                  <mat-spinner *ngIf="isChangingPassword" diameter="20"></mat-spinner>
+                  <span *ngIf="!isChangingPassword">Change Password</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </mat-tab>
+
+        <!-- Notifications Tab -->
+        <mat-tab label="Notifications">
+          <div class="tab-content">
+            <form [formGroup]="preferencesForm" (ngSubmit)="onSavePreferences()">
+              <h3>Notification Preferences</h3>
+              <p class="preferences-description">Choose how you want to receive notifications</p>
+
+              <mat-slide-toggle formControlName="email_notifications" class="full-width preference-toggle">
+                <div class="preference-label">
+                  <mat-icon>email</mat-icon>
+                  <div>
+                    <strong>Email Notifications</strong>
+                    <p>Receive notifications via email</p>
+                  </div>
+                </div>
+              </mat-slide-toggle>
+
+              <mat-slide-toggle formControlName="course_updates" class="full-width preference-toggle">
+                <div class="preference-label">
+                  <mat-icon>school</mat-icon>
+                  <div>
+                    <strong>Course Updates</strong>
+                    <p>Get notified about course changes and new content</p>
+                  </div>
+                </div>
+              </mat-slide-toggle>
+
+              <mat-slide-toggle formControlName="system_announcements" class="full-width preference-toggle">
+                <div class="preference-label">
+                  <mat-icon>campaign</mat-icon>
+                  <div>
+                    <strong>System Announcements</strong>
+                    <p>Receive important system-wide announcements</p>
+                  </div>
+                </div>
+              </mat-slide-toggle>
+
+              <div class="form-actions">
+                <button 
+                  mat-raised-button 
+                  color="primary" 
+                  type="submit"
+                  [disabled]="!preferencesForm.valid || isSavingPreferences">
+                  <mat-spinner *ngIf="isSavingPreferences" diameter="20"></mat-spinner>
+                  <span *ngIf="!isSavingPreferences">Save Preferences</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </mat-tab>
+      </mat-tab-group>
+    </mat-card-content>
+  </mat-card>
+</div>
+

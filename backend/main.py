@@ -3,11 +3,13 @@ Church Course Tracker - Main FastAPI Application
 Triggering backend tests
 """
 
-from fastapi import FastAPI, Request, Response
+from fastapi import FastAPI, Request, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
+from starlette.exceptions import HTTPException as StarletteHTTPException
 import uvicorn
 import time
 import logging
@@ -194,6 +196,45 @@ if settings.RATE_LIMIT_ENABLED:
 
 # Include API router
 app.include_router(api_router, prefix="/api/v1")
+
+
+# Custom exception handlers for consistent error responses
+@app.exception_handler(StarletteHTTPException)
+async def http_exception_handler(request: Request, exc: StarletteHTTPException):
+    """Handle HTTP exceptions with consistent JSON format"""
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "detail": exc.detail if exc.detail else "An error occurred",
+            "status_code": exc.status_code,
+        },
+        headers=getattr(exc, "headers", None),
+    )
+
+
+@app.exception_handler(404)
+async def not_found_handler(request: Request, exc):
+    """Handle 404 errors with consistent JSON format"""
+    return JSONResponse(
+        status_code=status.HTTP_404_NOT_FOUND,
+        content={
+            "detail": f"Resource not found: {request.url.path}",
+            "status_code": 404,
+        },
+    )
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    """Handle validation errors with detailed messages"""
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        content={
+            "detail": exc.errors(),
+            "status_code": 422,
+            "message": "Validation error",
+        },
+    )
 
 
 @app.on_event("startup")

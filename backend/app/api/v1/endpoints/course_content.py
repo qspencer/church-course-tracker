@@ -161,6 +161,15 @@ async def get_course_content(
 ):
     """Get content for a course, optionally filtered by module"""
     content_service = ContentService(db)
+    # Verify course exists
+    from app.services.course_service import CourseService
+    course_service = CourseService(db)
+    course = course_service.get_course(course_id)
+    if not course:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Course with ID {course_id} not found",
+        )
     return content_service.get_content(course_id, module_id)
 
 
@@ -170,12 +179,13 @@ async def get_content_item(
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_active_user),
 ):
-    """Get a specific content item"""
+    """Get a specific content item by ID"""
     content_service = ContentService(db)
     content = content_service.get_content_item(content_id)
     if not content:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Content not found"
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Content item with ID {content_id} not found",
         )
     return content
 
@@ -224,7 +234,8 @@ async def delete_content(
     success = content_service.delete_content(content_id, current_user["id"])
     if not success:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Content not found"
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Content item with ID {content_id} not found",
         )
 
 

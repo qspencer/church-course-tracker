@@ -80,10 +80,82 @@ class CourseService:
             .first()
         )
 
+    def _validate_prerequisites(
+        self, prerequisites: Optional[List[int]], course_id: Optional[int] = None
+    ) -> None:
+        """Validate prerequisites: check they exist and prevent circular dependencies"""
+        if not prerequisites:
+            return
+
+        # Remove duplicates
+        prerequisites = list(set(prerequisites))
+
+        # Check that all prerequisite courses exist
+        existing_courses = (
+            self.db.query(CourseModel.id)
+            .filter(CourseModel.id.in_(prerequisites))
+            .all()
+        )
+        existing_ids = {course.id for course in existing_courses}
+        missing_ids = set(prerequisites) - existing_ids
+
+        if missing_ids:
+            from fastapi import HTTPException, status
+
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Prerequisite courses not found: {list(missing_ids)}",
+            )
+
+        # Prevent self-reference
+        if course_id and course_id in prerequisites:
+            from fastapi import HTTPException, status
+
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="A course cannot be a prerequisite for itself",
+            )
+
+        # Check for circular dependencies (if updating)
+        if course_id:
+            self._check_circular_dependencies(course_id, prerequisites)
+
+    def _check_circular_dependencies(
+        self, course_id: int, prerequisites: List[int]
+    ) -> None:
+        """Check for circular dependencies in prerequisites"""
+        visited = set()
+        to_check = list(prerequisites)
+
+        while to_check:
+            prereq_id = to_check.pop()
+            if prereq_id in visited:
+                continue
+            visited.add(prereq_id)
+
+            # If this prerequisite course has the current course as a prerequisite, it's circular
+            if prereq_id == course_id:
+                from fastapi import HTTPException, status
+
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Circular dependency detected in prerequisites",
+                )
+
+            # Check if this prerequisite course has prerequisites
+            prereq_course = self.get_course(prereq_id)
+            if prereq_course and prereq_course.prerequisites:
+                # Add this course's prerequisites to check list
+                if isinstance(prereq_course.prerequisites, list):
+                    to_check.extend(prereq_course.prerequisites)
+
     def create_course(
         self, course: CourseCreate, created_by: Optional[int] = None
     ) -> CourseModel:
         """Create a new course"""
+        # Validate prerequisites
+        self._validate_prerequisites(course.prerequisites)
+
         db_course = CourseModel(**course.model_dump())
         db_course.created_at = datetime.now(timezone.utc)
         db_course.updated_at = datetime.now(timezone.utc)
@@ -114,6 +186,10 @@ class CourseService:
         db_course = self.get_course(course_id)
         if not db_course:
             return None
+
+        # Validate prerequisites if they're being updated
+        if "prerequisites" in course_update.model_dump(exclude_unset=True):
+            self._validate_prerequisites(course_update.prerequisites, course_id)
 
         old_values = AuditService.serialize_model(db_course)
         update_data = course_update.model_dump(exclude_unset=True)

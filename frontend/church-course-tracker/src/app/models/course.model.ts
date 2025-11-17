@@ -28,6 +28,7 @@ export interface CourseCreate {
   title: string;
   description: string;
   duration_weeks: number;
+  prerequisites?: number[];
 }
 
 export interface CourseUpdate {
@@ -35,6 +36,7 @@ export interface CourseUpdate {
   description?: string;
   duration_weeks?: number;
   is_active?: boolean;
+  prerequisites?: number[];
 }
 
 export interface Content {

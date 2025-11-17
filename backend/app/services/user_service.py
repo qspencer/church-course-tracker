@@ -11,7 +11,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.models.user import User as UserModel
-from app.schemas.user import UserCreate, UserUpdate
+from app.schemas.user import UserCreate, UserUpdate, UserProfileUpdate
 from app.services.audit_service import AuditService
 
 # Password hashing
@@ -153,3 +153,48 @@ class UserService:
         from app.core.security import verify_password
 
         return verify_password(plain_password, hashed_password)
+
+    def update_current_user(
+        self,
+        user_id: int,
+        user_update: "UserProfileUpdate",
+        updated_by: Optional[int] = None,
+    ) -> Optional[UserModel]:
+        """Update current user's own profile (excludes role and is_active)"""
+        db_user = self.get_user(user_id)
+        if not db_user:
+            return None
+
+        old_values = AuditService.serialize_model(db_user, exclude={"hashed_password"})
+        update_data = user_update.dict(exclude_unset=True)
+
+        # Ensure user can't update role or is_active through this method
+        update_data.pop("role", None)
+        update_data.pop("is_active", None)
+
+        for field, value in update_data.items():
+            setattr(db_user, field, value)
+
+        db_user.updated_at = datetime.utcnow()
+        try:
+            self.db.commit()
+            self.db.refresh(db_user)
+            AuditService(self.db).log_change(
+                table_name=UserModel.__tablename__,
+                record_id=db_user.id,
+                action="update",
+                changed_by=updated_by or user_id,  # Use user_id if updated_by not provided
+                old_values=old_values,
+                new_values=AuditService.serialize_model(
+                    db_user, exclude={"hashed_password"}
+                ),
+            )
+            return db_user
+        except IntegrityError as exc:
+            self.db.rollback()
+            logger.exception("Integrity error updating user profile id=%s", user_id)
+            raise
+        except Exception as exc:
+            self.db.rollback()
+            logger.exception("Unexpected error updating user profile id=%s", user_id)
+            raise

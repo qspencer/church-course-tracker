@@ -67,8 +67,22 @@ const routes: Routes = [
         canActivate: [AuthGuard, AdminGuard]
       },
       {
+        path: 'profile',
+        loadChildren: () => import('./components/profile/profile.module').then(m => m.ProfileModule),
+        canActivate: [AuthGuard]
+      },
+      {
+        path: 'activity-logs',
+        loadChildren: () => import('./components/activity-logs/activity-logs.module').then(m => m.ActivityLogsModule),
+        canActivate: [AuthGuard]
+      },
+      {
+        path: '404',
+        loadChildren: () => import('./components/not-found/not-found.module').then(m => m.NotFoundModule)
+      },
+      {
         path: '**',
-        redirectTo: 'dashboard'
+        loadChildren: () => import('./components/not-found/not-found.module').then(m => m.NotFoundModule)
       }
     ]
   },
@@ -117,15 +131,20 @@ const routes: Routes = [
     loadChildren: () => import('./components/users/users.module').then(m => m.UsersModule),
     canActivate: [AuthGuard, AdminGuard]
   },
-  {
-    path: 'audit',
-    loadChildren: () => import('./components/audit/audit.module').then(m => m.AuditModule),
-    canActivate: [AuthGuard, AdminGuard]
-  },
-  {
-    path: '**',
-    redirectTo: '/churchcoursetracker/dashboard'
-  }
+      {
+        path: 'audit',
+        loadChildren: () => import('./components/audit/audit.module').then(m => m.AuditModule),
+        canActivate: [AuthGuard, AdminGuard]
+      },
+      {
+        path: 'profile',
+        loadChildren: () => import('./components/profile/profile.module').then(m => m.ProfileModule),
+        canActivate: [AuthGuard]
+      },
+      {
+        path: '**',
+        redirectTo: '/churchcoursetracker/dashboard'
+      }
 ];
 
 @NgModule({

@@ -14,7 +14,7 @@ class CourseBase(BaseModel):
     title: str = Field(..., min_length=1, max_length=200)
     description: Optional[str] = Field(None, max_length=1000)
     duration_weeks: Optional[int] = Field(None, ge=1)
-    prerequisites: Optional[List[str]] = Field(None)
+    prerequisites: Optional[List[int]] = Field(None, description="List of prerequisite course IDs")
     planning_center_event_id: Optional[str] = Field(None, max_length=50)
     planning_center_event_name: Optional[str] = Field(None, max_length=200)
     event_start_date: Optional[datetime] = None

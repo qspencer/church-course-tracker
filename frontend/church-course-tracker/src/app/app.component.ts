@@ -48,4 +48,8 @@ export class AppComponent implements OnInit, OnDestroy {
   isAdmin(): boolean {
     return this.authService.isAdmin();
   }
+
+  isStaffOrAdmin(): boolean {
+    return this.authService.hasAnyRole(['admin', 'staff']);
+  }
 }

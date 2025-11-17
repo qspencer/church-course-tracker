@@ -148,6 +148,30 @@ export class AuditService {
       }
     });
   }
+
+  /**
+   * Get staff activity logs (filtered for staff-relevant activities)
+   */
+  getStaffActivityLogs(
+    skip: number = 0,
+    limit: number = 100,
+    startDate?: string,
+    endDate?: string
+  ): Observable<AuditLog[]> {
+    let params = new HttpParams()
+      .set('skip', skip.toString())
+      .set('limit', limit.toString());
+    
+    if (startDate) {
+      params = params.set('start_date', startDate);
+    }
+    
+    if (endDate) {
+      params = params.set('end_date', endDate);
+    }
+    
+    return this.http.get<AuditLog[]>(`${this.API_URL}/activity`, { params });
+  }
 }
 
 

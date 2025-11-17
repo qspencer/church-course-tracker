@@ -38,3 +38,31 @@ export interface LoginResponse {
   token_type: string;
   user: User;
 }
+
+export interface UserProfileUpdate {
+  username?: string;
+  email?: string;
+  full_name?: string;
+}
+
+export interface ChangePasswordRequest {
+  current_password: string;
+  new_password: string;
+  confirm_password: string;
+}
+
+export interface UserPreference {
+  id: number;
+  user_id: number;
+  email_notifications: boolean;
+  course_updates: boolean;
+  system_announcements: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface UserPreferenceUpdate {
+  email_notifications?: boolean;
+  course_updates?: boolean;
+  system_announcements?: boolean;
+}

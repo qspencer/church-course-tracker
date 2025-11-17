@@ -12,8 +12,11 @@ from sqlalchemy.orm import Session
 
 from app.api.v1.endpoints.auth import get_current_active_user
 from app.core.database import get_db
-from app.schemas.user import User, UserCreate, UserUpdate
+from app.schemas.user import User, UserCreate, UserUpdate, UserProfileUpdate
+from app.schemas.password import ChangePasswordRequest
+from app.schemas.user_preference import UserPreference, UserPreferenceUpdate
 from app.services.user_service import UserService
+from app.services.user_preference_service import UserPreferenceService
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -23,6 +26,116 @@ logger = logging.getLogger(__name__)
 async def get_current_user_info(current_user: dict = Depends(get_current_active_user)):
     """Get current user information"""
     return current_user
+
+
+@router.patch("/me")
+async def update_current_user_profile(
+    user_update: UserProfileUpdate,
+    current_user: dict = Depends(get_current_active_user),
+    db: Session = Depends(get_db),
+):
+    """Update current user's own profile"""
+    user_service = UserService(db)
+    try:
+        user = user_service.update_current_user(
+            current_user["id"], user_update, updated_by=current_user["id"]
+        )
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+            )
+        return user
+    except IntegrityError:
+        logger.warning("Duplicate detected updating user profile id=%s", current_user["id"])
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Updating the profile would violate a uniqueness constraint.",
+        )
+    except HTTPException:
+        raise
+    except Exception:
+        logger.exception("Unexpected error updating user profile id=%s", current_user["id"])
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Unable to update profile at this time.",
+        )
+
+
+@router.patch("/me/change-password")
+async def change_password(
+    password_data: ChangePasswordRequest,
+    current_user: dict = Depends(get_current_active_user),
+    db: Session = Depends(get_db),
+):
+    """Change current user's password"""
+    user_service = UserService(db)
+    user = user_service.get_user(current_user["id"])
+    
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+        )
+    
+    # Verify current password
+    if not user_service.verify_password(password_data.current_password, user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Current password is incorrect",
+        )
+    
+    # Validate new password is different from current
+    if user_service.verify_password(password_data.new_password, user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="New password must be different from current password",
+        )
+    
+    # Update password
+    try:
+        from app.schemas.user import UserUpdate
+        user_update = UserUpdate(password=password_data.new_password)
+        updated_user = user_service.update_user(
+            current_user["id"], user_update, updated_by=current_user["id"]
+        )
+        if not updated_user:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to update password",
+            )
+        return {"message": "Password changed successfully"}
+    except HTTPException:
+        raise
+    except Exception:
+        logger.exception("Unexpected error changing password for user id=%s", current_user["id"])
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Unable to change password at this time.",
+        )
+
+
+@router.get("/me/preferences", response_model=UserPreference)
+async def get_user_preferences(
+    current_user: dict = Depends(get_current_active_user),
+    db: Session = Depends(get_db),
+):
+    """Get current user's notification preferences"""
+    preference_service = UserPreferenceService(db)
+    preferences = preference_service.get_user_preferences(current_user["id"])
+    return preferences
+
+
+@router.patch("/me/preferences", response_model=UserPreference)
+async def update_user_preferences(
+    preferences_update: UserPreferenceUpdate,
+    current_user: dict = Depends(get_current_active_user),
+    db: Session = Depends(get_db),
+):
+    """Update current user's notification preferences"""
+    preference_service = UserPreferenceService(db)
+    preferences = preference_service.update_user_preferences(
+        current_user["id"], preferences_update
+    )
+    return preferences
 
 
 @router.get("", response_model=List[User])

@@ -15,6 +15,7 @@ from app.core.database import get_db
 from app.core.security import create_access_token, verify_password
 from app.schemas.user import User
 from app.services.user_service import UserService
+from app.services.failed_login_service import FailedLoginService
 
 router = APIRouter()
 
@@ -105,20 +106,50 @@ class LoginRequest(BaseModel):
 
 @router.post("/login")
 async def login(login_data: LoginRequest, db: Session = Depends(get_db)):
-    """Login endpoint"""
+    """Login endpoint with account lockout protection"""
     user_service = UserService(db)
+    failed_login_service = FailedLoginService(db)
+
+    # Check if account is locked
+    is_locked, locked_until = failed_login_service.is_locked(login_data.username)
+    if is_locked:
+        remaining_minutes = int((locked_until - datetime.utcnow()).total_seconds() / 60) + 1
+        raise HTTPException(
+            status_code=status.HTTP_423_LOCKED,
+            detail=f"Account locked due to too many failed login attempts. Please try again in {remaining_minutes} minute(s).",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
 
     # Try to find user by username first, then by email
     user = user_service.get_user_by_username(login_data.username)
     if not user:
         user = user_service.get_user_by_email(login_data.username)
 
+    # Check if login failed
     if not user or not user_service.verify_password(
         login_data.password, user.hashed_password
     ):
+        # Record failed attempt
+        failed_login_service.record_failed_attempt(login_data.username)
+        remaining_attempts = failed_login_service.get_remaining_attempts(login_data.username)
+        
+        # Check if account is now locked
+        is_locked, locked_until = failed_login_service.is_locked(login_data.username)
+        if is_locked:
+            remaining_minutes = int((locked_until - datetime.utcnow()).total_seconds() / 60) + 1
+            raise HTTPException(
+                status_code=status.HTTP_423_LOCKED,
+                detail=f"Account locked due to too many failed login attempts. Please try again in {remaining_minutes} minute(s).",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        
+        error_detail = "Incorrect username or password"
+        if remaining_attempts > 0:
+            error_detail += f". {remaining_attempts} attempt(s) remaining before account lockout."
+        
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
+            detail=error_detail,
             headers={"WWW-Authenticate": "Bearer"},
         )
 
@@ -126,6 +157,9 @@ async def login(login_data: LoginRequest, db: Session = Depends(get_db)):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Inactive user"
         )
+
+    # Successful login - clear failed attempts
+    failed_login_service.clear_failed_attempts(login_data.username)
 
     # Create access token
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)

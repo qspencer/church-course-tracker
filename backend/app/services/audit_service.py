@@ -143,6 +143,43 @@ class AuditService:
         # Apply pagination
         return query.offset(skip).limit(limit).all()
 
+    def get_staff_activity_logs(
+        self,
+        skip: int = 0,
+        limit: int = 100,
+        start_date: Optional[date] = None,
+        end_date: Optional[date] = None,
+    ) -> List[AuditLog]:
+        """
+        Get activity logs for staff users (excludes sensitive admin activities)
+        Staff can see: courses, enrollments, content, people, progress
+        Staff cannot see: users, audit_log, system configurations
+        """
+        # Tables that staff can see
+        allowed_tables = [
+            "courses",
+            "course_enrollment",
+            "course_content",
+            "course_modules",
+            "people",
+            "content_completion",
+        ]
+
+        query = self.db.query(AuditLog).filter(AuditLog.table_name.in_(allowed_tables))
+
+        # Apply date filters
+        if start_date:
+            query = query.filter(func.date(AuditLog.changed_at) >= start_date)
+
+        if end_date:
+            query = query.filter(func.date(AuditLog.changed_at) <= end_date)
+
+        # Order by most recent first
+        query = query.order_by(desc(AuditLog.changed_at))
+
+        # Apply pagination
+        return query.offset(skip).limit(limit).all()
+
     def get_audit_summary(
         self, start_date: Optional[date] = None, end_date: Optional[date] = None
     ) -> Dict[str, Any]:

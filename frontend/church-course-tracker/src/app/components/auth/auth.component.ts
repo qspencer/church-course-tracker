@@ -15,6 +15,10 @@ export class AuthComponent implements OnInit {
   isLoginMode = true;
   isLoading = false;
   hidePassword = true;
+  lockoutMessage: string | null = null;
+  remainingAttempts: number | null = null;
+  isAccountLocked = false;
+  lockoutUntil: Date | null = null;
 
   constructor(
     private fb: FormBuilder,
@@ -64,18 +68,55 @@ export class AuthComponent implements OnInit {
           this.isLoading = false;
           console.error('Login error:', error);
           
+          // Handle account lockout (423 status)
+          if (error?.status === 423) {
+            this.isAccountLocked = true;
+            this.lockoutMessage = error?.error?.detail || 'Account locked due to too many failed login attempts.';
+            
+            // Extract remaining time from error message
+            const timeMatch = this.lockoutMessage.match(/(\d+)\s+minute/);
+            if (timeMatch) {
+              const minutes = parseInt(timeMatch[1], 10);
+              this.lockoutUntil = new Date(Date.now() + minutes * 60 * 1000);
+            }
+            
+            this.snackBar.open(this.lockoutMessage, 'Close', {
+              duration: 10000,
+              horizontalPosition: 'end',
+              verticalPosition: 'top',
+              panelClass: ['error-snackbar', 'lockout-snackbar']
+            });
+            return;
+          }
+          
+          // Reset lockout state if not locked
+          this.isAccountLocked = false;
+          this.lockoutMessage = null;
+          this.lockoutUntil = null;
+          
           // Show user-friendly error message
           let errorMessage = 'Login failed. Please check your credentials and try again.';
           
           // Extract error message from API response if available
           if (error?.error?.detail) {
             errorMessage = error.error.detail;
+            
+            // Extract remaining attempts from error message
+            const attemptsMatch = errorMessage.match(/(\d+)\s+attempt\(s\)\s+remaining/);
+            if (attemptsMatch) {
+              this.remainingAttempts = parseInt(attemptsMatch[1], 10);
+            } else {
+              this.remainingAttempts = null;
+            }
           } else if (error?.status === 401) {
             errorMessage = 'Incorrect username or password. Please try again.';
+            this.remainingAttempts = null;
           } else if (error?.status === 0 || error?.status === undefined) {
             errorMessage = 'Unable to connect to the server. Please check your internet connection.';
+            this.remainingAttempts = null;
           } else if (error?.status >= 500) {
             errorMessage = 'Server error. Please try again later.';
+            this.remainingAttempts = null;
           }
           
           this.snackBar.open(errorMessage, 'Close', {

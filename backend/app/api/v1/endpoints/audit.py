@@ -156,3 +156,29 @@ async def export_audit_logs(
     return audit_service.export_audit_logs(
         format=format, start_date=start_date, end_date=end_date, table_name=table_name
     )
+
+
+@router.get("/activity", response_model=List[AuditLog])
+async def get_staff_activity_logs(
+    skip: int = Query(0, ge=0, description="Number of records to skip"),
+    limit: int = Query(100, ge=1, le=1000, description="Number of records to return"),
+    start_date: Optional[date] = Query(None, description="Filter by start date"),
+    end_date: Optional[date] = Query(None, description="Filter by end date"),
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_active_user),
+):
+    """Get activity logs for staff users (excludes sensitive admin activities)"""
+    # Check if user has permission to view activity logs
+    if current_user["role"] not in ["admin", "staff"]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only staff and admin users can view activity logs",
+        )
+
+    audit_service = AuditService(db)
+    return audit_service.get_staff_activity_logs(
+        skip=skip,
+        limit=limit,
+        start_date=start_date,
+        end_date=end_date,
+    )

@@ -23,6 +23,8 @@ from .planning_center_webhook_events import PlanningCenterWebhookEvents
 from .progress import ContentCompletion
 from .role import Role
 from .user import User
+from .failed_login_attempt import FailedLoginAttempt
+from .user_preference import UserPreference
 
 __all__ = [
     "User",
@@ -48,4 +50,6 @@ __all__ = [
     "PlanningCenterEventsCache",
     "PlanningCenterRegistrationsCache",
     "AuditLog",
+    "FailedLoginAttempt",
+    "UserPreference",
 ]

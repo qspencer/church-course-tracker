@@ -35,6 +35,14 @@ class UserUpdate(BaseModel):
     password: Optional[str] = Field(None, min_length=8)
 
 
+class UserProfileUpdate(BaseModel):
+    """Schema for users to update their own profile (excludes role and is_active)"""
+
+    username: Optional[str] = Field(None, min_length=1, max_length=50)
+    email: Optional[EmailStr] = None
+    full_name: Optional[str] = Field(None, min_length=1, max_length=200)
+
+
 class User(UserBase):
     """Schema for user response"""
 

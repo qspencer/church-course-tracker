@@ -65,6 +65,15 @@
         </div>
       </div>
 
+      <div class="detail-section" *ngIf="course.prerequisites && Array.isArray(course.prerequisites) && course.prerequisites.length > 0">
+        <h3 class="detail-label">Prerequisites</h3>
+        <div class="prerequisites-list">
+          <mat-chip *ngFor="let prereqId of course.prerequisites" selected>
+            Course ID: {{ prereqId }}
+          </mat-chip>
+        </div>
+      </div>
+
       <div class="detail-row" *ngIf="course.content_unlock_mode || course.max_file_size_mb">
         <div class="detail-item" *ngIf="course.content_unlock_mode">
           <h3 class="detail-label">Content Unlock Mode</h3>
@@ -127,6 +136,17 @@
           max="52">
         <mat-hint>Enter the course duration in weeks (1-52)</mat-hint>
         <mat-error>{{ getErrorMessage('duration_weeks') }}</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Prerequisites</mat-label>
+        <mat-select formControlName="prerequisites" multiple>
+          <mat-option *ngFor="let course of availablePrerequisites" [value]="course.id">
+            {{ course.title }}
+          </mat-option>
+        </mat-select>
+        <mat-hint>Select courses that must be completed before enrolling in this course</mat-hint>
+        <mat-spinner *ngIf="loadingPrerequisites" diameter="20" matSuffix></mat-spinner>
       </mat-form-field>
     </form>
   </mat-dialog-content>

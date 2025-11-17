@@ -32,12 +32,38 @@
             <mat-error>{{ getErrorMessage(loginForm, 'password') }}</mat-error>
           </mat-form-field>
 
+          <!-- Account Lockout Warning -->
+          <mat-card *ngIf="isAccountLocked && lockoutMessage" class="lockout-warning">
+            <mat-card-content>
+              <div class="lockout-content">
+                <mat-icon color="warn">lock</mat-icon>
+                <div class="lockout-text">
+                  <strong>Account Locked</strong>
+                  <p>{{ lockoutMessage }}</p>
+                  <p *ngIf="lockoutUntil" class="lockout-time">
+                    Lockout expires: {{ lockoutUntil | date:'short' }}
+                  </p>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <!-- Remaining Attempts Warning -->
+          <mat-card *ngIf="remainingAttempts !== null && remainingAttempts > 0 && !isAccountLocked" class="attempts-warning">
+            <mat-card-content>
+              <div class="attempts-content">
+                <mat-icon color="warn">warning</mat-icon>
+                <span>{{ remainingAttempts }} attempt(s) remaining before account lockout</span>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
           <button 
             mat-raised-button 
             color="primary" 
             type="submit" 
             class="full-width auth-button"
-            [disabled]="!loginForm.valid || isLoading">
+            [disabled]="!loginForm.valid || isLoading || isAccountLocked">
             <mat-spinner *ngIf="isLoading" diameter="20"></mat-spinner>
             <span *ngIf="!isLoading">Sign In</span>
           </button>

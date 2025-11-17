@@ -21,6 +21,8 @@ export class CourseDialogComponent implements OnInit {
   viewMode: boolean;
   isLoading = false;
   course: Course | null = null;
+  availablePrerequisites: Course[] = [];
+  loadingPrerequisites = false;
 
   constructor(
     private fb: FormBuilder,
@@ -36,24 +38,52 @@ export class CourseDialogComponent implements OnInit {
     this.courseForm = this.fb.group({
       title: ['', [Validators.required, Validators.minLength(3)]],
       description: ['', [Validators.required, Validators.minLength(10)]],
-      duration_weeks: [1, [Validators.required, Validators.min(1), Validators.max(52)]]
+      duration_weeks: [1, [Validators.required, Validators.min(1), Validators.max(52)]],
+      prerequisites: [[]]
     });
   }
 
   ngOnInit(): void {
+    this.loadAvailablePrerequisites();
+    
     if (this.data.course) {
       if (this.viewMode) {
         // In view mode, just store the course data
         this.course = this.data.course;
       } else {
         // In edit mode, populate the form
+        const prerequisites = Array.isArray(this.data.course.prerequisites) 
+          ? this.data.course.prerequisites 
+          : [];
         this.courseForm.patchValue({
           title: this.data.course.title,
           description: this.data.course.description,
-          duration_weeks: this.data.course.duration_weeks
+          duration_weeks: this.data.course.duration_weeks,
+          prerequisites: prerequisites
         });
       }
     }
+  }
+
+  loadAvailablePrerequisites(): void {
+    if (this.viewMode) return;
+    
+    this.loadingPrerequisites = true;
+    this.courseService.getAvailablePrerequisites().subscribe({
+      next: (courses) => {
+        // Filter out the current course if editing
+        if (this.isEditing && this.data.course) {
+          this.availablePrerequisites = courses.filter(c => c.id !== this.data.course!.id);
+        } else {
+          this.availablePrerequisites = courses;
+        }
+        this.loadingPrerequisites = false;
+      },
+      error: (error) => {
+        console.error('Error loading prerequisites:', error);
+        this.loadingPrerequisites = false;
+      }
+    });
   }
 
   onSubmit(): void {
@@ -70,7 +100,8 @@ export class CourseDialogComponent implements OnInit {
       const updateData: CourseUpdate = {
         title: formValue.title,
         description: formValue.description,
-        duration_weeks: formValue.duration_weeks
+        duration_weeks: formValue.duration_weeks,
+        prerequisites: formValue.prerequisites || []
       };
 
       this.courseService.updateCourse(this.data.course.id, updateData).subscribe({
@@ -107,7 +138,8 @@ export class CourseDialogComponent implements OnInit {
       const createData: CourseCreate = {
         title: formValue.title,
         description: formValue.description,
-        duration_weeks: formValue.duration_weeks
+        duration_weeks: formValue.duration_weeks,
+        prerequisites: formValue.prerequisites || []
       };
 
       this.courseService.createCourse(createData).subscribe({

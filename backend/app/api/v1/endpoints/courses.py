@@ -91,10 +91,35 @@ async def get_course(course_id: int, db: Session = Depends(get_db)):
     course = course_service.get_course(course_id)
     if not course:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Course not found"
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Course with ID {course_id} not found",
         )
     registration_counts = course_service.get_registration_counts([course.id])
     return course_to_schema(course, registration_counts.get(course.id))
+
+
+@router.get("/prerequisites/available")
+async def get_available_prerequisites(
+    course_id: Optional[int] = None,
+    db: Session = Depends(get_db),
+):
+    """Get list of courses available as prerequisites (excludes current course if provided)"""
+    course_service = CourseService(db)
+    courses = course_service.get_courses(skip=0, limit=1000, is_active=True)
+    
+    # Filter out the current course if provided
+    if course_id:
+        courses = [c for c in courses if c.id != course_id]
+    
+    # Return simplified course list for prerequisite selection
+    return [
+        {
+            "id": course.id,
+            "title": course.title,
+            "description": course.description,
+        }
+        for course in courses
+    ]
 
 
 @router.get("/pc-event/{pc_event_id}", response_model=Course)
