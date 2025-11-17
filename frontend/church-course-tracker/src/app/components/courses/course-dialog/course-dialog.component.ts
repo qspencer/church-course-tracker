@@ -226,4 +226,18 @@ export class CourseDialogComponent implements OnInit {
     }
     return '';
   }
+
+  hasPrerequisites(): boolean {
+    if (!this.course || !this.course.prerequisites) {
+      return false;
+    }
+    return Array.isArray(this.course.prerequisites) && this.course.prerequisites.length > 0;
+  }
+
+  getPrerequisites(): number[] {
+    if (!this.course || !this.course.prerequisites) {
+      return [];
+    }
+    return Array.isArray(this.course.prerequisites) ? this.course.prerequisites : [];
+  }
 }

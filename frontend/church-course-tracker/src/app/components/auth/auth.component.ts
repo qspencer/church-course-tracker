@@ -71,16 +71,17 @@ export class AuthComponent implements OnInit {
           // Handle account lockout (423 status)
           if (error?.status === 423) {
             this.isAccountLocked = true;
-            this.lockoutMessage = error?.error?.detail || 'Account locked due to too many failed login attempts.';
+            const message = error?.error?.detail || 'Account locked due to too many failed login attempts.';
+            this.lockoutMessage = message;
             
             // Extract remaining time from error message
-            const timeMatch = this.lockoutMessage.match(/(\d+)\s+minute/);
+            const timeMatch = message.match(/(\d+)\s+minute/);
             if (timeMatch) {
               const minutes = parseInt(timeMatch[1], 10);
               this.lockoutUntil = new Date(Date.now() + minutes * 60 * 1000);
             }
             
-            this.snackBar.open(this.lockoutMessage, 'Close', {
+            this.snackBar.open(message, 'Close', {
               duration: 10000,
               horizontalPosition: 'end',
               verticalPosition: 'top',
