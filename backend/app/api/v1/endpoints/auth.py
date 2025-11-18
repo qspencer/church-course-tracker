@@ -107,18 +107,27 @@ class LoginRequest(BaseModel):
 @router.post("/login")
 async def login(login_data: LoginRequest, db: Session = Depends(get_db)):
     """Login endpoint with account lockout protection"""
+    import logging
+    logger = logging.getLogger(__name__)
+    
     user_service = UserService(db)
     failed_login_service = FailedLoginService(db)
 
-    # Check if account is locked
-    is_locked, locked_until = failed_login_service.is_locked(login_data.username)
-    if is_locked:
-        remaining_minutes = int((locked_until - datetime.utcnow()).total_seconds() / 60) + 1
-        raise HTTPException(
-            status_code=status.HTTP_423_LOCKED,
-            detail=f"Account locked due to too many failed login attempts. Please try again in {remaining_minutes} minute(s).",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+    # Check if account is locked (wrap in try-except to prevent 500 errors)
+    try:
+        is_locked, locked_until = failed_login_service.is_locked(login_data.username)
+        if is_locked and locked_until:
+            remaining_minutes = int((locked_until - datetime.utcnow()).total_seconds() / 60) + 1
+            raise HTTPException(
+                status_code=status.HTTP_423_LOCKED,
+                detail=f"Account locked due to too many failed login attempts. Please try again in {remaining_minutes} minute(s).",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+    except HTTPException:
+        raise
+    except Exception as e:
+        # Log the error but don't fail the login check
+        logger.warning(f"Error checking account lockout status: {e}", exc_info=True)
 
     # Try to find user by username first, then by email
     user = user_service.get_user_by_username(login_data.username)
@@ -129,22 +138,30 @@ async def login(login_data: LoginRequest, db: Session = Depends(get_db)):
     if not user or not user_service.verify_password(
         login_data.password, user.hashed_password
     ):
-        # Record failed attempt
-        failed_login_service.record_failed_attempt(login_data.username)
-        remaining_attempts = failed_login_service.get_remaining_attempts(login_data.username)
-        
-        # Check if account is now locked
-        is_locked, locked_until = failed_login_service.is_locked(login_data.username)
-        if is_locked:
-            remaining_minutes = int((locked_until - datetime.utcnow()).total_seconds() / 60) + 1
-            raise HTTPException(
-                status_code=status.HTTP_423_LOCKED,
-                detail=f"Account locked due to too many failed login attempts. Please try again in {remaining_minutes} minute(s).",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
+        # Record failed attempt (wrap in try-except to prevent 500 errors)
+        remaining_attempts = None
+        try:
+            failed_login_service.record_failed_attempt(login_data.username)
+            remaining_attempts = failed_login_service.get_remaining_attempts(login_data.username)
+            
+            # Check if account is now locked
+            is_locked, locked_until = failed_login_service.is_locked(login_data.username)
+            if is_locked and locked_until:
+                remaining_minutes = int((locked_until - datetime.utcnow()).total_seconds() / 60) + 1
+                raise HTTPException(
+                    status_code=status.HTTP_423_LOCKED,
+                    detail=f"Account locked due to too many failed login attempts. Please try again in {remaining_minutes} minute(s).",
+                    headers={"WWW-Authenticate": "Bearer"},
+                )
+        except HTTPException:
+            raise
+        except Exception as e:
+            # Log the error but still return 401 for invalid credentials
+            logger.warning(f"Error recording failed login attempt: {e}", exc_info=True)
+            # Continue with 401 response even if lockout tracking fails
         
         error_detail = "Incorrect username or password"
-        if remaining_attempts > 0:
+        if remaining_attempts is not None and remaining_attempts > 0:
             error_detail += f". {remaining_attempts} attempt(s) remaining before account lockout."
         
         raise HTTPException(
