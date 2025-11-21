@@ -77,14 +77,17 @@ resource "aws_cloudfront_distribution" "docs" {
   aliases = ["docs.quentinspencer.com"]
   
   # SSL Certificate (must exist in ACM and be validated)
+  # Note: If certificate is still validating, use the certificate ARN directly
+  # CloudFront will accept it once validation completes
   viewer_certificate {
     acm_certificate_arn      = var.docs_certificate_arn != "" ? var.docs_certificate_arn : (length(aws_acm_certificate_validation.docs) > 0 ? aws_acm_certificate_validation.docs[0].certificate_arn : aws_acm_certificate.docs[0].arn)
     ssl_support_method       = "sni-only"
     minimum_protocol_version = "TLSv1.2_2021"
   }
   
-  # Wait for certificate validation before creating distribution (if creating new certificate)
-  depends_on = [aws_acm_certificate_validation.docs]
+  # Wait for certificate validation record to be created
+  # The certificate will validate automatically once DNS propagates
+  depends_on = [aws_route53_record.docs_cert_validation]
   
   default_cache_behavior {
     allowed_methods        = ["GET", "HEAD", "OPTIONS"]

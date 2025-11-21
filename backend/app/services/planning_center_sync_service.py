@@ -733,6 +733,55 @@ class PlanningCenterSyncService:
 
             return {"status": "error", "error": str(e)}
 
+    def get_event_registrations(self, event_id: str) -> List[Dict[str, Any]]:
+        """
+        Get registrations for a specific Planning Center event (synchronous)
+        
+        Args:
+            event_id: Planning Center event ID
+        
+        Returns:
+            List of registration dictionaries from Planning Center API
+        """
+        import httpx
+        
+        try:
+            with httpx.Client(timeout=30.0) as client:
+                registrations = []
+                per_page = 100
+                offset = 0
+                
+                while True:
+                    response = client.get(
+                        f"{self.base_url}/events/v2/events/{event_id}/registrations",
+                        headers=self.headers,
+                        params={"per_page": per_page, "offset": offset},
+                    )
+                    response.raise_for_status()
+                    data = response.json()
+                    
+                    page_registrations = data.get("data", [])
+                    if not page_registrations:
+                        break
+                    
+                    registrations.extend(page_registrations)
+                    
+                    # Check if there are more pages
+                    if len(page_registrations) < per_page:
+                        break
+                    
+                    offset += per_page
+                
+                return registrations
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 404:
+                raise ValueError(f"Planning Center event '{event_id}' not found")
+            raise ValueError(f"Planning Center API error: {e.response.status_code} - {e.response.text}")
+        except httpx.RequestError as e:
+            raise ValueError(f"Failed to connect to Planning Center API: {str(e)}")
+        except Exception as e:
+            raise ValueError(f"Unexpected error fetching registrations: {str(e)}")
+
     async def sync_registrations(
         self, event_id: Optional[str] = None, updated_by: Optional[int] = None
     ) -> Dict[str, Any]:

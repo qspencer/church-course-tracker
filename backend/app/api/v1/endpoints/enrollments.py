@@ -7,9 +7,14 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
+from app.api.v1.endpoints.auth import get_current_active_user
 from app.core.database import get_db
-from app.schemas.enrollment import (CourseEnrollment, CourseEnrollmentCreate,
-                                    CourseEnrollmentUpdate)
+from app.schemas.enrollment import (
+    BulkEnrollFromPCEventRequest,
+    CourseEnrollment,
+    CourseEnrollmentCreate,
+    CourseEnrollmentUpdate
+)
 from app.services.enrollment_service import CourseEnrollmentService
 
 router = APIRouter()
@@ -78,10 +83,50 @@ async def bulk_enroll(
     course_id: int = Query(..., description="Course ID"),
     people_ids: List[int] = Query(..., description="List of people IDs to enroll"),
     db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_active_user),
 ):
     """Bulk enroll multiple people in a course"""
     enrollment_service = CourseEnrollmentService(db)
-    return enrollment_service.bulk_enroll(course_id, people_ids)
+    return enrollment_service.bulk_enroll(
+        course_id, people_ids, created_by=current_user["id"]
+    )
+
+
+@router.post(
+    "/bulk-from-pc-event",
+    response_model=List[CourseEnrollment],
+    status_code=status.HTTP_201_CREATED
+)
+async def bulk_enroll_from_pc_event(
+    enrollment_data: BulkEnrollFromPCEventRequest,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_active_user),
+):
+    """Bulk enroll people from a Planning Center Registration event"""
+    # Check if user has permission (admin/staff only)
+    if current_user["role"] not in ["admin", "staff"]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only admin and staff users can bulk enroll from Planning Center events",
+        )
+    
+    enrollment_service = CourseEnrollmentService(db)
+    try:
+        enrollments = enrollment_service.bulk_enroll_from_pc_event(
+            course_id=enrollment_data.course_id,
+            pc_event_id=enrollment_data.pc_event_id,
+            created_by=current_user["id"],
+            status_filter=enrollment_data.status_filter,
+            update_existing=enrollment_data.update_existing,
+        )
+        return enrollments
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to bulk enroll from Planning Center event: {str(e)}"
+        )
 
 
 @router.put("/{enrollment_id}", response_model=CourseEnrollment)

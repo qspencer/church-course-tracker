@@ -11,6 +11,9 @@ from app.models.enrollment import CourseEnrollment as CourseEnrollmentModel
 from app.schemas.enrollment import (CourseEnrollmentCreate,
                                     CourseEnrollmentUpdate)
 from app.services.audit_service import AuditService
+from app.services.people_service import PeopleService
+from app.services.course_service import CourseService
+from fastapi import HTTPException, status
 
 
 class CourseEnrollmentService:
@@ -235,3 +238,204 @@ class CourseEnrollmentService:
             new_values=AuditService.serialize_model(db_enrollment),
         )
         return db_enrollment
+
+    def _get_people_id_from_pc_person_id(self, pc_person_id: str) -> int:
+        """Get local people_id from Planning Center person ID"""
+        people_service = PeopleService(self.db)
+        person = people_service.get_person_by_pc_id(pc_person_id)
+        if not person:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Person with Planning Center ID '{pc_person_id}' not found locally. Please sync people from Planning Center first."
+            )
+        return person.id
+
+    def _map_pc_status_to_enrollment_status(self, pc_status: str) -> str:
+        """Map Planning Center registration status to enrollment status"""
+        status_mapping = {
+            "registered": "enrolled",
+            "confirmed": "enrolled",
+            "waitlisted": "enrolled",  # Could be a separate status, but using enrolled for now
+            "cancelled": "dropped",
+            "declined": "dropped",
+        }
+        return status_mapping.get(pc_status.lower(), "enrolled")
+
+    def bulk_enroll_from_pc_event(
+        self,
+        course_id: int,
+        pc_event_id: str,
+        created_by: Optional[int] = None,
+        status_filter: Optional[List[str]] = None,
+        update_existing: bool = True,
+    ) -> List[CourseEnrollmentModel]:
+        """
+        Bulk enroll people based on Planning Center Registration event
+        
+        Args:
+            course_id: The course to enroll people in
+            pc_event_id: Planning Center event ID to get registrations from
+            created_by: User creating the enrollments
+            status_filter: Only enroll registrations with these statuses (default: ['registered', 'confirmed'])
+            update_existing: Whether to update existing enrollments (default: True)
+        
+        Returns:
+            List of created/updated enrollments
+        """
+        from app.services.planning_center_sync_service import PlanningCenterSyncService
+        
+        # Validate course exists
+        course_service = CourseService(self.db)
+        course = course_service.get_course(course_id)
+        if not course:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Course with ID {course_id} not found"
+            )
+
+        # Get registrations from Planning Center
+        pc_service = PlanningCenterSyncService(self.db)
+        try:
+            registrations = pc_service.get_event_registrations(pc_event_id)
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Failed to fetch registrations from Planning Center: {str(e)}"
+            )
+
+        if not registrations:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"No registrations found for Planning Center event '{pc_event_id}'"
+            )
+
+        # Filter by status if specified
+        if status_filter is None:
+            status_filter = ['registered', 'confirmed']
+        
+        # Filter registrations by status (handle both JSON API and flat formats)
+        filtered_registrations = []
+        for reg in registrations:
+            # Handle both JSON API format and flat format
+            if 'attributes' in reg:
+                reg_status = reg.get('attributes', {}).get('status', '')
+            else:
+                reg_status = reg.get('status', '')
+            
+            if reg_status.lower() in [s.lower() for s in status_filter]:
+                filtered_registrations.append(reg)
+        
+        registrations = filtered_registrations
+
+        if not registrations:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"No registrations found with status in {status_filter}"
+            )
+
+        enrollments = []
+        errors = []
+        
+        for reg in registrations:
+            try:
+                # Extract registration data
+                # Handle both JSON API format (with attributes/relationships) and flat format
+                if 'attributes' in reg or 'relationships' in reg:
+                    # JSON API format
+                    reg_id = reg.get('id')
+                    reg_attributes = reg.get('attributes', {})
+                    # Try relationships first, then fallback to direct person_id
+                    pc_person_id = (
+                        reg.get('relationships', {}).get('person', {}).get('data', {}).get('id')
+                        or reg_attributes.get('person_id')
+                        or reg.get('person_id')
+                    )
+                else:
+                    # Flat format (after transformation)
+                    reg_id = reg.get('id')
+                    reg_attributes = reg
+                    pc_person_id = reg.get('person_id')
+                
+                if not reg_id:
+                    errors.append(f"Registration missing ID: {reg}")
+                    continue
+                    
+                if not pc_person_id:
+                    errors.append(f"Registration {reg_id}: Missing person ID")
+                    continue
+
+                # Get local people_id
+                try:
+                    people_id = self._get_people_id_from_pc_person_id(pc_person_id)
+                except HTTPException:
+                    errors.append(f"Registration {reg_id}: Person {pc_person_id} not found locally")
+                    continue
+
+                # Check if enrollment already exists
+                existing = self.get_enrollment_by_pc_registration_id(reg_id) if reg_id else None
+                
+                if existing:
+                    if update_existing:
+                        # Update existing enrollment
+                        # Get status from attributes or direct field
+                        pc_status = (
+                            reg_attributes.get('status', '')
+                            if isinstance(reg_attributes, dict)
+                            else reg.get('status', 'registered')
+                        ) or 'registered'
+                        enrollment_update = CourseEnrollmentUpdate(
+                            status=self._map_pc_status_to_enrollment_status(pc_status),
+                            registration_status=pc_status,
+                            registration_notes=reg_attributes.get('notes') if isinstance(reg_attributes, dict) else reg.get('notes'),
+                            planning_center_synced=True,
+                        )
+                        updated = self.update_enrollment(existing.id, enrollment_update, updated_by=created_by)
+                        if updated:
+                            enrollments.append(updated)
+                    # If not updating existing, skip
+                else:
+                    # Create new enrollment
+                    # Get status and date from attributes or direct field
+                    pc_status = (
+                        reg_attributes.get('status', '')
+                        if isinstance(reg_attributes, dict)
+                        else reg.get('status', 'registered')
+                    ) or 'registered'
+                    registration_date = (
+                        reg_attributes.get('created_at')
+                        if isinstance(reg_attributes, dict)
+                        else reg.get('created_at')
+                    )
+                    if registration_date:
+                        try:
+                            from dateutil.parser import parse as parse_date
+                            registration_date = parse_date(registration_date)
+                        except:
+                            registration_date = datetime.utcnow()
+                    else:
+                        registration_date = datetime.utcnow()
+
+                    enrollment_data = CourseEnrollmentCreate(
+                        people_id=people_id,
+                        course_id=course_id,
+                        planning_center_registration_id=reg_id,
+                        enrollment_date=registration_date,
+                        status=self._map_pc_status_to_enrollment_status(pc_status),
+                        registration_status=pc_status,
+                        registration_notes=reg_attributes.get('notes') if isinstance(reg_attributes, dict) else reg.get('notes'),
+                        data_source='api',
+                        planning_center_synced=True,
+                    )
+                    enrollment = self.create_enrollment(enrollment_data, created_by=created_by)
+                    enrollments.append(enrollment)
+            except Exception as e:
+                errors.append(f"Registration {reg.get('id', 'unknown')}: {str(e)}")
+                continue
+
+        if errors:
+            # Log errors but still return successful enrollments
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.warning(f"Bulk enrollment from PC event had {len(errors)} errors: {errors}")
+
+        return enrollments

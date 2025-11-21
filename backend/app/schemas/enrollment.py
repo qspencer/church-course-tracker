@@ -3,7 +3,7 @@ CourseEnrollment Pydantic schemas (Maps to Planning Center Registrations)
 """
 
 from datetime import datetime
-from typing import Optional
+from typing import List, Optional
 
 from pydantic import BaseModel, Field, computed_field, field_validator, model_validator
 
@@ -108,3 +108,18 @@ class CourseEnrollment(CourseEnrollmentBase):
     class Config:
         from_attributes = True
         populate_by_name = True  # Allow both people_id and person_id
+
+
+class BulkEnrollFromPCEventRequest(BaseModel):
+    """Schema for bulk enrollment from Planning Center event"""
+    
+    course_id: int = Field(..., description="Course ID to enroll people in")
+    pc_event_id: str = Field(..., description="Planning Center event ID")
+    status_filter: Optional[List[str]] = Field(
+        default=['registered', 'confirmed'],
+        description="Only enroll registrations with these statuses"
+    )
+    update_existing: bool = Field(
+        default=True,
+        description="Whether to update existing enrollments"
+    )
