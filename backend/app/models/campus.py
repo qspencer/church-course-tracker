@@ -36,6 +36,7 @@ class Campus(Base):
     updated_by = Column(Integer, nullable=True)
 
     # Relationships
+    people = relationship("People", foreign_keys="People.campus_id", back_populates="campus")
     people_campus = relationship(
         "PeopleCampus", back_populates="campus", cascade="all, delete-orphan"
     )

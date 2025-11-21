@@ -2,7 +2,7 @@
 People SQLAlchemy model (from Planning Center)
 """
 
-from sqlalchemy import Boolean, Column, Date, DateTime, Integer, String, Text
+from sqlalchemy import Boolean, Column, Date, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
@@ -33,6 +33,10 @@ class People(Base):
     join_date = Column(Date, nullable=True)
     last_synced_at = Column(DateTime(timezone=True), nullable=True)
     is_active = Column(Boolean, default=True, nullable=False)
+    
+    # Campus assignment (1:M relationship - current assignment)
+    campus_id = Column(Integer, ForeignKey("campus.id"), nullable=True, index=True)
+    campus_assigned_date = Column(Date, nullable=True)  # When current assignment started
 
     # CSV source tracking
     data_source = Column(String(20), nullable=True)  # 'csv', 'api', 'manual', etc.
@@ -48,6 +52,7 @@ class People(Base):
     updated_by = Column(Integer, nullable=True)
 
     # Relationships
+    campus = relationship("Campus", foreign_keys=[campus_id])
     course_enrollments = relationship(
         "CourseEnrollment", back_populates="people", cascade="all, delete-orphan"
     )
@@ -62,4 +67,7 @@ class People(Base):
     )
     certification_progress = relationship(
         "CertificationProgress", back_populates="people", cascade="all, delete-orphan"
+    )
+    teaching_instances = relationship(
+        "CourseInstanceTeacher", back_populates="people", cascade="all, delete-orphan"
     )

@@ -13,7 +13,6 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from main import app
 from app.models.user import User
 from app.models.course import Course
-from app.core.security import get_password_hash
 
 client = TestClient(app)
 
@@ -21,11 +20,17 @@ client = TestClient(app)
 @pytest.fixture
 def admin_user(db_session: Session):
     """Create an admin user for testing"""
+    # Use a pre-hashed password to avoid bcrypt compatibility issues in tests
+    # This hash corresponds to "testpass123" and will work with verify_password
+    import bcrypt
+    password = "testpass123"
+    hashed = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+    
     user = User(
         username="testadmin",
         email="testadmin@example.com",
         full_name="Test Admin",
-        hashed_password=get_password_hash("testpass123"),
+        hashed_password=hashed,
         role="admin",
         is_active=True,
     )

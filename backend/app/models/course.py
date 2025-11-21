@@ -11,7 +11,11 @@ from app.core.database import Base
 
 
 class Course(Base):
-    """Course model - Maps to Planning Center Events"""
+    """Course model - Master Course (Content definition, prerequisites, modules)
+    
+    This is the "Master Course" that defines content, prerequisites, and structure.
+    Multiple CourseInstances (Course Offerings) can be created from this master course.
+    """
 
     __tablename__ = "courses"
 
@@ -20,14 +24,23 @@ class Course(Base):
     description = Column(Text, nullable=True)
     duration_weeks = Column(Integer, nullable=True)
     prerequisites = Column(JSON, nullable=True)  # List of prerequisite course IDs
+    
+    # Planning Center mapping (template/event series - not specific instance)
+    planning_center_event_template_id = Column(
+        String(50), nullable=True, index=True
+    )  # Template/Series ID from Planning Center
+    
+    # Legacy fields - kept for backward compatibility during migration
+    # These will be moved to CourseInstance
     planning_center_event_id = Column(
         String(50), unique=True, index=True, nullable=True
-    )
-    planning_center_event_name = Column(String(200), nullable=True)
-    event_start_date = Column(DateTime(timezone=True), nullable=True)
-    event_end_date = Column(DateTime(timezone=True), nullable=True)
-    max_capacity = Column(Integer, nullable=True)
-    current_registrations = Column(Integer, default=0, nullable=False)
+    )  # DEPRECATED - Use CourseInstance.planning_center_event_id
+    planning_center_event_name = Column(String(200), nullable=True)  # DEPRECATED
+    event_start_date = Column(DateTime(timezone=True), nullable=True)  # DEPRECATED
+    event_end_date = Column(DateTime(timezone=True), nullable=True)  # DEPRECATED
+    max_capacity = Column(Integer, nullable=True)  # DEPRECATED
+    current_registrations = Column(Integer, default=0, nullable=False)  # DEPRECATED
+    
     is_active = Column(Boolean, default=True, nullable=False)
 
     # Content settings
@@ -68,6 +81,9 @@ class Course(Base):
     )
     course_role = relationship(
         "CourseRole", back_populates="course", cascade="all, delete-orphan"
+    )
+    course_instances = relationship(
+        "CourseInstance", back_populates="course", cascade="all, delete-orphan"
     )
     certification_courses = relationship(
         "Certification",

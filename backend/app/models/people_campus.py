@@ -2,7 +2,7 @@
 PeopleCampus SQLAlchemy model
 """
 
-from sqlalchemy import Boolean, Column, Date, DateTime, ForeignKey, Integer
+from sqlalchemy import Boolean, Column, Date, DateTime, ForeignKey, Integer, Text
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
@@ -18,8 +18,10 @@ class PeopleCampus(Base):
     people_id = Column(Integer, ForeignKey("people.id"), nullable=False, index=True)
     campus_id = Column(Integer, ForeignKey("campus.id"), nullable=False, index=True)
     assigned_date = Column(Date, nullable=False)
-    is_primary = Column(Boolean, default=False, nullable=False)
-    is_active = Column(Boolean, default=True, nullable=False)
+    unassigned_date = Column(Date, nullable=True)  # When assignment ended (NULL = current)
+    is_primary = Column(Boolean, default=False, nullable=False)  # Deprecated - kept for historical data
+    is_active = Column(Boolean, default=True, nullable=False)  # FALSE if unassigned_date is set
+    notes = Column(Text, nullable=True)  # Reason for change
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
