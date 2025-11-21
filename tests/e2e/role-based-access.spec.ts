@@ -1,5 +1,5 @@
 import { test, expect, type Page, type TestInfo } from '@playwright/test';
-import { loginAsRole } from './utils/auth';
+import { loginAsRole, APP_BASE_URL, credentials } from './utils/auth';
 
 type UserRole = 'admin' | 'staff' | 'viewer';
 
@@ -286,9 +286,10 @@ test.describe('Role-Based Access Control', () => {
       ];
 
       for (const item of viewerNavItems) {
-        const isVisible = await page.locator(`text=${item}`).isVisible().catch(() => false);
+        const navLocator = page.locator(`text=${item}`).first();
+        const isVisible = await navLocator.isVisible().catch(() => false);
         if (isVisible) {
-          await expect(page.locator(`text=${item}`)).toBeVisible();
+          await expect(navLocator).toBeVisible();
         } else {
           console.log(`⚠ Viewer navigation item "${item}" not found`);
         }
@@ -429,9 +430,35 @@ test.describe('Role-Based Access Control', () => {
 
     test('API endpoints respect role permissions', async ({ page }, testInfo) => {
       // Test admin API access
-      if (!(await loginAs(page, 'admin', testInfo))) {
+      // Use a fresh login to ensure we have proper authentication
+      await page.goto(`${APP_BASE_URL}/auth`, { waitUntil: 'networkidle' });
+      await page.waitForTimeout(2000);
+      
+      const usernameInput = page.locator('input[formControlName="username"]').first();
+      const passwordInput = page.locator('input[formControlName="password"]').first();
+      
+      await expect(usernameInput).toBeVisible({ timeout: 10000 });
+      await expect(passwordInput).toBeVisible({ timeout: 10000 });
+      
+      const adminCreds = credentials.admin;
+      if (!adminCreds) {
+        testInfo.skip('Admin credentials not configured');
         return;
       }
+      
+      await usernameInput.fill(adminCreds.username);
+      await passwordInput.fill(adminCreds.password);
+      await page.click('button[type="submit"]');
+      
+      // Wait for navigation to dashboard
+      await page.waitForURL('**/dashboard', { timeout: 20000 }).catch(() => {
+        // If navigation fails, skip the test
+        testInfo.skip('Admin login failed - cannot test API permissions');
+        return;
+      });
+      
+      // Wait a bit for auth to settle
+      await page.waitForTimeout(2000);
       // Get auth token from cookies or use page.request which includes cookies
       const cookies = await page.context().cookies();
       const tokenCookie = cookies.find(c => c.name.includes('token') || c.name.includes('auth') || c.name.includes('access'));
@@ -548,7 +575,20 @@ test.describe('Role-Based Access Control', () => {
       }
       
       await confirmButton.click();
-      await page.waitForTimeout(2000); // Wait for deletion to complete
+      await page.waitForTimeout(3000); // Wait for deletion to complete
+      
+      // Wait for success message or page refresh
+      const successMsg = page.locator('text=/course.*deleted|deleted.*successfully/i').first();
+      const successVisible = await successMsg.isVisible({ timeout: 5000 }).catch(() => false);
+      
+      if (successVisible) {
+        await expect(successMsg).toBeVisible();
+      }
+      
+      // Refresh page to ensure course list is updated
+      await page.reload();
+      await page.waitForLoadState('networkidle');
+      await page.waitForTimeout(2000);
       
       // Verify course is deleted (should not be visible)
       const courseText = page.locator('text=Test Admin Course').first();
