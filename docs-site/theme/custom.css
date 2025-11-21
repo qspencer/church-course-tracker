@@ -1,0 +1,227 @@
+/* Custom CSS for Church Course Tracker Documentation */
+
+/* Custom color variables matching application theme */
+:root {
+  --cct-primary: #667eea;
+  --cct-secondary: #764ba2;
+  --cct-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+/* Header customization */
+.md-header {
+  background: var(--cct-gradient);
+}
+
+.md-header__button.md-logo {
+  color: white;
+}
+
+.md-header__title {
+  color: white;
+}
+
+/* Navigation tabs */
+.md-tabs {
+  background: var(--cct-gradient);
+}
+
+.md-tabs__link {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.md-tabs__link--active {
+  color: white;
+  border-bottom-color: white;
+}
+
+.md-tabs__link:hover {
+  color: white;
+}
+
+/* Links */
+.md-typeset a {
+  color: var(--cct-primary);
+}
+
+.md-typeset a:hover {
+  color: var(--cct-secondary);
+}
+
+/* Code blocks */
+.md-typeset code {
+  background-color: rgba(102, 126, 234, 0.1);
+  color: var(--cct-primary);
+}
+
+/* Buttons and callouts */
+.md-typeset .admonition {
+  border-left-color: var(--cct-primary);
+}
+
+.md-typeset .admonition-title {
+  background-color: rgba(102, 126, 234, 0.1);
+  border-left-color: var(--cct-primary);
+}
+
+/* Search */
+.md-search__form {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.md-search__input {
+  color: white;
+}
+
+.md-search__input::placeholder {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* Footer */
+.md-footer {
+  background-color: #1a1a1a;
+}
+
+.md-footer-meta {
+  background-color: #0d0d0d;
+}
+
+.md-footer-links {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.md-footer-link {
+  color: rgba(255, 255, 255, 0.7);
+  text-decoration: none;
+  transition: color 0.25s;
+}
+
+.md-footer-link:hover {
+  color: rgba(255, 255, 255, 1);
+}
+
+.md-footer-separator {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+/* Custom callout boxes */
+.md-typeset .admonition.tip {
+  border-left-color: #4caf50;
+}
+
+.md-typeset .admonition.warning {
+  border-left-color: #ff9800;
+}
+
+.md-typeset .admonition.danger {
+  border-left-color: #f44336;
+}
+
+.md-typeset .admonition.info {
+  border-left-color: var(--cct-primary);
+}
+
+/* Table of contents */
+.md-nav__link--active {
+  color: var(--cct-primary);
+  font-weight: 600;
+}
+
+/* Print styles */
+@media print {
+  .md-header,
+  .md-tabs,
+  .md-sidebar,
+  .md-footer,
+  .md-search,
+  .md-top {
+    display: none;
+  }
+  
+  .md-content {
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+  
+  .md-content__inner {
+    margin: 0;
+    padding: 0;
+  }
+  
+  /* Ensure links are visible in print */
+  a {
+    color: #000 !important;
+    text-decoration: underline;
+  }
+  
+  /* Page breaks */
+  h1, h2 {
+    page-break-after: avoid;
+  }
+  
+  /* Remove backgrounds */
+  * {
+    background: transparent !important;
+    color: #000 !important;
+  }
+}
+
+/* Responsive improvements */
+@media screen and (max-width: 76.25em) {
+  .md-nav--primary .md-nav__title {
+    background: var(--cct-gradient);
+    color: white;
+  }
+}
+
+/* Custom spacing for better readability */
+.md-content__inner {
+  margin: 1.5rem 0.8rem;
+}
+
+.md-content__inner > :first-child {
+  margin-top: 0;
+}
+
+/* Enhanced list styling */
+.md-typeset ul li,
+.md-typeset ol li {
+  margin-bottom: 0.5em;
+}
+
+/* Back to top button styling */
+.md-top {
+  z-index: 10;
+}
+
+.md-top:hover {
+  background-color: var(--cct-primary);
+  opacity: 0.9;
+}
+
+/* Better heading spacing */
+.md-typeset h1 {
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+}
+
+.md-typeset h2 {
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+}
+
+.md-typeset h3 {
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+/* Icon styling in navigation */
+.md-nav__item .md-nav__link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+

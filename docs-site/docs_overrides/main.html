@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block extrahead %}
+  {{ super() }}
+  <!-- SEO Meta Tags -->
+  <meta property="og:title" content="Church Course Tracker Documentation">
+  <meta property="og:description" content="User documentation for Church Course Tracker - A learning management system for churches">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="{{ config.site_url }}{{ page.canonical_url }}">
+  <meta property="og:site_name" content="Church Course Tracker">
+  
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Church Course Tracker Documentation">
+  <meta name="twitter:description" content="User documentation for Church Course Tracker">
+  
+  <!-- Additional SEO -->
+  <meta name="keywords" content="church, course tracker, learning management, documentation, user guide">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="{{ page.canonical_url }}">
+{% endblock %}
+
+

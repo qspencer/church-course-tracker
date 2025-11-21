@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://docs.quentinspencer.com/churchcoursetracker/sitemap.xml
+
+
