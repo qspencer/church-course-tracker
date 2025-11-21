@@ -104,6 +104,7 @@ def upgrade() -> None:
     connection = op.get_bind()
     
     # Create course instances from existing courses
+    # SQLite uses || for concatenation, but we need to handle NULL properly
     connection.execute(sa.text("""
         INSERT INTO course_instances (
             course_id, instance_name, start_date, end_date, max_capacity,
@@ -112,7 +113,13 @@ def upgrade() -> None:
         )
         SELECT 
             id,
-            COALESCE(planning_center_event_name, title) || ' - Initial Instance' as instance_name,
+            CASE 
+                WHEN planning_center_event_name IS NOT NULL 
+                    THEN planning_center_event_name || ' - Initial Instance'
+                WHEN title IS NOT NULL 
+                    THEN title || ' - Initial Instance'
+                ELSE 'Course Offering - Initial Instance'
+            END as instance_name,
             event_start_date as start_date,
             event_end_date as end_date,
             max_capacity,

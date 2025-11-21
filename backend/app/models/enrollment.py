@@ -17,7 +17,14 @@ class CourseEnrollment(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     people_id = Column(Integer, ForeignKey("people.id"), nullable=False, index=True)
-    course_id = Column(Integer, ForeignKey("courses.id"), nullable=False, index=True)
+    course_instance_id = Column(Integer, ForeignKey("course_instances.id"), nullable=True, index=True)
+    
+    # Legacy field - kept for backward compatibility during migration
+    course_id = Column(Integer, ForeignKey("courses.id"), nullable=True, index=True)  # DEPRECATED - Use course_instance_id
+    
+    # Teacher assignment for discipleship tracking
+    assigned_teacher_id = Column(Integer, ForeignKey("course_instance_teachers.id"), nullable=True, index=True)
+    
     planning_center_registration_id = Column(
         String(50), unique=True, index=True, nullable=True
     )
@@ -51,7 +58,13 @@ class CourseEnrollment(Base):
 
     # Relationships
     people = relationship("People", back_populates="course_enrollments")
-    course = relationship("Course", back_populates="course_enrollments")
+    course_instance = relationship("CourseInstance", back_populates="enrollments")
+    course = relationship("Course", foreign_keys=[course_id])  # Legacy relationship
+    assigned_teacher = relationship(
+        "CourseInstanceTeacher",
+        foreign_keys=[assigned_teacher_id],
+        back_populates="assigned_students"
+    )
     content_completion = relationship(
         "ContentCompletion",
         back_populates="course_enrollment",

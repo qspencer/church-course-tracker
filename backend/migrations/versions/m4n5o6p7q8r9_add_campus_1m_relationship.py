@@ -45,6 +45,7 @@ def upgrade() -> None:
     
     # Update people with their current active campus assignment
     # Priority: is_primary=True, then first active assignment
+    # SQLite uses 1/0 for boolean, but we need to handle it properly
     connection.execute(sa.text("""
         UPDATE people
         SET campus_id = (
@@ -60,7 +61,14 @@ def upgrade() -> None:
             FROM people_campus pc
             WHERE pc.people_id = people.id
                 AND pc.is_active = 1
-                AND pc.campus_id = people.campus_id
+                AND pc.campus_id = (
+                    SELECT pc2.campus_id
+                    FROM people_campus pc2
+                    WHERE pc2.people_id = people.id
+                        AND pc2.is_active = 1
+                    ORDER BY pc2.is_primary DESC, pc2.assigned_date DESC
+                    LIMIT 1
+                )
             ORDER BY pc.is_primary DESC, pc.assigned_date DESC
             LIMIT 1
         )
