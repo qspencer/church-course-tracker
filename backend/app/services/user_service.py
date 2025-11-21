@@ -98,9 +98,17 @@ class UserService:
 
         # Hash password if provided
         if "password" in update_data:
-            update_data["hashed_password"] = pwd_context.hash(
-                update_data.pop("password")
-            )
+            # Use direct bcrypt to avoid passlib compatibility issues
+            import bcrypt
+            password = update_data.pop("password")
+            # Truncate password to 72 bytes (bcrypt limit) if needed
+            if isinstance(password, str):
+                password_bytes = password.encode('utf-8')
+                if len(password_bytes) > 72:
+                    password_bytes = password_bytes[:72]
+                    password = password_bytes.decode('utf-8', errors='ignore')
+            hashed = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+            update_data["hashed_password"] = hashed
 
         for field, value in update_data.items():
             setattr(db_user, field, value)

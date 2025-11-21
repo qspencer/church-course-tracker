@@ -83,23 +83,26 @@ class TestAccountLockout:
 
     def test_account_lockout_after_failed_attempts(self, db_session: Session, admin_user):
         """Test that account gets locked after 5 failed attempts"""
+        # Clear any existing failed attempts first
+        from app.services.failed_login_service import FailedLoginService
+        failed_login_service = FailedLoginService(db_session)
+        failed_login_service.clear_failed_attempts(admin_user.username)
+        failed_login_service.clear_failed_attempts(admin_user.email)
+        
         # Try wrong password 5 times
         for i in range(5):
             response = client.post(
                 "/api/v1/auth/login",
                 json={"username": admin_user.username, "password": "wrongpassword"},
             )
-            assert response.status_code == 401
             if i < 4:
+                # First 4 attempts should return 401 with remaining attempts message
+                assert response.status_code == 401
                 assert "attempt(s) remaining" in response.json()["detail"]
-
-        # 6th attempt should lock the account
-        response = client.post(
-            "/api/v1/auth/login",
-            json={"username": admin_user.username, "password": "wrongpassword"},
-        )
-        assert response.status_code == 423  # Locked
-        assert "locked" in response.json()["detail"].lower()
+            else:
+                # 5th attempt should lock the account (423)
+                assert response.status_code == 423
+                assert "locked" in response.json()["detail"].lower()
 
     def test_successful_login_clears_failed_attempts(self, db_session: Session, admin_user):
         """Test that successful login clears failed attempts"""
