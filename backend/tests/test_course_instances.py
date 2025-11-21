@@ -43,36 +43,6 @@ def test_people(db_session: Session):
 
 
 @pytest.fixture
-def admin_token(db_session: Session, client: TestClient):
-    """Create an admin user and return their auth token"""
-    from app.models.user import User
-    from app.core.security import get_password_hash, create_access_token
-    from datetime import timedelta
-    
-    # Create admin user if doesn't exist
-    admin_user = db_session.query(User).filter(User.username == "admin_test").first()
-    if not admin_user:
-        admin_user = User(
-            username="admin_test",
-            email="admin_test@example.com",
-            full_name="Admin Test User",
-            hashed_password=get_password_hash("testpass123"),
-            role="admin",
-            is_active=True,
-        )
-        db_session.add(admin_user)
-        db_session.commit()
-        db_session.refresh(admin_user)
-    
-    # Create token
-    access_token_expires = timedelta(minutes=30)
-    token = create_access_token(
-        data={"sub": str(admin_user.id)}, expires_delta=access_token_expires
-    )
-    return token
-
-
-@pytest.fixture
 def test_course_instance(db_session: Session, test_course):
     """Create a test course instance"""
     instance = CourseInstance(
@@ -96,7 +66,7 @@ class TestCourseInstancesEndpoints:
         """Test getting course instances when none exist"""
         response = client.get(
             "/api/v1/course-instances",
-            headers={"Authorization": f"Bearer {user_token}"},
+            headers={"Authorization": f"Bearer {admin_token}"},
         )
         assert response.status_code == 200
         data = response.json()
