@@ -39,6 +39,8 @@ __all__ = [
     "CourseContent",
     "ContentAccessLog",
     "ContentAuditLog",
+    "CourseInstance",
+    "CourseInstanceTeacher",
     "Certification",
     "PeopleCampus",
     "PeopleRole",
