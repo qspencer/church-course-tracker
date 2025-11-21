@@ -85,7 +85,31 @@ describe('ModuleDialogComponent', () => {
     });
 
     it('should initialize form in create mode', () => {
-      component.data = mockDialogData;
+      // Recreate component with create mode data
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        declarations: [ModuleDialogComponent],
+        imports: [
+          ReactiveFormsModule,
+          MatDialogModule,
+          MatFormFieldModule,
+          MatInputModule,
+          MatButtonModule,
+          MatIconModule,
+          MatSnackBarModule,
+          NoopAnimationsModule
+        ],
+        providers: [
+          FormBuilder,
+          { provide: CourseContentService, useValue: courseContentService },
+          { provide: MatDialogRef, useValue: dialogRef },
+          { provide: MAT_DIALOG_DATA, useValue: mockDialogData },
+          { provide: MatSnackBar, useValue: snackBar }
+        ]
+      }).compileComponents();
+      
+      fixture = TestBed.createComponent(ModuleDialogComponent);
+      component = fixture.componentInstance;
       component.ngOnInit();
       
       expect(component.isEditing).toBe(false);
@@ -94,7 +118,31 @@ describe('ModuleDialogComponent', () => {
     });
 
     it('should initialize form in edit mode with module data', () => {
-      component.data = mockEditDialogData;
+      // Recreate component with edit mode data
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        declarations: [ModuleDialogComponent],
+        imports: [
+          ReactiveFormsModule,
+          MatDialogModule,
+          MatFormFieldModule,
+          MatInputModule,
+          MatButtonModule,
+          MatIconModule,
+          MatSnackBarModule,
+          NoopAnimationsModule
+        ],
+        providers: [
+          FormBuilder,
+          { provide: CourseContentService, useValue: courseContentService },
+          { provide: MatDialogRef, useValue: dialogRef },
+          { provide: MAT_DIALOG_DATA, useValue: mockEditDialogData },
+          { provide: MatSnackBar, useValue: snackBar }
+        ]
+      }).compileComponents();
+      
+      fixture = TestBed.createComponent(ModuleDialogComponent);
+      component = fixture.componentInstance;
       component.ngOnInit();
       
       expect(component.isEditing).toBe(true);
@@ -174,7 +222,31 @@ describe('ModuleDialogComponent', () => {
 
   describe('Update Module', () => {
     beforeEach(() => {
-      component.data = mockEditDialogData;
+      // Recreate component with edit mode data
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        declarations: [ModuleDialogComponent],
+        imports: [
+          ReactiveFormsModule,
+          MatDialogModule,
+          MatFormFieldModule,
+          MatInputModule,
+          MatButtonModule,
+          MatIconModule,
+          MatSnackBarModule,
+          NoopAnimationsModule
+        ],
+        providers: [
+          FormBuilder,
+          { provide: CourseContentService, useValue: courseContentService },
+          { provide: MatDialogRef, useValue: dialogRef },
+          { provide: MAT_DIALOG_DATA, useValue: mockEditDialogData },
+          { provide: MatSnackBar, useValue: snackBar }
+        ]
+      }).compileComponents();
+      
+      fixture = TestBed.createComponent(ModuleDialogComponent);
+      component = fixture.componentInstance;
       component.ngOnInit();
       component.moduleForm.patchValue({
         title: 'Updated Module',
