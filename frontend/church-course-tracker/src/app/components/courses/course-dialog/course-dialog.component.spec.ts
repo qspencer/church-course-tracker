@@ -118,7 +118,8 @@ describe('CourseDialogComponent', () => {
       // Recreate component with edit mode data
       TestBed.resetTestingModule();
       const editDialogData = { course: { ...mockCourse } };
-      const editCourseSpy = jasmine.createSpyObj('CourseService', ['createCourse', 'updateCourse']);
+      const editCourseSpy = jasmine.createSpyObj('CourseService', ['createCourse', 'updateCourse', 'getAvailablePrerequisites']);
+      editCourseSpy.getAvailablePrerequisites.and.returnValue(of([]));
       const editMatDialogRefSpy = jasmine.createSpyObj('MatDialogRef', ['close']);
       const editMatSnackBarSpy = jasmine.createSpyObj('MatSnackBar', ['open']);
       
@@ -297,7 +298,8 @@ describe('CourseDialogComponent', () => {
       // Recreate component with edit mode data
       TestBed.resetTestingModule();
       const editDialogData = { course: { ...mockCourse } };
-      const editCourseSpy = jasmine.createSpyObj('CourseService', ['createCourse', 'updateCourse']);
+      const editCourseSpy = jasmine.createSpyObj('CourseService', ['createCourse', 'updateCourse', 'getAvailablePrerequisites']);
+      editCourseSpy.getAvailablePrerequisites.and.returnValue(of([]));
       const editMatDialogRefSpy = jasmine.createSpyObj('MatDialogRef', ['close']);
       const editMatSnackBarSpy = jasmine.createSpyObj('MatSnackBar', ['open']);
       
@@ -359,7 +361,8 @@ describe('CourseDialogComponent', () => {
       
       // Create a separate test setup for create mode
       const createDialogData = { course: null };
-      const createCourseSpy = jasmine.createSpyObj('CourseService', ['createCourse', 'updateCourse']);
+      const createCourseSpy = jasmine.createSpyObj('CourseService', ['createCourse', 'updateCourse', 'getAvailablePrerequisites']);
+      createCourseSpy.getAvailablePrerequisites.and.returnValue(of([]));
       const createMatDialogRefSpy = jasmine.createSpyObj('MatDialogRef', ['close']);
       const createMatSnackBarSpy = jasmine.createSpyObj('MatSnackBar', ['open']);
       
