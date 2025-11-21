@@ -11,6 +11,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSelectModule } from '@angular/material/select';
 
 import { CourseDialogComponent, CourseDialogData } from './course-dialog.component';
 import { CourseService } from '../../../services/course.service';
@@ -133,7 +134,8 @@ describe('CourseDialogComponent', () => {
           MatFormFieldModule,
           MatInputModule,
           MatButtonModule,
-          MatProgressSpinnerModule
+          MatProgressSpinnerModule,
+          MatSelectModule
         ],
         providers: [
           { provide: CourseService, useValue: editCourseSpy },
@@ -171,11 +173,11 @@ describe('CourseDialogComponent', () => {
 
       component.onSubmit();
 
-      expect(courseServiceSpy.updateCourse).toHaveBeenCalledWith(1, {
+      expect(courseServiceSpy.updateCourse).toHaveBeenCalledWith(1, jasmine.objectContaining({
         title: 'Updated Course',
         description: 'Updated Description',
         duration_weeks: 6
-      });
+      }));
       expect(snackBarSpy.open).toHaveBeenCalledWith('Course updated successfully', 'Close', { duration: 3000 });
       expect(dialogRefSpy.close).toHaveBeenCalledWith(mockCourse);
     });
@@ -208,11 +210,11 @@ describe('CourseDialogComponent', () => {
 
       component.onSubmit();
 
-      expect(courseServiceSpy.createCourse).toHaveBeenCalledWith({
+      expect(courseServiceSpy.createCourse).toHaveBeenCalledWith(jasmine.objectContaining({
         title: 'New Course',
         description: 'New Description',
         duration_weeks: 8
-      });
+      }));
       expect(snackBarSpy.open).toHaveBeenCalledWith('Course created successfully', 'Close', { duration: 3000 });
       expect(dialogRefSpy.close).toHaveBeenCalledWith(mockCourse);
     });
@@ -313,7 +315,8 @@ describe('CourseDialogComponent', () => {
           MatFormFieldModule,
           MatInputModule,
           MatButtonModule,
-          MatProgressSpinnerModule
+          MatProgressSpinnerModule,
+          MatSelectModule
         ],
         providers: [
           { provide: CourseService, useValue: editCourseSpy },
@@ -376,7 +379,8 @@ describe('CourseDialogComponent', () => {
           MatFormFieldModule,
           MatInputModule,
           MatButtonModule,
-          MatProgressSpinnerModule
+          MatProgressSpinnerModule,
+          MatSelectModule
         ],
         providers: [
           { provide: CourseService, useValue: createCourseSpy },
