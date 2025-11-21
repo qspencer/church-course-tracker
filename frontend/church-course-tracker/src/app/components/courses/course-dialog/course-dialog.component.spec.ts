@@ -38,10 +38,11 @@ describe('CourseDialogComponent', () => {
   });
 
   beforeEach(async () => {
-    const courseSpy = jasmine.createSpyObj('CourseService', ['createCourse', 'updateCourse']);
+    const courseSpy = jasmine.createSpyObj('CourseService', ['createCourse', 'updateCourse', 'getAvailablePrerequisites']);
     // Set up default return values for the service methods
     courseSpy.createCourse.and.returnValue(of(mockCourse));
     courseSpy.updateCourse.and.returnValue(of(mockCourse));
+    courseSpy.getAvailablePrerequisites.and.returnValue(of([]));
     
     const matDialogRefSpy = jasmine.createSpyObj('MatDialogRef', ['close']);
     const matSnackBarSpy = jasmine.createSpyObj('MatSnackBar', ['open']);
