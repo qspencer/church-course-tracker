@@ -54,8 +54,21 @@ def test_course(db_session: Session):
     return course
 
 
-def get_auth_token(username: str = "testadmin", password: str = "testpass123"):
+def get_auth_token(username: str = "testadmin", password: str = "testpass123", db_session: Session = None):
     """Helper to get auth token"""
+    # Clear any failed login attempts before trying to login
+    if db_session:
+        from app.services.failed_login_service import FailedLoginService
+        failed_login_service = FailedLoginService(db_session)
+        failed_login_service.clear_failed_attempts(username)
+        # Also clear by email if username is not an email
+        if "@" not in username:
+            # Try to find user and clear by email too
+            from app.models.user import User
+            user = db_session.query(User).filter(User.username == username).first()
+            if user and user.email:
+                failed_login_service.clear_failed_attempts(user.email)
+    
     response = client.post(
         "/api/v1/auth/login",
         json={"username": username, "password": password},
@@ -118,7 +131,7 @@ class TestUserProfileUpdate:
 
     def test_update_profile(self, db_session: Session, admin_user):
         """Test updating user profile"""
-        token = get_auth_token()
+        token = get_auth_token(db_session=db_session)
         assert token is not None
 
         response = client.patch(
@@ -132,7 +145,7 @@ class TestUserProfileUpdate:
 
     def test_update_profile_cannot_change_role(self, db_session: Session, admin_user):
         """Test that users cannot change their role through profile update"""
-        token = get_auth_token()
+        token = get_auth_token(db_session=db_session)
         assert token is not None
 
         response = client.patch(
@@ -155,7 +168,7 @@ class TestChangePassword:
 
     def test_change_password_success(self, db_session: Session, admin_user):
         """Test successful password change"""
-        token = get_auth_token()
+        token = get_auth_token(db_session=db_session)
         assert token is not None
 
         response = client.patch(
@@ -167,7 +180,7 @@ class TestChangePassword:
         assert "successfully" in response.json()["message"].lower()
 
         # Verify new password works
-        new_token = get_auth_token(password="newpass123")
+        new_token = get_auth_token(password="newpass123", db_session=db_session)
         assert new_token is not None
 
         # Change it back
@@ -179,7 +192,7 @@ class TestChangePassword:
 
     def test_change_password_wrong_current(self, db_session: Session, admin_user):
         """Test password change with wrong current password"""
-        token = get_auth_token()
+        token = get_auth_token(db_session=db_session)
         assert token is not None
 
         response = client.patch(
@@ -196,7 +209,7 @@ class TestNotificationPreferences:
 
     def test_get_preferences(self, db_session: Session, admin_user):
         """Test getting user preferences"""
-        token = get_auth_token()
+        token = get_auth_token(db_session=db_session)
         assert token is not None
 
         response = client.get(
@@ -210,7 +223,7 @@ class TestNotificationPreferences:
 
     def test_update_preferences(self, db_session: Session, admin_user):
         """Test updating user preferences"""
-        token = get_auth_token()
+        token = get_auth_token(db_session=db_session)
         assert token is not None
 
         response = client.patch(
@@ -228,7 +241,7 @@ class TestCoursePrerequisites:
 
     def test_get_available_prerequisites(self, db_session: Session, admin_user, test_course):
         """Test getting available prerequisite courses"""
-        token = get_auth_token()
+        token = get_auth_token(db_session=db_session)
         assert token is not None
 
         response = client.get(
@@ -240,7 +253,7 @@ class TestCoursePrerequisites:
 
     def test_create_course_with_prerequisites(self, db_session: Session, admin_user, test_course):
         """Test creating a course with prerequisites"""
-        token = get_auth_token()
+        token = get_auth_token(db_session=db_session)
         assert token is not None
 
         response = client.post(
@@ -257,7 +270,7 @@ class TestCoursePrerequisites:
 
     def test_cannot_set_self_as_prerequisite(self, db_session: Session, admin_user, test_course):
         """Test that a course cannot be a prerequisite for itself"""
-        token = get_auth_token()
+        token = get_auth_token(db_session=db_session)
         assert token is not None
 
         response = client.patch(
@@ -274,7 +287,7 @@ class TestStaffActivityLogs:
 
     def test_get_activity_logs(self, db_session: Session, admin_user):
         """Test getting staff activity logs"""
-        token = get_auth_token()
+        token = get_auth_token(db_session=db_session)
         assert token is not None
 
         response = client.get(
@@ -290,7 +303,7 @@ class TestErrorHandling:
 
     def test_404_returns_json(self, db_session: Session, admin_user):
         """Test that 404 errors return JSON format"""
-        token = get_auth_token()
+        token = get_auth_token(db_session=db_session)
         assert token is not None
 
         response = client.get(
@@ -304,7 +317,7 @@ class TestErrorHandling:
 
     def test_content_404_returns_json(self, db_session: Session, admin_user):
         """Test that content 404 errors return JSON format"""
-        token = get_auth_token()
+        token = get_auth_token(db_session=db_session)
         assert token is not None
 
         response = client.get(

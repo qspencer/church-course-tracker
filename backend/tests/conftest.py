@@ -123,12 +123,14 @@ def db_session():
         session.execute(text("DELETE FROM certification_progress"))
         session.execute(text("DELETE FROM certification"))
         session.execute(text("DELETE FROM courses"))
+        session.execute(text("DELETE FROM failed_login_attempts"))  # Clear lockout state
         session.execute(text("DELETE FROM content_type"))
         session.execute(text("DELETE FROM content"))
         session.execute(text("DELETE FROM planning_center_events_cache"))
         session.execute(text("DELETE FROM planning_center_registrations_cache"))
         session.execute(text("DELETE FROM planning_center_sync_log"))
         session.execute(text("DELETE FROM planning_center_webhook_events"))
+        session.execute(text("DELETE FROM failed_login_attempts"))  # Clear lockout state
         session.execute(text("DELETE FROM audit_log"))
         session.execute(text("DELETE FROM people_campus"))
         session.execute(text("DELETE FROM people_role"))
