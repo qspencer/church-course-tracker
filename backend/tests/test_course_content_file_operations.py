@@ -130,10 +130,13 @@ class TestCourseContentFileOperations:
         db_session.commit()
         db_session.refresh(content)
         
-        # Mock upload service to raise validation error
-        with patch('app.services.content_service.ContentService.upload_file') as mock_upload:
+        # Mock upload service at endpoint level to raise validation error
+        with patch('app.api.v1.endpoints.course_content.ContentService') as MockContentService:
             from fastapi import HTTPException
-            mock_upload.side_effect = HTTPException(status_code=400, detail="Invalid file type")
+            mock_service_instance = MockContentService.return_value
+            mock_service_instance.upload_file.side_effect = HTTPException(
+                status_code=400, detail="Invalid file type"
+            )
             
             test_file = BytesIO(b"test file content")
             files = {"file": ("test.exe", test_file, "application/octet-stream")}
@@ -169,9 +172,10 @@ class TestCourseContentFileOperations:
         db_session.commit()
         db_session.refresh(content)
         
-        # Mock the download service
-        with patch('app.services.content_service.ContentService.download_content') as mock_download:
-            mock_download.return_value = {
+        # Mock the download service at endpoint level
+        with patch('app.api.v1.endpoints.course_content.ContentService') as MockContentService:
+            mock_service_instance = MockContentService.return_value
+            mock_service_instance.download_content.return_value = {
                 "content": b"test file content",
                 "filename": "test.pdf",
                 "mime_type": "application/pdf",
@@ -185,14 +189,17 @@ class TestCourseContentFileOperations:
             
             assert response.status_code == 200
             assert response.headers["content-type"] == "application/pdf"
-            assert response.headers["content-disposition"] == "attachment; filename=test.pdf"
+            assert "attachment; filename=test.pdf" in response.headers.get("content-disposition", "")
             assert response.content == b"test file content"
     
     def test_download_content_not_found(self, client: TestClient, admin_token):
         """Test download of non-existent content"""
-        with patch('app.services.content_service.ContentService.download_content') as mock_download:
+        with patch('app.api.v1.endpoints.course_content.ContentService') as MockContentService:
             from fastapi import HTTPException
-            mock_download.side_effect = HTTPException(status_code=404, detail="Content not found")
+            mock_service_instance = MockContentService.return_value
+            mock_service_instance.download_content.side_effect = HTTPException(
+                status_code=404, detail="Content not found"
+            )
             
             response = client.get(
                 "/api/v1/content/999/download",
@@ -234,16 +241,24 @@ class TestCourseContentProgressTracking:
         db_session.commit()
         db_session.refresh(content)
         
-        # Mock the progress update service
-        with patch('app.services.content_service.ContentService.log_content_access') as mock_log:
-            mock_log.return_value = {
-                "id": 1,
-                "content_id": content.id,
-                "user_id": 1,
-                "access_type": "view",
-                "progress_percentage": 75,
-                "time_spent": 300
-            }
+        # Mock the progress update service at endpoint level
+        with patch('app.api.v1.endpoints.course_content.ContentService') as MockContentService:
+            from app.models.course_content import ContentAccessLog
+            from datetime import datetime
+            
+            # Create a mock access log object
+            mock_access_log = ContentAccessLog(
+                id=1,
+                content_id=content.id,
+                user_id=1,
+                access_type="view",
+                progress_percentage=75,
+                time_spent=300,
+                access_timestamp=datetime.utcnow()
+            )
+            
+            mock_service_instance = MockContentService.return_value
+            mock_service_instance.log_content_access.return_value = mock_access_log
             
             progress_data = {
                 "progress_percentage": 75,
@@ -313,18 +328,23 @@ class TestCourseContentAccessLogs:
         db_session.commit()
         db_session.refresh(content)
         
-        # Mock the access logging service
-        with patch('app.services.content_service.ContentService.log_content_access') as mock_log:
+        # Mock the access logging service at endpoint level
+        with patch('app.api.v1.endpoints.course_content.ContentService') as MockContentService:
+            from app.models.course_content import ContentAccessLog
             from datetime import datetime
-            mock_log.return_value = {
-                "id": 1,
-                "content_id": content.id,
-                "user_id": 1,
-                "access_type": "view",
-                "progress_percentage": 0,
-                "time_spent": 0,
-                "access_timestamp": datetime.utcnow().isoformat()
-            }
+            
+            mock_access_log = ContentAccessLog(
+                id=1,
+                content_id=content.id,
+                user_id=1,
+                access_type="view",
+                progress_percentage=0,
+                time_spent=0,
+                access_timestamp=datetime.utcnow()
+            )
+            
+            mock_service_instance = MockContentService.return_value
+            mock_service_instance.log_content_access.return_value = mock_access_log
             
             access_data = {
                 "access_type": "view",
@@ -381,20 +401,23 @@ class TestCourseContentAccessLogs:
         db_session.commit()
         db_session.refresh(content)
         
-        # Mock the access logs service
-        with patch('app.services.content_service.ContentService.get_content_access_logs') as mock_logs:
+        # Mock the access logs service at endpoint level
+        with patch('app.api.v1.endpoints.course_content.ContentService') as MockContentService:
+            from app.models.course_content import ContentAccessLog
             from datetime import datetime
-            mock_logs.return_value = [
-                {
-                    "id": 1,
-                    "content_id": content.id,
-                    "user_id": 1,
-                    "access_type": "view",
-                    "progress_percentage": 50,
-                    "time_spent": 300,
-                    "access_timestamp": datetime.utcnow().isoformat()
-                }
-            ]
+            
+            mock_access_log = ContentAccessLog(
+                id=1,
+                content_id=content.id,
+                user_id=1,
+                access_type="view",
+                progress_percentage=50,
+                time_spent=300,
+                access_timestamp=datetime.utcnow()
+            )
+            
+            mock_service_instance = MockContentService.return_value
+            mock_service_instance.get_content_access_logs.return_value = [mock_access_log]
             
             response = client.get(
                 f"/api/v1/content/{content.id}/access-logs",

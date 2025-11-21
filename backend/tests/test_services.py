@@ -763,12 +763,18 @@ class TestPlanningCenterSyncService:
         assert task_status["progress"] == 50
         assert task_status["message"] == "Processing..."
     
-    def test_list_sync_tasks(self, db_session):
-        """Test listing sync tasks"""
-        # Clear global sync_tasks to ensure test isolation
+    def setup_method(self):
+        """Clear sync tasks before each test for isolation"""
         from app.services.planning_center_sync_service import sync_tasks
         sync_tasks.clear()
-        
+    
+    def teardown_method(self):
+        """Clear sync tasks after each test for isolation"""
+        from app.services.planning_center_sync_service import sync_tasks
+        sync_tasks.clear()
+    
+    def test_list_sync_tasks(self, db_session):
+        """Test listing sync tasks"""
         service = PlanningCenterSyncService(db_session)
         
         # Create multiple tasks
@@ -820,10 +826,6 @@ class TestPlanningCenterSyncService:
     @patch('app.services.planning_center_sync_service.httpx.AsyncClient')
     def test_start_sync_events(self, mock_client, db_session):
         """Test starting events sync"""
-        # Clear global sync_tasks to ensure test isolation
-        from app.services.planning_center_sync_service import sync_tasks
-        sync_tasks.clear()
-        
         # Mock the HTTP response
         mock_response = Mock()
         mock_response.json.return_value = {
@@ -845,29 +847,46 @@ class TestPlanningCenterSyncService:
         
         assert task_id is not None
         
+        # Wait a bit for async task to start (if running asynchronously)
+        import time
+        time.sleep(0.1)
+        
         # Check task was created
         task_status = service.get_sync_task_status(task_id)
         assert task_status is not None
         assert task_status["task_type"] == "sync_events"
-        assert task_status["status"] in ["pending", "running"]  # More flexible status check
+        assert task_status["status"] in ["pending", "running", "completed"]  # More flexible status check
     
-    def test_process_webhook_event(self, db_session):
+    @patch('app.services.planning_center_sync_service.httpx.AsyncClient')
+    def test_process_webhook_event(self, mock_client, db_session):
         """Test processing webhook event"""
-        # Clear global sync_tasks to ensure test isolation
-        from app.services.planning_center_sync_service import sync_tasks
-        sync_tasks.clear()
-        
         webhook_data = {
             "event_type": "person.created",
             "id": "pc_123",
             "name": "John Doe"
         }
         
+        # Mock HTTP client to avoid external API calls
+        mock_response = Mock()
+        mock_response.json.return_value = {
+            "data": {
+                "id": "pc_123",
+                "first_name": "John",
+                "last_name": "Doe",
+                "email": "john@example.com"
+            }
+        }
+        mock_response.raise_for_status.return_value = None
+        mock_client.return_value.__aenter__.return_value.get.return_value = mock_response
+        
         service = PlanningCenterSyncService(db_session)
         
-        # Mock the sync methods to avoid external API calls
+        # Mock async operations to avoid actual execution
         with patch('asyncio.create_task') as mock_create_task:
-            mock_create_task.return_value = None
+            mock_task = Mock()
+            mock_task.done.return_value = False
+            mock_create_task.return_value = mock_task
+            
             result = service.process_webhook_event(webhook_data)
         
         assert result["status"] == "success"

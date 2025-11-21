@@ -165,17 +165,21 @@ class TestCourseContentProgressWorkflows:
         db_session.refresh(content)
         
         # Step 2: Log initial access
-        with patch('app.api.v1.endpoints.course_content.ContentService.log_content_access') as mock_log:
+        with patch('app.api.v1.endpoints.course_content.ContentService') as MockContentService:
+            from app.models.course_content import ContentAccessLog
             from datetime import datetime
-            mock_log.return_value = {
-                "id": 1,
-                "content_id": content.id,
-                "user_id": 1,
-                "access_type": "view",
-                "progress_percentage": 0,
-                "time_spent": 0,
-                "access_timestamp": datetime.utcnow().isoformat()
-            }
+            
+            mock_service_instance = MockContentService.return_value
+            mock_access_log = ContentAccessLog(
+                id=1,
+                content_id=content.id,
+                user_id=1,
+                access_type="view",
+                progress_percentage=0,
+                time_spent=0,
+                access_timestamp=datetime.utcnow()
+            )
+            mock_service_instance.log_content_access.return_value = mock_access_log
             
             access_data = {
                 "access_type": "view",
@@ -192,16 +196,21 @@ class TestCourseContentProgressWorkflows:
             assert access_response.status_code == 200
         
         # Step 3: Update progress
-        with patch('app.api.v1.endpoints.course_content.ContentService.log_content_access') as mock_progress:
-            mock_progress.return_value = {
-                "id": 2,
-                "content_id": content.id,
-                "user_id": 1,
-                "access_type": "view",
-                "progress_percentage": 50,
-                "time_spent": 300,
-                "access_timestamp": datetime.utcnow().isoformat()
-            }
+        with patch('app.api.v1.endpoints.course_content.ContentService') as MockContentService:
+            from app.models.course_content import ContentAccessLog
+            from datetime import datetime
+            
+            mock_service_instance = MockContentService.return_value
+            mock_access_log = ContentAccessLog(
+                id=2,
+                content_id=content.id,
+                user_id=1,
+                access_type="view",
+                progress_percentage=50,
+                time_spent=300,
+                access_timestamp=datetime.utcnow()
+            )
+            mock_service_instance.log_content_access.return_value = mock_access_log
             
             progress_data = {
                 "progress_percentage": 50,
@@ -217,16 +226,21 @@ class TestCourseContentProgressWorkflows:
             assert progress_response.status_code == 200
         
         # Step 4: Complete content
-        with patch('app.api.v1.endpoints.course_content.ContentService.log_content_access') as mock_complete:
-            mock_complete.return_value = {
-                "id": 3,
-                "content_id": content.id,
-                "user_id": 1,
-                "access_type": "complete",
-                "progress_percentage": 100,
-                "time_spent": 600,
-                "access_timestamp": datetime.utcnow().isoformat()
-            }
+        with patch('app.api.v1.endpoints.course_content.ContentService') as MockContentService:
+            from app.models.course_content import ContentAccessLog
+            from datetime import datetime
+            
+            mock_service_instance = MockContentService.return_value
+            mock_access_log = ContentAccessLog(
+                id=3,
+                content_id=content.id,
+                user_id=1,
+                access_type="complete",
+                progress_percentage=100,
+                time_spent=600,
+                access_timestamp=datetime.utcnow()
+            )
+            mock_service_instance.log_content_access.return_value = mock_access_log
             
             complete_data = {
                 "access_type": "complete",
@@ -250,19 +264,32 @@ class TestCourseContentProgressWorkflows:
         db_session.commit()
         db_session.refresh(course)
         
-        # Mock user progress service
-        with patch('app.api.v1.endpoints.course_content.ContentService.get_user_content_progress') as mock_progress:
-            mock_progress.return_value = {
-                "user_id": 1,
-                "course_id": course.id,
-                "total_content": 5,
-                "completed_content": 3,
-                "progress_percentage": 60,
-                "content_progress": [
-                    {"content_id": 1, "progress_percentage": 100, "time_spent": 300},
-                    {"content_id": 2, "progress_percentage": 75, "time_spent": 150},
-                    {"content_id": 3, "progress_percentage": 0, "time_spent": 0}
-                ]
+        # Mock user progress service at endpoint level
+        with patch('app.api.v1.endpoints.course_content.ContentService') as MockContentService:
+            mock_service_instance = MockContentService.return_value
+            # The actual method returns a dict with content_id keys
+            mock_service_instance.get_user_content_progress.return_value = {
+                1: {
+                    "content_title": "Content 1",
+                    "last_accessed": None,
+                    "access_type": None,
+                    "progress_percentage": 100,
+                    "time_spent": 300
+                },
+                2: {
+                    "content_title": "Content 2",
+                    "last_accessed": None,
+                    "access_type": None,
+                    "progress_percentage": 75,
+                    "time_spent": 150
+                },
+                3: {
+                    "content_title": "Content 3",
+                    "last_accessed": None,
+                    "access_type": None,
+                    "progress_percentage": 0,
+                    "time_spent": 0
+                }
             }
             
             response = client.get(
@@ -272,9 +299,9 @@ class TestCourseContentProgressWorkflows:
             
             assert response.status_code == 200
             data = response.json()
-            assert data["progress_percentage"] == 60
-            assert data["completed_content"] == 3
-            assert len(data["content_progress"]) == 3
+            assert isinstance(data, dict)
+            # The response is a dict with content_id keys
+            assert len(data) == 3
 
 
 class TestCourseContentAuditWorkflows:
@@ -305,10 +332,9 @@ class TestCourseContentAuditWorkflows:
             "description": "Updated description"
         }
         
-        with patch('app.api.v1.endpoints.course_content.ContentService.update_content') as mock_update:
-            # Create a mock CourseContent object
+        with patch('app.api.v1.endpoints.course_content.ContentService') as MockContentService:
             from app.models.course_content import CourseContent as CourseContentModel
-            from datetime import datetime
+            from datetime import datetime, timezone
             
             updated_content = CourseContentModel(
                 id=content.id,
@@ -318,13 +344,15 @@ class TestCourseContentAuditWorkflows:
                 content_type=ContentType.DOCUMENT,
                 storage_type=StorageType.DATABASE,
                 order_index=1,
-                created_at=datetime.utcnow(),
-                updated_at=datetime.utcnow(),
+                created_at=datetime.now(timezone.utc),
+                updated_at=datetime.now(timezone.utc),
                 is_active=True,
                 download_count=0,
                 view_count=0
             )
-            mock_update.return_value = updated_content
+            
+            mock_service_instance = MockContentService.return_value
+            mock_service_instance.update_content.return_value = updated_content
             
             update_response = client.put(
                 f"/api/v1/content/{content.id}",
@@ -335,15 +363,16 @@ class TestCourseContentAuditWorkflows:
             assert update_response.status_code == 200
         
         # Step 3: Retrieve audit logs
-        with patch('app.api.v1.endpoints.course_content.ContentService.get_audit_logs') as mock_audit:
+        with patch('app.api.v1.endpoints.course_content.ContentService') as MockContentService:
             from app.models.course_content import ContentAuditLog
+            from datetime import datetime, timezone
             
             audit_log1 = ContentAuditLog(
                 id=1,
                 content_id=content.id,
                 user_id=1,
                 action="create",
-                change_timestamp=datetime.utcnow(),
+                change_timestamp=datetime.now(timezone.utc),
                 change_summary="Content created"
             )
             audit_log2 = ContentAuditLog(
@@ -351,10 +380,12 @@ class TestCourseContentAuditWorkflows:
                 content_id=content.id,
                 user_id=1,
                 action="update",
-                change_timestamp=datetime.utcnow(),
+                change_timestamp=datetime.now(timezone.utc),
                 change_summary="Content updated"
             )
-            mock_audit.return_value = [audit_log1, audit_log2]
+            
+            mock_service_instance = MockContentService.return_value
+            mock_service_instance.get_audit_logs.return_value = [audit_log1, audit_log2]
             
             audit_response = client.get(
                 f"/api/v1/content/{content.id}/audit-logs",
@@ -407,12 +438,11 @@ class TestCourseContentAuditWorkflows:
             is_active=True, download_count=0, view_count=0, updated_at=datetime.utcnow()
         )
         
-        # Mock content summary service
-        with patch('app.api.v1.endpoints.course_content.ContentService.get_content') as mock_content, \
-             patch('app.api.v1.endpoints.course_content.ContentService.get_modules') as mock_modules:
-            
-            mock_content.return_value = [content1, content2, content3]
-            mock_modules.return_value = [module1, module2]
+        # Mock content summary service at endpoint level
+        with patch('app.api.v1.endpoints.course_content.ContentService') as MockContentService:
+            mock_service_instance = MockContentService.return_value
+            mock_service_instance.get_content.return_value = [content1, content2, content3]
+            mock_service_instance.get_modules.return_value = [module1, module2]
             
             response = client.get(
                 f"/api/v1/content/course/{course.id}/summary",

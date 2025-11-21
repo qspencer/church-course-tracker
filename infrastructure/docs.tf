@@ -162,6 +162,7 @@ resource "aws_cloudfront_cache_policy" "docs" {
 }
 
 # CloudFront Cache Policy for index.html (no cache)
+# Note: When caching is disabled, accept encoding cannot be enabled
 resource "aws_cloudfront_cache_policy" "docs_no_cache" {
   name        = "${var.app_name}-docs-no-cache-policy"
   comment     = "No-cache policy for index.html files"
@@ -170,8 +171,9 @@ resource "aws_cloudfront_cache_policy" "docs_no_cache" {
   min_ttl     = 0
   
   parameters_in_cache_key_and_forwarded_to_origin {
-    enable_accept_encoding_brotli = true
-    enable_accept_encoding_gzip    = true
+    # Cannot enable accept encoding when caching is disabled
+    enable_accept_encoding_brotli = false
+    enable_accept_encoding_gzip    = false
     
     cookies_config {
       cookie_behavior = "none"
@@ -197,6 +199,7 @@ resource "aws_cloudfront_response_headers_policy" "docs" {
       access_control_max_age_sec = 31536000
       include_subdomains          = true
       preload                     = true
+      override                    = true
     }
     content_type_options {
       override = true
