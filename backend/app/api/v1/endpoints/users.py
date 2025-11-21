@@ -28,7 +28,7 @@ async def get_current_user_info(current_user: dict = Depends(get_current_active_
     return current_user
 
 
-@router.patch("/me")
+@router.patch("/me", response_model=User)
 async def update_current_user_profile(
     user_update: UserProfileUpdate,
     current_user: dict = Depends(get_current_active_user),
