@@ -115,17 +115,39 @@ describe('CourseDialogComponent', () => {
     });
 
     it('should patch form values when editing', () => {
-      // Set up the component in editing mode
-      component.isEditing = true;
-      component.data.course = { ...mockCourse };
+      // Recreate component with edit mode data
+      TestBed.resetTestingModule();
+      const editDialogData = { course: { ...mockCourse } };
+      const editCourseSpy = jasmine.createSpyObj('CourseService', ['createCourse', 'updateCourse']);
+      const editMatDialogRefSpy = jasmine.createSpyObj('MatDialogRef', ['close']);
+      const editMatSnackBarSpy = jasmine.createSpyObj('MatSnackBar', ['open']);
       
-      // Trigger ngOnInit to patch the form
-      component.ngOnInit();
-      fixture.detectChanges();
+      TestBed.configureTestingModule({
+        declarations: [CourseDialogComponent],
+        imports: [
+          ReactiveFormsModule,
+          BrowserAnimationsModule,
+          MatDialogModule,
+          MatFormFieldModule,
+          MatInputModule,
+          MatButtonModule,
+          MatProgressSpinnerModule
+        ],
+        providers: [
+          { provide: CourseService, useValue: editCourseSpy },
+          { provide: MatDialogRef, useValue: editMatDialogRefSpy },
+          { provide: MAT_DIALOG_DATA, useValue: editDialogData },
+          { provide: MatSnackBar, useValue: editMatSnackBarSpy }
+        ]
+      }).compileComponents();
+      
+      const editFixture = TestBed.createComponent(CourseDialogComponent);
+      const editComponent = editFixture.componentInstance;
+      editFixture.detectChanges();
 
-      expect(component.courseForm.get('title')?.value).toBe(mockCourse.title);
-      expect(component.courseForm.get('description')?.value).toBe(mockCourse.description);
-      expect(component.courseForm.get('duration_weeks')?.value).toBe(mockCourse.duration_weeks);
+      expect(editComponent.courseForm.get('title')?.value).toBe(mockCourse.title);
+      expect(editComponent.courseForm.get('description')?.value).toBe(mockCourse.description);
+      expect(editComponent.courseForm.get('duration_weeks')?.value).toBe(mockCourse.duration_weeks);
     });
   });
 
@@ -268,29 +290,62 @@ describe('CourseDialogComponent', () => {
   });
 
   describe('template rendering', () => {
-    beforeEach(() => {
-      // Ensure component is in editing mode
-      component.isEditing = true;
-      fixture.detectChanges();
+    let editComponent: CourseDialogComponent;
+    let editFixture: ComponentFixture<CourseDialogComponent>;
+
+    beforeEach(async () => {
+      // Recreate component with edit mode data
+      TestBed.resetTestingModule();
+      const editDialogData = { course: { ...mockCourse } };
+      const editCourseSpy = jasmine.createSpyObj('CourseService', ['createCourse', 'updateCourse']);
+      const editMatDialogRefSpy = jasmine.createSpyObj('MatDialogRef', ['close']);
+      const editMatSnackBarSpy = jasmine.createSpyObj('MatSnackBar', ['open']);
+      
+      await TestBed.configureTestingModule({
+        declarations: [CourseDialogComponent],
+        imports: [
+          ReactiveFormsModule,
+          BrowserAnimationsModule,
+          MatDialogModule,
+          MatFormFieldModule,
+          MatInputModule,
+          MatButtonModule,
+          MatProgressSpinnerModule
+        ],
+        providers: [
+          { provide: CourseService, useValue: editCourseSpy },
+          { provide: MatDialogRef, useValue: editMatDialogRefSpy },
+          { provide: MAT_DIALOG_DATA, useValue: editDialogData },
+          { provide: MatSnackBar, useValue: editMatSnackBarSpy }
+        ]
+      }).compileComponents();
+      
+      editFixture = TestBed.createComponent(CourseDialogComponent);
+      editComponent = editFixture.componentInstance;
+      editFixture.detectChanges();
     });
 
     it('should display correct title for editing', () => {
-      const compiled = fixture.nativeElement;
-      expect(compiled.querySelector('h2').textContent.trim()).toBe('Edit Course');
+      const compiled = editFixture.nativeElement;
+      const titleElement = compiled.querySelector('h2');
+      expect(titleElement).toBeTruthy();
+      expect(titleElement.textContent.trim()).toBe('Edit Course');
     });
 
     it('should display correct button text for editing', () => {
-      const compiled = fixture.nativeElement;
+      const compiled = editFixture.nativeElement;
       const submitButton = compiled.querySelector('button[color="primary"]');
+      expect(submitButton).toBeTruthy();
       expect(submitButton.textContent.trim()).toBe('Update');
     });
 
     it('should show loading spinner when loading', () => {
-      component.isLoading = true;
-      fixture.detectChanges();
+      editComponent.isLoading = true;
+      editFixture.detectChanges();
 
-      const compiled = fixture.nativeElement;
-      expect(compiled.querySelector('mat-spinner')).toBeTruthy();
+      const compiled = editFixture.nativeElement;
+      const spinner = compiled.querySelector('mat-spinner');
+      expect(spinner).toBeTruthy();
     });
   });
 
