@@ -20,7 +20,7 @@ import { MatSelectModule } from '@angular/material/select';
 
 import { CoursesComponent } from './courses.component';
 import { CourseDialogComponent } from './course-dialog/course-dialog.component';
-import { ConfirmDialogComponent } from '../../shared/confirm-dialog/confirm-dialog.component';
+import { SharedModule } from '../../shared/shared.module';
 
 const routes: Routes = [
   { path: '', component: CoursesComponent }
@@ -29,8 +29,7 @@ const routes: Routes = [
 @NgModule({
   declarations: [
     CoursesComponent,
-    CourseDialogComponent,
-    ConfirmDialogComponent
+    CourseDialogComponent
   ],
   imports: [
     CommonModule,
@@ -48,7 +47,8 @@ const routes: Routes = [
     MatProgressSpinnerModule,
     MatChipsModule,
     MatTooltipModule,
-    MatSelectModule
+    MatSelectModule,
+    SharedModule
   ]
 })
 export class CoursesModule { }

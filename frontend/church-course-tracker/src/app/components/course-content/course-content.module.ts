@@ -21,7 +21,7 @@ import { CourseContentComponent } from './course-content.component';
 import { ContentDialogComponent } from './content-dialog/content-dialog.component';
 import { ModuleDialogComponent } from './module-dialog/module-dialog.component';
 import { EmbeddedContentViewerComponent } from './embedded-content-viewer/embedded-content-viewer.component';
-import { ConfirmDialogComponent } from '../../shared/confirm-dialog/confirm-dialog.component';
+import { SharedModule } from '../../shared/shared.module';
 import { CourseContentRoutingModule } from './course-content-routing.module';
 
 @NgModule({
@@ -29,8 +29,7 @@ import { CourseContentRoutingModule } from './course-content-routing.module';
     CourseContentComponent,
     ContentDialogComponent,
     ModuleDialogComponent,
-    EmbeddedContentViewerComponent,
-    ConfirmDialogComponent
+    EmbeddedContentViewerComponent
   ],
   imports: [
     CommonModule,
@@ -49,7 +48,8 @@ import { CourseContentRoutingModule } from './course-content-routing.module';
     MatSelectModule,
     MatSnackBarModule,
     MatListModule,
-    MatDialogModule
+    MatDialogModule,
+    SharedModule
   ],
   exports: [
     CourseContentComponent
