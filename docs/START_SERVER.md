@@ -83,7 +83,7 @@ curl http://localhost:8000/api/v1/planning-center/test-connection
 
 Once the FastAPI server is running, use the test script:
 ```bash
-./QUICK_TEST.sh
+./scripts/QUICK_TEST.sh
 ```
 
 This should now work and return JSON responses!
