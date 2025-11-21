@@ -201,8 +201,22 @@ test.describe('Role-Based API Tests', () => {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       
-      expect(response.status()).toBe(200);
-      console.log('✓ Token-based authentication works');
+      const status = response.status();
+      
+      // Handle rate limiting (429) gracefully
+      if (status === 429) {
+        console.log('Rate limited - waiting and retrying...');
+        // Wait 2 seconds and retry
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        const retryResponse = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        expect(retryResponse.status()).toBe(200);
+        console.log('✓ Token-based authentication works (after rate limit retry)');
+      } else {
+        expect(status).toBe(200);
+        console.log('✓ Token-based authentication works');
+      }
     });
 
     test('Invalid token is rejected', async ({ request }) => {
