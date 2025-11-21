@@ -245,8 +245,9 @@ resource "aws_acm_certificate" "docs" {
 }
 
 # Route 53 record for docs.quentinspencer.com
+# Uses the existing Route 53 zone from main.tf
 resource "aws_route53_record" "docs" {
-  zone_id = data.aws_route53_zone.quentinspencer_com.zone_id
+  zone_id = aws_route53_zone.quentinspencer_com.zone_id
   name    = "docs.quentinspencer.com"
   type    = "A"
   
@@ -255,10 +256,5 @@ resource "aws_route53_record" "docs" {
     zone_id                = aws_cloudfront_distribution.docs.hosted_zone_id
     evaluate_target_health = false
   }
-}
-
-# Data source for Route 53 zone (assuming it exists)
-data "aws_route53_zone" "quentinspencer_com" {
-  name = "quentinspencer.com"
 }
 
