@@ -43,6 +43,36 @@ def test_people(db_session: Session):
 
 
 @pytest.fixture
+def admin_token(db_session: Session, client: TestClient):
+    """Create an admin user and return their auth token"""
+    from app.models.user import User
+    from app.core.security import get_password_hash, create_access_token
+    from datetime import timedelta
+    
+    # Create admin user if doesn't exist
+    admin_user = db_session.query(User).filter(User.username == "admin_test").first()
+    if not admin_user:
+        admin_user = User(
+            username="admin_test",
+            email="admin_test@example.com",
+            full_name="Admin Test User",
+            hashed_password=get_password_hash("testpass123"),
+            role="admin",
+            is_active=True,
+        )
+        db_session.add(admin_user)
+        db_session.commit()
+        db_session.refresh(admin_user)
+    
+    # Create token
+    access_token_expires = timedelta(minutes=30)
+    token = create_access_token(
+        data={"sub": str(admin_user.id)}, expires_delta=access_token_expires
+    )
+    return token
+
+
+@pytest.fixture
 def test_course_instance(db_session: Session, test_course):
     """Create a test course instance"""
     instance = CourseInstance(
@@ -62,7 +92,7 @@ def test_course_instance(db_session: Session, test_course):
 class TestCourseInstancesEndpoints:
     """Test Course Instance CRUD endpoints"""
 
-    def test_get_course_instances_empty(self, client: TestClient, user_token: str):
+    def test_get_course_instances_empty(self, client: TestClient, admin_token: str):
         """Test getting course instances when none exist"""
         response = client.get(
             "/api/v1/course-instances",
@@ -74,7 +104,7 @@ class TestCourseInstancesEndpoints:
         assert len(data) == 0
 
     def test_create_course_instance(
-        self, client: TestClient, user_token: str, test_course
+        self, client: TestClient, admin_token: str, test_course
     ):
         """Test creating a course instance"""
         instance_data = {
@@ -88,7 +118,7 @@ class TestCourseInstancesEndpoints:
         response = client.post(
             "/api/v1/course-instances",
             json=instance_data,
-            headers={"Authorization": f"Bearer {user_token}"},
+            headers={"Authorization": f"Bearer {admin_token}"},
         )
         assert response.status_code == 201
         data = response.json()
@@ -97,12 +127,12 @@ class TestCourseInstancesEndpoints:
         assert "id" in data
 
     def test_get_course_instance(
-        self, client: TestClient, user_token: str, test_course_instance
+        self, client: TestClient, admin_token: str, test_course_instance
     ):
         """Test getting a specific course instance"""
         response = client.get(
             f"/api/v1/course-instances/{test_course_instance.id}",
-            headers={"Authorization": f"Bearer {user_token}"},
+            headers={"Authorization": f"Bearer {admin_token}"},
         )
         assert response.status_code == 200
         data = response.json()
@@ -110,17 +140,17 @@ class TestCourseInstancesEndpoints:
         assert data["instance_name"] == test_course_instance.instance_name
 
     def test_get_course_instance_not_found(
-        self, client: TestClient, user_token: str
+        self, client: TestClient, admin_token: str
     ):
         """Test getting a non-existent course instance"""
         response = client.get(
             "/api/v1/course-instances/99999",
-            headers={"Authorization": f"Bearer {user_token}"},
+            headers={"Authorization": f"Bearer {admin_token}"},
         )
         assert response.status_code == 404
 
     def test_update_course_instance(
-        self, client: TestClient, user_token: str, test_course_instance
+        self, client: TestClient, admin_token: str, test_course_instance
     ):
         """Test updating a course instance"""
         update_data = {
@@ -130,7 +160,7 @@ class TestCourseInstancesEndpoints:
         response = client.patch(
             f"/api/v1/course-instances/{test_course_instance.id}",
             json=update_data,
-            headers={"Authorization": f"Bearer {user_token}"},
+            headers={"Authorization": f"Bearer {admin_token}"},
         )
         assert response.status_code == 200
         data = response.json()
@@ -138,7 +168,7 @@ class TestCourseInstancesEndpoints:
         assert data["enrollment_open"] == update_data["enrollment_open"]
 
     def test_delete_course_instance(
-        self, client: TestClient, user_token: str, test_course, db_session: Session
+        self, client: TestClient, admin_token: str, test_course, db_session: Session
     ):
         """Test deleting a course instance"""
         # Create an instance to delete
@@ -153,19 +183,19 @@ class TestCourseInstancesEndpoints:
 
         response = client.delete(
             f"/api/v1/course-instances/{instance.id}",
-            headers={"Authorization": f"Bearer {user_token}"},
+            headers={"Authorization": f"Bearer {admin_token}"},
         )
         assert response.status_code == 204
 
         # Verify it's deleted
         response = client.get(
             f"/api/v1/course-instances/{instance.id}",
-            headers={"Authorization": f"Bearer {user_token}"},
+            headers={"Authorization": f"Bearer {admin_token}"},
         )
         assert response.status_code == 404
 
     def test_get_course_instances_filtered_by_course(
-        self, client: TestClient, user_token: str, test_course, db_session: Session
+        self, client: TestClient, admin_token: str, test_course, db_session: Session
     ):
         """Test filtering course instances by course_id"""
         # Create multiple instances
@@ -193,7 +223,7 @@ class TestCourseInstancesEndpoints:
         # Filter by course_id
         response = client.get(
             f"/api/v1/course-instances?course_id={test_course.id}",
-            headers={"Authorization": f"Bearer {user_token}"},
+            headers={"Authorization": f"Bearer {admin_token}"},
         )
         assert response.status_code == 200
         data = response.json()
@@ -205,12 +235,12 @@ class TestCourseInstanceTeachersEndpoints:
     """Test Course Instance Teacher management endpoints"""
 
     def test_get_instance_teachers_empty(
-        self, client: TestClient, user_token: str, test_course_instance
+        self, client: TestClient, admin_token: str, test_course_instance
     ):
         """Test getting teachers when none exist"""
         response = client.get(
             f"/api/v1/course-instances/{test_course_instance.id}/teachers",
-            headers={"Authorization": f"Bearer {user_token}"},
+            headers={"Authorization": f"Bearer {admin_token}"},
         )
         assert response.status_code == 200
         data = response.json()
@@ -218,7 +248,7 @@ class TestCourseInstanceTeachersEndpoints:
         assert len(data) == 0
 
     def test_add_instance_teacher(
-        self, client: TestClient, user_token: str, test_course_instance, test_people
+        self, client: TestClient, admin_token: str, test_course_instance, test_people
     ):
         """Test adding a teacher to a course instance"""
         teacher_data = {
@@ -230,7 +260,7 @@ class TestCourseInstanceTeachersEndpoints:
         response = client.post(
             f"/api/v1/course-instances/{test_course_instance.id}/teachers",
             json=teacher_data,
-            headers={"Authorization": f"Bearer {user_token}"},
+            headers={"Authorization": f"Bearer {admin_token}"},
         )
         assert response.status_code == 201
         data = response.json()
@@ -241,7 +271,7 @@ class TestCourseInstanceTeachersEndpoints:
     def test_get_instance_teachers(
         self,
         client: TestClient,
-        user_token: str,
+        admin_token: str,
         test_course_instance,
         test_people,
         db_session: Session,
@@ -261,7 +291,7 @@ class TestCourseInstanceTeachersEndpoints:
 
         response = client.get(
             f"/api/v1/course-instances/{test_course_instance.id}/teachers",
-            headers={"Authorization": f"Bearer {user_token}"},
+            headers={"Authorization": f"Bearer {admin_token}"},
         )
         assert response.status_code == 200
         data = response.json()
@@ -271,7 +301,7 @@ class TestCourseInstanceTeachersEndpoints:
     def test_remove_instance_teacher(
         self,
         client: TestClient,
-        user_token: str,
+        admin_token: str,
         test_course_instance,
         test_people,
         db_session: Session,
@@ -292,14 +322,14 @@ class TestCourseInstanceTeachersEndpoints:
 
         response = client.delete(
             f"/api/v1/course-instances/{test_course_instance.id}/teachers/{teacher.id}",
-            headers={"Authorization": f"Bearer {user_token}"},
+            headers={"Authorization": f"Bearer {admin_token}"},
         )
         assert response.status_code == 204
 
         # Verify it's removed
         response = client.get(
             f"/api/v1/course-instances/{test_course_instance.id}/teachers",
-            headers={"Authorization": f"Bearer {user_token}"},
+            headers={"Authorization": f"Bearer {admin_token}"},
         )
         data = response.json()
         assert len(data) == 0
@@ -325,14 +355,13 @@ class TestCourseInstanceAuthorization:
         assert response.status_code == 401
 
     def test_delete_course_instance_requires_admin(
-        self, client: TestClient, user_token: str, test_course_instance
+        self, client: TestClient, admin_token: str, test_course_instance
     ):
         """Test that deleting course instances requires admin role"""
-        # This assumes user_token is admin - if not, would need separate test
         response = client.delete(
             f"/api/v1/course-instances/{test_course_instance.id}",
-            headers={"Authorization": f"Bearer {user_token}"},
+            headers={"Authorization": f"Bearer {admin_token}"},
         )
-        # Should succeed if admin, or 403 if not admin
-        assert response.status_code in [204, 403]
+        # Should succeed with admin token
+        assert response.status_code == 204
 
