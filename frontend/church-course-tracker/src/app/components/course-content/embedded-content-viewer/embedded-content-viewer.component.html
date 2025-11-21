@@ -1,0 +1,17 @@
+<div class="embedded-content-viewer">
+  <h2 mat-dialog-title>
+    <mat-icon>code</mat-icon>
+    <span>{{ data.title }}</span>
+  </h2>
+  
+  <mat-dialog-content>
+    <div class="content-container" [innerHTML]="getSafeHtml()"></div>
+  </mat-dialog-content>
+  
+  <mat-dialog-actions align="end">
+    <button mat-button (click)="onClose()">
+      Close
+    </button>
+  </mat-dialog-actions>
+</div>
+

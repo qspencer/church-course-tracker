@@ -1,0 +1,55 @@
+<div class="module-dialog">
+  <h2 mat-dialog-title>
+    {{ isEditing ? 'Edit Module' : 'Create New Module' }}
+  </h2>
+  
+  <mat-dialog-content>
+    <form [formGroup]="moduleForm" class="module-form">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Module Title</mat-label>
+        <input matInput formControlName="title" placeholder="Enter module title">
+        <mat-icon matSuffix>title</mat-icon>
+        <mat-error>{{ getErrorMessage('title') }}</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Description</mat-label>
+        <textarea 
+          matInput 
+          formControlName="description" 
+          placeholder="Enter module description (optional)"
+          rows="4">
+        </textarea>
+        <mat-icon matSuffix>description</mat-icon>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Order Index</mat-label>
+        <input 
+          matInput 
+          type="number" 
+          formControlName="order_index" 
+          placeholder="Display order (0 = first)"
+          min="0">
+        <mat-icon matSuffix>sort</mat-icon>
+        <mat-hint>Lower numbers appear first in the module list</mat-hint>
+        <mat-error>{{ getErrorMessage('order_index') }}</mat-error>
+      </mat-form-field>
+    </form>
+  </mat-dialog-content>
+  
+  <mat-dialog-actions align="end">
+    <button mat-button (click)="onCancel()" [disabled]="isSubmitting">
+      Cancel
+    </button>
+    <button 
+      mat-raised-button 
+      color="primary" 
+      (click)="onSubmit()" 
+      [disabled]="!moduleForm.valid || isSubmitting">
+      <mat-spinner *ngIf="isSubmitting" diameter="20"></mat-spinner>
+      <span *ngIf="!isSubmitting">{{ isEditing ? 'Update' : 'Create' }}</span>
+    </button>
+  </mat-dialog-actions>
+</div>
+

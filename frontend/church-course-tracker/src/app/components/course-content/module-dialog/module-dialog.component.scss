@@ -1,0 +1,46 @@
+.module-dialog {
+  min-width: 500px;
+  max-width: 600px;
+}
+
+.module-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 16px;
+}
+
+.full-width {
+  width: 100%;
+}
+
+mat-dialog-content {
+  padding: 24px;
+}
+
+mat-dialog-actions {
+  padding: 16px 24px;
+  margin: 0;
+  gap: 8px;
+  
+  button {
+    min-width: 100px;
+    
+    mat-spinner {
+      margin-right: 8px;
+    }
+  }
+}
+
+// Responsive design
+@media (max-width: 600px) {
+  .module-dialog {
+    min-width: auto;
+    width: 100%;
+  }
+  
+  mat-dialog-content {
+    padding: 16px;
+  }
+}
+

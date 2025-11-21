@@ -15,6 +15,8 @@ import {
   AuditLog
 } from '../../models';
 import { ContentDialogComponent } from './content-dialog/content-dialog.component';
+import { ModuleDialogComponent, ModuleDialogData } from './module-dialog/module-dialog.component';
+import { EmbeddedContentViewerComponent, EmbeddedContentViewerData } from './embedded-content-viewer/embedded-content-viewer.component';
 import {
   ConfirmDialogComponent,
   ConfirmDialogData
@@ -259,9 +261,23 @@ export class CourseContentComponent implements OnInit, OnDestroy {
     }
   }
 
-  // Placeholder methods for future implementation
   createModule(): void {
-    this.snackBar.open('Module creation not implemented yet', 'Close', { duration: 3000 });
+    const dialogData: ModuleDialogData = {
+      courseId: this.courseId
+    };
+    
+    const dialogRef = this.dialog.open(ModuleDialogComponent, {
+      width: '600px',
+      maxWidth: '90vw',
+      data: dialogData
+    });
+    
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        // Reload modules after successful creation
+        this.loadData();
+      }
+    });
   }
 
   createContent(): void {
@@ -281,11 +297,53 @@ export class CourseContentComponent implements OnInit, OnDestroy {
   }
 
   editModule(module: CourseModule): void {
-    this.snackBar.open('Module editing not implemented yet', 'Close', { duration: 3000 });
+    const dialogData: ModuleDialogData = {
+      courseId: this.courseId,
+      module: module
+    };
+    
+    const dialogRef = this.dialog.open(ModuleDialogComponent, {
+      width: '600px',
+      maxWidth: '90vw',
+      data: dialogData
+    });
+    
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        // Reload modules after successful update
+        this.loadData();
+      }
+    });
   }
 
   deleteModule(module: CourseModule): void {
-    this.snackBar.open('Module deletion not implemented yet', 'Close', { duration: 3000 });
+    const dialogData: ConfirmDialogData = {
+      title: 'Delete Module',
+      message: `Are you sure you want to delete "${module.title}"? This action cannot be undone.`,
+      confirmText: 'Delete',
+      cancelText: 'Cancel'
+    };
+    
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      data: dialogData
+    });
+    
+    dialogRef.afterClosed().subscribe((confirmed) => {
+      if (confirmed) {
+        this.courseContentService.deleteModule(module.id).subscribe({
+          next: () => {
+            this.snackBar.open('Module deleted successfully', 'Close', { duration: 3000 });
+            this.loadData();
+          },
+          error: (error) => {
+            console.error('Error deleting module:', error);
+            const errorMessage = error?.error?.detail || 'Error deleting module';
+            this.snackBar.open(errorMessage, 'Close', { duration: 5000 });
+          }
+        });
+      }
+    });
   }
 
   editContent(content: CourseContent): void {
@@ -358,7 +416,17 @@ export class CourseContentComponent implements OnInit, OnDestroy {
     }
 
     if (content.content_type === CourseContentType.EMBEDDED && content.embedded_content) {
-      this.snackBar.open('Embedded content viewer not implemented yet', 'Close', { duration: 3000 });
+      const viewerData: EmbeddedContentViewerData = {
+        title: content.title,
+        content: content.embedded_content
+      };
+      
+      this.dialog.open(EmbeddedContentViewerComponent, {
+        width: '800px',
+        maxWidth: '90vw',
+        maxHeight: '90vh',
+        data: viewerData
+      });
       return;
     }
 
