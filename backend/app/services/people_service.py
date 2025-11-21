@@ -2,7 +2,7 @@
 People service layer (from Planning Center)
 """
 
-from datetime import datetime
+from datetime import date, datetime
 from typing import List, Optional
 
 from sqlalchemy.orm import Session
@@ -129,6 +129,81 @@ class PeopleService:
         )
         return True
 
+    def assign_campus(
+        self,
+        person_id: int,
+        campus_id: int,
+        assigned_date: Optional[date] = None,
+        notes: Optional[str] = None,
+        updated_by: Optional[int] = None
+    ) -> PeopleModel:
+        """
+        Assign person to a campus (1:M relationship)
+        
+        This method:
+        1. Sets people.campus_id to the new campus
+        2. Records historical change in people_campus table
+        3. Sets unassigned_date on previous campus assignment if exists
+        """
+        from app.models.people_campus import PeopleCampus
+        from datetime import date as date_type
+        
+        db_person = self.get_person(person_id)
+        if not db_person:
+            raise ValueError(f"Person with ID {person_id} not found")
+        
+        # Get previous campus assignment
+        old_campus_id = db_person.campus_id
+        
+        # If changing campus, record history in people_campus
+        if old_campus_id and old_campus_id != campus_id:
+            # Set unassigned_date on old assignment
+            old_assignment = (
+                self.db.query(PeopleCampus)
+                .filter(
+                    PeopleCampus.people_id == person_id,
+                    PeopleCampus.campus_id == old_campus_id,
+                    PeopleCampus.is_active == True,
+                    PeopleCampus.unassigned_date.is_(None)
+                )
+                .first()
+            )
+            if old_assignment:
+                old_assignment.unassigned_date = assigned_date or date_type.today()
+                old_assignment.is_active = False
+        
+        # Update current campus assignment
+        assigned_date_value = assigned_date or date_type.today()
+        db_person.campus_id = campus_id
+        db_person.campus_assigned_date = assigned_date_value
+        db_person.updated_at = datetime.utcnow()
+        db_person.updated_by = updated_by
+        
+        # Create historical record in people_campus
+        new_assignment = PeopleCampus(
+            people_id=person_id,
+            campus_id=campus_id,
+            assigned_date=assigned_date_value,
+            is_active=True,
+            notes=notes,
+            created_by=updated_by,
+            updated_by=updated_by
+        )
+        self.db.add(new_assignment)
+        
+        self.db.commit()
+        self.db.refresh(db_person)
+        
+        AuditService(self.db).log_change(
+            table_name=PeopleModel.__tablename__,
+            record_id=db_person.id,
+            action="update",
+            changed_by=updated_by,
+            new_values={"campus_id": campus_id, "campus_assigned_date": assigned_date_value.isoformat()},
+        )
+        
+        return db_person
+
     def sync_from_planning_center(
         self, pc_person_data: dict, updated_by: Optional[int] = None
     ) -> PeopleModel:
@@ -158,6 +233,11 @@ class PeopleService:
             existing_person.last_synced_at = datetime.utcnow()
             existing_person.updated_at = datetime.utcnow()
             existing_person.updated_by = updated_by
+            
+            # Sync campus from Planning Center if available
+            # Note: This would require Planning Center API to provide campus/location info
+            # For now, we'll keep existing campus assignment
+            
             self.db.commit()
             self.db.refresh(existing_person)
             return existing_person
