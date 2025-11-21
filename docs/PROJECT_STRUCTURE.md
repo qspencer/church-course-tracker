@@ -66,6 +66,12 @@ All project documentation is located in the `docs/` subdirectory:
 - `LOCAL_TESTING_GUIDE.md` - Local testing guide
 - `START_SERVER.md` - Server startup guide
 
+### Images
+- `docs/images/` - Project images, screenshots, and diagrams
+  - Debug screenshots
+  - Test result images
+  - Documentation diagrams
+
 ### Archive
 - `docs/archive/` - Historical documentation and archived files
 
