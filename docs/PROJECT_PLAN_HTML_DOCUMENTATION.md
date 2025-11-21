@@ -6,6 +6,8 @@ This project plan outlines the creation of an online HTML version of the Church 
 
 **Project Goal**: Convert the existing Markdown documentation into a professional, searchable, and accessible HTML documentation site.
 
+**Documentation URL**: `https://docs.quentinspencer.com/churchcoursetracker/`
+
 **Key Deliverables**:
 - Fully functional HTML documentation website
 - Responsive design (mobile, tablet, desktop)
@@ -13,6 +15,7 @@ This project plan outlines the creation of an online HTML version of the Church 
 - Navigation system
 - Integration with existing infrastructure
 - Deployment pipeline
+- Accessible at `docs.quentinspencer.com/churchcoursetracker/`
 
 ---
 
@@ -27,7 +30,7 @@ This project plan outlines the creation of an online HTML version of the Church 
 6. **Performance**: Fast loading times with good SEO
 
 ### Success Criteria
-- Documentation is accessible at a dedicated URL (e.g., `https://docs.apps.quentinspencer.com` or `https://apps.quentinspencer.com/docs`)
+- Documentation is accessible at: `https://docs.quentinspencer.com/churchcoursetracker/`
 - All 4 documentation files are converted and accessible
 - Site is fully responsive and works on mobile devices
 - Search functionality works across all content
@@ -158,7 +161,7 @@ This project plan outlines the creation of an online HTML version of the Church 
 
 ### Site Structure
 ```
-/documentation/
+/churchcoursetracker/
 ├── index.html (README.md - Overview)
 ├── getting-started/
 │   └── index.html
@@ -167,6 +170,12 @@ This project plan outlines the creation of an online HTML version of the Church 
 └── features/
     └── index.html
 ```
+
+**URL Structure**:
+- Home: `https://docs.quentinspencer.com/churchcoursetracker/`
+- Getting Started: `https://docs.quentinspencer.com/churchcoursetracker/getting-started/`
+- User Guide: `https://docs.quentinspencer.com/churchcoursetracker/user-guide/`
+- Features: `https://docs.quentinspencer.com/churchcoursetracker/features/`
 
 ### Component Structure
 ```
@@ -381,10 +390,11 @@ Home
    - Test deployment process
 
 4. **Domain Configuration**
-   - Option A: Subdomain (`docs.apps.quentinspencer.com`)
-   - Option B: Path (`apps.quentinspencer.com/docs`)
-   - Configure DNS and routing
-   - Test domain access
+   - **Chosen URL**: `docs.quentinspencer.com/churchcoursetracker/`
+   - Create Route 53 DNS record for `docs.quentinspencer.com`
+   - Request ACM SSL certificate for `docs.quentinspencer.com`
+   - Configure CloudFront distribution with path-based routing
+   - Test domain access and SSL
 
 **Deliverable**: Live documentation site
 
@@ -451,21 +461,24 @@ church-course-tracker/
 ### Build Output Structure
 ```
 docs-site/site/                  # Generated HTML (build output)
-├── index.html
-├── getting-started/
-│   └── index.html
-├── user-guide/
-│   └── index.html
-├── features/
-│   └── index.html
-├── search/
-│   └── search_index.json
-├── assets/
-│   ├── css/
-│   ├── js/
-│   └── images/
-└── sitemap.xml
+├── churchcoursetracker/         # Path prefix for URL structure
+│   ├── index.html               # Home page
+│   ├── getting-started/
+│   │   └── index.html
+│   ├── user-guide/
+│   │   └── index.html
+│   ├── features/
+│   │   └── index.html
+│   ├── search/
+│   │   └── search_index.json
+│   ├── assets/
+│   │   ├── css/
+│   │   ├── js/
+│   │   └── images/
+│   └── sitemap.xml
 ```
+
+**Note**: MkDocs will need to be configured to output to the `churchcoursetracker/` subdirectory to match the URL structure.
 
 ---
 
@@ -488,8 +501,11 @@ docs-site/site/                  # Generated HTML (build output)
 ```yaml
 site_name: Church Course Tracker Documentation
 site_description: User documentation for Church Course Tracker
-site_url: https://docs.apps.quentinspencer.com
+site_url: https://docs.quentinspencer.com/churchcoursetracker
 site_author: Church Course Tracker Team
+
+# Configure for path-based URL structure
+use_directory_urls: true  # Creates clean URLs with trailing slashes
 
 theme:
   name: material
@@ -576,24 +592,57 @@ extra:
 
 **Recommended**: **S3 + CloudFront** (aligns with existing infrastructure)
 
+### URL Structure Implementation
+
+**Chosen URL**: `docs.quentinspencer.com/churchcoursetracker/`
+
+#### Implementation Approach
+
+1. **MkDocs Configuration**
+   - Configure `site_url` to include the path: `https://docs.quentinspencer.com/churchcoursetracker`
+   - Use `use_directory_urls: true` to create clean URLs
+   - Configure `docs_dir` and `site_dir` appropriately
+
+2. **S3 Bucket Structure**
+   ```
+   S3 Bucket: docs.quentinspencer.com
+   └── churchcoursetracker/
+       ├── index.html
+       ├── getting-started/
+       ├── user-guide/
+       └── features/
+   ```
+
+3. **CloudFront Configuration**
+   - Distribution domain: `docs.quentinspencer.com`
+   - Default root object: `churchcoursetracker/index.html`
+   - Origin: S3 bucket with path prefix `/churchcoursetracker`
+   - Error pages: Configure 404 to redirect to `churchcoursetracker/index.html`
+
+4. **DNS Configuration**
+   - Route 53: Create A record for `docs.quentinspencer.com` → CloudFront distribution
+   - SSL Certificate: Request ACM certificate for `docs.quentinspencer.com`
+
 ### Deployment Process
 
 1. **Build Documentation**
    ```bash
    cd docs-site
    mkdocs build
+   # Output will be in docs-site/site/
    ```
 
-2. **Deploy to S3**
+2. **Deploy to S3** (with path prefix)
    ```bash
-   aws s3 sync site/ s3://docs-bucket-name --delete
+   # Sync to S3 with churchcoursetracker/ prefix
+   aws s3 sync docs-site/site/ s3://docs-bucket-name/churchcoursetracker/ --delete
    ```
 
 3. **Invalidate CloudFront**
    ```bash
    aws cloudfront create-invalidation \
      --distribution-id DISTRIBUTION_ID \
-     --paths "/*"
+     --paths "/churchcoursetracker/*"
    ```
 
 ### Automated Deployment (GitHub Actions)
@@ -632,12 +681,12 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: |
-          aws s3 sync docs-site/site/ s3://${{ secrets.DOCS_S3_BUCKET }} --delete
+          aws s3 sync docs-site/site/ s3://${{ secrets.DOCS_S3_BUCKET }}/churchcoursetracker/ --delete
       - name: Invalidate CloudFront
         run: |
           aws cloudfront create-invalidation \
             --distribution-id ${{ secrets.DOCS_CLOUDFRONT_DIST_ID }} \
-            --paths "/*"
+            --paths "/churchcoursetracker/*"
 ```
 
 ---
@@ -987,24 +1036,28 @@ echo "Build complete! Output in docs-site/site/"
 
 set -e
 
-S3_BUCKET="church-course-tracker-docs"
+S3_BUCKET="docs.quentinspencer.com"
 CLOUDFRONT_DIST_ID="E1234567890ABC"
+DOCS_PATH="churchcoursetracker"
 
-echo "Deploying documentation..."
+echo "Deploying documentation to docs.quentinspencer.com/$DOCS_PATH/..."
 
 # Build
 cd docs-site
 mkdocs build
 
-# Sync to S3
-aws s3 sync site/ s3://$S3_BUCKET --delete
+# Sync to S3 with path prefix
+echo "Uploading to S3..."
+aws s3 sync site/ s3://$S3_BUCKET/$DOCS_PATH/ --delete
 
-# Invalidate CloudFront
+# Invalidate CloudFront cache
+echo "Invalidating CloudFront cache..."
 aws cloudfront create-invalidation \
   --distribution-id $CLOUDFRONT_DIST_ID \
-  --paths "/*"
+  --paths "/$DOCS_PATH/*"
 
 echo "Deployment complete!"
+echo "Documentation available at: https://docs.quentinspencer.com/$DOCS_PATH/"
 ```
 
 ---

@@ -93,3 +93,24 @@ output "nameservers" {
   description = "Route 53 nameservers for domain configuration"
   value       = aws_route53_zone.quentinspencer_com.name_servers
 }
+
+# Documentation Site Outputs
+output "docs_s3_bucket" {
+  description = "S3 bucket for documentation site"
+  value       = aws_s3_bucket.docs.bucket
+}
+
+output "docs_cloudfront_distribution_id" {
+  description = "CloudFront distribution ID for documentation site"
+  value       = aws_cloudfront_distribution.docs.id
+}
+
+output "docs_cloudfront_domain" {
+  description = "CloudFront distribution domain name for documentation"
+  value       = aws_cloudfront_distribution.docs.domain_name
+}
+
+output "docs_url" {
+  description = "Documentation site URL"
+  value       = "https://docs.quentinspencer.com/churchcoursetracker/"
+}

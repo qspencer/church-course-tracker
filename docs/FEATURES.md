@@ -382,3 +382,4 @@ If you have questions about any feature:
 
 **Remember**: The system is designed to be powerful yet easy to use. Don't be afraid to explore and experiment (within your permissions) to discover all the ways it can help your church's educational programs!
 
+

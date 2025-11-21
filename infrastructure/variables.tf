@@ -59,3 +59,9 @@ variable "memory_target_value" {
   type        = number
   default     = 80
 }
+
+variable "docs_certificate_arn" {
+  description = "ACM certificate ARN for docs.quentinspencer.com (optional, will create if not provided)"
+  type        = string
+  default     = ""
+}

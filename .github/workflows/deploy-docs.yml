@@ -1,0 +1,146 @@
+name: Deploy Documentation
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'docs-site/**'
+      - '.github/workflows/deploy-docs.yml'
+  workflow_dispatch:  # Allow manual triggering
+
+env:
+  AWS_REGION: us-east-1
+  PYTHON_VERSION: '3.12'
+
+jobs:
+  deploy:
+    name: Build and Deploy Documentation
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: read
+      id-token: write  # Required for OIDC
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+      
+      - name: Install dependencies
+        working-directory: docs-site
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      
+      - name: Build documentation site
+        working-directory: docs-site
+        run: |
+          mkdocs build --config-file mkdocs.yml
+          echo "✅ Build complete"
+          ls -la site/ | head -20
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-session-name: GitHubActions-DocsDeploy
+      
+      - name: Get CloudFront Distribution ID
+        id: get-cloudfront
+        working-directory: docs-site
+        run: |
+          # Try to get distribution ID from Terraform outputs or use secret
+          if [ -n "${{ secrets.DOCS_CLOUDFRONT_DIST_ID }}" ]; then
+            echo "dist_id=${{ secrets.DOCS_CLOUDFRONT_DIST_ID }}" >> $GITHUB_OUTPUT
+          else
+            # Try to find it via AWS CLI
+            DIST_ID=$(aws cloudfront list-distributions \
+              --query "DistributionList.Items[?Aliases.Items[?@=='docs.quentinspencer.com']].Id" \
+              --output text)
+            if [ -n "$DIST_ID" ]; then
+              echo "dist_id=$DIST_ID" >> $GITHUB_OUTPUT
+            else
+              echo "⚠️  Could not find CloudFront distribution ID"
+              echo "dist_id=" >> $GITHUB_OUTPUT
+            fi
+          fi
+      
+      - name: Deploy to S3
+        working-directory: docs-site
+        env:
+          DOCS_S3_BUCKET: ${{ secrets.DOCS_S3_BUCKET || 'docs.quentinspencer.com' }}
+          DOCS_CLOUDFRONT_DIST_ID: ${{ steps.get-cloudfront.outputs.dist_id }}
+        run: |
+          echo "📤 Deploying to S3 bucket: $DOCS_S3_BUCKET"
+          echo "📍 CloudFront Distribution: $DOCS_CLOUDFRONT_DIST_ID"
+          
+          # Sync files to S3 with proper cache headers
+          aws s3 sync site/ s3://$DOCS_S3_BUCKET/churchcoursetracker/ \
+            --delete \
+            --exclude "*.pyc" \
+            --exclude ".git/*" \
+            --exclude "venv/*" \
+            --cache-control "public, max-age=3600" \
+            --metadata-directive REPLACE
+          
+          # Set specific cache headers for HTML files (shorter cache)
+          aws s3 cp s3://$DOCS_S3_BUCKET/churchcoursetracker/ \
+            s3://$DOCS_S3_BUCKET/churchcoursetracker/ \
+            --recursive \
+            --exclude "*" \
+            --include "*.html" \
+            --cache-control "public, max-age=0, must-revalidate" \
+            --metadata-directive REPLACE
+          
+          # Set longer cache for static assets
+          aws s3 cp s3://$DOCS_S3_BUCKET/churchcoursetracker/ \
+            s3://$DOCS_S3_BUCKET/churchcoursetracker/ \
+            --recursive \
+            --exclude "*" \
+            --include "assets/**/*" \
+            --cache-control "public, max-age=31536000, immutable" \
+            --metadata-directive REPLACE
+          
+          echo "✅ S3 upload complete"
+      
+      - name: Invalidate CloudFront cache
+        if: steps.get-cloudfront.outputs.dist_id != ''
+        working-directory: docs-site
+        env:
+          DOCS_CLOUDFRONT_DIST_ID: ${{ steps.get-cloudfront.outputs.dist_id }}
+        run: |
+          echo "🔄 Invalidating CloudFront cache..."
+          INVALIDATION_ID=$(aws cloudfront create-invalidation \
+            --distribution-id $DOCS_CLOUDFRONT_DIST_ID \
+            --paths "/churchcoursetracker/*" \
+            --query 'Invalidation.Id' \
+            --output text)
+          
+          echo "✅ CloudFront invalidation created: $INVALIDATION_ID"
+          echo "⏳ Invalidation may take 5-15 minutes to complete"
+      
+      - name: Deployment summary
+        if: always()
+        run: |
+          echo "## 📚 Documentation Deployment" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Status:** ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Deployed to:** https://docs.quentinspencer.com/churchcoursetracker/" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.get-cloudfront.outputs.dist_id }}" != "" ]; then
+            echo "**CloudFront Distribution:** ${{ steps.get-cloudfront.outputs.dist_id }}" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ **CloudFront:** Distribution ID not found" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Triggered by:** ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+

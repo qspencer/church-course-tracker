@@ -9,6 +9,12 @@ S3_BUCKET="${DOCS_S3_BUCKET:-docs.quentinspencer.com}"
 CLOUDFRONT_DIST_ID="${DOCS_CLOUDFRONT_DIST_ID}"
 DOCS_PATH="churchcoursetracker"
 
+# Validate required environment variables
+if [ -z "$CLOUDFRONT_DIST_ID" ]; then
+    echo "⚠️  WARNING: CLOUDFRONT_DIST_ID not set. CloudFront cache invalidation will be skipped."
+    echo "   Set DOCS_CLOUDFRONT_DIST_ID environment variable to enable cache invalidation."
+fi
+
 echo "🚀 Deploying Church Course Tracker documentation..."
 echo "   S3 Bucket: $S3_BUCKET"
 echo "   Path: /$DOCS_PATH/"
