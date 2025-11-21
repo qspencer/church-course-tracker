@@ -147,6 +147,7 @@ test.describe('Role-Based Access Control', () => {
       await expect(page).toHaveURL('https://apps.quentinspencer.com/churchcoursetracker/dashboard');
       
       // Staff should see operational navigation items (check what actually exists)
+      // Use navigation-specific selectors to avoid strict mode violations
       const staffNavItems = [
         'Courses',
         'Progress',
@@ -154,9 +155,11 @@ test.describe('Role-Based Access Control', () => {
       ];
 
       for (const item of staffNavItems) {
-        const isVisible = await page.locator(`text=${item}`).isVisible().catch(() => false);
+        // Target only navigation links, not other text on the page
+        const navLink = page.locator(`mat-nav-list a:has-text("${item}"), a[routerLink]:has-text("${item}")`).first();
+        const isVisible = await navLink.isVisible().catch(() => false);
         if (isVisible) {
-          await expect(page.locator(`text=${item}`)).toBeVisible();
+          await expect(navLink).toBeVisible();
         } else {
           console.log(`⚠ Staff navigation item "${item}" not found`);
         }
@@ -652,17 +655,32 @@ test.describe('Role-Based Access Control', () => {
         await page.waitForTimeout(2000);
       }
       
-      // Reload the page to ensure fresh data from server
-      await page.reload({ waitUntil: 'networkidle' });
-      await page.waitForTimeout(2000);
+      // Navigate back to courses page to ensure we're on the right page
+      await page.goto(`${APP_BASE_URL}/courses`, { waitUntil: 'networkidle' });
+      await page.waitForTimeout(3000);
+      
+      // Wait for table to load
+      await page.waitForSelector('table, tr[mat-row]', { timeout: 10000 }).catch(() => {});
+      await page.waitForLoadState('networkidle');
       
       // Verify course is deleted (should not be visible in the table)
       // Check specifically in the table rows only, using the unique course name
-      const courseInTable = page.locator('table tr[mat-row]').filter({ hasText: uniqueCourseName }).first();
-      const courseInTableVisible = await courseInTable.isVisible({ timeout: 5000 }).catch(() => false);
+      // Use a more specific selector that checks the actual table content
+      const allTableRows = page.locator('table tr[mat-row]');
+      const rowCount = await allTableRows.count();
       
-      // Course should not be in the table (main verification)
-      expect(courseInTableVisible).toBeFalsy();
+      let courseFound = false;
+      for (let i = 0; i < rowCount; i++) {
+        const row = allTableRows.nth(i);
+        const rowText = await row.textContent().catch(() => '');
+        if (rowText && rowText.includes(uniqueCourseName)) {
+          courseFound = true;
+          break;
+        }
+      }
+      
+      // Course should not be found in any table row
+      expect(courseFound).toBeFalsy();
     });
 
     test('Staff content management workflow', async ({ page }, testInfo) => {
