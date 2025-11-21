@@ -127,7 +127,10 @@ describe('CourseContentComponent', () => {
       'downloadContent',
       'getContentAuditLogs',
       'deleteContent',
-      'getContentItem'
+      'getContentItem',
+      'createModule',
+      'updateModule',
+      'deleteModule'
     ]);
     const courseServiceSpy = jasmine.createSpyObj('CourseService', ['getCourse']);
     const authServiceSpy = jasmine.createSpyObj('AuthService', ['isAdmin', 'hasAnyRole', 'hasRole']);
@@ -446,8 +449,23 @@ describe('CourseContentComponent', () => {
 
     it('should view embedded content', () => {
       const embeddedContent = { ...mockContent, content_type: CourseContentType.EMBEDDED, embedded_content: '<iframe></iframe>' };
+      const mockDialogRef = {
+        afterClosed: jasmine.createSpy('afterClosed').and.returnValue(of(null))
+      };
+      dialog.open.and.returnValue(mockDialogRef as any);
+      
       component.viewContent(embeddedContent);
-      expect(snackBar.open).toHaveBeenCalledWith('Embedded content viewer not implemented yet', 'Close', { duration: 3000 });
+      
+      expect(dialog.open).toHaveBeenCalled();
+      const callArgs = dialog.open.calls.mostRecent().args;
+      expect(callArgs[1]).toEqual(jasmine.objectContaining({
+        width: '800px',
+        maxWidth: '90vw',
+        data: jasmine.objectContaining({
+          title: embeddedContent.title,
+          content: embeddedContent.embedded_content
+        })
+      }));
     });
 
     it('should download file content', () => {
@@ -491,10 +509,30 @@ describe('CourseContentComponent', () => {
     });
   });
 
-  describe('Placeholder Methods', () => {
-    it('should show placeholder for create module', () => {
+  describe('Module Management', () => {
+    beforeEach(() => {
+      component.courseId = 1;
+      component.modules = [mockModule];
+    });
+
+    it('should open dialog for create module', () => {
+      const mockDialogRef = {
+        afterClosed: jasmine.createSpy('afterClosed').and.returnValue(of(null))
+      };
+      dialog.open.and.returnValue(mockDialogRef as any);
+      const loadDataSpy = spyOn<any>(component, 'loadData').and.stub();
+      
       component.createModule();
-      expect(snackBar.open).toHaveBeenCalledWith('Module creation not implemented yet', 'Close', { duration: 3000 });
+      
+      expect(dialog.open).toHaveBeenCalled();
+      const callArgs = dialog.open.calls.mostRecent().args;
+      expect(callArgs[1]).toEqual(jasmine.objectContaining({
+        width: '600px',
+        maxWidth: '90vw',
+        data: jasmine.objectContaining({
+          courseId: 1
+        })
+      }));
     });
 
     it('should show placeholder for create content', () => {
@@ -523,14 +561,59 @@ describe('CourseContentComponent', () => {
       }));
     });
 
-    it('should show placeholder for edit module', () => {
+    it('should open dialog for edit module', () => {
+      const mockDialogRef = {
+        afterClosed: jasmine.createSpy('afterClosed').and.returnValue(of(null))
+      };
+      dialog.open.and.returnValue(mockDialogRef as any);
+      const loadDataSpy = spyOn<any>(component, 'loadData').and.stub();
+      
       component.editModule(mockModule);
-      expect(snackBar.open).toHaveBeenCalledWith('Module editing not implemented yet', 'Close', { duration: 3000 });
+      
+      expect(dialog.open).toHaveBeenCalled();
+      const callArgs = dialog.open.calls.mostRecent().args;
+      expect(callArgs[1]).toEqual(jasmine.objectContaining({
+        width: '600px',
+        maxWidth: '90vw',
+        data: jasmine.objectContaining({
+          courseId: 1,
+          module: mockModule
+        })
+      }));
     });
 
-    it('should show placeholder for delete module', () => {
+    it('should delete module when confirmation is accepted', () => {
+      const dialogRef = {
+        afterClosed: jasmine.createSpy('afterClosed').and.returnValue(of(true))
+      };
+      dialog.open.and.returnValue(dialogRef as any);
+      
+      // Add deleteModule spy to service
+      (courseContentService as any).deleteModule = jasmine.createSpy('deleteModule').and.returnValue(of(void 0));
+      const loadDataSpy = spyOn<any>(component, 'loadData').and.stub();
+      snackBar.open.calls.reset();
+      
       component.deleteModule(mockModule);
-      expect(snackBar.open).toHaveBeenCalledWith('Module deletion not implemented yet', 'Close', { duration: 3000 });
+      
+      expect(dialog.open).toHaveBeenCalled();
+      expect(courseContentService.deleteModule).toHaveBeenCalledWith(mockModule.id);
+      expect(loadDataSpy).toHaveBeenCalled();
+      expect(snackBar.open).toHaveBeenCalledWith('Module deleted successfully', 'Close', { duration: 3000 });
+    });
+
+    it('should not delete module when confirmation is cancelled', () => {
+      const dialogRef = {
+        afterClosed: jasmine.createSpy('afterClosed').and.returnValue(of(false))
+      };
+      dialog.open.and.returnValue(dialogRef as any);
+      
+      // Add deleteModule spy to service
+      (courseContentService as any).deleteModule = jasmine.createSpy('deleteModule').and.returnValue(of(void 0));
+      
+      component.deleteModule(mockModule);
+      
+      expect(dialog.open).toHaveBeenCalled();
+      expect(courseContentService.deleteModule).not.toHaveBeenCalled();
     });
 
     it('should show placeholder for edit content', () => {
