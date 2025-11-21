@@ -34,6 +34,7 @@ test.describe('Role-Based Access Control', () => {
       await expect(page).toHaveURL('https://apps.quentinspencer.com/churchcoursetracker/dashboard');
       
       // Admin should see all navigation items (check what actually exists)
+      // Use navigation-specific selectors to avoid strict mode violations
       const adminNavItems = [
         'Courses',
         'Users', 
@@ -42,9 +43,11 @@ test.describe('Role-Based Access Control', () => {
       ];
 
       for (const item of adminNavItems) {
-        const isVisible = await page.locator(`text=${item}`).isVisible().catch(() => false);
+        // Target only navigation links, not other text on the page
+        const navLink = page.locator(`mat-nav-list a:has-text("${item}"), a[routerLink]:has-text("${item}")`).first();
+        const isVisible = await navLink.isVisible().catch(() => false);
         if (isVisible) {
-          await expect(page.locator(`text=${item}`)).toBeVisible();
+          await expect(navLink).toBeVisible();
         } else {
           // Log but don't fail - some features may not be fully implemented
           console.log(`⚠ Admin navigation item "${item}" not found`);
@@ -427,6 +430,10 @@ test.describe('Role-Based Access Control', () => {
       await page.goto(`${APP_BASE_URL}/auth`, { waitUntil: 'networkidle' });
       await page.waitForTimeout(2000);
       
+      // Wait for auth form to be ready before calling loginAs
+      await page.waitForSelector('input[formControlName="username"]', { timeout: 10000 });
+      await page.waitForSelector('input[formControlName="password"]', { timeout: 10000 });
+      
       if (!(await loginAs(page, 'viewer', testInfo))) {
         return;
       }
@@ -506,10 +513,19 @@ test.describe('Role-Based Access Control', () => {
       await page.goto(`${APP_BASE_URL}/auth`, { waitUntil: 'networkidle' });
       await page.waitForTimeout(2000);
       
+      // Wait for auth form to be ready
+      await page.waitForSelector('input[formControlName="username"]', { timeout: 10000 });
+      await page.waitForSelector('input[formControlName="password"]', { timeout: 10000 });
+      
       const staffCreds = credentials.staff;
       if (staffCreds) {
         const staffUsernameInput = page.locator('input[formControlName="username"]').first();
         const staffPasswordInput = page.locator('input[formControlName="password"]').first();
+        
+        // Verify form fields are visible before filling
+        await expect(staffUsernameInput).toBeVisible({ timeout: 5000 });
+        await expect(staffPasswordInput).toBeVisible({ timeout: 5000 });
+        
         await staffUsernameInput.fill(staffCreds.username);
         await staffPasswordInput.fill(staffCreds.password);
         await page.click('button[type="submit"]');
@@ -525,10 +541,19 @@ test.describe('Role-Based Access Control', () => {
       await page.goto(`${APP_BASE_URL}/auth`, { waitUntil: 'networkidle' });
       await page.waitForTimeout(2000);
       
+      // Wait for auth form to be ready
+      await page.waitForSelector('input[formControlName="username"]', { timeout: 10000 });
+      await page.waitForSelector('input[formControlName="password"]', { timeout: 10000 });
+      
       const viewerCreds = credentials.viewer;
       if (viewerCreds) {
         const viewerUsernameInput = page.locator('input[formControlName="username"]').first();
         const viewerPasswordInput = page.locator('input[formControlName="password"]').first();
+        
+        // Verify form fields are visible before filling
+        await expect(viewerUsernameInput).toBeVisible({ timeout: 5000 });
+        await expect(viewerPasswordInput).toBeVisible({ timeout: 5000 });
+        
         await viewerUsernameInput.fill(viewerCreds.username);
         await viewerPasswordInput.fill(viewerCreds.password);
         await page.click('button[type="submit"]');
@@ -570,16 +595,21 @@ test.describe('Role-Based Access Control', () => {
         return;
       }
       
-      await titleInput.fill('Test Admin Course');
+      // Use unique course name to avoid conflicts with existing courses
+      const uniqueCourseName = `Test Admin Course ${Date.now()}`;
+      await titleInput.fill(uniqueCourseName);
       await descInput.fill('Course created by admin');
       await saveButton.click();
 
+      // Wait for course to appear in list
+      await page.waitForTimeout(2000);
+      
       // Verify course creation (use .first() to avoid strict mode violation)
-      await expect(page.locator('text=Test Admin Course').first()).toBeVisible();
+      await expect(page.locator(`text=${uniqueCourseName}`).first()).toBeVisible();
 
       // Delete course (admin-only capability)
       // Find delete button in the row for this course
-      const courseRow = page.locator('tr[mat-row]').filter({ hasText: 'Test Admin Course' }).first();
+      const courseRow = page.locator('tr[mat-row]').filter({ hasText: uniqueCourseName }).first();
       const deleteButton = courseRow.locator('button[matTooltip="Delete Course"], button:has(mat-icon:has-text("delete"))').first();
       const deleteVisible = await deleteButton.isVisible({ timeout: 5000 }).catch(() => false);
       
@@ -607,48 +637,32 @@ test.describe('Role-Based Access Control', () => {
       }
       
       await confirmButton.click();
-      await page.waitForTimeout(3000); // Wait for deletion to complete
       
-      // Wait for success message or page refresh
+      // Wait for deletion to complete and success message
+      await page.waitForTimeout(3000);
+      await page.waitForLoadState('networkidle');
+      
+      // Wait for success message if it appears
       const successMsg = page.locator('text=/course.*deleted|deleted.*successfully/i').first();
       const successVisible = await successMsg.isVisible({ timeout: 5000 }).catch(() => false);
       
       if (successVisible) {
         await expect(successMsg).toBeVisible();
+        // Wait for snackbar to potentially disappear
+        await page.waitForTimeout(2000);
       }
       
-      // Navigate back to courses page to verify deletion
-      await page.goto(`${APP_BASE_URL}/courses`, { waitUntil: 'networkidle' });
+      // Reload the page to ensure fresh data from server
+      await page.reload({ waitUntil: 'networkidle' });
       await page.waitForTimeout(2000);
       
       // Verify course is deleted (should not be visible in the table)
-      // Check specifically in the table rows, not just anywhere on the page
-      const courseInTable = page.locator('tr[mat-row]').filter({ hasText: 'Test Admin Course' }).first();
-      const courseInTableVisible = await courseInTable.isVisible({ timeout: 3000 }).catch(() => false);
-      
-      // Also check if course text appears anywhere (might be in success message which is OK)
-      const courseText = page.locator('text=Test Admin Course').first();
-      const courseTextVisible = await courseText.isVisible({ timeout: 2000 }).catch(() => false);
+      // Check specifically in the table rows only, using the unique course name
+      const courseInTable = page.locator('table tr[mat-row]').filter({ hasText: uniqueCourseName }).first();
+      const courseInTableVisible = await courseInTable.isVisible({ timeout: 5000 }).catch(() => false);
       
       // Course should not be in the table (main verification)
       expect(courseInTableVisible).toBeFalsy();
-      
-      // If course text is visible but not in table, it might be in a success message (acceptable)
-      if (courseTextVisible && !courseInTableVisible) {
-        // Check if it's in a snackbar/success message
-        const snackbar = page.locator('.mat-snack-bar-container, .snackbar').first();
-        const snackbarVisible = await snackbar.isVisible({ timeout: 2000 }).catch(() => false);
-        if (snackbarVisible) {
-          // Course text in success message is acceptable
-          expect(courseInTableVisible).toBeFalsy();
-        } else {
-          // Course text visible but not in table or snackbar - might be a timing issue
-          // Wait a bit more and recheck
-          await page.waitForTimeout(2000);
-          const finalCheck = await courseInTable.isVisible({ timeout: 2000 }).catch(() => false);
-          expect(finalCheck).toBeFalsy();
-        }
-      }
     });
 
     test('Staff content management workflow', async ({ page }, testInfo) => {
