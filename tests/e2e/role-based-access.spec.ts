@@ -417,15 +417,23 @@ test.describe('Role-Based Access Control', () => {
       if (!(await loginAs(page, 'staff', testInfo))) {
         return;
       }
-      await page.goto('https://apps.quentinspencer.com/churchcoursetracker/audit');
-      await expect(page).toHaveURL('https://apps.quentinspencer.com/churchcoursetracker/dashboard');
+      await page.goto(`${APP_BASE_URL}/audit`);
+      await page.waitForTimeout(2000);
+      const staffUrl = page.url();
+      expect(staffUrl).toMatch(/\/dashboard/);
 
       // Test viewer cannot access staff features
+      // Navigate to auth page first to login as viewer
+      await page.goto(`${APP_BASE_URL}/auth`, { waitUntil: 'networkidle' });
+      await page.waitForTimeout(2000);
+      
       if (!(await loginAs(page, 'viewer', testInfo))) {
         return;
       }
-      await page.goto('https://apps.quentinspencer.com/churchcoursetracker/content');
-      await expect(page).toHaveURL('https://apps.quentinspencer.com/churchcoursetracker/dashboard');
+      await page.goto(`${APP_BASE_URL}/content`);
+      await page.waitForTimeout(2000);
+      const viewerUrl = page.url();
+      expect(viewerUrl).toMatch(/\/dashboard/);
     });
 
     test('API endpoints respect role permissions', async ({ page }, testInfo) => {
