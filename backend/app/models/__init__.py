@@ -10,6 +10,7 @@ from .content_type import ContentType
 from .course import Course
 from .course_content import (ContentAccessLog, ContentAuditLog, CourseContent,
                              CourseModule)
+from .course_instance import CourseInstance, CourseInstanceTeacher
 from .course_role import CourseRole
 from .enrollment import CourseEnrollment
 from .member import People
@@ -52,4 +53,6 @@ __all__ = [
     "AuditLog",
     "FailedLoginAttempt",
     "UserPreference",
+    "CourseInstance",
+    "CourseInstanceTeacher",
 ]
