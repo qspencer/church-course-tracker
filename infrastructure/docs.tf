@@ -76,12 +76,15 @@ resource "aws_cloudfront_distribution" "docs" {
   # Custom domain
   aliases = ["docs.quentinspencer.com"]
   
-  # SSL Certificate (must exist in ACM)
+  # SSL Certificate (must exist in ACM and be validated)
   viewer_certificate {
-    acm_certificate_arn      = var.docs_certificate_arn != "" ? var.docs_certificate_arn : aws_acm_certificate.docs[0].arn
+    acm_certificate_arn      = var.docs_certificate_arn != "" ? var.docs_certificate_arn : (length(aws_acm_certificate_validation.docs) > 0 ? aws_acm_certificate_validation.docs[0].certificate_arn : aws_acm_certificate.docs[0].arn)
     ssl_support_method       = "sni-only"
     minimum_protocol_version = "TLSv1.2_2021"
   }
+  
+  # Wait for certificate validation before creating distribution (if creating new certificate)
+  depends_on = [aws_acm_certificate_validation.docs]
   
   default_cache_behavior {
     allowed_methods        = ["GET", "HEAD", "OPTIONS"]
@@ -244,6 +247,36 @@ resource "aws_acm_certificate" "docs" {
   tags = {
     Environment = var.environment
     Application = "${var.app_name}-docs"
+  }
+}
+
+# Route 53 validation records for ACM certificate
+resource "aws_route53_record" "docs_cert_validation" {
+  for_each = var.docs_certificate_arn == "" ? {
+    for dvo in aws_acm_certificate.docs[0].domain_validation_options : dvo.domain_name => {
+      name   = dvo.resource_record_name
+      record = dvo.resource_record_value
+      type   = dvo.resource_record_type
+    }
+  } : {}
+  
+  allow_overwrite = true
+  name            = each.value.name
+  records         = [each.value.record]
+  ttl             = 60
+  type            = each.value.type
+  zone_id         = aws_route53_zone.quentinspencer_com.zone_id
+}
+
+# ACM Certificate Validation
+resource "aws_acm_certificate_validation" "docs" {
+  count = var.docs_certificate_arn == "" ? 1 : 0
+  
+  certificate_arn         = aws_acm_certificate.docs[0].arn
+  validation_record_fqdns = [for record in aws_route53_record.docs_cert_validation : record.fqdn]
+  
+  timeouts {
+    create = "45m"
   }
 }
 
