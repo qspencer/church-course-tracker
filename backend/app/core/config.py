@@ -8,6 +8,7 @@ import secrets
 from typing import List, Optional
 
 from pydantic_settings import BaseSettings
+from pydantic import field_validator, model_validator
 
 logger = logging.getLogger(__name__)
 
@@ -49,6 +50,17 @@ class Settings(BaseSettings):
         "http://localhost:8000",
         "https://api.quentinspencer.com",  # API Gateway origin
     ]
+    
+    @field_validator("ALLOWED_ORIGINS", mode="before")
+    @classmethod
+    def parse_allowed_origins(cls, v):
+        """Parse ALLOWED_ORIGINS from comma-separated string or list"""
+        if isinstance(v, str):
+            # Remove quotes if present
+            v = v.strip().strip('"').strip("'")
+            # Split by comma and strip whitespace
+            return [origin.strip() for origin in v.split(",") if origin.strip()]
+        return v
 
     # Database
     DATABASE_URL: str = os.getenv(
