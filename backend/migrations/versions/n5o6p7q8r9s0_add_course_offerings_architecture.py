@@ -23,6 +23,15 @@ depends_on = None
 
 
 def upgrade() -> None:
+    # Step 0: Rename 'name' to 'title' in courses if it exists (Fix for missing migration)
+    bind = op.get_bind()
+    inspector = sa.inspect(bind)
+    columns = [c['name'] for c in inspector.get_columns('courses')]
+    
+    if 'name' in columns and 'title' not in columns:
+        with op.batch_alter_table('courses') as batch_op:
+            batch_op.alter_column('name', new_column_name='title')
+
     # Step 1: Create course_instances table (Course Offerings)
     op.create_table(
         'course_instances',
@@ -78,26 +87,25 @@ def upgrade() -> None:
     op.create_index(op.f('ix_course_instance_teachers_people_id'), 'course_instance_teachers', ['people_id'], unique=False)
     
     # Step 3: Add course_instance_id and assigned_teacher_id to course_enrollment
-    op.add_column('course_enrollment', sa.Column('course_instance_id', sa.Integer(), nullable=True))
-    op.add_column('course_enrollment', sa.Column('assigned_teacher_id', sa.Integer(), nullable=True))
-    op.create_foreign_key(
-        'fk_course_enrollment_course_instance_id',
-        'course_enrollment',
-        'course_instances',
-        ['course_instance_id'],
-        ['id'],
-        ondelete='CASCADE'
-    )
-    op.create_foreign_key(
-        'fk_course_enrollment_assigned_teacher_id',
-        'course_enrollment',
-        'course_instance_teachers',
-        ['assigned_teacher_id'],
-        ['id'],
-        ondelete='SET NULL'
-    )
-    op.create_index(op.f('ix_course_enrollment_course_instance_id'), 'course_enrollment', ['course_instance_id'], unique=False)
-    op.create_index(op.f('ix_course_enrollment_assigned_teacher_id'), 'course_enrollment', ['assigned_teacher_id'], unique=False)
+    with op.batch_alter_table('course_enrollment') as batch_op:
+        batch_op.add_column(sa.Column('course_instance_id', sa.Integer(), nullable=True))
+        batch_op.add_column(sa.Column('assigned_teacher_id', sa.Integer(), nullable=True))
+        batch_op.create_foreign_key(
+            'fk_course_enrollment_course_instance_id',
+            'course_instances',
+            ['course_instance_id'],
+            ['id'],
+            ondelete='CASCADE'
+        )
+        batch_op.create_foreign_key(
+            'fk_course_enrollment_assigned_teacher_id',
+            'course_instance_teachers',
+            ['assigned_teacher_id'],
+            ['id'],
+            ondelete='SET NULL'
+        )
+        batch_op.create_index(op.f('ix_course_enrollment_course_instance_id'), ['course_instance_id'], unique=False)
+        batch_op.create_index(op.f('ix_course_enrollment_assigned_teacher_id'), ['assigned_teacher_id'], unique=False)
     
     # Step 4: Create default course instances from existing courses and migrate enrollments
     # For each course with event_start_date, create a default instance
@@ -155,12 +163,13 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     # Remove course_instance_id and assigned_teacher_id from course_enrollment
-    op.drop_index(op.f('ix_course_enrollment_assigned_teacher_id'), table_name='course_enrollment')
-    op.drop_index(op.f('ix_course_enrollment_course_instance_id'), table_name='course_enrollment')
-    op.drop_constraint('fk_course_enrollment_assigned_teacher_id', 'course_enrollment', type_='foreignkey')
-    op.drop_constraint('fk_course_enrollment_course_instance_id', 'course_enrollment', type_='foreignkey')
-    op.drop_column('course_enrollment', 'assigned_teacher_id')
-    op.drop_column('course_enrollment', 'course_instance_id')
+    with op.batch_alter_table('course_enrollment') as batch_op:
+        batch_op.drop_index(op.f('ix_course_enrollment_assigned_teacher_id'))
+        batch_op.drop_index(op.f('ix_course_enrollment_course_instance_id'))
+        batch_op.drop_constraint('fk_course_enrollment_assigned_teacher_id', type_='foreignkey')
+        batch_op.drop_constraint('fk_course_enrollment_course_instance_id', type_='foreignkey')
+        batch_op.drop_column('assigned_teacher_id')
+        batch_op.drop_column('course_instance_id')
     
     # Drop course_instance_teachers table
     op.drop_index(op.f('ix_course_instance_teachers_people_id'), table_name='course_instance_teachers')

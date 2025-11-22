@@ -66,7 +66,7 @@ export class CoursesComponent implements OnInit {
 
   openCourseDialog(course?: Course): void {
     const dialogRef = this.dialog.open(CourseDialogComponent, {
-      width: '600px',
+      width: '800px',
       data: { course: course || null }
     });
 
@@ -124,7 +124,7 @@ export class CoursesComponent implements OnInit {
   viewCourseDetails(course: Course): void {
     // Open course details dialog in view mode
     this.dialog.open(CourseDialogComponent, {
-      width: '700px',
+      width: '800px',
       maxWidth: '90vw',
       data: { 
         course: course,

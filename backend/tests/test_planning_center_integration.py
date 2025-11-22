@@ -146,11 +146,10 @@ class TestPlanningCenterTaskManagement:
         all_tasks = service.list_sync_tasks()
         assert len(all_tasks) == 3
         
-        # Check that all task types are present
-        task_types = [task["task_type"] for task in all_tasks]
-        assert "sync_people" in task_types
-        assert "sync_events" in task_types
-        assert "sync_registrations" in task_types
+        # Check that all task types are present (unordered)
+        task_types = sorted([task["task_type"] for task in all_tasks])
+        expected_types = sorted(["sync_people", "sync_events", "sync_registrations"])
+        assert task_types == expected_types
     
     def test_list_sync_tasks_filtered(self, db_session):
         """Test listing sync tasks with type filter"""
@@ -181,7 +180,8 @@ class TestPlanningCenterPeopleSync:
         sync_tasks.clear()
     
     @patch('app.services.planning_center_sync_service.httpx.AsyncClient')
-    def test_start_sync_people_success(self, mock_client, db_session):
+    @patch('app.services.planning_center_sync_service.threading.Thread')
+    def test_start_sync_people_success(self, mock_thread, mock_client, db_session):
         """Test successful people sync start"""
         # Mock the HTTP response
         mock_response = Mock()
@@ -209,19 +209,31 @@ class TestPlanningCenterPeopleSync:
         
         mock_client.return_value.__aenter__.return_value.get.return_value = mock_response
         
+        # Mock thread to run synchronously
+        def run_sync_mock(target=None, daemon=None):
+            if target:
+                target()
+            return Mock(start=Mock())
+            
+        mock_thread.side_effect = run_sync_mock
+        
         service = PlanningCenterSyncService(db_session)
-        task_id = service.start_sync_people()
+        # Mock _get_db_session to use the test session
+        with patch.object(service, '_get_db_session', return_value=db_session):
+            task_id = service.start_sync_people()
         
         assert task_id is not None
         
-        # Check task was created
+        # Check task was created and completed (since we ran it synchronously)
         task_status = service.get_sync_task_status(task_id)
         assert task_status is not None
         assert task_status["task_type"] == "sync_people"
-        assert task_status["status"] in ["pending", "running"]
+        # Status might be completed or failed depending on execution, but definitely not just pending
+        assert task_status["status"] in ["completed", "failed"]
     
     @patch('app.services.planning_center_sync_service.httpx.AsyncClient')
-    def test_start_sync_people_api_error(self, mock_client, db_session):
+    @patch('app.services.planning_center_sync_service.threading.Thread')
+    def test_start_sync_people_api_error(self, mock_thread, mock_client, db_session):
         """Test people sync with API error"""
         # Mock API error
         mock_response = Mock()
@@ -229,18 +241,30 @@ class TestPlanningCenterPeopleSync:
         
         mock_client.return_value.__aenter__.return_value.get.return_value = mock_response
         
+        # Mock thread to run synchronously
+        def run_sync_mock(target=None, daemon=None):
+            if target:
+                target()
+            return Mock(start=Mock())
+            
+        mock_thread.side_effect = run_sync_mock
+        
         service = PlanningCenterSyncService(db_session)
-        task_id = service.start_sync_people()
+        # Mock _get_db_session to use the test session
+        with patch.object(service, '_get_db_session', return_value=db_session):
+            task_id = service.start_sync_people()
         
         assert task_id is not None
         
-        # Task should be created but will fail
+        # Task should be failed
         task_status = service.get_sync_task_status(task_id)
         assert task_status is not None
         assert task_status["task_type"] == "sync_people"
+        assert task_status["status"] == "failed"
     
     @patch('app.services.planning_center_sync_service.httpx.AsyncClient')
-    def test_start_sync_people_empty_response(self, mock_client, db_session):
+    @patch('app.services.planning_center_sync_service.threading.Thread')
+    def test_start_sync_people_empty_response(self, mock_thread, mock_client, db_session):
         """Test people sync with empty response"""
         # Mock empty response
         mock_response = Mock()
@@ -249,15 +273,26 @@ class TestPlanningCenterPeopleSync:
         
         mock_client.return_value.__aenter__.return_value.get.return_value = mock_response
         
+        # Mock thread to run synchronously
+        def run_sync_mock(target=None, daemon=None):
+            if target:
+                target()
+            return Mock(start=Mock())
+            
+        mock_thread.side_effect = run_sync_mock
+        
         service = PlanningCenterSyncService(db_session)
-        task_id = service.start_sync_people()
+        # Mock _get_db_session to use the test session
+        with patch.object(service, '_get_db_session', return_value=db_session):
+            task_id = service.start_sync_people()
         
         assert task_id is not None
         
-        # Task should be created
+        # Task should be completed
         task_status = service.get_sync_task_status(task_id)
         assert task_status is not None
         assert task_status["task_type"] == "sync_people"
+        assert task_status["status"] == "completed"
     
     def test_sync_people_background_with_existing_person(self, db_session):
         """Test background sync with existing person"""
@@ -300,7 +335,8 @@ class TestPlanningCenterEventsSync:
         sync_tasks.clear()
     
     @patch('app.services.planning_center_sync_service.httpx.AsyncClient')
-    def test_start_sync_events_success(self, mock_client, db_session):
+    @patch('app.services.planning_center_sync_service.threading.Thread')
+    def test_start_sync_events_success(self, mock_thread, mock_client, db_session):
         """Test successful events sync start"""
         # Mock the HTTP response
         mock_response = Mock()
@@ -308,7 +344,7 @@ class TestPlanningCenterEventsSync:
             "data": [
                 {
                     "id": "evt_123",
-                    "title": "Introduction to Faith",
+                    "name": "Introduction to Faith",
                     "description": "Basic course on Christian faith",
                     "start_date": "2024-02-01T09:00:00Z",
                     "end_date": "2024-02-01T12:00:00Z",
@@ -317,7 +353,7 @@ class TestPlanningCenterEventsSync:
                 },
                 {
                     "id": "evt_456",
-                    "title": "Advanced Faith",
+                    "name": "Advanced Faith",
                     "description": "Advanced course on Christian faith",
                     "start_date": "2024-02-15T09:00:00Z",
                     "end_date": "2024-02-15T12:00:00Z",
@@ -330,8 +366,18 @@ class TestPlanningCenterEventsSync:
         
         mock_client.return_value.__aenter__.return_value.get.return_value = mock_response
         
+        # Mock thread to run synchronously
+        def run_sync_mock(target=None, daemon=None):
+            if target:
+                target()
+            return Mock(start=Mock())
+            
+        mock_thread.side_effect = run_sync_mock
+        
         service = PlanningCenterSyncService(db_session)
-        task_id = service.start_sync_events()
+        # Mock _get_db_session to use the test session
+        with patch.object(service, '_get_db_session', return_value=db_session):
+            task_id = service.start_sync_events()
         
         assert task_id is not None
         
@@ -339,10 +385,11 @@ class TestPlanningCenterEventsSync:
         task_status = service.get_sync_task_status(task_id)
         assert task_status is not None
         assert task_status["task_type"] == "sync_events"
-        assert task_status["status"] in ["pending", "running"]
+        assert task_status["status"] == "completed"
     
     @patch('app.services.planning_center_sync_service.httpx.AsyncClient')
-    def test_start_sync_events_api_error(self, mock_client, db_session):
+    @patch('app.services.planning_center_sync_service.threading.Thread')
+    def test_start_sync_events_api_error(self, mock_thread, mock_client, db_session):
         """Test events sync with API error"""
         # Mock API error
         mock_response = Mock()
@@ -350,15 +397,26 @@ class TestPlanningCenterEventsSync:
         
         mock_client.return_value.__aenter__.return_value.get.return_value = mock_response
         
+        # Mock thread to run synchronously
+        def run_sync_mock(target=None, daemon=None):
+            if target:
+                target()
+            return Mock(start=Mock())
+            
+        mock_thread.side_effect = run_sync_mock
+        
         service = PlanningCenterSyncService(db_session)
-        task_id = service.start_sync_events()
+        # Mock _get_db_session to use the test session
+        with patch.object(service, '_get_db_session', return_value=db_session):
+            task_id = service.start_sync_events()
         
         assert task_id is not None
         
-        # Task should be created but will fail
+        # Task should be failed
         task_status = service.get_sync_task_status(task_id)
         assert task_status is not None
         assert task_status["task_type"] == "sync_events"
+        assert task_status["status"] == "failed"
 
 
 class TestPlanningCenterRegistrationsSync:
@@ -369,7 +427,8 @@ class TestPlanningCenterRegistrationsSync:
         sync_tasks.clear()
     
     @patch('app.services.planning_center_sync_service.httpx.AsyncClient')
-    def test_start_sync_registrations_success(self, mock_client, db_session):
+    @patch('app.services.planning_center_sync_service.threading.Thread')
+    def test_start_sync_registrations_success(self, mock_thread, mock_client, db_session):
         """Test successful registrations sync start"""
         # Mock the HTTP response
         mock_response = Mock()
@@ -395,8 +454,18 @@ class TestPlanningCenterRegistrationsSync:
         
         mock_client.return_value.__aenter__.return_value.get.return_value = mock_response
         
+        # Mock thread to run synchronously
+        def run_sync_mock(target=None, daemon=None):
+            if target:
+                target()
+            return Mock(start=Mock())
+            
+        mock_thread.side_effect = run_sync_mock
+        
         service = PlanningCenterSyncService(db_session)
-        task_id = service.start_sync_registrations(event_id="evt_123")
+        # Mock _get_db_session to use the test session
+        with patch.object(service, '_get_db_session', return_value=db_session):
+            task_id = service.start_sync_registrations(event_id="evt_123")
         
         assert task_id is not None
         
@@ -404,10 +473,11 @@ class TestPlanningCenterRegistrationsSync:
         task_status = service.get_sync_task_status(task_id)
         assert task_status is not None
         assert task_status["task_type"] == "sync_registrations"
-        assert task_status["status"] in ["pending", "running"]
+        assert task_status["status"] == "completed"
     
     @patch('app.services.planning_center_sync_service.httpx.AsyncClient')
-    def test_start_sync_registrations_without_event_id(self, mock_client, db_session):
+    @patch('app.services.planning_center_sync_service.threading.Thread')
+    def test_start_sync_registrations_without_event_id(self, mock_thread, mock_client, db_session):
         """Test registrations sync without specific event ID"""
         # Mock the HTTP response
         mock_response = Mock()
@@ -416,8 +486,18 @@ class TestPlanningCenterRegistrationsSync:
         
         mock_client.return_value.__aenter__.return_value.get.return_value = mock_response
         
+        # Mock thread to run synchronously
+        def run_sync_mock(target=None, daemon=None):
+            if target:
+                target()
+            return Mock(start=Mock())
+            
+        mock_thread.side_effect = run_sync_mock
+        
         service = PlanningCenterSyncService(db_session)
-        task_id = service.start_sync_registrations()
+        # Mock _get_db_session to use the test session
+        with patch.object(service, '_get_db_session', return_value=db_session):
+            task_id = service.start_sync_registrations()
         
         assert task_id is not None
         
@@ -666,22 +746,33 @@ class TestPlanningCenterFullSync:
         sync_tasks.clear()
     
     @patch('app.services.planning_center_sync_service.httpx.AsyncClient')
-    def test_start_sync_all_success(self, mock_client, db_session):
+    @patch('app.services.planning_center_sync_service.threading.Thread')
+    def test_start_sync_all_success(self, mock_thread, mock_client, db_session):
         """Test successful full sync start"""
         # Mock multiple HTTP responses for different endpoints
         mock_responses = [
             # People response
             Mock(json=Mock(return_value={"data": [{"id": "pc_123", "first_name": "John"}]}), raise_for_status=Mock()),
             # Events response
-            Mock(json=Mock(return_value={"data": [{"id": "evt_123", "title": "Event"}]}), raise_for_status=Mock()),
+            Mock(json=Mock(return_value={"data": [{"id": "evt_123", "name": "Event"}]}), raise_for_status=Mock()),
             # Registrations response
             Mock(json=Mock(return_value={"data": [{"id": "reg_123", "event_id": "evt_123"}]}), raise_for_status=Mock())
         ]
         
         mock_client.return_value.__aenter__.return_value.get.side_effect = mock_responses
         
+        # Mock thread to run synchronously
+        def run_sync_mock(target=None, daemon=None):
+            if target:
+                target()
+            return Mock(start=Mock())
+            
+        mock_thread.side_effect = run_sync_mock
+        
         service = PlanningCenterSyncService(db_session)
-        task_id = service.start_sync_all()
+        # Mock _get_db_session to use the test session
+        with patch.object(service, '_get_db_session', return_value=db_session):
+            task_id = service.start_sync_all()
         
         assert task_id is not None
         
@@ -689,7 +780,7 @@ class TestPlanningCenterFullSync:
         task_status = service.get_sync_task_status(task_id)
         assert task_status is not None
         assert task_status["task_type"] == "sync_all"
-        assert task_status["status"] in ["pending", "running"]
+        assert task_status["status"] == "completed"
     
     def test_sync_all_task_management(self, db_session):
         """Test sync all task management"""
@@ -718,13 +809,24 @@ class TestPlanningCenterErrorHandling:
         sync_tasks.clear()
     
     @patch('app.services.planning_center_sync_service.httpx.AsyncClient')
-    def test_sync_with_network_timeout(self, mock_client, db_session):
+    @patch('app.services.planning_center_sync_service.threading.Thread')
+    def test_sync_with_network_timeout(self, mock_thread, mock_client, db_session):
         """Test sync handling network timeout"""
         # Mock network timeout
         mock_client.return_value.__aenter__.return_value.get.side_effect = Exception("Network timeout")
         
+        # Mock thread to run synchronously
+        def run_sync_mock(target=None, daemon=None):
+            if target:
+                target()
+            return Mock(start=Mock())
+            
+        mock_thread.side_effect = run_sync_mock
+        
         service = PlanningCenterSyncService(db_session)
-        task_id = service.start_sync_people()
+        # Mock _get_db_session to use the test session
+        with patch.object(service, '_get_db_session', return_value=db_session):
+            task_id = service.start_sync_people()
         
         assert task_id is not None
         
@@ -732,9 +834,12 @@ class TestPlanningCenterErrorHandling:
         task_status = service.get_sync_task_status(task_id)
         assert task_status is not None
         assert task_status["task_type"] == "sync_people"
+        assert task_status["status"] == "failed"
+        assert "Network timeout" in task_status["error"]
     
     @patch('app.services.planning_center_sync_service.httpx.AsyncClient')
-    def test_sync_with_invalid_json_response(self, mock_client, db_session):
+    @patch('app.services.planning_center_sync_service.threading.Thread')
+    def test_sync_with_invalid_json_response(self, mock_thread, mock_client, db_session):
         """Test sync handling invalid JSON response"""
         # Mock invalid JSON response
         mock_response = Mock()
@@ -743,8 +848,18 @@ class TestPlanningCenterErrorHandling:
         
         mock_client.return_value.__aenter__.return_value.get.return_value = mock_response
         
+        # Mock thread to run synchronously
+        def run_sync_mock(target=None, daemon=None):
+            if target:
+                target()
+            return Mock(start=Mock())
+            
+        mock_thread.side_effect = run_sync_mock
+        
         service = PlanningCenterSyncService(db_session)
-        task_id = service.start_sync_people()
+        # Mock _get_db_session to use the test session
+        with patch.object(service, '_get_db_session', return_value=db_session):
+            task_id = service.start_sync_people()
         
         assert task_id is not None
         
@@ -752,6 +867,8 @@ class TestPlanningCenterErrorHandling:
         task_status = service.get_sync_task_status(task_id)
         assert task_status is not None
         assert task_status["task_type"] == "sync_people"
+        assert task_status["status"] == "failed"
+        assert "Invalid JSON" in task_status["error"]
     
     def test_webhook_processing_with_malformed_data(self, db_session):
         """Test webhook processing with malformed data"""

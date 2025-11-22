@@ -208,35 +208,55 @@ class PeopleService:
         self, pc_person_data: dict, updated_by: Optional[int] = None
     ) -> PeopleModel:
         """Sync person data from Planning Center"""
+        from dateutil import parser
+        
         pc_id = pc_person_data.get("id")
+        
+        # Handle JSON API format
+        attributes = pc_person_data.get("attributes", {})
+        
+        # Helper to get value from attributes or direct
+        def get_val(key):
+            return attributes.get(key) or pc_person_data.get(key)
+
+        # Helper to parse date
+        def get_date_val(key):
+            val = get_val(key)
+            if not val:
+                return None
+            if isinstance(val, (date, datetime)):
+                return val if isinstance(val, date) else val.date()
+            if isinstance(val, str):
+                try:
+                    return parser.parse(val).date()
+                except:
+                    pass
+            return None
 
         # Check if person already exists
         existing_person = self.get_person_by_pc_id(pc_id)
 
         if existing_person:
             # Update existing person
-            existing_person.first_name = pc_person_data.get("first_name", "")
-            existing_person.last_name = pc_person_data.get("last_name", "")
-            existing_person.email = pc_person_data.get("email")
-            existing_person.phone = pc_person_data.get("phone")
-            existing_person.date_of_birth = pc_person_data.get("date_of_birth")
-            existing_person.gender = pc_person_data.get("gender")
-            existing_person.address1 = pc_person_data.get("address1")
-            existing_person.address2 = pc_person_data.get("address2")
-            existing_person.city = pc_person_data.get("city")
-            existing_person.state = pc_person_data.get("state")
-            existing_person.zip = pc_person_data.get("zip")
-            existing_person.household_id = pc_person_data.get("household_id")
-            existing_person.household_name = pc_person_data.get("household_name")
-            existing_person.status = pc_person_data.get("status", "active")
-            existing_person.join_date = pc_person_data.get("join_date")
+            existing_person.first_name = get_val("first_name") or "Unknown"
+            existing_person.last_name = get_val("last_name") or "Person"
+            existing_person.email = get_val("email")
+            existing_person.phone = get_val("phone_number") or get_val("phone")
+            existing_person.date_of_birth = get_date_val("birthdate") or get_date_val("date_of_birth")
+            existing_person.gender = get_val("gender")
+            # Address handling could be more complex in PC API, but basic mapping:
+            existing_person.address1 = get_val("address1")
+            existing_person.address2 = get_val("address2")
+            existing_person.city = get_val("city")
+            existing_person.state = get_val("state")
+            existing_person.zip = get_val("zip")
+            existing_person.household_id = get_val("household_id")
+            existing_person.household_name = get_val("household_name")
+            existing_person.status = get_val("status") or "active"
+            existing_person.join_date = get_date_val("created_at") # Approximate join date
             existing_person.last_synced_at = datetime.utcnow()
             existing_person.updated_at = datetime.utcnow()
             existing_person.updated_by = updated_by
-            
-            # Sync campus from Planning Center if available
-            # Note: This would require Planning Center API to provide campus/location info
-            # For now, we'll keep existing campus assignment
             
             self.db.commit()
             self.db.refresh(existing_person)
@@ -245,20 +265,20 @@ class PeopleService:
             # Create new person
             person_data = PeopleCreate(
                 planning_center_id=pc_id,
-                first_name=pc_person_data.get("first_name", ""),
-                last_name=pc_person_data.get("last_name", ""),
-                email=pc_person_data.get("email"),
-                phone=pc_person_data.get("phone"),
-                date_of_birth=pc_person_data.get("date_of_birth"),
-                gender=pc_person_data.get("gender"),
-                address1=pc_person_data.get("address1"),
-                address2=pc_person_data.get("address2"),
-                city=pc_person_data.get("city"),
-                state=pc_person_data.get("state"),
-                zip=pc_person_data.get("zip"),
-                household_id=pc_person_data.get("household_id"),
-                household_name=pc_person_data.get("household_name"),
-                status=pc_person_data.get("status", "active"),
-                join_date=pc_person_data.get("join_date"),
+                first_name=get_val("first_name") or "Unknown", # Provide default if missing
+                last_name=get_val("last_name") or "Person", # Provide default if missing
+                email=get_val("email"),
+                phone=get_val("phone_number") or get_val("phone"),
+                date_of_birth=get_date_val("birthdate") or get_date_val("date_of_birth"),
+                gender=get_val("gender"),
+                address1=get_val("address1"),
+                address2=get_val("address2"),
+                city=get_val("city"),
+                state=get_val("state"),
+                zip=get_val("zip"),
+                household_id=get_val("household_id"),
+                household_name=get_val("household_name"),
+                status=get_val("status") or "active",
+                join_date=get_date_val("created_at"),
             )
             return self.create_person(person_data, created_by=updated_by)

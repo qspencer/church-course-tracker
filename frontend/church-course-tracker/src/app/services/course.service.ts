@@ -14,7 +14,7 @@ export class CourseService {
     // Only log in development mode
     if (isDevMode()) {
       console.log('CourseService API_URL:', this.API_URL);
-      if (!this.API_URL.startsWith('https://')) {
+      if (!this.API_URL.startsWith('https://') && !this.API_URL.includes('localhost')) {
         console.error('❌ CourseService API_URL is NOT HTTPS!', this.API_URL);
       }
     }
@@ -30,8 +30,8 @@ export class CourseService {
       });
     }
     
-    // Ensure URL is absolute HTTPS (defensive check)
-    const url = this.API_URL.startsWith('https://') ? this.API_URL : `https://${this.API_URL.replace(/^https?:\/\//, '')}`;
+    // Trust the API_URL from environment
+    const url = this.API_URL;
     
     // Only log in development mode
     if (isDevMode()) {
@@ -40,7 +40,7 @@ export class CourseService {
       const fullUrlWithParams = `${url}?${httpParams.toString()}`;
       console.log('CourseService.getCourses - Final URL (base):', url);
       console.log('CourseService.getCourses - Final URL (with params):', fullUrlWithParams);
-      if (!fullUrlWithParams.startsWith('https://')) {
+      if (!fullUrlWithParams.startsWith('https://') && !fullUrlWithParams.includes('localhost')) {
         console.error('❌ CourseService - Full URL with params is NOT HTTPS!', fullUrlWithParams);
       }
     }

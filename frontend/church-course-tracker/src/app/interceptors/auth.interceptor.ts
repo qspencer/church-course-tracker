@@ -16,10 +16,11 @@ export class AuthInterceptor implements HttpInterceptor {
       console.log('AuthInterceptor - Request URL (with params):', fullUrl);
       
       // Check both base URL and full URL with params
-      if (!req.url.startsWith('https://')) {
+      // Note: In local development, HTTP is expected
+      if (!req.url.startsWith('https://') && !req.url.includes('localhost')) {
         console.error('❌ AuthInterceptor - Request URL is NOT HTTPS!', req.url);
       }
-      if (fullUrl && !fullUrl.startsWith('https://')) {
+      if (fullUrl && !fullUrl.startsWith('https://') && !fullUrl.includes('localhost')) {
         console.error('❌ AuthInterceptor - Full URL with params is NOT HTTPS!', fullUrl);
       }
       

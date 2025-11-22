@@ -439,3 +439,116 @@ class CourseEnrollmentService:
             logger.warning(f"Bulk enrollment from PC event had {len(errors)} errors: {errors}")
 
         return enrollments
+
+    def bulk_enroll_from_pc_list(
+        self,
+        course_id: int,
+        pc_list_id: str,
+        created_by: Optional[int] = None,
+        update_existing: bool = True,
+    ) -> List[CourseEnrollmentModel]:
+        """
+        Bulk enroll people based on Planning Center List
+        
+        Args:
+            course_id: The course to enroll people in
+            pc_list_id: Planning Center list ID to get people from
+            created_by: User creating the enrollments
+            update_existing: Whether to update existing enrollments (default: True)
+        
+        Returns:
+            List of created/updated enrollments
+        """
+        from app.services.planning_center_sync_service import PlanningCenterSyncService
+        
+        # Validate course exists
+        course_service = CourseService(self.db)
+        course = course_service.get_course(course_id)
+        if not course:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Course with ID {course_id} not found"
+            )
+
+        # Get list members from Planning Center
+        pc_service = PlanningCenterSyncService(self.db)
+        try:
+            pc_people = pc_service.get_list_people(pc_list_id)
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Failed to fetch people from Planning Center list: {str(e)}"
+            )
+
+        if not pc_people:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"No people found in Planning Center list '{pc_list_id}'"
+            )
+
+        enrollments = []
+        errors = []
+        
+        for pc_person in pc_people:
+            try:
+                pc_person_id = pc_person.get('id')
+                if not pc_person_id:
+                    continue
+
+                # Get local people_id
+                try:
+                    people_id = self._get_people_id_from_pc_person_id(pc_person_id)
+                except HTTPException:
+                    # If person not found locally, sync them first
+                    try:
+                        people_service = PeopleService(self.db)
+                        people_service.sync_from_planning_center(pc_person, updated_by=created_by)
+                        people_id = self._get_people_id_from_pc_person_id(pc_person_id)
+                    except Exception as sync_error:
+                        errors.append(f"Person {pc_person_id}: Failed to sync - {str(sync_error)}")
+                        continue
+
+                # Check if enrollment already exists
+                # For lists, we don't have a registration ID, so we check by course_id + people_id
+                existing_enrollment = (
+                    self.db.query(CourseEnrollmentModel)
+                    .filter(
+                        CourseEnrollmentModel.course_id == course_id,
+                        CourseEnrollmentModel.people_id == people_id
+                    )
+                    .first()
+                )
+                
+                if existing_enrollment:
+                    if update_existing:
+                        # Update existing enrollment
+                        enrollment_update = CourseEnrollmentUpdate(
+                            status="enrolled", # Default to enrolled since they are on the list
+                            planning_center_synced=True,
+                        )
+                        updated = self.update_enrollment(existing_enrollment.id, enrollment_update, updated_by=created_by)
+                        if updated:
+                            enrollments.append(updated)
+                    # If not updating existing, skip
+                else:
+                    # Create new enrollment
+                    enrollment_data = CourseEnrollmentCreate(
+                        people_id=people_id,
+                        course_id=course_id,
+                        enrollment_date=datetime.utcnow(),
+                        status="enrolled",
+                        planning_center_synced=True,
+                    )
+                    enrollment = self.create_enrollment(enrollment_data, created_by=created_by)
+                    enrollments.append(enrollment)
+            except Exception as e:
+                errors.append(f"Person {pc_person.get('id', 'unknown')}: {str(e)}")
+                continue
+
+        if errors:
+            # Log errors but still return successful enrollments
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.warning(f"Bulk enrollment from PC list had {len(errors)} errors: {errors}")
+
+        return enrollments

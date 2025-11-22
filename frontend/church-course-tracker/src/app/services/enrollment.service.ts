@@ -14,7 +14,7 @@ export class EnrollmentService {
     // Only log in development mode
     if (isDevMode()) {
       console.log('EnrollmentService API_URL:', this.API_URL);
-      if (!this.API_URL.startsWith('https://')) {
+      if (!this.API_URL.startsWith('https://') && !this.API_URL.includes('localhost')) {
         console.error('❌ EnrollmentService API_URL is NOT HTTPS!', this.API_URL);
       }
     }
@@ -30,8 +30,8 @@ export class EnrollmentService {
       });
     }
     
-    // Ensure URL is absolute HTTPS (defensive check)
-    const url = this.API_URL.startsWith('https://') ? this.API_URL : `https://${this.API_URL.replace(/^https?:\/\//, '')}`;
+    // Trust the API_URL from environment
+    const url = this.API_URL;
     
     // Only log in development mode
     if (isDevMode()) {
@@ -40,7 +40,7 @@ export class EnrollmentService {
       const fullUrlWithParams = `${url}?${httpParams.toString()}`;
       console.log('EnrollmentService.getEnrollments - Final URL (base):', url);
       console.log('EnrollmentService.getEnrollments - Final URL (with params):', fullUrlWithParams);
-      if (!fullUrlWithParams.startsWith('https://')) {
+      if (!fullUrlWithParams.startsWith('https://') && !fullUrlWithParams.includes('localhost')) {
         console.error('❌ EnrollmentService - Full URL with params is NOT HTTPS!', fullUrlWithParams);
       }
     }
@@ -74,5 +74,13 @@ export class EnrollmentService {
 
   bulkEnroll(enrollments: EnrollmentCreate[]): Observable<Enrollment[]> {
     return this.http.post<Enrollment[]>(`${this.API_URL}/bulk`, enrollments);
+  }
+
+  bulkEnrollFromPCEvent(data: { course_id: number, pc_event_id: string, status_filter?: string[], update_existing?: boolean }): Observable<Enrollment[]> {
+    return this.http.post<Enrollment[]>(`${this.API_URL}/bulk-from-pc-event`, data);
+  }
+
+  bulkEnrollFromPCList(data: { course_id: number, pc_list_id: string, update_existing?: boolean }): Observable<Enrollment[]> {
+    return this.http.post<Enrollment[]>(`${this.API_URL}/bulk-from-pc-list`, data);
   }
 }

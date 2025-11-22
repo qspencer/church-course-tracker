@@ -32,6 +32,15 @@ data_dir.mkdir(exist_ok=True)
 SQLALCHEMY_DATABASE_URL = f"sqlite:///{data_dir}/church_course_tracker.db"
 os.environ["DATABASE_URL"] = SQLALCHEMY_DATABASE_URL
 
+# Remove existing test database to ensure clean state
+db_file = data_dir / "church_course_tracker.db"
+if db_file.exists():
+    try:
+        os.remove(db_file)
+        print("🗑️  Removed existing test database")
+    except Exception as e:
+        print(f"⚠️  Could not remove test database: {e}")
+
 # Run migrations on the test database before tests
 print("🔄 Running migrations on test database...")
 try:
@@ -46,6 +55,10 @@ try:
     print("✅ Migrations completed")
 except Exception as e:
     print(f"⚠️  Migration failed: {e}")
+    if hasattr(e, 'stdout'):
+        print("STDOUT:", e.stdout)
+    if hasattr(e, 'stderr'):
+        print("STDERR:", e.stderr)
     # Try alternative approach - create tables directly
     print("⚠️  Attempting to create tables directly...")
 
@@ -120,6 +133,8 @@ def db_session():
         session.execute(text("DELETE FROM course_content"))
         session.execute(text("DELETE FROM course_modules"))
         session.execute(text("DELETE FROM course_enrollment"))
+        session.execute(text("DELETE FROM course_instance_teachers"))  # Added
+        session.execute(text("DELETE FROM course_instances"))          # Added
         session.execute(text("DELETE FROM certification_progress"))
         session.execute(text("DELETE FROM certification"))
         session.execute(text("DELETE FROM courses"))

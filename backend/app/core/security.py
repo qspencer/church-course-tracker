@@ -57,8 +57,19 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     # Handle both bcrypt and simple SHA256 hashes
     try:
         # Try bcrypt first (for regular users)
+        # If this is a bytes-like prefix but string, convert or handle
+        if hashed_password.startswith("$2b$") or hashed_password.startswith("$2a$") or hashed_password.startswith("$2y$"):
+             import bcrypt
+             # Ensure hashed_password is bytes for bcrypt
+             if isinstance(hashed_password, str):
+                 hashed_password_bytes = hashed_password.encode('utf-8')
+             else:
+                 hashed_password_bytes = hashed_password
+             
+             return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password_bytes)
+             
         return pwd_context.verify(plain_password, hashed_password)
-    except (ValueError, AttributeError, Exception):
+    except (ValueError, AttributeError, Exception) as e:
         # Try raw bcrypt verification (for direct bcrypt hashes)
         try:
             import bcrypt

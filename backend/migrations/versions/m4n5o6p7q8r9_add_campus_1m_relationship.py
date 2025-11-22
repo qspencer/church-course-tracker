@@ -24,20 +24,22 @@ depends_on = None
 
 def upgrade() -> None:
     # Step 1: Add campus_id and campus_assigned_date to people table
-    op.add_column('people', sa.Column('campus_id', sa.Integer(), nullable=True))
-    op.add_column('people', sa.Column('campus_assigned_date', sa.Date(), nullable=True))
-    op.create_foreign_key(
-        'fk_people_campus_id',
-        'people',
-        'campus',
-        ['campus_id'],
-        ['id'],
-        ondelete='SET NULL'
-    )
-    op.create_index(op.f('ix_people_campus_id'), 'people', ['campus_id'], unique=False)
+    with op.batch_alter_table('people') as batch_op:
+        batch_op.add_column(sa.Column('campus_id', sa.Integer(), nullable=True))
+        batch_op.add_column(sa.Column('campus_assigned_date', sa.Date(), nullable=True))
+        batch_op.create_foreign_key(
+            'fk_people_campus_id',
+            'campus',
+            ['campus_id'],
+            ['id'],
+            ondelete='SET NULL'
+        )
+        batch_op.create_index('ix_people_campus_assignment', ['campus_id'], unique=False)
     
     # Step 2: Add unassigned_date to people_campus table for historical tracking
-    op.add_column('people_campus', sa.Column('unassigned_date', sa.Date(), nullable=True))
+    with op.batch_alter_table('people_campus') as batch_op:
+        batch_op.add_column(sa.Column('unassigned_date', sa.Date(), nullable=True))
+        batch_op.add_column(sa.Column('notes', sa.Text(), nullable=True))
     
     # Step 3: Migrate existing active campus assignments to people.campus_id
     # This will set the current active campus (is_primary=True or first active) to people.campus_id
@@ -83,11 +85,14 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     # Remove campus_id and campus_assigned_date from people table
-    op.drop_index(op.f('ix_people_campus_id'), table_name='people')
-    op.drop_constraint('fk_people_campus_id', 'people', type_='foreignkey')
-    op.drop_column('people', 'campus_assigned_date')
-    op.drop_column('people', 'campus_id')
+    with op.batch_alter_table('people') as batch_op:
+        batch_op.drop_index('ix_people_campus_assignment')
+        batch_op.drop_constraint('fk_people_campus_id', type_='foreignkey')
+        batch_op.drop_column('campus_assigned_date')
+        batch_op.drop_column('campus_id')
     
     # Remove unassigned_date from people_campus table
-    op.drop_column('people_campus', 'unassigned_date')
+    with op.batch_alter_table('people_campus') as batch_op:
+        batch_op.drop_column('notes')
+        batch_op.drop_column('unassigned_date')
 

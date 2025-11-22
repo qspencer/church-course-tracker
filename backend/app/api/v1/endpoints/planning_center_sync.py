@@ -70,6 +70,32 @@ async def start_sync_events(db: Session = Depends(get_db)):
     }
 
 
+@router.get("/events", response_model=List[Dict[str, Any]])
+async def get_planning_center_events(db: Session = Depends(get_db)):
+    """Get list of events from Planning Center (real-time)"""
+    sync_service = PlanningCenterSyncService(db)
+    try:
+        return sync_service.get_events()
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
+
+
+@router.get("/lists", response_model=List[Dict[str, Any]])
+async def get_planning_center_lists(db: Session = Depends(get_db)):
+    """Get all lists from Planning Center (real-time)"""
+    sync_service = PlanningCenterSyncService(db)
+    try:
+        return sync_service.get_lists()
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
+
+
 @router.post("/registrations", response_model=Dict[str, Any])
 async def start_sync_registrations(
     event_id: Optional[str] = None, db: Session = Depends(get_db)

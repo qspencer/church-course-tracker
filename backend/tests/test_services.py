@@ -832,7 +832,8 @@ class TestPlanningCenterSyncService:
             "data": [
                 {
                     "id": "evt_123",
-                    "title": "Introduction to Faith",
+                    "name": "Introduction to Faith",
+                    "title": "Introduction to Faith",  # Include both for compatibility
                     "description": "Basic course",
                     "max_capacity": 50
                 }

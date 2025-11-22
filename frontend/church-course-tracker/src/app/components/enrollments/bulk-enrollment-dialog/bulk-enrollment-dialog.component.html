@@ -1,0 +1,79 @@
+<h2 mat-dialog-title>Import Enrollments from Planning Center</h2>
+
+<div mat-dialog-content>
+  <p class="dialog-description">
+    Select a source from Planning Center to import people from, and choose the course to enroll them in.
+  </p>
+
+  <form [formGroup]="form">
+    <!-- Source Type Selection -->
+    <div class="source-type-toggle">
+      <mat-radio-group formControlName="source_type" color="primary">
+        <mat-radio-button value="event">From Event Registrations</mat-radio-button>
+        <mat-radio-button value="list">From People List</mat-radio-button>
+      </mat-radio-group>
+    </div>
+
+    <!-- PC Event Selection (shown if source_type is 'event') -->
+    <mat-form-field appearance="outline" class="full-width" *ngIf="sourceType === 'event'">
+      <mat-label>Planning Center Event</mat-label>
+      <mat-select formControlName="pc_event_id">
+        <mat-option *ngIf="isLoadingEvents">Loading events...</mat-option>
+        <mat-option *ngFor="let event of events" [value]="event.id">
+          {{ event.attributes.name }} ({{ event.attributes.start_date | date:'shortDate' }})
+        </mat-option>
+      </mat-select>
+      <mat-hint>Only showing recent events</mat-hint>
+      <mat-error *ngIf="form.get('pc_event_id')?.hasError('required')">
+        Event is required
+      </mat-error>
+    </mat-form-field>
+
+    <!-- PC List Selection (shown if source_type is 'list') -->
+    <mat-form-field appearance="outline" class="full-width" *ngIf="sourceType === 'list'">
+      <mat-label>Planning Center List</mat-label>
+      <mat-select formControlName="pc_list_id">
+        <mat-option *ngIf="isLoadingLists">Loading lists...</mat-option>
+        <mat-option *ngFor="let list of lists" [value]="list.id">
+          {{ list.attributes.name }}
+        </mat-option>
+      </mat-select>
+      <mat-error *ngIf="form.get('pc_list_id')?.hasError('required')">
+        List is required
+      </mat-error>
+    </mat-form-field>
+
+    <!-- Target Course Selection -->
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Target Course</mat-label>
+      <mat-select formControlName="course_id">
+        <mat-option *ngIf="isLoadingCourses">Loading courses...</mat-option>
+        <mat-option *ngFor="let course of courses" [value]="course.id">
+          {{ course.title }}
+        </mat-option>
+      </mat-select>
+      <mat-error *ngIf="form.get('course_id')?.hasError('required')">
+        Course is required
+      </mat-error>
+    </mat-form-field>
+
+    <!-- Options -->
+    <div class="options-container">
+      <mat-checkbox formControlName="update_existing">
+        Update existing enrollments
+      </mat-checkbox>
+    </div>
+  </form>
+</div>
+
+<div mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()" [disabled]="isSubmitting">Cancel</button>
+  <button 
+    mat-raised-button 
+    color="primary" 
+    (click)="onSubmit()" 
+    [disabled]="form.invalid || isSubmitting || isLoadingEvents || isLoadingCourses || (sourceType === 'list' && isLoadingLists)">
+    <span *ngIf="!isSubmitting">Import Enrollments</span>
+    <span *ngIf="isSubmitting">Processing...</span>
+  </button>
+</div>

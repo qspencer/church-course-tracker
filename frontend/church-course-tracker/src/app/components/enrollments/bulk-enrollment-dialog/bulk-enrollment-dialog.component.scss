@@ -1,0 +1,23 @@
+.full-width {
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+.dialog-description {
+  margin-bottom: 24px;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.options-container {
+  margin-bottom: 16px;
+}
+
+.source-type-toggle {
+  margin-bottom: 24px;
+  
+  mat-radio-group {
+    display: flex;
+    gap: 24px;
+  }
+}
+

@@ -18,9 +18,12 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatRadioModule } from '@angular/material/radio';
 
 import { EnrollmentsComponent } from './enrollments.component';
 import { EnrollmentDialogComponent } from './enrollment-dialog/enrollment-dialog.component';
+import { BulkEnrollmentDialogComponent } from './bulk-enrollment-dialog/bulk-enrollment-dialog.component';
 
 const routes: Routes = [
   { path: '', component: EnrollmentsComponent }
@@ -29,7 +32,8 @@ const routes: Routes = [
 @NgModule({
   declarations: [
     EnrollmentsComponent,
-    EnrollmentDialogComponent
+    EnrollmentDialogComponent,
+    BulkEnrollmentDialogComponent
   ],
   imports: [
     CommonModule,
@@ -48,7 +52,9 @@ const routes: Routes = [
     MatProgressSpinnerModule,
     MatProgressBarModule,
     MatChipsModule,
-    MatTooltipModule
+    MatTooltipModule,
+    MatCheckboxModule,
+    MatRadioModule
   ]
 })
 export class EnrollmentsModule { }

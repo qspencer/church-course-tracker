@@ -123,3 +123,14 @@ class BulkEnrollFromPCEventRequest(BaseModel):
         default=True,
         description="Whether to update existing enrollments"
     )
+
+
+class BulkEnrollFromPCListRequest(BaseModel):
+    """Schema for bulk enrollment from Planning Center list"""
+    
+    course_id: int = Field(..., description="Course ID to enroll people in")
+    pc_list_id: str = Field(..., description="Planning Center list ID")
+    update_existing: bool = Field(
+        default=True,
+        description="Whether to update existing enrollments"
+    )

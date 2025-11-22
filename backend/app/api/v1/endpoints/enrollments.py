@@ -11,6 +11,7 @@ from app.api.v1.endpoints.auth import get_current_active_user
 from app.core.database import get_db
 from app.schemas.enrollment import (
     BulkEnrollFromPCEventRequest,
+    BulkEnrollFromPCListRequest,
     CourseEnrollment,
     CourseEnrollmentCreate,
     CourseEnrollmentUpdate
@@ -126,6 +127,42 @@ async def bulk_enroll_from_pc_event(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to bulk enroll from Planning Center event: {str(e)}"
+        )
+
+
+@router.post(
+    "/bulk-from-pc-list",
+    response_model=List[CourseEnrollment],
+    status_code=status.HTTP_201_CREATED
+)
+async def bulk_enroll_from_pc_list(
+    enrollment_data: BulkEnrollFromPCListRequest,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_active_user),
+):
+    """Bulk enroll people from a Planning Center List"""
+    # Check if user has permission (admin/staff only)
+    if current_user["role"] not in ["admin", "staff"]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only admin and staff users can bulk enroll from Planning Center lists",
+        )
+    
+    enrollment_service = CourseEnrollmentService(db)
+    try:
+        enrollments = enrollment_service.bulk_enroll_from_pc_list(
+            course_id=enrollment_data.course_id,
+            pc_list_id=enrollment_data.pc_list_id,
+            created_by=current_user["id"],
+            update_existing=enrollment_data.update_existing,
+        )
+        return enrollments
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to bulk enroll from Planning Center list: {str(e)}"
         )
 
 

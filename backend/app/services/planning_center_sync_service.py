@@ -9,6 +9,7 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
+from dateutil import parser
 import httpx
 from sqlalchemy.orm import Session
 
@@ -37,6 +38,15 @@ class PlanningCenterSyncService:
         self.enrollment_service = CourseEnrollmentService(db)
         self.base_url = "https://api.planningcenteronline.com"
         self.headers = self._get_auth_headers()
+
+    def _parse_datetime(self, date_str: Optional[str]) -> Optional[datetime]:
+        """Parse datetime string to datetime object"""
+        if not date_str:
+            return None
+        try:
+            return parser.parse(date_str)
+        except (ValueError, TypeError):
+            return None
 
     def _get_db_session(self):
         """Get a new database session for background tasks"""
@@ -733,6 +743,156 @@ class PlanningCenterSyncService:
 
             return {"status": "error", "error": str(e)}
 
+    def get_events(self) -> List[Dict[str, Any]]:
+        """
+        Get events from Planning Center (synchronous)
+        
+        Returns:
+            List of event dictionaries from Planning Center API
+        """
+        import httpx
+        
+        try:
+            with httpx.Client(timeout=30.0) as client:
+                events = []
+                per_page = 100
+                offset = 0
+                
+                while True:
+                    response = client.get(
+                        f"{self.base_url}/check-ins/v2/events",
+                        headers=self.headers,
+                        params={"per_page": per_page, "offset": offset, "order": "-created_at"},
+                    )
+                    
+                    # If 404, it might be because the user doesn't have access to check-ins
+                    # Try calendar events or just return empty if not found
+                    if response.status_code == 404 or response.status_code == 401:
+                        # Try alternate endpoint for Calendar events?
+                        # For now, let's just return empty list to avoid 500
+                        # 401 means the token doesn't have access to Check-Ins
+                        return []
+                        
+                    response.raise_for_status()
+                    data = response.json()
+                    
+                    page_events = data.get("data", [])
+                    if not page_events:
+                        break
+                    
+                    events.extend(page_events)
+                    
+                    # Check if there are more pages
+                    if len(page_events) < per_page:
+                        break
+                    
+                    offset += per_page
+                    
+                    # Limit to recent 500 events to avoid timeouts if there are too many
+                    if len(events) >= 500:
+                        break
+                
+                return events
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 404 or e.response.status_code == 401:
+                return []
+            raise ValueError(f"Planning Center API error: {e.response.status_code} - {e.response.text}")
+        except httpx.RequestError as e:
+            raise ValueError(f"Failed to connect to Planning Center API: {str(e)}")
+        except Exception as e:
+            raise ValueError(f"Unexpected error fetching events: {str(e)}")
+
+    def get_lists(self) -> List[Dict[str, Any]]:
+        """
+        Get all lists from Planning Center People (synchronous)
+        
+        Returns:
+            List of list dictionaries from Planning Center API
+        """
+        import httpx
+        
+        try:
+            with httpx.Client(timeout=30.0) as client:
+                lists = []
+                per_page = 100
+                offset = 0
+                
+                while True:
+                    response = client.get(
+                        f"{self.base_url}/people/v2/lists",
+                        headers=self.headers,
+                        params={"per_page": per_page, "offset": offset, "order": "name"},
+                    )
+                    response.raise_for_status()
+                    data = response.json()
+                    
+                    page_lists = data.get("data", [])
+                    if not page_lists:
+                        break
+                    
+                    lists.extend(page_lists)
+                    
+                    # Check if there are more pages
+                    if len(page_lists) < per_page:
+                        break
+                    
+                    offset += per_page
+                
+                return lists
+        except httpx.HTTPStatusError as e:
+            raise ValueError(f"Planning Center API error: {e.response.status_code} - {e.response.text}")
+        except httpx.RequestError as e:
+            raise ValueError(f"Failed to connect to Planning Center API: {str(e)}")
+        except Exception as e:
+            raise ValueError(f"Unexpected error fetching lists: {str(e)}")
+
+    def get_list_people(self, list_id: str) -> List[Dict[str, Any]]:
+        """
+        Get people from a Planning Center List (synchronous)
+        
+        Args:
+            list_id: Planning Center list ID
+        
+        Returns:
+            List of person dictionaries from Planning Center API
+        """
+        import httpx
+        
+        try:
+            with httpx.Client(timeout=30.0) as client:
+                people = []
+                per_page = 100
+                offset = 0
+                
+                while True:
+                    response = client.get(
+                        f"{self.base_url}/people/v2/lists/{list_id}/people",
+                        headers=self.headers,
+                        params={"per_page": per_page, "offset": offset},
+                    )
+                    response.raise_for_status()
+                    data = response.json()
+                    
+                    page_people = data.get("data", [])
+                    if not page_people:
+                        break
+                    
+                    people.extend(page_people)
+                    
+                    # Check if there are more pages
+                    if len(page_people) < per_page:
+                        break
+                    
+                    offset += per_page
+                
+                return people
+        except httpx.HTTPStatusError as e:
+            raise ValueError(f"Planning Center API error: {e.response.status_code} - {e.response.text}")
+        except httpx.RequestError as e:
+            raise ValueError(f"Failed to connect to Planning Center API: {str(e)}")
+        except Exception as e:
+            raise ValueError(f"Unexpected error fetching list people: {str(e)}")
+
     def get_event_registrations(self, event_id: str) -> List[Dict[str, Any]]:
         """
         Get registrations for a specific Planning Center event (synchronous)
@@ -894,6 +1054,11 @@ class PlanningCenterSyncService:
     def _cache_event_data(self, db: Session, event_data: Dict[str, Any]):
         """Cache event data from Planning Center"""
         pc_event_id = event_data.get("id")
+        attributes = event_data.get("attributes", {})
+        
+        # Helper to get value from attributes or direct (for flat structure compatibility)
+        def get_val(key):
+            return attributes.get(key) or event_data.get(key)
 
         # Check if already cached
         existing_cache = (
@@ -904,32 +1069,34 @@ class PlanningCenterSyncService:
 
         if existing_cache:
             # Update existing cache
-            existing_cache.event_name = event_data.get("name")
-            existing_cache.event_description = event_data.get("description")
-            existing_cache.start_date = event_data.get("start_date")
-            existing_cache.end_date = event_data.get("end_date")
-            existing_cache.max_capacity = event_data.get("max_capacity")
-            existing_cache.current_registrations_count = event_data.get(
-                "current_registrations", 0
+            existing_cache.event_name = get_val("name")
+            existing_cache.event_description = get_val("description")
+            existing_cache.start_date = self._parse_datetime(get_val("start_date"))
+            existing_cache.end_date = self._parse_datetime(get_val("end_date"))
+            existing_cache.max_capacity = get_val("max_capacity")
+            existing_cache.current_registrations_count = get_val(
+                "current_registrations_count"
+            ) or get_val("current_registrations") or 0
+            existing_cache.registration_deadline = self._parse_datetime(
+                get_val("registration_deadline")
             )
-            existing_cache.registration_deadline = event_data.get(
-                "registration_deadline"
-            )
-            existing_cache.event_status = event_data.get("status")
+            existing_cache.event_status = get_val("status")
             existing_cache.last_synced_at = datetime.utcnow()
             existing_cache.updated_at = datetime.utcnow()
         else:
             # Create new cache entry
             cache_entry = PlanningCenterEventsCache(
                 planning_center_event_id=pc_event_id,
-                event_name=event_data.get("name"),
-                event_description=event_data.get("description"),
-                start_date=event_data.get("start_date"),
-                end_date=event_data.get("end_date"),
-                max_capacity=event_data.get("max_capacity"),
-                current_registrations_count=event_data.get("current_registrations", 0),
-                registration_deadline=event_data.get("registration_deadline"),
-                event_status=event_data.get("status"),
+                event_name=get_val("name"),
+                event_description=get_val("description"),
+                start_date=self._parse_datetime(get_val("start_date")),
+                end_date=self._parse_datetime(get_val("end_date")),
+                max_capacity=get_val("max_capacity"),
+                current_registrations_count=get_val("current_registrations_count") or get_val("current_registrations") or 0,
+                registration_deadline=self._parse_datetime(
+                    get_val("registration_deadline")
+                ),
+                event_status=get_val("status"),
                 last_synced_at=datetime.utcnow(),
             )
             db.add(cache_entry)
@@ -939,6 +1106,18 @@ class PlanningCenterSyncService:
     def _cache_registration_data(self, db: Session, registration_data: Dict[str, Any]):
         """Cache registration data from Planning Center"""
         pc_registration_id = registration_data.get("id")
+        attributes = registration_data.get("attributes", {})
+        relationships = registration_data.get("relationships", {})
+        
+        # Helper to get value from attributes or direct
+        def get_val(key):
+            return attributes.get(key) or registration_data.get(key)
+            
+        # Helper to get ID from relationships or direct
+        def get_rel_id(key):
+            if key in relationships and "data" in relationships[key]:
+                return relationships[key]["data"].get("id")
+            return registration_data.get(f"{key}_id") or registration_data.get(key)
 
         # Check if already cached
         existing_cache = (
@@ -952,10 +1131,12 @@ class PlanningCenterSyncService:
 
         if existing_cache:
             # Update existing cache
-            existing_cache.registration_status = registration_data.get("status")
-            existing_cache.registration_date = registration_data.get("created_at")
-            existing_cache.registration_notes = registration_data.get("notes")
-            existing_cache.custom_field_responses = registration_data.get(
+            existing_cache.registration_status = get_val("status")
+            existing_cache.registration_date = self._parse_datetime(
+                get_val("created_at")
+            )
+            existing_cache.registration_notes = get_val("notes")
+            existing_cache.custom_field_responses = get_val(
                 "custom_field_responses"
             )
             existing_cache.last_synced_at = datetime.utcnow()
@@ -964,12 +1145,14 @@ class PlanningCenterSyncService:
             # Create new cache entry
             cache_entry = PlanningCenterRegistrationsCache(
                 planning_center_registration_id=pc_registration_id,
-                planning_center_event_id=registration_data.get("event_id"),
-                planning_center_person_id=registration_data.get("person_id"),
-                registration_status=registration_data.get("status"),
-                registration_date=registration_data.get("created_at"),
-                registration_notes=registration_data.get("notes"),
-                custom_field_responses=registration_data.get("custom_field_responses"),
+                planning_center_event_id=get_rel_id("event"),
+                planning_center_person_id=get_rel_id("person"),
+                registration_status=get_val("status"),
+                registration_date=self._parse_datetime(
+                    get_val("created_at")
+                ),
+                registration_notes=get_val("notes"),
+                custom_field_responses=get_val("custom_field_responses"),
                 last_synced_at=datetime.utcnow(),
             )
             db.add(cache_entry)

@@ -35,10 +35,11 @@ def upgrade():
     except Exception:
         pass  # Index might already exist
     
-    try:
-        op.create_index('idx_courses_name_active', 'courses', ['name', 'is_active'])
-    except Exception:
-        pass  # Index might already exist
+    # idx_courses_name_active removed to avoid conflict with rename migration
+    # try:
+    #     op.create_index('idx_courses_name_active', 'courses', ['name', 'is_active'])
+    # except Exception:
+    #     pass  # Index might already exist
     
     # User model indexes
     op.create_index('idx_users_role', 'users', ['role'])
@@ -78,10 +79,20 @@ def upgrade():
     op.create_index('idx_course_content_type', 'course_content', ['content_type'])
     
     # ContentCompletion model indexes
-    op.create_index('idx_content_completion_enrollment', 'content_completion', ['course_enrollment_id'])
-    op.create_index('idx_content_completion_content', 'content_completion', ['content_id'])
-    op.create_index('idx_content_completion_completed', 'content_completion', ['completed_at'])
-    op.create_index('idx_content_completion_progress', 'content_completion', ['progress_percentage'])
+    try:
+        op.create_index('idx_content_completion_enrollment', 'content_completion', ['course_enrollment_id'])
+    except Exception:
+        pass
+    try:
+        op.create_index('idx_content_completion_content', 'content_completion', ['content_id'])
+    except Exception:
+        pass
+    try:
+        op.create_index('idx_content_completion_completed', 'content_completion', ['completed_at'])
+    except Exception:
+        pass
+    # progress_percentage does not exist in ContentCompletion model
+    # op.create_index('idx_content_completion_progress', 'content_completion', ['progress_percentage'])
     
     # AuditLog model indexes
     op.create_index('idx_audit_log_table', 'audit_log', ['table_name'])
@@ -114,7 +125,7 @@ def downgrade():
     op.drop_index('idx_audit_log_table', 'audit_log')
     
     # Drop content completion indexes
-    op.drop_index('idx_content_completion_progress', 'content_completion')
+    # op.drop_index('idx_content_completion_progress', 'content_completion')
     op.drop_index('idx_content_completion_completed', 'content_completion')
     op.drop_index('idx_content_completion_content', 'content_completion')
     op.drop_index('idx_content_completion_enrollment', 'content_completion')
@@ -157,7 +168,7 @@ def downgrade():
     op.drop_index('idx_users_role', 'users')
     
     # Drop course indexes
-    op.drop_index('idx_courses_name_active', 'courses')
+    # op.drop_index('idx_courses_name_active', 'courses')
     op.drop_index('idx_courses_event_dates', 'courses')
     op.drop_index('idx_courses_created_at', 'courses')
     op.drop_index('idx_courses_is_active', 'courses')

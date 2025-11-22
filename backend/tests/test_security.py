@@ -521,7 +521,8 @@ class TestRateLimiting:
                 "password": "test"
             })
             # Should not be rate limited for normal usage
-            assert response.status_code in [200, 401]  # Either success or auth failure
+            # Note: 423 Locked is returned by account lockout policy after failed attempts
+            assert response.status_code in [200, 401, 423]  # Either success, auth failure, or account locked
     
     @patch('app.core.config.settings.RATE_LIMIT_ENABLED', False)
     def test_rate_limiting_disabled(self, client: TestClient):

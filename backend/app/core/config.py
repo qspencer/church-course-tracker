@@ -131,12 +131,12 @@ class Settings(BaseSettings):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         # Parse ALLOWED_ORIGINS from environment variable if provided
-        if os.getenv("ALLOWED_ORIGINS"):
-            origins_str = os.getenv("ALLOWED_ORIGINS")
-            if origins_str:
-                self.ALLOWED_ORIGINS = [
-                    origin.strip() for origin in origins_str.split(",")
-                ]
+        # if os.getenv("ALLOWED_ORIGINS"):
+        #     origins_str = os.getenv("ALLOWED_ORIGINS")
+        #     if origins_str:
+        #         self.ALLOWED_ORIGINS = [
+        #             origin.strip() for origin in origins_str.split(",")
+        #         ]
         self._validate_security_settings()
 
     def _validate_security_settings(self):

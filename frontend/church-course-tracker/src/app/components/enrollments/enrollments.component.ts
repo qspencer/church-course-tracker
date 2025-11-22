@@ -9,6 +9,7 @@ import { CourseService } from '../../services/course.service';
 import { MemberService } from '../../services/member.service';
 import { Enrollment, Course, Person } from '../../models';
 import { EnrollmentDialogComponent } from './enrollment-dialog/enrollment-dialog.component';
+import { BulkEnrollmentDialogComponent } from './bulk-enrollment-dialog/bulk-enrollment-dialog.component';
 import { ConfirmDialogComponent } from '../../shared/confirm-dialog/confirm-dialog.component';
 
 @Component({
@@ -68,6 +69,18 @@ export class EnrollmentsComponent implements OnInit {
     const dialogRef = this.dialog.open(EnrollmentDialogComponent, {
       width: '600px',
       data: { enrollment: enrollment || null }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.loadEnrollments();
+      }
+    });
+  }
+
+  openBulkImportDialog(): void {
+    const dialogRef = this.dialog.open(BulkEnrollmentDialogComponent, {
+      width: '500px'
     });
 
     dialogRef.afterClosed().subscribe(result => {
