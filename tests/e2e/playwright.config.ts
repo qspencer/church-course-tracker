@@ -4,10 +4,21 @@ const env =
   ((globalThis as unknown as { process?: { env?: Record<string, string | undefined> } }).process?.env) ??
   {};
 
+// Determine if we're testing against a remote URL (not localhost)
+// Match the logic from utils/auth.ts - default includes the /churchcoursetracker path
+let baseURL = env.APP_BASE_URL || env.PLAYWRIGHT_BASE_URL || env.BASE_URL || 'https://apps.quentinspencer.com/churchcoursetracker';
+// Ensure the path is included if testing against the production domain
+if (baseURL.includes('apps.quentinspencer.com') && !baseURL.includes('/churchcoursetracker')) {
+  baseURL = `${baseURL}/churchcoursetracker`;
+}
+// Remove trailing slashes
+baseURL = baseURL.replace(/\/+$/, '');
+const isRemoteURL = baseURL && !baseURL.includes('localhost') && !baseURL.includes('127.0.0.1');
+
 /**
  * @see https://playwright.dev/docs/test-configuration
  */
-export default defineConfig({
+const config = {
   testDir: './',
   /* Global setup - loads CSV test data before tests run */
   globalSetup: require.resolve('./global-setup.ts'),
@@ -30,7 +41,7 @@ export default defineConfig({
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
-    baseURL: 'https://apps.quentinspencer.com/churchcoursetracker',
+    baseURL: baseURL,
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
@@ -85,11 +96,15 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'], channel: 'chrome' },
     },
   ],
+};
 
-  /* Run your local dev server before starting the tests */
-  webServer: {
+// Only use webServer when testing locally (not against remote URLs)
+if (!isRemoteURL) {
+  config.webServer = {
     command: 'echo "Tests will run against production environment"',
-    url: 'https://apps.quentinspencer.com',
+    url: baseURL,
     reuseExistingServer: !env.CI,
-  },
-});
+  };
+}
+
+export default defineConfig(config);
