@@ -69,7 +69,7 @@ export async function loginAsRole(page: Page, role: UserRole, testInfo: TestInfo
 
   const { expectNavigation, dashboardPath, timeoutMs } = { ...DEFAULT_LOGIN_OPTIONS, ...options };
 
-  await page.goto(`${APP_BASE_URL}/auth`, { waitUntil: 'networkidle' });
+  await page.goto(`${APP_BASE_URL}/auth`, { waitUntil: 'domcontentloaded' });
 
   const usernameLocator = page.locator('input[formControlName="username"]');
   const passwordLocator = page.locator('input[formControlName="password"]');

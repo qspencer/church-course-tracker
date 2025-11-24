@@ -9,14 +9,18 @@ const env =
  */
 export default defineConfig({
   testDir: './',
+  /* Global setup - loads CSV test data before tests run */
+  globalSetup: require.resolve('./global-setup.ts'),
+  /* Global teardown - cleans up CSV test data after tests complete */
+  globalTeardown: require.resolve('./global-teardown.ts'),
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!env.CI,
   /* Retry on CI only */
   retries: env.CI ? 2 : 0,
-  /* Opt out of parallel tests on CI. */
-  workers: env.CI ? 1 : undefined,
+  /* Use multiple workers for parallel execution - 2 on CI, 4 locally */
+  workers: env.CI ? 2 : 4,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: [
     ['html'],
