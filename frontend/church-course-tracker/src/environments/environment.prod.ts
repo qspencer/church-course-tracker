@@ -3,7 +3,7 @@ export const environment = {
   production: true,
   apiUrl: 'https://api.quentinspencer.com/api/v1',
   appName: 'Church Course Tracker',
-  version: '0.37',
+  version: '0.38',
   // Add other production-specific configurations
   enableAnalytics: true,
   enableErrorReporting: true,
