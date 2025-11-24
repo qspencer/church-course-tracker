@@ -35,11 +35,22 @@ async function globalTeardown() {
     
     console.log('✅ Test data cleaned up successfully!');
     return;
-  } catch (error) {
-    console.error('❌ Failed to clean up test data:', error);
+  } catch (error: any) {
+    const errorMessage = error?.message || String(error);
+    console.error('❌ Failed to clean up test data:', errorMessage);
+    
+    // Check if it's a Python/module import error (expected in CI without Python deps)
+    if (errorMessage.includes('ModuleNotFoundError') || 
+        errorMessage.includes('No module named') ||
+        errorMessage.includes('python3: command not found')) {
+      console.warn('⚠️  Python dependencies not available - this is expected in CI');
+      console.warn('   Set E2E_SKIP_DATA_CLEANUP=true to suppress this warning');
+    } else {
+      console.warn('⚠️  Test data cleanup failed - manual cleanup may be required');
+      console.warn('   Set E2E_SKIP_DATA_CLEANUP=true to suppress this warning');
+    }
+    
     // Log error but don't fail - data cleanup is best effort
-    console.warn('⚠️  Test data cleanup failed - manual cleanup may be required');
-    console.warn('   Set E2E_SKIP_DATA_CLEANUP=true to suppress this warning');
     return;
   }
 }

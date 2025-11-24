@@ -24,17 +24,22 @@ jobs:
         cache: 'npm'
     
     - name: Install dependencies
+      working-directory: tests/e2e
       run: npm ci
     
     - name: Install Playwright browsers
+      working-directory: tests/e2e
       run: npx playwright install --with-deps chromium
     
     - name: Run E2E tests
+      working-directory: tests/e2e
       run: npm test
       timeout-minutes: 110  # Slightly less than job timeout to allow for cleanup
       env:
         BASE_URL: https://apps.quentinspencer.com
         PLAYWRIGHT_BASE_URL: https://apps.quentinspencer.com
+        E2E_SKIP_DATA_LOAD: 'true'  # Skip data loading when testing against production
+        E2E_SKIP_DATA_CLEANUP: 'true'  # Skip data cleanup when testing against production
     
     - name: Upload test results
       uses: actions/upload-artifact@v4

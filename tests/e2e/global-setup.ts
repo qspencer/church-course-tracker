@@ -36,12 +36,23 @@ async function globalSetup() {
     
     console.log('✅ Test data loaded successfully!');
     return;
-  } catch (error) {
-    console.error('❌ Failed to load test data:', error);
+  } catch (error: any) {
+    const errorMessage = error?.message || String(error);
+    console.error('❌ Failed to load test data:', errorMessage);
+    
+    // Check if it's a Python/module import error (expected in CI without Python deps)
+    if (errorMessage.includes('ModuleNotFoundError') || 
+        errorMessage.includes('No module named') ||
+        errorMessage.includes('python3: command not found')) {
+      console.warn('⚠️  Python dependencies not available - this is expected in CI');
+      console.warn('   Set E2E_SKIP_DATA_LOAD=true to suppress this warning');
+    } else {
+      console.warn('⚠️  Continuing with test run - some tests may skip if data is missing');
+      console.warn('   Set E2E_SKIP_DATA_LOAD=true to suppress this warning');
+    }
+    
     // Don't fail the test run if data loading fails - tests might still work
     // with existing data or skip gracefully
-    console.warn('⚠️  Continuing with test run - some tests may skip if data is missing');
-    console.warn('   Set E2E_SKIP_DATA_LOAD=true to suppress this warning');
     return;
   }
 }
