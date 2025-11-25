@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { ReactiveFormsModule } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
@@ -13,25 +13,17 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatChipsModule } from '@angular/material/chips';
-import { MatIconModule } from '@angular/material/icon';
 
 import { CourseDialogComponent, CourseDialogData } from './course-dialog.component';
 import { CourseService } from '../../../services/course.service';
-import { UserService } from '../../../services/user.service';
-import { Course, User } from '../../../models';
+import { Course } from '../../../models';
 
 describe('CourseDialogComponent', () => {
   let component: CourseDialogComponent;
   let fixture: ComponentFixture<CourseDialogComponent>;
   let courseServiceSpy: jasmine.SpyObj<CourseService>;
-  let userServiceSpy: jasmine.SpyObj<UserService>;
   let dialogRefSpy: jasmine.SpyObj<MatDialogRef<CourseDialogComponent>>;
   let snackBarSpy: jasmine.SpyObj<MatSnackBar>;
-
-  const mockUsers: User[] = [
-    { id: 1, full_name: 'John Doe', email: 'john@example.com', username: 'john', role: 'admin', is_active: true, created_at: '2023-01-01T00:00:00Z', updated_at: '2023-01-01T00:00:00Z' },
-    { id: 2, full_name: 'Jane Smith', email: 'jane@example.com', username: 'jane', role: 'staff', is_active: true, created_at: '2023-01-01T00:00:00Z', updated_at: '2023-01-01T00:00:00Z' }
-  ];
 
   const mockCourse: Course = {
     id: 1,
@@ -40,10 +32,7 @@ describe('CourseDialogComponent', () => {
     duration_weeks: 4,
     is_active: true,
     created_at: '2023-01-01T00:00:00Z',
-    updated_at: '2023-01-01T00:00:00Z',
-    instructors: [1, 'TBD'],
-    locations: ['Room 101', 'Online'],
-    delivery_modes: ['In-person', 'Hybrid']
+    updated_at: '2023-01-01T00:00:00Z'
   };
 
   const createMockDialogData = (): CourseDialogData => ({
@@ -57,9 +46,6 @@ describe('CourseDialogComponent', () => {
     courseSpy.updateCourse.and.returnValue(of(mockCourse));
     courseSpy.getAvailablePrerequisites.and.returnValue(of([]));
     
-    const userSpy = jasmine.createSpyObj('UserService', ['getUsers']);
-    userSpy.getUsers.and.returnValue(of(mockUsers));
-    
     const matDialogRefSpy = jasmine.createSpyObj('MatDialogRef', ['close']);
     const matSnackBarSpy = jasmine.createSpyObj('MatSnackBar', ['open']);
 
@@ -67,7 +53,6 @@ describe('CourseDialogComponent', () => {
       declarations: [CourseDialogComponent],
       imports: [
         ReactiveFormsModule,
-        FormsModule,
         BrowserAnimationsModule,
         MatDialogModule,
         MatFormFieldModule,
@@ -75,12 +60,10 @@ describe('CourseDialogComponent', () => {
         MatButtonModule,
         MatProgressSpinnerModule,
         MatSelectModule,
-        MatChipsModule,
-        MatIconModule
+        MatChipsModule
       ],
       providers: [
         { provide: CourseService, useValue: courseSpy },
-        { provide: UserService, useValue: userSpy },
         { provide: MatDialogRef, useValue: matDialogRefSpy },
         { provide: MAT_DIALOG_DATA, useFactory: createMockDialogData },
         { provide: MatSnackBar, useValue: matSnackBarSpy }
@@ -90,7 +73,6 @@ describe('CourseDialogComponent', () => {
     fixture = TestBed.createComponent(CourseDialogComponent);
     component = fixture.componentInstance;
     courseServiceSpy = TestBed.inject(CourseService) as jasmine.SpyObj<CourseService>;
-    userServiceSpy = TestBed.inject(UserService) as jasmine.SpyObj<UserService>;
     dialogRefSpy = TestBed.inject(MatDialogRef) as jasmine.SpyObj<MatDialogRef<CourseDialogComponent>>;
     snackBarSpy = TestBed.inject(MatSnackBar) as jasmine.SpyObj<MatSnackBar>;
   });
@@ -126,11 +108,6 @@ describe('CourseDialogComponent', () => {
     expect(titleControl?.value).toBe(mockCourse.title);
     expect(descriptionControl?.value).toBe(mockCourse.description);
     expect(durationControl?.value).toBe(mockCourse.duration_weeks);
-    
-    // Check new fields are initialized
-    expect(component.courseForm.get('instructors')?.value).toEqual(mockCourse.instructors);
-    expect(component.courseForm.get('locations')?.value).toEqual(mockCourse.locations);
-    expect(component.courseForm.get('delivery_modes')?.value).toEqual(mockCourse.delivery_modes);
   });
 
   describe('form initialization', () => {
@@ -148,8 +125,6 @@ describe('CourseDialogComponent', () => {
       const editDialogData = { course: { ...mockCourse } };
       const editCourseSpy = jasmine.createSpyObj('CourseService', ['createCourse', 'updateCourse', 'getAvailablePrerequisites']);
       editCourseSpy.getAvailablePrerequisites.and.returnValue(of([]));
-      const editUserSpy = jasmine.createSpyObj('UserService', ['getUsers']);
-      editUserSpy.getUsers.and.returnValue(of(mockUsers));
       const editMatDialogRefSpy = jasmine.createSpyObj('MatDialogRef', ['close']);
       const editMatSnackBarSpy = jasmine.createSpyObj('MatSnackBar', ['open']);
       
@@ -157,20 +132,16 @@ describe('CourseDialogComponent', () => {
         declarations: [CourseDialogComponent],
         imports: [
           ReactiveFormsModule,
-          FormsModule,
           BrowserAnimationsModule,
           MatDialogModule,
           MatFormFieldModule,
           MatInputModule,
           MatButtonModule,
           MatProgressSpinnerModule,
-          MatSelectModule,
-          MatChipsModule,
-          MatIconModule
+          MatSelectModule
         ],
         providers: [
           { provide: CourseService, useValue: editCourseSpy },
-          { provide: UserService, useValue: editUserSpy },
           { provide: MatDialogRef, useValue: editMatDialogRefSpy },
           { provide: MAT_DIALOG_DATA, useValue: editDialogData },
           { provide: MatSnackBar, useValue: editMatSnackBarSpy }
@@ -208,10 +179,7 @@ describe('CourseDialogComponent', () => {
       expect(courseServiceSpy.updateCourse).toHaveBeenCalledWith(1, jasmine.objectContaining({
         title: 'Updated Course',
         description: 'Updated Description',
-        duration_weeks: 6,
-        instructors: [],
-        locations: [],
-        delivery_modes: []
+        duration_weeks: 6
       }));
       expect(snackBarSpy.open).toHaveBeenCalledWith('Course updated successfully', 'Close', { duration: 3000 });
       expect(dialogRefSpy.close).toHaveBeenCalledWith(mockCourse);
@@ -248,10 +216,7 @@ describe('CourseDialogComponent', () => {
       expect(courseServiceSpy.createCourse).toHaveBeenCalledWith(jasmine.objectContaining({
         title: 'New Course',
         description: 'New Description',
-        duration_weeks: 8,
-        instructors: [],
-        locations: [],
-        delivery_modes: []
+        duration_weeks: 8
       }));
       expect(snackBarSpy.open).toHaveBeenCalledWith('Course created successfully', 'Close', { duration: 3000 });
       expect(dialogRefSpy.close).toHaveBeenCalledWith(mockCourse);
@@ -301,32 +266,24 @@ describe('CourseDialogComponent', () => {
 
   describe('getErrorMessage', () => {
     it('should return required error message', () => {
-      const titleField = component.courseForm.get('title');
-      titleField?.markAsTouched();
       const message = component.getErrorMessage('title');
       expect(message).toBe('title is required');
     });
 
     it('should return minlength error message', () => {
-      const titleField = component.courseForm.get('title');
-      titleField?.setValue('ab');
-      titleField?.markAsTouched();
+      component.courseForm.get('title')?.setValue('ab');
       const message = component.getErrorMessage('title');
       expect(message).toBe('title must be at least 3 characters');
     });
 
     it('should return min value error message', () => {
-      const durationField = component.courseForm.get('duration_weeks');
-      durationField?.setValue(0);
-      durationField?.markAsTouched();
+      component.courseForm.get('duration_weeks')?.setValue(0);
       const message = component.getErrorMessage('duration_weeks');
       expect(message).toBe('duration_weeks must be at least 1');
     });
 
     it('should return max value error message', () => {
-      const durationField = component.courseForm.get('duration_weeks');
-      durationField?.setValue(60);
-      durationField?.markAsTouched();
+      component.courseForm.get('duration_weeks')?.setValue(60);
       const message = component.getErrorMessage('duration_weeks');
       expect(message).toBe('duration_weeks must be at most 52');
     });
@@ -349,8 +306,6 @@ describe('CourseDialogComponent', () => {
       const editDialogData = { course: { ...mockCourse } };
       const editCourseSpy = jasmine.createSpyObj('CourseService', ['createCourse', 'updateCourse', 'getAvailablePrerequisites']);
       editCourseSpy.getAvailablePrerequisites.and.returnValue(of([]));
-      const editUserSpy = jasmine.createSpyObj('UserService', ['getUsers']);
-      editUserSpy.getUsers.and.returnValue(of(mockUsers));
       const editMatDialogRefSpy = jasmine.createSpyObj('MatDialogRef', ['close']);
       const editMatSnackBarSpy = jasmine.createSpyObj('MatSnackBar', ['open']);
       
@@ -358,20 +313,16 @@ describe('CourseDialogComponent', () => {
         declarations: [CourseDialogComponent],
         imports: [
           ReactiveFormsModule,
-          FormsModule,
           BrowserAnimationsModule,
           MatDialogModule,
           MatFormFieldModule,
           MatInputModule,
           MatButtonModule,
           MatProgressSpinnerModule,
-          MatSelectModule,
-          MatChipsModule,
-          MatIconModule
+          MatSelectModule
         ],
         providers: [
           { provide: CourseService, useValue: editCourseSpy },
-          { provide: UserService, useValue: editUserSpy },
           { provide: MatDialogRef, useValue: editMatDialogRefSpy },
           { provide: MAT_DIALOG_DATA, useValue: editDialogData },
           { provide: MatSnackBar, useValue: editMatSnackBarSpy }
@@ -419,8 +370,6 @@ describe('CourseDialogComponent', () => {
       const createDialogData = { course: null };
       const createCourseSpy = jasmine.createSpyObj('CourseService', ['createCourse', 'updateCourse', 'getAvailablePrerequisites']);
       createCourseSpy.getAvailablePrerequisites.and.returnValue(of([]));
-      const createUserSpy = jasmine.createSpyObj('UserService', ['getUsers']);
-      createUserSpy.getUsers.and.returnValue(of(mockUsers));
       const createMatDialogRefSpy = jasmine.createSpyObj('MatDialogRef', ['close']);
       const createMatSnackBarSpy = jasmine.createSpyObj('MatSnackBar', ['open']);
       
@@ -428,20 +377,16 @@ describe('CourseDialogComponent', () => {
         declarations: [CourseDialogComponent],
         imports: [
           ReactiveFormsModule,
-          FormsModule,
           BrowserAnimationsModule,
           MatDialogModule,
           MatFormFieldModule,
           MatInputModule,
           MatButtonModule,
           MatProgressSpinnerModule,
-          MatSelectModule,
-          MatChipsModule,
-          MatIconModule
+          MatSelectModule
         ],
         providers: [
           { provide: CourseService, useValue: createCourseSpy },
-          { provide: UserService, useValue: createUserSpy },
           { provide: MatDialogRef, useValue: createMatDialogRefSpy },
           { provide: MAT_DIALOG_DATA, useValue: createDialogData },
           { provide: MatSnackBar, useValue: createMatSnackBarSpy }
@@ -466,66 +411,6 @@ describe('CourseDialogComponent', () => {
       const compiled = createFixture.nativeElement;
       const submitButton = compiled.querySelector('button[color="primary"]');
       expect(submitButton.textContent.trim()).toBe('Create');
-    });
-  });
-
-  describe('new fields functionality', () => {
-    beforeEach(() => {
-      fixture.detectChanges();
-    });
-
-    it('should load available users', () => {
-      expect(userServiceSpy.getUsers).toHaveBeenCalled();
-      expect(component.availableUsers.length).toBeGreaterThan(0);
-    });
-
-    it('should add location', () => {
-      component.locationInput = 'Room 202';
-      component.addLocation();
-      expect(component.courseForm.get('locations')?.value).toContain('Room 202');
-      expect(component.locationInput).toBe('');
-    });
-
-    it('should remove location', () => {
-      component.courseForm.patchValue({ locations: ['Room 101', 'Room 202'] });
-      component.removeLocation('Room 101');
-      expect(component.courseForm.get('locations')?.value).not.toContain('Room 101');
-      expect(component.courseForm.get('locations')?.value).toContain('Room 202');
-    });
-
-    it('should add delivery mode', () => {
-      component.deliveryModeInput = 'Online';
-      component.addDeliveryMode();
-      expect(component.courseForm.get('delivery_modes')?.value).toContain('Online');
-      expect(component.deliveryModeInput).toBe('');
-    });
-
-    it('should remove delivery mode', () => {
-      component.courseForm.patchValue({ delivery_modes: ['In-person', 'Online'] });
-      component.removeDeliveryMode('In-person');
-      expect(component.courseForm.get('delivery_modes')?.value).not.toContain('In-person');
-      expect(component.courseForm.get('delivery_modes')?.value).toContain('Online');
-    });
-
-    it('should display instructor name correctly', () => {
-      component.availableUsers = mockUsers;
-      expect(component.getInstructorDisplay(1)).toBe('John Doe');
-      expect(component.getInstructorDisplay('TBD')).toBe('TBD');
-    });
-
-    it('should get instructors from course', () => {
-      component.course = mockCourse;
-      expect(component.getInstructors()).toEqual([1, 'TBD']);
-    });
-
-    it('should get locations from course', () => {
-      component.course = mockCourse;
-      expect(component.getLocations()).toEqual(['Room 101', 'Online']);
-    });
-
-    it('should get delivery modes from course', () => {
-      component.course = mockCourse;
-      expect(component.getDeliveryModes()).toEqual(['In-person', 'Hybrid']);
     });
   });
 });

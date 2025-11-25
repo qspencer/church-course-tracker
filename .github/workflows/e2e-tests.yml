@@ -12,7 +12,7 @@ on:
 jobs:
   e2e-tests:
     runs-on: ubuntu-latest
-    timeout-minutes: 120  # Increased to 2 hours to accommodate 915 E2E tests
+    timeout-minutes: 60  # Reduced to 1 hour since we're only testing chromium in CI
     
     steps:
     - uses: actions/checkout@v4
@@ -22,6 +22,7 @@ jobs:
       with:
         node-version: '18'
         cache: 'npm'
+        cache-dependency-path: tests/e2e/package-lock.json
     
     - name: Install dependencies
       working-directory: tests/e2e
@@ -29,13 +30,14 @@ jobs:
     
     - name: Install Playwright browsers
       working-directory: tests/e2e
-      run: npx playwright install --with-deps chromium firefox webkit
+      run: npx playwright install --with-deps chromium
     
     - name: Run E2E tests
       working-directory: tests/e2e
       run: npm test
-      timeout-minutes: 110  # Slightly less than job timeout to allow for cleanup
+      timeout-minutes: 55  # Slightly less than job timeout to allow for cleanup
       env:
+        CI: true
         BASE_URL: https://apps.quentinspencer.com
         PLAYWRIGHT_BASE_URL: https://apps.quentinspencer.com
         E2E_SKIP_DATA_LOAD: 'true'  # Skip data loading when testing against production

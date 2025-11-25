@@ -1,9 +1,8 @@
 import { TestBed } from '@angular/core/testing';
-import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { CourseService } from './course.service';
 import { Course, CourseCreate, CourseUpdate, Content, ContentCreate } from '../models';
 import { environment } from '../../environments/environment';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('CourseService', () => {
   let service: CourseService;
@@ -34,9 +33,9 @@ describe('CourseService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-    imports: [],
-    providers: [CourseService, provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
-});
+      imports: [HttpClientTestingModule],
+      providers: [CourseService]
+    });
 
     service = TestBed.inject(CourseService);
     httpMock = TestBed.inject(HttpTestingController);
@@ -58,7 +57,10 @@ describe('CourseService', () => {
         expect(courses).toEqual(mockCourses);
       });
 
-      const expectedUrl = `${environment.apiUrl}/courses`;
+      // Service converts HTTP to HTTPS, so expect HTTPS URL
+      const expectedUrl = environment.apiUrl.startsWith('https://') 
+        ? `${environment.apiUrl}/courses`
+        : `https://${environment.apiUrl.replace(/^https?:\/\//, '')}/courses`;
       
       const req = httpMock.expectOne(expectedUrl);
       expect(req.request.method).toBe('GET');
@@ -70,7 +72,10 @@ describe('CourseService', () => {
       
       service.getCourses(params).subscribe();
 
-      const expectedUrl = `${environment.apiUrl}/courses`;
+      // Service converts HTTP to HTTPS, so expect HTTPS URL
+      const expectedUrl = environment.apiUrl.startsWith('https://') 
+        ? `${environment.apiUrl}/courses`
+        : `https://${environment.apiUrl.replace(/^https?:\/\//, '')}/courses`;
       
       const req = httpMock.expectOne(request => 
         request.url === expectedUrl &&
