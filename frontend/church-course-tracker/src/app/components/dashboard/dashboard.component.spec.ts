@@ -17,7 +17,10 @@ import { DashboardComponent } from './dashboard.component';
 import { ReportService } from '../../services/report.service';
 import { CourseService } from '../../services/course.service';
 import { EnrollmentService } from '../../services/enrollment.service';
+import { ProgramService } from '../../services/program.service';
 import { DashboardStats, Course, Enrollment } from '../../models';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 
 describe('DashboardComponent', () => {
   let component: DashboardComponent;
@@ -86,6 +89,11 @@ describe('DashboardComponent', () => {
     const reportSpy = jasmine.createSpyObj('ReportService', ['getDashboardStats', 'getCompletionTrends']);
     const courseSpy = jasmine.createSpyObj('CourseService', ['getCourses']);
     const enrollmentSpy = jasmine.createSpyObj('EnrollmentService', ['getEnrollments']);
+    const programSpy = jasmine.createSpyObj('ProgramService', ['getPrograms', 'getProgramParticipants', 'getProgramPairings', 'getProgramSessions']);
+    programSpy.getPrograms.and.returnValue(of([]));
+    programSpy.getProgramParticipants.and.returnValue(of([]));
+    programSpy.getProgramPairings.and.returnValue(of([]));
+    programSpy.getProgramSessions.and.returnValue(of([]));
 
     await TestBed.configureTestingModule({
       declarations: [DashboardComponent],
@@ -102,7 +110,10 @@ describe('DashboardComponent', () => {
       providers: [
         { provide: ReportService, useValue: reportSpy },
         { provide: CourseService, useValue: courseSpy },
-        { provide: EnrollmentService, useValue: enrollmentSpy }
+        { provide: EnrollmentService, useValue: enrollmentSpy },
+        { provide: ProgramService, useValue: programSpy },
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting()
       ]
     }).compileComponents();
 
