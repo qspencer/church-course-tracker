@@ -347,13 +347,16 @@ describe('CourseDialogComponent', () => {
         declarations: [CourseDialogComponent],
         imports: [
           ReactiveFormsModule,
+          FormsModule,
           BrowserAnimationsModule,
           MatDialogModule,
           MatFormFieldModule,
           MatInputModule,
           MatButtonModule,
           MatProgressSpinnerModule,
-          MatSelectModule
+          MatSelectModule,
+          MatChipsModule,
+          MatIconModule
         ],
         providers: [
           { provide: CourseService, useValue: editCourseSpy },
@@ -363,7 +366,8 @@ describe('CourseDialogComponent', () => {
           { provide: MatSnackBar, useValue: editMatSnackBarSpy },
           provideHttpClient(withInterceptorsFromDi()),
           provideHttpClientTesting()
-        ]
+        ],
+        schemas: [NO_ERRORS_SCHEMA]
       }).compileComponents();
       
       editFixture = TestBed.createComponent(CourseDialogComponent);
@@ -417,13 +421,16 @@ describe('CourseDialogComponent', () => {
         declarations: [CourseDialogComponent],
         imports: [
           ReactiveFormsModule,
+          FormsModule,
           BrowserAnimationsModule,
           MatDialogModule,
           MatFormFieldModule,
           MatInputModule,
           MatButtonModule,
           MatProgressSpinnerModule,
-          MatSelectModule
+          MatSelectModule,
+          MatChipsModule,
+          MatIconModule
         ],
         providers: [
           { provide: CourseService, useValue: createCourseSpy },
@@ -433,7 +440,8 @@ describe('CourseDialogComponent', () => {
           { provide: MatSnackBar, useValue: createMatSnackBarSpy },
           provideHttpClient(withInterceptorsFromDi()),
           provideHttpClientTesting()
-        ]
+        ],
+        schemas: [NO_ERRORS_SCHEMA]
       }).compileComponents();
 
       createFixture = TestBed.createComponent(CourseDialogComponent);
