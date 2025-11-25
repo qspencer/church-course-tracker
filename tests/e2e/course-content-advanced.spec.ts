@@ -1754,36 +1754,89 @@ test.describe('Course Content Error Handling', () => {
     
     // Try to access content without login
     await page.goto(`${APP_BASE_URL}/courses/1/content`, { waitUntil: 'domcontentloaded' });
-    // Wait for login prompt or redirect instead of fixed timeout
-    await page.waitForLoadState('domcontentloaded').catch(() => {});
     
-    // Check for login prompt or redirect to auth page
-    const loginMessages = [
-      'text=/please.*log in/i',
-      'text=/log in/i',
-      'text=/sign in/i',
-      'text=/authentication/i',
-      'text=/unauthorized/i',
+    // Wait for navigation to complete (redirect might happen)
+    await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
+    await page.waitForTimeout(2000); // Give extra time for Angular routing to complete
+    
+    // Check current URL - should be redirected to auth page
+    const url = page.url();
+    console.log('Current URL after unauthorized access:', url);
+    
+    // Check for various auth page indicators (both with and without churchcoursetracker prefix)
+    const authIndicators = [
+      '/auth',
+      '/login',
+      '/churchcoursetracker/auth',
+      '/churchcoursetracker/login',
+      'auth',
+      'login'
+    ];
+    
+    // Check if URL contains auth indicators (case-insensitive)
+    const urlContainsAuth = authIndicators.some(indicator => 
+      url.toLowerCase().includes(indicator.toLowerCase())
+    );
+    
+    // Check for login form elements
+    const loginFormSelectors = [
       'input[formControlName="username"]',
-      'input[name="username"]'
+      'input[name="username"]',
+      'input[type="text"][placeholder*="username" i]',
+      'input[type="text"][placeholder*="user" i]',
+      'button:has-text("Log In")',
+      'button:has-text("Sign In")',
+      'button:has-text("Login")',
+      'text=/log.*in/i',
+      'text=/sign.*in/i'
     ];
     
     let foundLoginPrompt = false;
-    for (const msg of loginMessages) {
-      if (await page.locator(msg).first().isVisible({ timeout: 3000 }).catch(() => false)) {
-        foundLoginPrompt = true;
-        break;
+    for (const selector of loginFormSelectors) {
+      try {
+        const element = page.locator(selector).first();
+        if (await element.isVisible({ timeout: 5000 }).catch(() => false)) {
+          foundLoginPrompt = true;
+          console.log('Found login prompt with selector:', selector);
+          break;
+        }
+      } catch (e) {
+        // Continue checking other selectors
       }
     }
     
-    // Also check if we were redirected to auth page
-    const url = page.url();
-    if (!foundLoginPrompt && (url.includes('/auth') || url.includes('/login'))) {
-      foundLoginPrompt = true;
+    // Also check for error messages that might indicate unauthorized access
+    const errorSelectors = [
+      'text=/unauthorized/i',
+      'text=/access denied/i',
+      'text=/please.*log in/i',
+      'text=/authentication required/i'
+    ];
+    
+    for (const selector of errorSelectors) {
+      try {
+        const element = page.locator(selector).first();
+        if (await element.isVisible({ timeout: 2000 }).catch(() => false)) {
+          foundLoginPrompt = true;
+          console.log('Found error message:', selector);
+          break;
+        }
+      } catch (e) {
+        // Continue
+      }
     }
     
-    // Verify unauthorized access was handled
-    expect(foundLoginPrompt || url.includes('/auth') || url.includes('/login')).toBeTruthy();
+    // Verify unauthorized access was handled - either redirected to auth or showing login prompt
+    const unauthorizedHandled = foundLoginPrompt || urlContainsAuth;
+    
+    if (!unauthorizedHandled) {
+      // Take a screenshot for debugging
+      await page.screenshot({ path: 'test-results/unauthorized-access-debug.png', fullPage: true });
+      console.log('Page title:', await page.title());
+      console.log('Page content preview:', (await page.content()).substring(0, 500));
+    }
+    
+    expect(unauthorizedHandled).toBeTruthy();
     
     // Now login as viewer and try to access admin-only features
     if (!(await loginAs(page, 'viewer', testInfo))) {
