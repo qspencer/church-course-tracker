@@ -195,8 +195,15 @@ class TestCourseContentIntegration:
         )
         assert get_deleted_module_response.status_code == 404
     
-    def test_content_access_tracking_workflow(self, client: TestClient, admin_token, staff_token, viewer_token):
+    def test_content_access_tracking_workflow(self, client: TestClient, admin_token, staff_token, viewer_token, db_session):
         """Test content access tracking across different user roles"""
+        # Helper function to get user ID from token
+        from app.core.security import verify_token
+        
+        admin_user_id = verify_token(admin_token)
+        staff_user_id = verify_token(staff_token)
+        viewer_user_id = verify_token(viewer_token)
+        
         # Create course and content (admin)
         course_data = {
             "title": "Access Tracking Course",
@@ -234,16 +241,15 @@ class TestCourseContentIntegration:
         
         # Test access logging for different users
         users = [
-            {"token": admin_token, "user_id": 1, "role": "admin"},
-            {"token": staff_token, "user_id": 2, "role": "staff"},
-            {"token": viewer_token, "user_id": 3, "role": "viewer"}
+            {"token": admin_token, "user_id": admin_user_id, "role": "admin"},
+            {"token": staff_token, "user_id": staff_user_id, "role": "staff"},
+            {"token": viewer_token, "user_id": viewer_user_id, "role": "viewer"}
         ]
         
         for user in users:
             # Log view access
             view_access = {
                 "content_id": content_id,
-                "user_id": user["user_id"],
                 "access_type": "view",
                 "progress_percentage": 25,
                 "time_spent": 60
@@ -259,7 +265,6 @@ class TestCourseContentIntegration:
             # Log download access
             download_access = {
                 "content_id": content_id,
-                "user_id": user["user_id"],
                 "access_type": "download",
                 "progress_percentage": 100,
                 "time_spent": 30
@@ -281,11 +286,11 @@ class TestCourseContentIntegration:
         access_logs = access_logs_response.json()
         assert len(access_logs) == 6  # 3 users × 2 access types
         
-        # Verify access logs contain all users
+        # Verify access logs contain all users (using actual user IDs from tokens)
         user_ids = [log["user_id"] for log in access_logs]
-        assert 1 in user_ids  # admin
-        assert 2 in user_ids  # staff
-        assert 3 in user_ids  # viewer
+        assert admin_user_id in user_ids  # admin
+        assert staff_user_id in user_ids  # staff
+        assert viewer_user_id in user_ids  # viewer
     
     def test_audit_trail_workflow(self, client: TestClient, admin_token, staff_token):
         """Test complete audit trail workflow"""
