@@ -5,6 +5,7 @@ import { of, throwError } from 'rxjs';
 // Angular Material
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
@@ -101,6 +102,7 @@ describe('DashboardComponent', () => {
         BrowserAnimationsModule,
         MatCardModule,
         MatButtonModule,
+        MatButtonToggleModule,
         MatIconModule,
         MatProgressSpinnerModule,
         MatProgressBarModule,
