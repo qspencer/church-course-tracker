@@ -64,6 +64,16 @@ module.exports = function (config) {
           '--disable-software-rasterizer',
           '--headless=new'
         ]
+      },
+      ChromeHeadless: {
+        base: 'Chrome',
+        flags: [
+          '--headless=new',
+          '--no-sandbox',
+          '--disable-gpu',
+          '--disable-dev-shm-usage',
+          '--disable-software-rasterizer'
+        ]
       }
     },
     captureTimeout: 60000,
