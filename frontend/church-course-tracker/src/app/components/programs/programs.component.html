@@ -1,14 +1,24 @@
 <div class="programs-container">
   <div class="programs-header">
     <h1>Programs Management</h1>
-    <button 
-      *ngIf="canCreateProgram()" 
-      mat-raised-button 
-      color="primary" 
-      (click)="openProgramDialog()">
-      <mat-icon>add</mat-icon>
-      Add New Program
-    </button>
+    <div class="header-actions">
+      <button 
+        *ngIf="canCreateProgram()" 
+        mat-stroked-button 
+        color="accent" 
+        (click)="openBulkImportDialog()">
+        <mat-icon>cloud_download</mat-icon>
+        Import from Planning Center
+      </button>
+      <button 
+        *ngIf="canCreateProgram()" 
+        mat-raised-button 
+        color="primary" 
+        (click)="openProgramDialog()">
+        <mat-icon>add</mat-icon>
+        Add New Program
+      </button>
+    </div>
   </div>
 
   <mat-card class="programs-card">

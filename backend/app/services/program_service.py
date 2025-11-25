@@ -34,6 +34,8 @@ from app.schemas.program_progress import (
     ProgramProgressUpdate,
 )
 from app.services.audit_service import AuditService
+from app.services.people_service import PeopleService
+from fastapi import HTTPException, status
 
 
 class ProgramService:
@@ -312,6 +314,15 @@ class ProgramService:
         if status:
             query = query.filter(ProgramParticipantModel.status == status)
         return query.all()
+
+    def get_all_participants(
+        self, status: Optional[str] = None, skip: int = 0, limit: int = 100
+    ) -> List[ProgramParticipantModel]:
+        """Get all participants across all programs"""
+        query = self.db.query(ProgramParticipantModel)
+        if status:
+            query = query.filter(ProgramParticipantModel.status == status)
+        return query.offset(skip).limit(limit).all()
 
     def get_participant(self, participant_id: int) -> Optional[ProgramParticipantModel]:
         """Get a specific participant by ID"""
@@ -613,4 +624,297 @@ class ProgramService:
         self.db.delete(progress)
         self.db.commit()
         return True
+
+    def _get_people_id_from_pc_person_id(self, pc_person_id: str) -> int:
+        """Get local people_id from Planning Center person ID"""
+        people_service = PeopleService(self.db)
+        person = people_service.get_person_by_pc_id(pc_person_id)
+        if not person:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Person with Planning Center ID '{pc_person_id}' not found locally. Please sync people from Planning Center first."
+            )
+        return person.id
+
+    def bulk_import_participants_from_pc_event(
+        self,
+        program_id: int,
+        pc_event_id: str,
+        role_name: str,
+        created_by: Optional[int] = None,
+        status_filter: Optional[List[str]] = None,
+        update_existing: bool = True,
+    ) -> List[ProgramParticipantModel]:
+        """
+        Bulk import participants from a Planning Center Registration event
+        
+        Args:
+            program_id: The program to add participants to
+            pc_event_id: Planning Center event ID to get registrations from
+            role_name: The role name for imported participants
+            created_by: User creating the participants
+            status_filter: Only import registrations with these statuses (default: ['registered', 'confirmed'])
+            update_existing: Whether to update existing participants (default: True)
+        
+        Returns:
+            List of created/updated participants
+        """
+        from app.services.planning_center_sync_service import PlanningCenterSyncService
+        
+        # Validate program exists
+        program = self.get_program(program_id)
+        if not program:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Program with ID {program_id} not found"
+            )
+
+        # Validate role name
+        if not self.validate_role_name(program_id, role_name):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid role name '{role_name}' for this program"
+            )
+
+        # Get registrations from Planning Center
+        pc_service = PlanningCenterSyncService(self.db)
+        try:
+            registrations = pc_service.get_event_registrations(pc_event_id)
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Failed to fetch registrations from Planning Center: {str(e)}"
+            )
+
+        if not registrations:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"No registrations found for Planning Center event '{pc_event_id}'"
+            )
+
+        # Filter by status if specified
+        if status_filter is None:
+            status_filter = ['registered', 'confirmed']
+        
+        # Filter registrations by status (handle both JSON API and flat formats)
+        filtered_registrations = []
+        for reg in registrations:
+            # Handle both JSON API format and flat format
+            if 'attributes' in reg:
+                reg_status = reg.get('attributes', {}).get('status', '')
+            else:
+                reg_status = reg.get('status', '')
+            
+            if reg_status.lower() in [s.lower() for s in status_filter]:
+                filtered_registrations.append(reg)
+        
+        registrations = filtered_registrations
+
+        if not registrations:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"No registrations found with status in {status_filter}"
+            )
+
+        participants = []
+        errors = []
+        
+        for reg in registrations:
+            try:
+                # Extract registration data
+                # Handle both JSON API format (with attributes/relationships) and flat format
+                if 'attributes' in reg or 'relationships' in reg:
+                    # JSON API format
+                    reg_attributes = reg.get('attributes', {})
+                    # Try relationships first, then fallback to direct person_id
+                    pc_person_id = (
+                        reg.get('relationships', {}).get('person', {}).get('data', {}).get('id')
+                        or reg_attributes.get('person_id')
+                        or reg.get('person_id')
+                    )
+                else:
+                    # Flat format (after transformation)
+                    reg_attributes = reg
+                    pc_person_id = reg.get('person_id')
+                
+                if not pc_person_id:
+                    errors.append(f"Registration missing person ID: {reg}")
+                    continue
+
+                # Get local people_id
+                try:
+                    people_id = self._get_people_id_from_pc_person_id(pc_person_id)
+                except HTTPException:
+                    errors.append(f"Person {pc_person_id} not found locally")
+                    continue
+
+                # Check if participant already exists
+                existing = (
+                    self.db.query(ProgramParticipantModel)
+                    .filter(
+                        ProgramParticipantModel.program_id == program_id,
+                        ProgramParticipantModel.people_id == people_id,
+                        ProgramParticipantModel.status == "active",
+                    )
+                    .first()
+                )
+                
+                if existing:
+                    if update_existing:
+                        # Update existing participant's role if different
+                        if existing.role_name != role_name:
+                            existing.role_name = role_name
+                            existing.updated_by = created_by
+                            self.db.commit()
+                            self.db.refresh(existing)
+                        participants.append(existing)
+                    # If not updating existing, skip
+                else:
+                    # Create new participant
+                    participant_data = ProgramParticipantCreate(
+                        program_id=program_id,
+                        people_id=people_id,
+                        role_name=role_name,
+                        start_date=datetime.now(timezone.utc),
+                        status="active",
+                    )
+                    participant, error = self.add_participant(participant_data, created_by=created_by)
+                    if participant:
+                        participants.append(participant)
+                    elif error:
+                        errors.append(f"Person {pc_person_id}: {error}")
+            except Exception as e:
+                errors.append(f"Registration {reg.get('id', 'unknown')}: {str(e)}")
+                continue
+
+        if errors:
+            # Log errors but still return successful participants
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.warning(f"Bulk import from PC event had {len(errors)} errors: {errors}")
+
+        return participants
+
+    def bulk_import_participants_from_pc_list(
+        self,
+        program_id: int,
+        pc_list_id: str,
+        role_name: str,
+        created_by: Optional[int] = None,
+        update_existing: bool = True,
+    ) -> List[ProgramParticipantModel]:
+        """
+        Bulk import participants from a Planning Center List
+        
+        Args:
+            program_id: The program to add participants to
+            pc_list_id: Planning Center list ID to get people from
+            role_name: The role name for imported participants
+            created_by: User creating the participants
+            update_existing: Whether to update existing participants (default: True)
+        
+        Returns:
+            List of created/updated participants
+        """
+        from app.services.planning_center_sync_service import PlanningCenterSyncService
+        
+        # Validate program exists
+        program = self.get_program(program_id)
+        if not program:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Program with ID {program_id} not found"
+            )
+
+        # Validate role name
+        if not self.validate_role_name(program_id, role_name):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid role name '{role_name}' for this program"
+            )
+
+        # Get list members from Planning Center
+        pc_service = PlanningCenterSyncService(self.db)
+        try:
+            pc_people = pc_service.get_list_people(pc_list_id)
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Failed to fetch people from Planning Center list: {str(e)}"
+            )
+
+        if not pc_people:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"No people found in Planning Center list '{pc_list_id}'"
+            )
+
+        participants = []
+        errors = []
+        
+        for pc_person in pc_people:
+            try:
+                pc_person_id = pc_person.get('id')
+                if not pc_person_id:
+                    continue
+
+                # Get local people_id
+                try:
+                    people_id = self._get_people_id_from_pc_person_id(pc_person_id)
+                except HTTPException:
+                    # If person not found locally, sync them first
+                    try:
+                        people_service = PeopleService(self.db)
+                        people_service.sync_from_planning_center(pc_person, updated_by=created_by)
+                        people_id = self._get_people_id_from_pc_person_id(pc_person_id)
+                    except Exception as sync_error:
+                        errors.append(f"Person {pc_person_id}: Failed to sync - {str(sync_error)}")
+                        continue
+
+                # Check if participant already exists
+                existing = (
+                    self.db.query(ProgramParticipantModel)
+                    .filter(
+                        ProgramParticipantModel.program_id == program_id,
+                        ProgramParticipantModel.people_id == people_id,
+                        ProgramParticipantModel.status == "active",
+                    )
+                    .first()
+                )
+                
+                if existing:
+                    if update_existing:
+                        # Update existing participant's role if different
+                        if existing.role_name != role_name:
+                            existing.role_name = role_name
+                            existing.updated_by = created_by
+                            self.db.commit()
+                            self.db.refresh(existing)
+                        participants.append(existing)
+                    # If not updating existing, skip
+                else:
+                    # Create new participant
+                    participant_data = ProgramParticipantCreate(
+                        program_id=program_id,
+                        people_id=people_id,
+                        role_name=role_name,
+                        start_date=datetime.now(timezone.utc),
+                        status="active",
+                    )
+                    participant, error = self.add_participant(participant_data, created_by=created_by)
+                    if participant:
+                        participants.append(participant)
+                    elif error:
+                        errors.append(f"Person {pc_person_id}: {error}")
+            except Exception as e:
+                errors.append(f"Person {pc_person.get('id', 'unknown')}: {str(e)}")
+                continue
+
+        if errors:
+            # Log errors but still return successful participants
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.warning(f"Bulk import from PC list had {len(errors)} errors: {errors}")
+
+        return participants
 

@@ -36,6 +36,21 @@ form {
   max-width: 100%;
 }
 
+.target-type-toggle {
+  margin-bottom: 24px;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  
+  mat-radio-group {
+    display: flex;
+    gap: 24px;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+  }
+}
+
 .source-type-toggle {
   margin-bottom: 24px;
   box-sizing: border-box;

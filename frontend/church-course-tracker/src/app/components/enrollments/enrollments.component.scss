@@ -19,7 +19,12 @@
 
   .header-actions {
     display: flex;
-    gap: 16px;
+    align-items: center;
+    gap: 12px;
+
+    .view-toggle {
+      margin-right: 8px;
+    }
   }
 }
 

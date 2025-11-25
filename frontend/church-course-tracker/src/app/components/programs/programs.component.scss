@@ -16,6 +16,12 @@
     font-size: 28px;
     font-weight: 500;
   }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
 }
 
 .programs-card {

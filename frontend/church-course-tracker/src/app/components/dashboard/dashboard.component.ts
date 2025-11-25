@@ -2,7 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { ReportService } from '../../services/report.service';
 import { CourseService } from '../../services/course.service';
 import { EnrollmentService } from '../../services/enrollment.service';
-import { DashboardStats, Course, Enrollment, CompletionTrendsResponse } from '../../models';
+import { ProgramService } from '../../services/program.service';
+import { DashboardStats, ProgramStats, Course, Enrollment, Program, ProgramParticipant, ProgramPairing, ProgramSession, CompletionTrendsResponse } from '../../models';
 import { ChartConfiguration, ChartData, ChartType } from 'chart.js';
 
 @Component({
@@ -11,9 +12,13 @@ import { ChartConfiguration, ChartData, ChartType } from 'chart.js';
   styleUrls: ['./dashboard.component.scss']
 })
 export class DashboardComponent implements OnInit {
+  viewMode: 'courses' | 'programs' = 'courses';
   stats: DashboardStats | null = null;
+  programStats: ProgramStats | null = null;
   recentCourses: Course[] = [];
   recentEnrollments: Enrollment[] = [];
+  recentPrograms: Program[] = [];
+  recentParticipants: ProgramParticipant[] = [];
   isLoading = true;
 
   // Chart configurations
@@ -35,6 +40,19 @@ export class DashboardComponent implements OnInit {
       title: {
         display: true,
         text: 'Course Completion Overview'
+      }
+    }
+  };
+
+  programCompletionChartOptions: ChartConfiguration['options'] = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: 'bottom'
+      },
+      title: {
+        display: true,
+        text: 'Program Completion Overview'
       }
     }
   };
@@ -78,10 +96,50 @@ export class DashboardComponent implements OnInit {
     }
   };
 
+  programTrendsOptions: ChartConfiguration['options'] = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: 'top'
+      },
+      title: {
+        display: true,
+        text: 'Program Activity Trends (Last 30 Days)'
+      }
+    },
+    scales: {
+      y: {
+        beginAtZero: true
+      }
+    }
+  };
+
+  programTrendsData: ChartData<'line'> = {
+    labels: [],
+    datasets: [
+      {
+        label: 'New Participants',
+        data: [],
+        borderColor: '#2196F3',
+        backgroundColor: 'rgba(33, 150, 243, 0.1)',
+        tension: 0.4
+      },
+      {
+        label: 'New Pairings',
+        data: [],
+        borderColor: '#4CAF50',
+        backgroundColor: 'rgba(76, 175, 80, 0.1)',
+        borderDash: [5, 5],
+        tension: 0.4
+      }
+    ]
+  };
+
   constructor(
     private reportService: ReportService,
     private courseService: CourseService,
-    private enrollmentService: EnrollmentService
+    private enrollmentService: EnrollmentService,
+    private programService: ProgramService
   ) {}
 
   ngOnInit(): void {
@@ -89,9 +147,22 @@ export class DashboardComponent implements OnInit {
     this.loadDashboardData();
   }
 
+  onViewModeChange(mode: 'courses' | 'programs'): void {
+    this.viewMode = mode;
+    this.loadDashboardData();
+  }
+
   loadDashboardData(): void {
     this.isLoading = true;
     
+    if (this.viewMode === 'courses') {
+      this.loadCoursesData();
+    } else {
+      this.loadProgramsData();
+    }
+  }
+
+  loadCoursesData(): void {
     // Load dashboard stats
     this.reportService.getDashboardStats().subscribe({
       next: (stats) => {
@@ -129,6 +200,209 @@ export class DashboardComponent implements OnInit {
     this.loadCompletionTrends();
   }
 
+  loadProgramsData(): void {
+    // Load all programs to calculate stats
+    this.programService.getPrograms().subscribe({
+      next: (programs) => {
+        this.calculateProgramStats(programs);
+        this.recentPrograms = programs
+          .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+          .slice(0, 5);
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Error loading programs:', error);
+        this.isLoading = false;
+      }
+    });
+
+    // Load program participants for all programs
+    this.loadProgramParticipants();
+  }
+
+  private calculateProgramStats(programs: Program[]): void {
+    const totalPrograms = programs.length;
+    const activePrograms = programs.filter(p => p.is_active).length;
+    
+    // We'll need to load participants, pairings, and sessions to get accurate stats
+    // For now, we'll set placeholders and load them separately
+    this.programStats = {
+      total_programs: totalPrograms,
+      active_programs: activePrograms,
+      total_participants: 0,
+      active_participants: 0,
+      total_pairings: 0,
+      active_pairings: 0,
+      total_sessions: 0,
+      completion_rate: 0
+    };
+
+    // Load detailed stats
+    this.loadDetailedProgramStats(programs);
+  }
+
+  private loadDetailedProgramStats(programs: Program[]): void {
+    let participantsCount = 0;
+    let activeParticipantsCount = 0;
+    let pairingsCount = 0;
+    let activePairingsCount = 0;
+    let sessionsCount = 0;
+    let completedParticipants = 0;
+    let loadedCount = 0;
+    const totalPrograms = programs.length;
+
+    if (totalPrograms === 0) {
+      if (this.programStats) {
+        this.updateProgramStats(0, 0, 0, 0, 0, 0);
+      }
+      return;
+    }
+
+    const expectedCalls = totalPrograms * 3;
+    let hasUpdated = false;
+
+    programs.forEach(program => {
+      // Load participants
+      this.programService.getProgramParticipants(program.id).subscribe({
+        next: (participants) => {
+          participantsCount += participants.length;
+          activeParticipantsCount += participants.filter(p => p.status === 'active').length;
+          completedParticipants += participants.filter(p => p.progress_percentage >= 100).length;
+          
+          loadedCount++;
+          if (loadedCount === expectedCalls && !hasUpdated) {
+            hasUpdated = true;
+            this.updateProgramStats(participantsCount, activeParticipantsCount, pairingsCount, activePairingsCount, sessionsCount, completedParticipants);
+          }
+        },
+        error: (error) => {
+          console.error(`Error loading participants for program ${program.id}:`, error);
+          loadedCount++;
+          if (loadedCount === expectedCalls && !hasUpdated) {
+            hasUpdated = true;
+            this.updateProgramStats(participantsCount, activeParticipantsCount, pairingsCount, activePairingsCount, sessionsCount, completedParticipants);
+          }
+        }
+      });
+
+      // Load pairings
+      this.programService.getProgramPairings(program.id).subscribe({
+        next: (pairings) => {
+          pairingsCount += pairings.length;
+          activePairingsCount += pairings.filter(p => p.status === 'active').length;
+          
+          loadedCount++;
+          if (loadedCount === expectedCalls && !hasUpdated) {
+            hasUpdated = true;
+            this.updateProgramStats(participantsCount, activeParticipantsCount, pairingsCount, activePairingsCount, sessionsCount, completedParticipants);
+          }
+        },
+        error: (error) => {
+          console.error(`Error loading pairings for program ${program.id}:`, error);
+          loadedCount++;
+          if (loadedCount === expectedCalls && !hasUpdated) {
+            hasUpdated = true;
+            this.updateProgramStats(participantsCount, activeParticipantsCount, pairingsCount, activePairingsCount, sessionsCount, completedParticipants);
+          }
+        }
+      });
+
+      // Load sessions
+      this.programService.getProgramSessions(program.id).subscribe({
+        next: (sessions) => {
+          sessionsCount += sessions.length;
+          
+          loadedCount++;
+          if (loadedCount === expectedCalls && !hasUpdated) {
+            hasUpdated = true;
+            this.updateProgramStats(participantsCount, activeParticipantsCount, pairingsCount, activePairingsCount, sessionsCount, completedParticipants);
+          }
+        },
+        error: (error) => {
+          console.error(`Error loading sessions for program ${program.id}:`, error);
+          loadedCount++;
+          if (loadedCount === expectedCalls && !hasUpdated) {
+            hasUpdated = true;
+            this.updateProgramStats(participantsCount, activeParticipantsCount, pairingsCount, activePairingsCount, sessionsCount, completedParticipants);
+          }
+        }
+      });
+    });
+  }
+
+  private updateProgramStats(
+    totalParticipants: number,
+    activeParticipants: number,
+    totalPairings: number,
+    activePairings: number,
+    totalSessions: number,
+    completedParticipants: number
+  ): void {
+    if (this.programStats) {
+      this.programStats.total_participants = totalParticipants;
+      this.programStats.active_participants = activeParticipants;
+      this.programStats.total_pairings = totalPairings;
+      this.programStats.active_pairings = activePairings;
+      this.programStats.total_sessions = totalSessions;
+      this.programStats.completion_rate = totalParticipants > 0 
+        ? (completedParticipants / totalParticipants) * 100 
+        : 0;
+      
+      this.updateProgramCompletionChart();
+    }
+  }
+
+  private loadProgramParticipants(): void {
+    // Load participants from all programs for recent activity
+    this.programService.getPrograms().subscribe({
+      next: (programs) => {
+        const allParticipants: Array<{participant: ProgramParticipant, programTitle: string}> = [];
+        let loadedCount = 0;
+        const totalPrograms = programs.length;
+        
+        if (totalPrograms === 0) {
+          this.recentParticipants = [];
+          return;
+        }
+
+        let hasUpdated = false;
+        programs.forEach(program => {
+          this.programService.getProgramParticipants(program.id).subscribe({
+            next: (participants) => {
+              participants.forEach(p => {
+                allParticipants.push({ participant: p, programTitle: program.title });
+              });
+              
+              loadedCount++;
+              if (loadedCount === totalPrograms && !hasUpdated) {
+                hasUpdated = true;
+                this.recentParticipants = allParticipants
+                  .sort((a, b) => new Date(b.participant.created_at).getTime() - new Date(a.participant.created_at).getTime())
+                  .slice(0, 5)
+                  .map(item => item.participant);
+              }
+            },
+            error: (error) => {
+              console.error(`Error loading participants for program ${program.id}:`, error);
+              loadedCount++;
+              if (loadedCount === totalPrograms && !hasUpdated) {
+                hasUpdated = true;
+                this.recentParticipants = allParticipants
+                  .sort((a, b) => new Date(b.participant.created_at).getTime() - new Date(a.participant.created_at).getTime())
+                  .slice(0, 5)
+                  .map(item => item.participant);
+              }
+            }
+          });
+        });
+      },
+      error: (error) => {
+        console.error('Error loading programs for participants:', error);
+        this.recentParticipants = [];
+      }
+    });
+  }
+
   private updateCompletionChart(stats: DashboardStats): void {
     const completed = stats.completed_enrollments;
     const inProgress = stats.total_enrollments - stats.completed_enrollments;
@@ -136,6 +410,25 @@ export class DashboardComponent implements OnInit {
 
     this.completionChartData = {
       ...this.completionChartData,
+      datasets: [{
+        ...this.completionChartData.datasets[0],
+        data: [completed, inProgress, notStarted]
+      }]
+    };
+  }
+
+  private updateProgramCompletionChart(): void {
+    if (!this.programStats) return;
+    
+    const completed = this.programStats.total_participants > 0 
+      ? Math.round((this.programStats.completion_rate / 100) * this.programStats.total_participants)
+      : 0;
+    const inProgress = this.programStats.active_participants - completed;
+    const notStarted = Math.max(0, this.programStats.total_participants - this.programStats.active_participants);
+
+    this.completionChartData = {
+      ...this.completionChartData,
+      labels: ['Completed', 'In Progress', 'Not Started'],
       datasets: [{
         ...this.completionChartData.datasets[0],
         data: [completed, inProgress, notStarted]
@@ -179,7 +472,11 @@ export class DashboardComponent implements OnInit {
   }
 
   getCompletionRate(): number {
-    return this.stats?.completion_rate || 0;
+    if (this.viewMode === 'courses') {
+      return this.stats?.completion_rate || 0;
+    } else {
+      return this.programStats?.completion_rate || 0;
+    }
   }
 
   getCompletionRateColor(): string {

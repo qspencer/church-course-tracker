@@ -13,6 +13,7 @@ import { PairingsManagementComponent } from './pairings-management/pairings-mana
 import { SessionsManagementComponent } from './sessions-management/sessions-management.component';
 import { ProgressManagementComponent } from './progress-management/progress-management.component';
 import { ConfirmDialogComponent } from '../../shared/confirm-dialog/confirm-dialog.component';
+import { BulkEnrollmentDialogComponent } from '../enrollments/bulk-enrollment-dialog/bulk-enrollment-dialog.component';
 
 @Component({
   selector: 'app-programs',
@@ -45,7 +46,8 @@ export class ProgramsComponent implements OnInit {
 
   loadPrograms(): void {
     this.isLoading = true;
-    this.programService.getPrograms().subscribe({
+    // Only load active programs by default (soft-deleted programs have is_active=false)
+    this.programService.getPrograms({ is_active: true }).subscribe({
       next: (programs) => {
         this.dataSource.data = programs;
         this.isLoading = false;
@@ -72,6 +74,19 @@ export class ProgramsComponent implements OnInit {
       width: '1000px',
       maxWidth: '95vw',
       data: { program: program || null }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.loadPrograms();
+      }
+    });
+  }
+
+  openBulkImportDialog(): void {
+    const dialogRef = this.dialog.open(BulkEnrollmentDialogComponent, {
+      width: '600px',
+      data: { targetType: 'program' }
     });
 
     dialogRef.afterClosed().subscribe(result => {

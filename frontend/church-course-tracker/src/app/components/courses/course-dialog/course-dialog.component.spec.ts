@@ -16,7 +16,10 @@ import { MatChipsModule } from '@angular/material/chips';
 
 import { CourseDialogComponent, CourseDialogData } from './course-dialog.component';
 import { CourseService } from '../../../services/course.service';
-import { Course } from '../../../models';
+import { UserService } from '../../../services/user.service';
+import { Course, User } from '../../../models';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 
 describe('CourseDialogComponent', () => {
   let component: CourseDialogComponent;
@@ -46,6 +49,9 @@ describe('CourseDialogComponent', () => {
     courseSpy.updateCourse.and.returnValue(of(mockCourse));
     courseSpy.getAvailablePrerequisites.and.returnValue(of([]));
     
+    const userSpy = jasmine.createSpyObj('UserService', ['getUsers']);
+    userSpy.getUsers.and.returnValue(of([]));
+    
     const matDialogRefSpy = jasmine.createSpyObj('MatDialogRef', ['close']);
     const matSnackBarSpy = jasmine.createSpyObj('MatSnackBar', ['open']);
 
@@ -64,9 +70,12 @@ describe('CourseDialogComponent', () => {
       ],
       providers: [
         { provide: CourseService, useValue: courseSpy },
+        { provide: UserService, useValue: userSpy },
         { provide: MatDialogRef, useValue: matDialogRefSpy },
         { provide: MAT_DIALOG_DATA, useFactory: createMockDialogData },
-        { provide: MatSnackBar, useValue: matSnackBarSpy }
+        { provide: MatSnackBar, useValue: matSnackBarSpy },
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting()
       ]
     }).compileComponents();
 
@@ -266,24 +275,32 @@ describe('CourseDialogComponent', () => {
 
   describe('getErrorMessage', () => {
     it('should return required error message', () => {
+      const titleField = component.courseForm.get('title');
+      titleField?.markAsTouched();
       const message = component.getErrorMessage('title');
       expect(message).toBe('title is required');
     });
 
     it('should return minlength error message', () => {
-      component.courseForm.get('title')?.setValue('ab');
+      const titleField = component.courseForm.get('title');
+      titleField?.setValue('ab');
+      titleField?.markAsTouched();
       const message = component.getErrorMessage('title');
       expect(message).toBe('title must be at least 3 characters');
     });
 
     it('should return min value error message', () => {
-      component.courseForm.get('duration_weeks')?.setValue(0);
+      const durationField = component.courseForm.get('duration_weeks');
+      durationField?.setValue(0);
+      durationField?.markAsTouched();
       const message = component.getErrorMessage('duration_weeks');
       expect(message).toBe('duration_weeks must be at least 1');
     });
 
     it('should return max value error message', () => {
-      component.courseForm.get('duration_weeks')?.setValue(60);
+      const durationField = component.courseForm.get('duration_weeks');
+      durationField?.setValue(60);
+      durationField?.markAsTouched();
       const message = component.getErrorMessage('duration_weeks');
       expect(message).toBe('duration_weeks must be at most 52');
     });
@@ -309,6 +326,9 @@ describe('CourseDialogComponent', () => {
       const editMatDialogRefSpy = jasmine.createSpyObj('MatDialogRef', ['close']);
       const editMatSnackBarSpy = jasmine.createSpyObj('MatSnackBar', ['open']);
       
+      const editUserSpy = jasmine.createSpyObj('UserService', ['getUsers']);
+      editUserSpy.getUsers.and.returnValue(of([]));
+      
       await TestBed.configureTestingModule({
         declarations: [CourseDialogComponent],
         imports: [
@@ -323,9 +343,12 @@ describe('CourseDialogComponent', () => {
         ],
         providers: [
           { provide: CourseService, useValue: editCourseSpy },
+          { provide: UserService, useValue: editUserSpy },
           { provide: MatDialogRef, useValue: editMatDialogRefSpy },
           { provide: MAT_DIALOG_DATA, useValue: editDialogData },
-          { provide: MatSnackBar, useValue: editMatSnackBarSpy }
+          { provide: MatSnackBar, useValue: editMatSnackBarSpy },
+          provideHttpClient(withInterceptorsFromDi()),
+          provideHttpClientTesting()
         ]
       }).compileComponents();
       
@@ -373,6 +396,9 @@ describe('CourseDialogComponent', () => {
       const createMatDialogRefSpy = jasmine.createSpyObj('MatDialogRef', ['close']);
       const createMatSnackBarSpy = jasmine.createSpyObj('MatSnackBar', ['open']);
       
+      const createUserSpy = jasmine.createSpyObj('UserService', ['getUsers']);
+      createUserSpy.getUsers.and.returnValue(of([]));
+      
       await TestBed.configureTestingModule({
         declarations: [CourseDialogComponent],
         imports: [
@@ -387,9 +413,12 @@ describe('CourseDialogComponent', () => {
         ],
         providers: [
           { provide: CourseService, useValue: createCourseSpy },
+          { provide: UserService, useValue: createUserSpy },
           { provide: MatDialogRef, useValue: createMatDialogRefSpy },
           { provide: MAT_DIALOG_DATA, useValue: createDialogData },
-          { provide: MatSnackBar, useValue: createMatSnackBarSpy }
+          { provide: MatSnackBar, useValue: createMatSnackBarSpy },
+          provideHttpClient(withInterceptorsFromDi()),
+          provideHttpClientTesting()
         ]
       }).compileComponents();
 

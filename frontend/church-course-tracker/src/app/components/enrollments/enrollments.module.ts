@@ -20,6 +20,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatRadioModule } from '@angular/material/radio';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 
 import { EnrollmentsComponent } from './enrollments.component';
 import { EnrollmentDialogComponent } from './enrollment-dialog/enrollment-dialog.component';
@@ -54,7 +55,11 @@ const routes: Routes = [
     MatChipsModule,
     MatTooltipModule,
     MatCheckboxModule,
-    MatRadioModule
+    MatRadioModule,
+    MatButtonToggleModule
+  ],
+  exports: [
+    BulkEnrollmentDialogComponent
   ]
 })
 export class EnrollmentsModule { }

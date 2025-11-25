@@ -7,6 +7,17 @@ export interface DashboardStats {
   completion_rate: number;
 }
 
+export interface ProgramStats {
+  total_programs: number;
+  active_programs: number;
+  total_participants: number;
+  active_participants: number;
+  total_pairings: number;
+  active_pairings: number;
+  total_sessions: number;
+  completion_rate: number;
+}
+
 export interface CourseStats {
   course_id: number;
   course_title: string;

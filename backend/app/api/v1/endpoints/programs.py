@@ -4,12 +4,18 @@ Program API endpoints
 
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.api.v1.endpoints.auth import get_current_active_user, get_current_admin_user
 from app.core.database import get_db
-from app.schemas.program import Program, ProgramCreate, ProgramUpdate
+from app.schemas.program import (
+    Program, 
+    ProgramCreate, 
+    ProgramUpdate,
+    BulkImportParticipantsFromPCEventRequest,
+    BulkImportParticipantsFromPCListRequest
+)
 from app.schemas.program_admin import ProgramAdmin, ProgramAdminCreate, ProgramAdminUpdate
 from app.schemas.program_participant import (
     ProgramParticipant,
@@ -273,7 +279,7 @@ async def update_program_admin(
         )
     
     # Check if user is program admin or system admin
-    if not program_service.is_program_admin(admin.program_id, current_user.id):
+    if not program_service.is_program_admin(admin.program_id, current_user["id"]):
         from app.api.v1.endpoints.auth import get_current_admin_user
         try:
             await get_current_admin_user(current_user=current_user)
@@ -311,7 +317,7 @@ async def remove_program_admin(
         )
     
     # Check if user is program admin or system admin
-    if not program_service.is_program_admin(admin.program_id, current_user.id):
+    if not program_service.is_program_admin(admin.program_id, current_user["id"]):
         from app.api.v1.endpoints.auth import get_current_admin_user
         try:
             await get_current_admin_user(current_user=current_user)
@@ -330,6 +336,97 @@ async def remove_program_admin(
 
 
 # Program Participant endpoints
+# NOTE: Bulk import routes must come BEFORE parameterized routes to avoid route conflicts
+@router.get("/participants", response_model=List[ProgramParticipant])
+async def get_all_program_participants(
+    status: Optional[str] = Query(None, description="Filter by status (active, paused, completed, ended)"),
+    skip: int = Query(0, ge=0, description="Number of records to skip"),
+    limit: int = Query(100, ge=1, le=1000, description="Number of records to return"),
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_active_user),
+):
+    """Get all participants across all programs"""
+    program_service = ProgramService(db)
+    participants = program_service.get_all_participants(status=status, skip=skip, limit=limit)
+    # Explicitly convert to schemas to ensure proper serialization
+    return [ProgramParticipant.model_validate(p) for p in participants]
+
+
+@router.post(
+    "/participants/bulk-from-pc-event",
+    response_model=List[ProgramParticipant],
+    status_code=status.HTTP_201_CREATED
+)
+async def bulk_import_participants_from_pc_event(
+    import_data: BulkImportParticipantsFromPCEventRequest,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_active_user),
+):
+    """Bulk import participants from a Planning Center Registration event"""
+    # Check if user has permission (admin/staff only)
+    if current_user["role"] not in ["admin", "staff"]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only admin and staff users can bulk import from Planning Center events",
+        )
+    
+    program_service = ProgramService(db)
+    try:
+        participants = program_service.bulk_import_participants_from_pc_event(
+            program_id=import_data.program_id,
+            pc_event_id=import_data.pc_event_id,
+            role_name=import_data.role_name,
+            created_by=current_user["id"],
+            status_filter=import_data.status_filter,
+            update_existing=import_data.update_existing,
+        )
+        return participants
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to bulk import from Planning Center event: {str(e)}"
+        )
+
+
+@router.post(
+    "/participants/bulk-from-pc-list",
+    response_model=List[ProgramParticipant],
+    status_code=status.HTTP_201_CREATED
+)
+async def bulk_import_participants_from_pc_list(
+    import_data: BulkImportParticipantsFromPCListRequest,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_active_user),
+):
+    """Bulk import participants from a Planning Center List"""
+    # Check if user has permission (admin/staff only)
+    if current_user["role"] not in ["admin", "staff"]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only admin and staff users can bulk import from Planning Center lists",
+        )
+    
+    program_service = ProgramService(db)
+    try:
+        participants = program_service.bulk_import_participants_from_pc_list(
+            program_id=import_data.program_id,
+            pc_list_id=import_data.pc_list_id,
+            role_name=import_data.role_name,
+            created_by=current_user["id"],
+            update_existing=import_data.update_existing,
+        )
+        return participants
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to bulk import from Planning Center list: {str(e)}"
+        )
+
+
 @router.get("/{program_id}/participants", response_model=List[ProgramParticipant])
 async def get_program_participants(
     program_id: int,
@@ -413,7 +510,7 @@ async def update_program_participant(
         )
     
     # Check if user is program admin or system admin
-    if not program_service.is_program_admin(participant.program_id, current_user.id):
+    if not program_service.is_program_admin(participant.program_id, current_user["id"]):
         from app.api.v1.endpoints.auth import get_current_admin_user
         try:
             await get_current_admin_user(current_user=current_user)
@@ -452,7 +549,7 @@ async def remove_program_participant(
         )
     
     # Check if user is program admin or system admin
-    if not program_service.is_program_admin(participant.program_id, current_user.id):
+    if not program_service.is_program_admin(participant.program_id, current_user["id"]):
         from app.api.v1.endpoints.auth import get_current_admin_user
         try:
             await get_current_admin_user(current_user=current_user)
@@ -554,7 +651,7 @@ async def update_program_pairing(
         )
     
     # Check if user is program admin or system admin
-    if not program_service.is_program_admin(pairing.program_id, current_user.id):
+    if not program_service.is_program_admin(pairing.program_id, current_user["id"]):
         from app.api.v1.endpoints.auth import get_current_admin_user
         try:
             await get_current_admin_user(current_user=current_user)
@@ -593,7 +690,7 @@ async def remove_program_pairing(
         )
     
     # Check if user is program admin or system admin
-    if not program_service.is_program_admin(pairing.program_id, current_user.id):
+    if not program_service.is_program_admin(pairing.program_id, current_user["id"]):
         from app.api.v1.endpoints.auth import get_current_admin_user
         try:
             await get_current_admin_user(current_user=current_user)
@@ -688,7 +785,7 @@ async def update_program_session(
         )
     
     # Check if user is program admin or system admin
-    if not program_service.is_program_admin(session.program_id, current_user.id):
+    if not program_service.is_program_admin(session.program_id, current_user["id"]):
         from app.api.v1.endpoints.auth import get_current_admin_user
         try:
             await get_current_admin_user(current_user=current_user)
@@ -725,7 +822,7 @@ async def delete_program_session(
         )
     
     # Check if user is program admin or system admin
-    if not program_service.is_program_admin(session.program_id, current_user.id):
+    if not program_service.is_program_admin(session.program_id, current_user["id"]):
         from app.api.v1.endpoints.auth import get_current_admin_user
         try:
             await get_current_admin_user(current_user=current_user)
@@ -829,7 +926,7 @@ async def update_program_progress(
         )
     
     # Check if user is program admin or system admin
-    if not program_service.is_program_admin(progress.program_id, current_user.id):
+    if not program_service.is_program_admin(progress.program_id, current_user["id"]):
         from app.api.v1.endpoints.auth import get_current_admin_user
         try:
             await get_current_admin_user(current_user=current_user)
@@ -866,7 +963,7 @@ async def delete_program_progress(
         )
     
     # Check if user is program admin or system admin
-    if not program_service.is_program_admin(progress.program_id, current_user.id):
+    if not program_service.is_program_admin(progress.program_id, current_user["id"]):
         from app.api.v1.endpoints.auth import get_current_admin_user
         try:
             await get_current_admin_user(current_user=current_user)

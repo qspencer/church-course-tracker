@@ -140,3 +140,31 @@ class Program(ProgramBase):
     class Config:
         from_attributes = True
 
+
+class BulkImportParticipantsFromPCEventRequest(BaseModel):
+    """Schema for bulk import participants from Planning Center event"""
+    
+    program_id: int = Field(..., description="Program ID to add participants to")
+    pc_event_id: str = Field(..., description="Planning Center event ID")
+    role_name: str = Field(..., description="Role name for imported participants")
+    status_filter: Optional[List[str]] = Field(
+        default=['registered', 'confirmed'],
+        description="Only import registrations with these statuses"
+    )
+    update_existing: bool = Field(
+        default=True,
+        description="Whether to update existing participants"
+    )
+
+
+class BulkImportParticipantsFromPCListRequest(BaseModel):
+    """Schema for bulk import participants from Planning Center list"""
+    
+    program_id: int = Field(..., description="Program ID to add participants to")
+    pc_list_id: str = Field(..., description="Planning Center list ID")
+    role_name: str = Field(..., description="Role name for imported participants")
+    update_existing: bool = Field(
+        default=True,
+        description="Whether to update existing participants"
+    )
+

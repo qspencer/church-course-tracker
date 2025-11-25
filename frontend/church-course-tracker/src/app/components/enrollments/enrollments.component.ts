@@ -5,9 +5,11 @@ import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { EnrollmentService } from '../../services/enrollment.service';
+import { ProgramService } from '../../services/program.service';
 import { CourseService } from '../../services/course.service';
 import { MemberService } from '../../services/member.service';
 import { Enrollment, Course, Person } from '../../models';
+import { ProgramParticipant, Program } from '../../models/program.model';
 import { EnrollmentDialogComponent } from './enrollment-dialog/enrollment-dialog.component';
 import { BulkEnrollmentDialogComponent } from './bulk-enrollment-dialog/bulk-enrollment-dialog.component';
 import { ConfirmDialogComponent } from '../../shared/confirm-dialog/confirm-dialog.component';
@@ -18,15 +20,20 @@ import { ConfirmDialogComponent } from '../../shared/confirm-dialog/confirm-dial
   styleUrls: ['./enrollments.component.scss']
 })
 export class EnrollmentsComponent implements OnInit {
+  viewMode: 'courses' | 'programs' = 'courses';
   displayedColumns: string[] = ['person_name', 'course_title', 'status', 'progress_percentage', 'enrolled_at', 'actions'];
-  dataSource = new MatTableDataSource<Enrollment>();
+  dataSource = new MatTableDataSource<any>();
   isLoading = true;
+  enrollments: Enrollment[] = [];
+  participants: ProgramParticipant[] = [];
+  programs: Program[] = [];
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
   constructor(
     private enrollmentService: EnrollmentService,
+    private programService: ProgramService,
     private courseService: CourseService,
     private memberService: MemberService,
     private dialog: MatDialog,
@@ -34,7 +41,8 @@ export class EnrollmentsComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.loadEnrollments();
+    this.loadData();
+    this.loadPrograms();
   }
 
   ngAfterViewInit(): void {
@@ -42,11 +50,25 @@ export class EnrollmentsComponent implements OnInit {
     this.dataSource.sort = this.sort;
   }
 
+  onViewModeChange(): void {
+    this.loadData();
+  }
+
+  loadData(): void {
+    if (this.viewMode === 'courses') {
+      this.loadEnrollments();
+    } else {
+      this.loadParticipants();
+    }
+  }
+
   loadEnrollments(): void {
     this.isLoading = true;
     this.enrollmentService.getEnrollments().subscribe({
       next: (enrollments) => {
+        this.enrollments = enrollments;
         this.dataSource.data = enrollments;
+        this.updateDisplayedColumns();
         this.isLoading = false;
       },
       error: (error) => {
@@ -54,6 +76,41 @@ export class EnrollmentsComponent implements OnInit {
         this.isLoading = false;
       }
     });
+  }
+
+  loadParticipants(): void {
+    this.isLoading = true;
+    this.programService.getAllProgramParticipants('active').subscribe({
+      next: (participants) => {
+        this.participants = participants;
+        this.dataSource.data = participants;
+        this.updateDisplayedColumns();
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Error loading participants:', error);
+        this.isLoading = false;
+      }
+    });
+  }
+
+  loadPrograms(): void {
+    this.programService.getPrograms({ is_active: true }).subscribe({
+      next: (programs) => {
+        this.programs = programs;
+      },
+      error: (error) => {
+        console.error('Error loading programs:', error);
+      }
+    });
+  }
+
+  updateDisplayedColumns(): void {
+    if (this.viewMode === 'courses') {
+      this.displayedColumns = ['person_name', 'course_title', 'status', 'progress_percentage', 'enrolled_at', 'actions'];
+    } else {
+      this.displayedColumns = ['person_name', 'program_title', 'role_name', 'status', 'progress_percentage', 'start_date', 'actions'];
+    }
   }
 
   applyFilter(event: Event): void {
@@ -80,12 +137,13 @@ export class EnrollmentsComponent implements OnInit {
 
   openBulkImportDialog(): void {
     const dialogRef = this.dialog.open(BulkEnrollmentDialogComponent, {
-      width: '500px'
+      width: '600px',
+      data: { targetType: this.viewMode === 'courses' ? 'course' : 'program' }
     });
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.loadEnrollments();
+        this.loadData();
       }
     });
   }
@@ -177,5 +235,32 @@ export class EnrollmentsComponent implements OnInit {
         this.snackBar.open('Failed to load enrollment details', 'Close', { duration: 3000 });
       }
     });
+  }
+
+  getPersonName(item: any): string {
+    if (this.viewMode === 'courses') {
+      return `${item.person?.first_name || ''} ${item.person?.last_name || ''}`.trim() || 'Unknown';
+    } else {
+      // For participants, check if person data is included
+      if (item.person) {
+        return `${item.person?.first_name || ''} ${item.person?.last_name || ''}`.trim() || 'Unknown';
+      } else if (item.people) {
+        return `${item.people?.first_name || ''} ${item.people?.last_name || ''}`.trim() || 'Unknown';
+      }
+      return `Participant ${item.id}`;
+    }
+  }
+
+  getPersonEmail(item: any): string {
+    if (this.viewMode === 'courses') {
+      return item.person?.email || '';
+    } else {
+      return item.person?.email || item.people?.email || '';
+    }
+  }
+
+  getProgramTitle(programId: number): string {
+    const program = this.programs.find(p => p.id === programId);
+    return program?.title || `Program ${programId}`;
   }
 }

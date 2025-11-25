@@ -9,6 +9,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 
 // Chart.js
 import { NgChartsModule } from 'ng2-charts';
@@ -32,6 +33,7 @@ const routes: Routes = [
     MatProgressSpinnerModule,
     MatProgressBarModule,
     MatChipsModule,
+    MatButtonToggleModule,
     NgChartsModule
   ]
 })

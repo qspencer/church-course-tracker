@@ -1,11 +1,19 @@
-<h2 mat-dialog-title>Import Enrollments from Planning Center</h2>
+<h2 mat-dialog-title>Import from Planning Center</h2>
 
 <div mat-dialog-content>
   <p class="dialog-description">
-    Select a source from Planning Center to import people from, and choose the course to enroll them in.
+    Select a source from Planning Center to import people from, and choose the target course or program.
   </p>
 
   <form [formGroup]="form">
+    <!-- Target Type Selection -->
+    <div class="target-type-toggle">
+      <mat-radio-group formControlName="target_type" color="primary">
+        <mat-radio-button value="course">Import to Course</mat-radio-button>
+        <mat-radio-button value="program">Import to Program</mat-radio-button>
+      </mat-radio-group>
+    </div>
+
     <!-- Source Type Selection -->
     <div class="source-type-toggle">
       <mat-radio-group formControlName="source_type" color="primary">
@@ -43,8 +51,8 @@
       </mat-error>
     </mat-form-field>
 
-    <!-- Target Course Selection -->
-    <mat-form-field appearance="outline" class="full-width">
+    <!-- Target Course Selection (shown when target_type is 'course') -->
+    <mat-form-field appearance="outline" class="full-width" *ngIf="targetType === 'course'">
       <mat-label>Target Course</mat-label>
       <mat-select formControlName="course_id">
         <mat-option *ngIf="isLoadingCourses">Loading courses...</mat-option>
@@ -57,10 +65,38 @@
       </mat-error>
     </mat-form-field>
 
+    <!-- Target Program Selection (shown when target_type is 'program') -->
+    <mat-form-field appearance="outline" class="full-width" *ngIf="targetType === 'program'">
+      <mat-label>Target Program</mat-label>
+      <mat-select formControlName="program_id">
+        <mat-option *ngIf="isLoadingPrograms">Loading programs...</mat-option>
+        <mat-option *ngFor="let program of programs" [value]="program.id">
+          {{ program.title }}
+        </mat-option>
+      </mat-select>
+      <mat-error *ngIf="form.get('program_id')?.hasError('required')">
+        Program is required
+      </mat-error>
+    </mat-form-field>
+
+    <!-- Role Selection (shown when target_type is 'program') -->
+    <mat-form-field appearance="outline" class="full-width" *ngIf="targetType === 'program'">
+      <mat-label>Participant Role</mat-label>
+      <mat-select formControlName="role_name">
+        <mat-option *ngFor="let role of getSelectedProgramRoles()" [value]="role">
+          {{ role }}
+        </mat-option>
+      </mat-select>
+      <mat-hint>Select the role for imported participants</mat-hint>
+      <mat-error *ngIf="form.get('role_name')?.hasError('required')">
+        Role is required
+      </mat-error>
+    </mat-form-field>
+
     <!-- Options -->
     <div class="options-container">
       <mat-checkbox formControlName="update_existing">
-        Update existing enrollments
+        Update existing {{ targetType === 'course' ? 'enrollments' : 'participants' }}
       </mat-checkbox>
     </div>
   </form>
@@ -72,8 +108,8 @@
     mat-raised-button 
     color="primary" 
     (click)="onSubmit()" 
-    [disabled]="form.invalid || isSubmitting || isLoadingEvents || isLoadingCourses || (sourceType === 'list' && isLoadingLists)">
-    <span *ngIf="!isSubmitting">Import Enrollments</span>
+    [disabled]="form.invalid || isSubmitting || isLoadingEvents || (targetType === 'course' && isLoadingCourses) || (targetType === 'program' && isLoadingPrograms) || (sourceType === 'list' && isLoadingLists)">
+    <span *ngIf="!isSubmitting">{{ targetType === 'course' ? 'Import Enrollments' : 'Import Participants' }}</span>
     <span *ngIf="isSubmitting">Processing...</span>
   </button>
 </div>

@@ -57,10 +57,7 @@ describe('CourseService', () => {
         expect(courses).toEqual(mockCourses);
       });
 
-      // Service converts HTTP to HTTPS, so expect HTTPS URL
-      const expectedUrl = environment.apiUrl.startsWith('https://') 
-        ? `${environment.apiUrl}/courses`
-        : `https://${environment.apiUrl.replace(/^https?:\/\//, '')}/courses`;
+      const expectedUrl = `${environment.apiUrl}/courses`;
       
       const req = httpMock.expectOne(expectedUrl);
       expect(req.request.method).toBe('GET');
@@ -72,10 +69,7 @@ describe('CourseService', () => {
       
       service.getCourses(params).subscribe();
 
-      // Service converts HTTP to HTTPS, so expect HTTPS URL
-      const expectedUrl = environment.apiUrl.startsWith('https://') 
-        ? `${environment.apiUrl}/courses`
-        : `https://${environment.apiUrl.replace(/^https?:\/\//, '')}/courses`;
+      const expectedUrl = `${environment.apiUrl}/courses`;
       
       const req = httpMock.expectOne(request => 
         request.url === expectedUrl &&

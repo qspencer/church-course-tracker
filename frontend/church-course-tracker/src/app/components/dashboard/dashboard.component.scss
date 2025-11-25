@@ -16,6 +16,16 @@
     font-size: 32px;
     font-weight: 500;
   }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+
+    mat-button-toggle-group {
+      margin-right: 8px;
+    }
+  }
 }
 
 .loading-container {
@@ -225,6 +235,25 @@
     
     h1 {
       font-size: 24px;
+    }
+
+    .header-actions {
+      flex-direction: column;
+      width: 100%;
+      gap: 12px;
+
+      mat-button-toggle-group {
+        width: 100%;
+        margin-right: 0;
+
+        mat-button-toggle {
+          flex: 1;
+        }
+      }
+
+      button {
+        width: 100%;
+      }
     }
   }
   

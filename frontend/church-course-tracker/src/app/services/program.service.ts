@@ -82,6 +82,14 @@ export class ProgramService {
   }
 
   // Program Participant methods
+  getAllProgramParticipants(status?: string): Observable<ProgramParticipant[]> {
+    let httpParams = new HttpParams();
+    if (status) {
+      httpParams = httpParams.set('status', status);
+    }
+    return this.http.get<ProgramParticipant[]>(`${this.API_URL}/participants`, { params: httpParams });
+  }
+
   getProgramParticipants(programId: number, status?: string): Observable<ProgramParticipant[]> {
     let httpParams = new HttpParams();
     if (status) {
@@ -163,6 +171,26 @@ export class ProgramService {
 
   deleteProgramProgress(progressId: number): Observable<void> {
     return this.http.delete<void>(`${this.API_URL}/progress/${progressId}`);
+  }
+
+  // Bulk import participants from Planning Center
+  bulkImportParticipantsFromPCEvent(data: { 
+    program_id: number, 
+    pc_event_id: string, 
+    role_name: string,
+    status_filter?: string[], 
+    update_existing?: boolean 
+  }): Observable<ProgramParticipant[]> {
+    return this.http.post<ProgramParticipant[]>(`${this.API_URL}/participants/bulk-from-pc-event`, data);
+  }
+
+  bulkImportParticipantsFromPCList(data: { 
+    program_id: number, 
+    pc_list_id: string, 
+    role_name: string,
+    update_existing?: boolean 
+  }): Observable<ProgramParticipant[]> {
+    return this.http.post<ProgramParticipant[]>(`${this.API_URL}/participants/bulk-from-pc-list`, data);
   }
 }
 
