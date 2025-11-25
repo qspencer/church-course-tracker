@@ -56,6 +56,9 @@ test.describe('Course Management Tests', () => {
         await durationInput.fill('12');
       }
       
+      // Note: New optional fields (instructors, locations, delivery_modes) can be tested here if needed
+      // They are optional, so the test will pass without them
+      
       // Save button in dialog
       const saveButton = page.locator('button:has-text("Save"), button:has-text("Create"), button[type="submit"]').first();
       await saveButton.click();

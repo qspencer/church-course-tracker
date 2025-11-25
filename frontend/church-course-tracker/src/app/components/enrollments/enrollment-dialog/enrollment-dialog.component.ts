@@ -23,6 +23,7 @@ export class EnrollmentDialogComponent implements OnInit {
   isEditing: boolean;
   viewMode = false;
   isLoading = false;
+  isSubmitted = false; // Track if form has been submitted
   courses: Course[] = [];
   members: Person[] = [];
   statusOptions = [
@@ -92,6 +93,10 @@ export class EnrollmentDialogComponent implements OnInit {
     if (this.viewMode) {
       return;
     }
+    
+    // Mark form as submitted to show validation errors
+    this.isSubmitted = true;
+    
     if (this.enrollmentForm.valid) {
       this.isLoading = true;
       const formValue = this.enrollmentForm.value;
@@ -145,6 +150,12 @@ export class EnrollmentDialogComponent implements OnInit {
       return `${fieldName.replace('_', ' ')} is required`;
     }
     return '';
+  }
+
+  shouldShowError(fieldName: string): boolean {
+    const field = this.enrollmentForm.get(fieldName);
+    // Only show error if field is invalid AND (touched OR form submitted)
+    return !!(field && field.invalid && (field.touched || this.isSubmitted));
   }
 
   getPersonDisplayName(person: Person): string {

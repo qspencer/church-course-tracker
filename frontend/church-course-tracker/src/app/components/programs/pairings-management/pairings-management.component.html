@@ -1,0 +1,163 @@
+<div class="pairings-management">
+  <div class="header">
+    <h2>Manage Pairings - {{ program.title }}</h2>
+    <button mat-icon-button (click)="onClose()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <div class="actions-bar">
+    <button 
+      mat-raised-button 
+      color="primary" 
+      (click)="openPairingDialog()"
+      [disabled]="!canCreatePairing()">
+      <mat-icon>add</mat-icon>
+      Create Pairing
+    </button>
+    <div *ngIf="!canCreatePairing()" class="warning-message">
+      <mat-icon>warning</mat-icon>
+      <span>You need both primary and secondary participants to create pairings</span>
+    </div>
+
+    <div class="filters">
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Filter by Status</mat-label>
+        <mat-select [(ngModel)]="statusFilter" (selectionChange)="onStatusFilterChange()">
+          <mat-option value="">All Statuses</mat-option>
+          <mat-option value="active">Active</mat-option>
+          <mat-option value="paused">Paused</mat-option>
+          <mat-option value="completed">Completed</mat-option>
+          <mat-option value="ended">Ended</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="search-field">
+        <mat-label>Search</mat-label>
+        <input matInput (keyup)="applyFilter($event)" placeholder="Search by participant names">
+        <mat-icon matSuffix>search</mat-icon>
+      </mat-form-field>
+    </div>
+  </div>
+
+  <div class="content">
+    <!-- Loading Spinner -->
+    <div *ngIf="isLoading" class="loading-container">
+      <mat-spinner></mat-spinner>
+      <p>Loading pairings...</p>
+    </div>
+
+    <!-- Pairings Table -->
+    <div *ngIf="!isLoading" class="table-container">
+      <table mat-table [dataSource]="dataSource" matSort class="pairings-table">
+        <!-- Primary Participant Column -->
+        <ng-container matColumnDef="primary_participant">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Primary Participant</th>
+          <td mat-cell *matCellDef="let pairing">
+            <div class="participant-info">
+              <div class="participant-name">{{ getParticipantName(pairing.primary_participant_id) }}</div>
+              <div class="participant-role">
+                <mat-chip [color]="'primary'" selected>
+                  {{ getParticipantRole(pairing.primary_participant_id) }}
+                </mat-chip>
+              </div>
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- Secondary Participant Column -->
+        <ng-container matColumnDef="secondary_participant">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Secondary Participant</th>
+          <td mat-cell *matCellDef="let pairing">
+            <div class="participant-info">
+              <div class="participant-name">{{ getParticipantName(pairing.secondary_participant_id) }}</div>
+              <div class="participant-role">
+                <mat-chip [color]="'accent'" selected>
+                  {{ getParticipantRole(pairing.secondary_participant_id) }}
+                </mat-chip>
+              </div>
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- Status Column -->
+        <ng-container matColumnDef="status">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Status</th>
+          <td mat-cell *matCellDef="let pairing">
+            <mat-chip [color]="getStatusColor(pairing.status)" selected>
+              {{ pairing.status | titlecase }}
+            </mat-chip>
+          </td>
+        </ng-container>
+
+        <!-- Start Date Column -->
+        <ng-container matColumnDef="start_date">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Start Date</th>
+          <td mat-cell *matCellDef="let pairing">
+            {{ pairing.start_date | date:'short' }}
+          </td>
+        </ng-container>
+
+        <!-- Actions Column -->
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef>Actions</th>
+          <td mat-cell *matCellDef="let pairing">
+            <div class="actions-container">
+              <button 
+                mat-icon-button 
+                color="primary" 
+                (click)="viewPairing(pairing)"
+                matTooltip="View Details">
+                <mat-icon>visibility</mat-icon>
+              </button>
+              
+              <button 
+                mat-icon-button 
+                color="accent" 
+                (click)="editPairing(pairing)"
+                matTooltip="Edit">
+                <mat-icon>edit</mat-icon>
+              </button>
+              
+              <button 
+                mat-icon-button 
+                color="warn" 
+                (click)="deletePairing(pairing)"
+                matTooltip="Remove">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      </table>
+
+      <!-- No Data Message -->
+      <div *ngIf="dataSource.data.length === 0" class="no-data">
+        <mat-icon>link</mat-icon>
+        <h3>No pairings found</h3>
+        <p *ngIf="canCreatePairing()">Create pairings to connect participants</p>
+        <p *ngIf="!canCreatePairing()">Add participants with primary and secondary roles to create pairings</p>
+        <button 
+          *ngIf="canCreatePairing()"
+          mat-raised-button 
+          color="primary" 
+          (click)="openPairingDialog()">
+          <mat-icon>add</mat-icon>
+          Create Pairing
+        </button>
+      </div>
+
+      <!-- Paginator -->
+      <mat-paginator 
+        [pageSizeOptions]="[5, 10, 25, 100]"
+        [pageSize]="10"
+        showFirstLastButtons>
+      </mat-paginator>
+    </div>
+  </div>
+</div>
+
+

@@ -4,6 +4,9 @@ export interface Course {
   description: string;
   duration_weeks: number;
   prerequisites?: any;
+  instructors?: (number | string)[]; // User IDs (numbers) and/or "TBD" string
+  locations?: string[];
+  delivery_modes?: string[];
   planning_center_event_id?: string;
   planning_center_event_name?: string;
   event_start_date?: string;
@@ -29,6 +32,9 @@ export interface CourseCreate {
   description: string;
   duration_weeks: number;
   prerequisites?: number[];
+  instructors?: (number | string)[]; // User IDs (numbers) and/or "TBD" string
+  locations?: string[];
+  delivery_modes?: string[];
 }
 
 export interface CourseUpdate {
@@ -37,6 +43,9 @@ export interface CourseUpdate {
   duration_weeks?: number;
   is_active?: boolean;
   prerequisites?: number[];
+  instructors?: (number | string)[]; // User IDs (numbers) and/or "TBD" string
+  locations?: string[];
+  delivery_modes?: string[];
 }
 
 export interface Content {

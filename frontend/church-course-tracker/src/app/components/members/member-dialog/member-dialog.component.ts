@@ -20,6 +20,7 @@ export class MemberDialogComponent implements OnInit {
   isEditing: boolean;
   viewMode: boolean;
   isLoading = false;
+  isSubmitted = false; // Track if form has been submitted
   member: Person | null = null;
 
          constructor(
@@ -76,6 +77,9 @@ export class MemberDialogComponent implements OnInit {
   }
 
   onSubmit(): void {
+    // Mark form as submitted to show validation errors
+    this.isSubmitted = true;
+    
     if (this.memberForm.valid) {
       this.isLoading = true;
       const formValue = { ...this.memberForm.value };
@@ -131,5 +135,11 @@ export class MemberDialogComponent implements OnInit {
       return 'Please enter a valid email address';
     }
     return '';
+  }
+
+  shouldShowError(fieldName: string): boolean {
+    const field = this.memberForm.get(fieldName);
+    // Only show error if field is invalid AND (touched OR form submitted)
+    return !!(field && field.invalid && (field.touched || this.isSubmitted));
   }
 }

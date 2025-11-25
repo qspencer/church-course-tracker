@@ -1,0 +1,133 @@
+<div class="participant-dialog">
+  <h2 mat-dialog-title>
+    <span *ngIf="viewMode">Participant Details</span>
+    <span *ngIf="!viewMode && isEditing">Edit Participant</span>
+    <span *ngIf="!viewMode && !isEditing">Add Participant</span>
+  </h2>
+  
+  <mat-dialog-content>
+    <!-- View Mode: Read-only display -->
+    <div *ngIf="viewMode && data.participant" class="participant-details-view">
+      <div class="detail-section">
+        <h3 class="detail-label">Member</h3>
+        <p class="detail-value">{{ getMemberName(data.participant.people_id) }}</p>
+      </div>
+
+      <div class="detail-section">
+        <h3 class="detail-label">Role</h3>
+        <p class="detail-value">
+          <mat-chip [color]="getRoleColor(data.participant.role_name)" selected>
+            {{ data.participant.role_name }}
+          </mat-chip>
+        </p>
+      </div>
+
+      <div class="detail-row">
+        <div class="detail-item">
+          <h3 class="detail-label">Status</h3>
+          <p class="detail-value">
+            <mat-chip [color]="getStatusColor(data.participant.status)" selected>
+              {{ data.participant.status | titlecase }}
+            </mat-chip>
+          </p>
+        </div>
+        <div class="detail-item">
+          <h3 class="detail-label">Progress</h3>
+          <p class="detail-value">{{ data.participant.progress_percentage }}%</p>
+        </div>
+      </div>
+
+      <div class="detail-section" *ngIf="data.participant.notes">
+        <h3 class="detail-label">Notes</h3>
+        <p class="detail-value">{{ data.participant.notes }}</p>
+      </div>
+
+      <div class="detail-row" *ngIf="data.participant.start_date || data.participant.end_date">
+        <div class="detail-item" *ngIf="data.participant.start_date">
+          <h3 class="detail-label">Start Date</h3>
+          <p class="detail-value">{{ data.participant.start_date | date:'short' }}</p>
+        </div>
+        <div class="detail-item" *ngIf="data.participant.end_date">
+          <h3 class="detail-label">End Date</h3>
+          <p class="detail-value">{{ data.participant.end_date | date:'short' }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit/Create Mode: Form -->
+    <form [formGroup]="participantForm" *ngIf="!viewMode" class="participant-form">
+      <mat-form-field appearance="outline" class="full-width" floatLabel="always">
+        <mat-label>Member</mat-label>
+        <mat-select formControlName="people_id" [disabled]="isEditing">
+          <mat-option *ngFor="let member of members" [value]="member.id">
+            {{ member.first_name }} {{ member.last_name }}
+            <span *ngIf="member.email"> ({{ member.email }})</span>
+          </mat-option>
+        </mat-select>
+        <mat-error *ngIf="shouldShowError('people_id')">
+          Member is required
+        </mat-error>
+        <mat-spinner *ngIf="isLoading" diameter="20" matSuffix></mat-spinner>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width" floatLabel="always">
+        <mat-label>Role</mat-label>
+        <mat-select formControlName="role_name">
+          <mat-option *ngFor="let role of roleOptions" [value]="role">
+            {{ role }}
+          </mat-option>
+        </mat-select>
+        <mat-error *ngIf="shouldShowError('role_name')">
+          Role is required
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width" floatLabel="always">
+        <mat-label>Status</mat-label>
+        <mat-select formControlName="status">
+          <mat-option *ngFor="let status of statusOptions" [value]="status.value">
+            {{ status.label }}
+          </mat-option>
+        </mat-select>
+        <mat-error *ngIf="shouldShowError('status')">
+          Status is required
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Progress (%)</mat-label>
+        <input matInput type="number" formControlName="progress_percentage" min="0" max="100">
+        <mat-hint>Progress percentage (0-100)</mat-hint>
+        <mat-error *ngIf="shouldShowError('progress_percentage') && participantForm.get('progress_percentage')?.hasError('min')">
+          Progress must be at least 0
+        </mat-error>
+        <mat-error *ngIf="shouldShowError('progress_percentage') && participantForm.get('progress_percentage')?.hasError('max')">
+          Progress must be at most 100
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width" floatLabel="always">
+        <mat-label>Notes</mat-label>
+        <textarea matInput formControlName="notes" rows="3"></textarea>
+      </mat-form-field>
+    </form>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button (click)="onCancel()">
+      <span *ngIf="viewMode">Close</span>
+      <span *ngIf="!viewMode">Cancel</span>
+    </button>
+    <button 
+      *ngIf="!viewMode"
+      mat-raised-button 
+      color="primary" 
+      (click)="onSubmit()"
+      [disabled]="participantForm.invalid || isLoading">
+      <mat-spinner *ngIf="isLoading" diameter="20" style="display: inline-block; margin-right: 8px;"></mat-spinner>
+      <span *ngIf="isEditing">Update</span>
+      <span *ngIf="!isEditing">Add</span>
+    </button>
+  </mat-dialog-actions>
+</div>
+

@@ -1,8 +1,9 @@
 import { TestBed } from '@angular/core/testing';
-import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { EnrollmentService } from './enrollment.service';
 import { Enrollment, EnrollmentCreate, EnrollmentUpdate } from '../models';
 import { environment } from '../../environments/environment';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('EnrollmentService', () => {
   let service: EnrollmentService;
@@ -21,9 +22,9 @@ describe('EnrollmentService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
-      providers: [EnrollmentService]
-    });
+    imports: [],
+    providers: [EnrollmentService, provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
+});
 
     service = TestBed.inject(EnrollmentService);
     httpMock = TestBed.inject(HttpTestingController);
@@ -45,10 +46,7 @@ describe('EnrollmentService', () => {
         expect(enrollments).toEqual(mockEnrollments);
       });
 
-      // Service converts HTTP to HTTPS, so expect HTTPS URL
-      const expectedUrl = environment.apiUrl.startsWith('https://') 
-        ? `${environment.apiUrl}/enrollments`
-        : `https://${environment.apiUrl.replace(/^https?:\/\//, '')}/enrollments`;
+      const expectedUrl = `${environment.apiUrl}/enrollments`;
       
       const req = httpMock.expectOne(expectedUrl);
       expect(req.request.method).toBe('GET');
@@ -60,10 +58,7 @@ describe('EnrollmentService', () => {
       
       service.getEnrollments(params).subscribe();
 
-      // Service converts HTTP to HTTPS, so expect HTTPS URL
-      const expectedUrl = environment.apiUrl.startsWith('https://') 
-        ? `${environment.apiUrl}/enrollments`
-        : `https://${environment.apiUrl.replace(/^https?:\/\//, '')}/enrollments`;
+      const expectedUrl = `${environment.apiUrl}/enrollments`;
       
       const req = httpMock.expectOne(request => 
         request.url === expectedUrl &&

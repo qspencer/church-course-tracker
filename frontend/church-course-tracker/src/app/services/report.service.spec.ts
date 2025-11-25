@@ -1,8 +1,9 @@
 import { TestBed } from '@angular/core/testing';
-import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ReportService } from './report.service';
 import { DashboardStats, ProgressReport, ReportFilters } from '../models';
 import { environment } from '../../environments/environment';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('ReportService', () => {
   let service: ReportService;
@@ -44,9 +45,9 @@ describe('ReportService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
-      providers: [ReportService]
-    });
+    imports: [],
+    providers: [ReportService, provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
+});
 
     service = TestBed.inject(ReportService);
     httpMock = TestBed.inject(HttpTestingController);

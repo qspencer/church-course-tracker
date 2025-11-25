@@ -111,29 +111,29 @@
       <div class="name-row">
         <mat-form-field appearance="outline" class="half-width">
           <mat-label>First Name</mat-label>
-          <input matInput formControlName="first_name" placeholder="Enter first name">
-          <mat-error>{{ getErrorMessage('first_name') }}</mat-error>
+          <input matInput formControlName="first_name">
+          <mat-error *ngIf="shouldShowError('first_name')">{{ getErrorMessage('first_name') }}</mat-error>
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="half-width">
           <mat-label>Last Name</mat-label>
-          <input matInput formControlName="last_name" placeholder="Enter last name">
-          <mat-error>{{ getErrorMessage('last_name') }}</mat-error>
+          <input matInput formControlName="last_name">
+          <mat-error *ngIf="shouldShowError('last_name')">{{ getErrorMessage('last_name') }}</mat-error>
         </mat-form-field>
       </div>
 
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Email</mat-label>
-        <input matInput formControlName="email" type="email" placeholder="Enter email address">
+        <input matInput formControlName="email" type="email">
         <mat-icon matSuffix>email</mat-icon>
-        <mat-error>{{ getErrorMessage('email') }}</mat-error>
+        <mat-error *ngIf="shouldShowError('email')">{{ getErrorMessage('email') }}</mat-error>
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Phone</mat-label>
-        <input matInput formControlName="phone" type="tel" placeholder="Enter phone number">
+        <input matInput formControlName="phone" type="tel">
         <mat-icon matSuffix>phone</mat-icon>
-        <mat-error>{{ getErrorMessage('phone') }}</mat-error>
+        <mat-error *ngIf="shouldShowError('phone')">{{ getErrorMessage('phone') }}</mat-error>
       </mat-form-field>
 
       <!-- Planning Center ID is hidden but still tracked in the form -->

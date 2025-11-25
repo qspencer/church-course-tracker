@@ -22,7 +22,11 @@ from .planning_center_registrations_cache import \
 from .planning_center_sync_log import PlanningCenterSyncLog
 from .planning_center_webhook_events import PlanningCenterWebhookEvents
 from .progress import ContentCompletion
+from .program import Program, ProgramAdmin, ProgramParticipant, ProgramPairing
+from .program_content import ProgramContent, ProgramModule
+from .program_progress import ProgramProgress, ProgramSession
 from .role import Role
+from .shared_content import SharedContent
 from .user import User
 from .failed_login_attempt import FailedLoginAttempt
 from .user_preference import UserPreference
@@ -57,4 +61,13 @@ __all__ = [
     "UserPreference",
     "CourseInstance",
     "CourseInstanceTeacher",
+    "Program",
+    "ProgramAdmin",
+    "ProgramParticipant",
+    "ProgramPairing",
+    "ProgramModule",
+    "ProgramContent",
+    "ProgramSession",
+    "ProgramProgress",
+    "SharedContent",
 ]

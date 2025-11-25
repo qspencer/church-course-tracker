@@ -1,0 +1,266 @@
+.program-dialog {
+  min-width: 600px;
+  max-width: 1200px;
+  width: 100%;
+  padding: 24px 32px;
+  box-sizing: border-box;
+  overflow-x: hidden;
+  
+  h2 {
+    margin: 0 0 8px 0;
+    color: #1976d2;
+    font-size: 28px;
+    font-weight: 600;
+    padding-bottom: 16px;
+    border-bottom: 2px solid #e0e0e0;
+  }
+  
+  mat-dialog-content {
+    padding: 24px 0;
+    max-height: 80vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    box-sizing: border-box;
+  }
+  
+  .program-form {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+  }
+  
+  .full-width {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .form-section {
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border-left: 4px solid #1976d2;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+
+    h3 {
+      margin: 0 0 8px 0;
+      font-size: 18px;
+      font-weight: 600;
+      color: #212121;
+    }
+
+    .section-description {
+      margin: 0 0 16px 0;
+      font-size: 14px;
+      color: #666;
+    }
+  }
+
+  .role-definition-item {
+    padding: 16px;
+    background: white;
+    border-radius: 4px;
+    border: 1px solid #e0e0e0;
+    margin-bottom: 12px;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+
+    .role-form-row {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr auto auto;
+      gap: 12px;
+      align-items: center;
+      box-sizing: border-box;
+      width: 100%;
+      max-width: 100%;
+
+      .role-name {
+        flex: 2;
+      }
+
+      .role-min, .role-max {
+        flex: 1;
+      }
+
+      .role-primary {
+        white-space: nowrap;
+      }
+    }
+  }
+
+  .chip-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  .chip-input-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+
+    mat-chip-listbox {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      min-height: 40px;
+      padding: 8px 0;
+    }
+
+    .chip-input-field {
+      width: 100%;
+    }
+  }
+
+  .roles-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  .role-item {
+    margin: 4px 0;
+  }
+
+  .config-details {
+    margin-top: 12px;
+    
+    p {
+      margin: 8px 0;
+      color: #666;
+      font-size: 14px;
+    }
+  }
+  
+  mat-dialog-actions {
+    padding: 16px 0 0 0;
+    margin: 0;
+    gap: 8px;
+    border-top: 1px solid #e0e0e0;
+    
+    button {
+      min-width: 100px;
+      padding: 8px 24px;
+      
+      mat-spinner {
+        margin-right: 8px;
+      }
+    }
+  }
+
+  // View mode styles
+  .program-details-view {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+
+    .detail-section {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 20px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      border-left: 4px solid #1976d2;
+      box-sizing: border-box;
+      width: 100%;
+      max-width: 100%;
+
+      .detail-label {
+        margin: 0;
+        font-size: 11px;
+        font-weight: 600;
+        color: #546e7a;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      .detail-value {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 500;
+        color: #212121;
+        line-height: 1.6;
+        word-wrap: break-word;
+      }
+    }
+
+    .detail-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      box-sizing: border-box;
+      width: 100%;
+      max-width: 100%;
+
+      .detail-item {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding: 16px;
+        background: #ffffff;
+        border-radius: 8px;
+        border: 1px solid #e0e0e0;
+        box-sizing: border-box;
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+
+        .detail-label {
+          margin: 0;
+          font-size: 11px;
+          font-weight: 600;
+          color: #78909c;
+          text-transform: uppercase;
+          letter-spacing: 1px;
+        }
+
+        .detail-value {
+          margin: 0;
+          font-size: 16px;
+          font-weight: 500;
+          color: #424242;
+          line-height: 1.5;
+        }
+      }
+    }
+  }
+
+  .view-mode-actions {
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px solid #e0e0e0;
+    display: flex;
+    gap: 16px;
+    justify-content: flex-end;
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .program-dialog {
+    min-width: 90vw;
+    padding: 16px;
+
+    .role-definition-item .role-form-row {
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+
+    .detail-row {
+      grid-template-columns: 1fr;
+    }
+  }
+}

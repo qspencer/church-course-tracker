@@ -7,17 +7,16 @@
     <form [formGroup]="moduleForm" class="module-form">
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Module Title</mat-label>
-        <input matInput formControlName="title" placeholder="Enter module title">
+        <input matInput formControlName="title">
         <mat-icon matSuffix>title</mat-icon>
-        <mat-error>{{ getErrorMessage('title') }}</mat-error>
+        <mat-error *ngIf="shouldShowError('title')">{{ getErrorMessage('title') }}</mat-error>
       </mat-form-field>
 
-      <mat-form-field appearance="outline" class="full-width">
+      <mat-form-field appearance="outline" class="full-width" floatLabel="always">
         <mat-label>Description</mat-label>
         <textarea 
           matInput 
           formControlName="description" 
-          placeholder="Enter module description (optional)"
           rows="4">
         </textarea>
         <mat-icon matSuffix>description</mat-icon>
@@ -29,11 +28,10 @@
           matInput 
           type="number" 
           formControlName="order_index" 
-          placeholder="Display order (0 = first)"
           min="0">
         <mat-icon matSuffix>sort</mat-icon>
         <mat-hint>Lower numbers appear first in the module list</mat-hint>
-        <mat-error>{{ getErrorMessage('order_index') }}</mat-error>
+        <mat-error *ngIf="shouldShowError('order_index')">{{ getErrorMessage('order_index') }}</mat-error>
       </mat-form-field>
     </form>
   </mat-dialog-content>

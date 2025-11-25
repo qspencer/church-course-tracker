@@ -101,3 +101,4 @@ When certificate validates:
 
 The monitoring script continues running and will handle deployment automatically.
 
+

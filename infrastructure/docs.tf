@@ -268,7 +268,7 @@ resource "aws_route53_record" "docs_cert_validation" {
   records         = [each.value.record]
   ttl             = 60
   type            = each.value.type
-  zone_id         = aws_route53_zone.quentinspencer_com.zone_id
+  zone_id         = "Z06093453EALOOTL0RHE2"  # Use existing zone (domain points to this zone)
 }
 
 # ACM Certificate Validation
@@ -284,9 +284,9 @@ resource "aws_acm_certificate_validation" "docs" {
 }
 
 # Route 53 record for docs.quentinspencer.com
-# Uses the existing Route 53 zone from main.tf
+# Uses the existing Route 53 zone (domain points to this zone)
 resource "aws_route53_record" "docs" {
-  zone_id = aws_route53_zone.quentinspencer_com.zone_id
+  zone_id = "Z06093453EALOOTL0RHE2"  # Use existing zone (domain points to this zone)
   name    = "docs.quentinspencer.com"
   type    = "A"
   

@@ -1,5 +1,7 @@
 .user-dialog {
   min-width: 400px;
+  box-sizing: border-box;
+  overflow-x: hidden; // Prevent horizontal scrollbar
 
   h2 {
     margin: 0 0 24px 0;
@@ -7,11 +9,21 @@
     font-weight: 500;
   }
 
+  mat-dialog-content {
+    overflow-x: hidden; // Prevent horizontal scrollbar
+    box-sizing: border-box;
+  }
+
   .form-row {
     margin-bottom: 16px;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
 
     .full-width {
       width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
     }
 
     mat-checkbox {

@@ -1,0 +1,150 @@
+<div class="progress-dialog">
+  <h2 mat-dialog-title>
+    <span *ngIf="viewMode">Progress Details</span>
+    <span *ngIf="!viewMode && isEditing">Edit Progress</span>
+    <span *ngIf="!viewMode && !isEditing">Record Progress</span>
+  </h2>
+  
+  <mat-dialog-content>
+    <!-- View Mode: Read-only display -->
+    <div *ngIf="viewMode && data.progress" class="progress-details-view">
+      <div class="detail-section">
+        <h3 class="detail-label">Progress Type</h3>
+        <p class="detail-value">
+          <mat-chip selected>
+            {{ data.progress.progress_type | titlecase }}
+          </mat-chip>
+        </p>
+      </div>
+
+      <div class="detail-section" *ngIf="data.progress.completion_date">
+        <h3 class="detail-label">Completion Date</h3>
+        <p class="detail-value">{{ data.progress.completion_date | date:'short' }}</p>
+      </div>
+
+      <div class="detail-row" *ngIf="data.progress.completion_percentage !== null || data.progress.content_id">
+        <div class="detail-item" *ngIf="data.progress.completion_percentage !== null">
+          <h3 class="detail-label">Completion Percentage</h3>
+          <p class="detail-value">{{ data.progress.completion_percentage }}%</p>
+        </div>
+        <div class="detail-item" *ngIf="data.progress.content_id">
+          <h3 class="detail-label">Content ID</h3>
+          <p class="detail-value">{{ data.progress.content_id }}</p>
+        </div>
+      </div>
+
+      <div class="detail-section" *ngIf="data.progress.milestone_name">
+        <h3 class="detail-label">Milestone</h3>
+        <p class="detail-value"><strong>{{ data.progress.milestone_name }}</strong></p>
+        <p class="detail-value" *ngIf="data.progress.milestone_description">
+          {{ data.progress.milestone_description }}
+        </p>
+      </div>
+
+      <div class="detail-section" *ngIf="data.progress.notes">
+        <h3 class="detail-label">Notes</h3>
+        <p class="detail-value">{{ data.progress.notes }}</p>
+      </div>
+    </div>
+
+    <!-- Edit/Create Mode: Form -->
+    <form [formGroup]="progressForm" *ngIf="!viewMode" class="progress-form">
+      <mat-form-field appearance="outline" class="full-width" floatLabel="always">
+        <mat-label>Progress Type</mat-label>
+        <mat-select formControlName="progress_type">
+          <mat-option *ngFor="let type of progressTypeOptions" [value]="type.value">
+            {{ type.label }}
+          </mat-option>
+        </mat-select>
+        <mat-error *ngIf="shouldShowError('progress_type')">
+          Progress type is required
+        </mat-error>
+      </mat-form-field>
+
+      <!-- Content Completion Fields -->
+      <div *ngIf="progressForm.get('progress_type')?.value === 'content_completion'" class="progress-type-fields">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Content ID</mat-label>
+          <input matInput type="number" formControlName="content_id" min="1">
+          <mat-error *ngIf="shouldShowError('content_id')">
+            Content ID is required for content completion
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Completion Percentage</mat-label>
+          <input matInput type="number" formControlName="completion_percentage" min="0" max="100">
+          <mat-hint>0-100</mat-hint>
+          <mat-error *ngIf="shouldShowError('completion_percentage') && progressForm.get('completion_percentage')?.hasError('min')">
+            Must be at least 0
+          </mat-error>
+          <mat-error *ngIf="shouldShowError('completion_percentage') && progressForm.get('completion_percentage')?.hasError('max')">
+            Must be at most 100
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <!-- Session Completion Fields -->
+      <div *ngIf="progressForm.get('progress_type')?.value === 'session_completion'" class="progress-type-fields">
+        <mat-form-field appearance="outline" class="full-width" floatLabel="always">
+          <mat-label>Session</mat-label>
+          <mat-select formControlName="session_id">
+            <mat-option *ngFor="let session of sessions" [value]="session.id">
+              {{ session.session_date | date:'short' }}
+            </mat-option>
+          </mat-select>
+          <mat-error *ngIf="shouldShowError('session_id')">
+            Session is required for session completion
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <!-- Milestone Fields -->
+      <div *ngIf="progressForm.get('progress_type')?.value === 'milestone'" class="progress-type-fields">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Milestone Name</mat-label>
+          <input matInput formControlName="milestone_name">
+          <mat-error *ngIf="shouldShowError('milestone_name')">
+            Milestone name is required
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width" floatLabel="always">
+          <mat-label>Milestone Description</mat-label>
+          <textarea matInput formControlName="milestone_description" rows="3"></textarea>
+        </mat-form-field>
+      </div>
+
+      <!-- Common Fields -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Completion Date</mat-label>
+        <input matInput [matDatepicker]="picker" formControlName="completion_date">
+        <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+        <mat-datepicker #picker></mat-datepicker>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width" floatLabel="always">
+        <mat-label>Notes</mat-label>
+        <textarea matInput formControlName="notes" rows="3"></textarea>
+      </mat-form-field>
+    </form>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button (click)="onCancel()">
+      <span *ngIf="viewMode">Close</span>
+      <span *ngIf="!viewMode">Cancel</span>
+    </button>
+    <button 
+      *ngIf="!viewMode"
+      mat-raised-button 
+      color="primary" 
+      (click)="onSubmit()"
+      [disabled]="progressForm.invalid || isLoading">
+      <mat-spinner *ngIf="isLoading" diameter="20" style="display: inline-block; margin-right: 8px;"></mat-spinner>
+      <span *ngIf="isEditing">Update</span>
+      <span *ngIf="!isEditing">Record</span>
+    </button>
+  </mat-dialog-actions>
+</div>
+

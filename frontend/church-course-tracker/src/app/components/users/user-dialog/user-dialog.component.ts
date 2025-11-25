@@ -18,6 +18,7 @@ export interface UserDialogData {
 export class UserDialogComponent implements OnInit {
   userForm: FormGroup;
   isSubmitting = false;
+  isSubmitted = false; // Track if form has been submitted
   hidePassword = true;
 
   constructor(
@@ -66,6 +67,9 @@ export class UserDialogComponent implements OnInit {
   }
 
   onSubmit(): void {
+    // Mark form as submitted to show validation errors
+    this.isSubmitted = true;
+    
     if (this.userForm.valid) {
       this.isSubmitting = true;
       const formValue = this.userForm.value;
@@ -137,5 +141,11 @@ export class UserDialogComponent implements OnInit {
       return `${fieldName} must be at least ${requiredLength} characters long`;
     }
     return '';
+  }
+
+  shouldShowError(fieldName: string): boolean {
+    const field = this.userForm.get(fieldName);
+    // Only show error if field is invalid AND (touched OR form submitted)
+    return !!(field && field.invalid && (field.touched || this.isSubmitted));
   }
 }

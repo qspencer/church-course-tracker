@@ -85,7 +85,7 @@
     <form *ngIf="!viewMode && !isLoading" [formGroup]="enrollmentForm" class="enrollment-form">
       <mat-form-field appearance="outline" class="full-width" *ngIf="!isEditing">
         <mat-label>Student</mat-label>
-        <mat-select formControlName="person_id" placeholder="Select a student">
+        <mat-select formControlName="person_id">
           <mat-option *ngFor="let member of members" [value]="member.id">
             {{ getPersonDisplayName(member) }}
             <span *ngIf="member.email" class="member-email"> - {{ member.email }}</span>
@@ -97,7 +97,7 @@
 
       <mat-form-field appearance="outline" class="full-width" *ngIf="!isEditing">
         <mat-label>Course</mat-label>
-        <mat-select formControlName="course_id" placeholder="Select a course">
+        <mat-select formControlName="course_id">
           <mat-option *ngFor="let course of courses" [value]="course.id">
             {{ getCourseDisplayName(course) }}
           </mat-option>
@@ -137,15 +137,15 @@
         </mat-card>
       </div>
 
-      <mat-form-field appearance="outline" class="full-width">
+      <mat-form-field appearance="outline" class="full-width" floatLabel="always">
         <mat-label>Status</mat-label>
-        <mat-select formControlName="status" placeholder="Select status">
+        <mat-select formControlName="status">
           <mat-option *ngFor="let status of statusOptions" [value]="status.value">
             {{ status.label }}
           </mat-option>
         </mat-select>
         <mat-icon matSuffix>flag</mat-icon>
-        <mat-error>{{ getErrorMessage('status') }}</mat-error>
+        <mat-error *ngIf="shouldShowError('status')">{{ getErrorMessage('status') }}</mat-error>
       </mat-form-field>
     </form>
   </mat-dialog-content>

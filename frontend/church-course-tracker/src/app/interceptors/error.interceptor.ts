@@ -9,16 +9,10 @@ export class ErrorInterceptor implements HttpInterceptor {
   constructor(private snackBar: MatSnackBar) {}
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    // Only log in development mode
+    // Only log errors in development mode - reduce console noise
     if (isDevMode()) {
-      const fullUrl = req.urlWithParams || req.url;
-      console.log('ErrorInterceptor - Request URL (base):', req.url);
-      console.log('ErrorInterceptor - Request URL (with params):', fullUrl);
       if (!req.url.startsWith('https://') && !req.url.includes('localhost')) {
         console.error('❌ ErrorInterceptor - Request URL is NOT HTTPS!', req.url);
-      }
-      if (fullUrl && !fullUrl.startsWith('https://') && !fullUrl.includes('localhost')) {
-        console.error('❌ ErrorInterceptor - Full URL with params is NOT HTTPS!', fullUrl);
       }
     }
     

@@ -1,5 +1,7 @@
 .enrollment-dialog {
   min-width: 500px;
+  box-sizing: border-box;
+  overflow-x: hidden; // Prevent horizontal scrollbar
   
   h2 {
     margin: 0;
@@ -12,6 +14,8 @@
     padding: 20px 0;
     max-height: 500px;
     overflow-y: auto;
+    overflow-x: hidden; // Prevent horizontal scrollbar
+    box-sizing: border-box;
   }
   
   .loading-container {
@@ -35,6 +39,9 @@
     display: flex;
     flex-direction: column;
     gap: 16px;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
   }
 
   .details-view {
@@ -121,6 +128,8 @@
   
   .full-width {
     width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
   }
   
   .member-email {

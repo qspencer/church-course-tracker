@@ -1,0 +1,173 @@
+<div class="participants-management">
+  <div class="header">
+    <h2>Manage Participants - {{ program.title }}</h2>
+    <button mat-icon-button (click)="onClose()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <div class="actions-bar">
+    <div class="action-buttons">
+      <button mat-raised-button color="primary" (click)="openParticipantDialog()">
+        <mat-icon>add</mat-icon>
+        Add Participant
+      </button>
+      <button mat-raised-button color="accent" (click)="managePairings()">
+        <mat-icon>link</mat-icon>
+        Manage Pairings
+      </button>
+    </div>
+
+    <div class="filters">
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Filter by Role</mat-label>
+        <mat-select [(ngModel)]="roleFilter" (selectionChange)="onRoleFilterChange()">
+          <mat-option value="">All Roles</mat-option>
+          <mat-option *ngFor="let role of getRoleOptions()" [value]="role">
+            {{ role }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Filter by Status</mat-label>
+        <mat-select [(ngModel)]="statusFilter" (selectionChange)="onStatusFilterChange()">
+          <mat-option value="">All Statuses</mat-option>
+          <mat-option value="active">Active</mat-option>
+          <mat-option value="paused">Paused</mat-option>
+          <mat-option value="completed">Completed</mat-option>
+          <mat-option value="ended">Ended</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="search-field">
+        <mat-label>Search</mat-label>
+        <input matInput (keyup)="applyFilter($event)" placeholder="Search by name or email">
+        <mat-icon matSuffix>search</mat-icon>
+      </mat-form-field>
+    </div>
+  </div>
+
+  <div class="content">
+    <!-- Loading Spinner -->
+    <div *ngIf="isLoading" class="loading-container">
+      <mat-spinner></mat-spinner>
+      <p>Loading participants...</p>
+    </div>
+
+    <!-- Participants Table -->
+    <div *ngIf="!isLoading" class="table-container">
+      <table mat-table [dataSource]="dataSource" matSort class="participants-table">
+        <!-- Member Name Column -->
+        <ng-container matColumnDef="member_name">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Member</th>
+          <td mat-cell *matCellDef="let participant">
+            <div class="member-info">
+              <div class="member-name">{{ getMemberName(participant.people_id) }}</div>
+              <div class="member-email" *ngIf="getMemberEmail(participant.people_id)">
+                {{ getMemberEmail(participant.people_id) }}
+              </div>
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- Role Column -->
+        <ng-container matColumnDef="role_name">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Role</th>
+          <td mat-cell *matCellDef="let participant">
+            <mat-chip [color]="getRoleColor(participant.role_name)" selected>
+              {{ participant.role_name }}
+            </mat-chip>
+          </td>
+        </ng-container>
+
+        <!-- Status Column -->
+        <ng-container matColumnDef="status">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Status</th>
+          <td mat-cell *matCellDef="let participant">
+            <mat-chip [color]="getStatusColor(participant.status)" selected>
+              {{ participant.status | titlecase }}
+            </mat-chip>
+          </td>
+        </ng-container>
+
+        <!-- Progress Column -->
+        <ng-container matColumnDef="progress_percentage">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Progress</th>
+          <td mat-cell *matCellDef="let participant">
+            <div class="progress-info">
+              <span>{{ participant.progress_percentage }}%</span>
+              <mat-progress-bar 
+                mode="determinate" 
+                [value]="participant.progress_percentage"
+                [color]="participant.progress_percentage >= 100 ? 'accent' : 'primary'">
+              </mat-progress-bar>
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- Start Date Column -->
+        <ng-container matColumnDef="start_date">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Start Date</th>
+          <td mat-cell *matCellDef="let participant">
+            {{ participant.start_date | date:'short' }}
+          </td>
+        </ng-container>
+
+        <!-- Actions Column -->
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef>Actions</th>
+          <td mat-cell *matCellDef="let participant">
+            <div class="actions-container">
+              <button 
+                mat-icon-button 
+                color="primary" 
+                (click)="viewParticipant(participant)"
+                matTooltip="View Details">
+                <mat-icon>visibility</mat-icon>
+              </button>
+              
+              <button 
+                mat-icon-button 
+                color="accent" 
+                (click)="editParticipant(participant)"
+                matTooltip="Edit">
+                <mat-icon>edit</mat-icon>
+              </button>
+              
+              <button 
+                mat-icon-button 
+                color="warn" 
+                (click)="deleteParticipant(participant)"
+                matTooltip="Remove">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      </table>
+
+      <!-- No Data Message -->
+      <div *ngIf="dataSource.data.length === 0" class="no-data">
+        <mat-icon>people</mat-icon>
+        <h3>No participants found</h3>
+        <p>Add participants to this program to get started</p>
+        <button mat-raised-button color="primary" (click)="openParticipantDialog()">
+          <mat-icon>add</mat-icon>
+          Add Participant
+        </button>
+      </div>
+
+      <!-- Paginator -->
+      <mat-paginator 
+        [pageSizeOptions]="[5, 10, 25, 100]"
+        [pageSize]="10"
+        showFirstLastButtons>
+      </mat-paginator>
+    </div>
+  </div>
+</div>
+

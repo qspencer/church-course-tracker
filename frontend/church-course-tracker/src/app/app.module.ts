@@ -1,7 +1,7 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
+import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 
 // Angular Material Modules
@@ -45,62 +45,55 @@ import { MemberService } from './services/member.service';
 import { AuthInterceptor } from './interceptors/auth.interceptor';
 import { ErrorInterceptor } from './interceptors/error.interceptor';
 
-@NgModule({
-  declarations: [
-    AppComponent,
-    InactivityWarningDialogComponent
-  ],
-  imports: [
-    BrowserModule,
-    AppRoutingModule,
-    BrowserAnimationsModule,
-    HttpClientModule,
-    ReactiveFormsModule,
-    FormsModule,
-    
-    // Angular Material
-    MatToolbarModule,
-    MatSidenavModule,
-    MatListModule,
-    MatIconModule,
-    MatButtonModule,
-    MatCardModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-    MatTableModule,
-    MatPaginatorModule,
-    MatSortModule,
-    MatDialogModule,
-    MatSnackBarModule,
-    MatProgressSpinnerModule,
-    MatChipsModule,
-    MatDatepickerModule,
-    MatNativeDateModule,
-    MatTabsModule,
-    MatExpansionModule,
-    MatDividerModule
-  ],
-  providers: [
-    AuthService,
-    InactivityService,
-    CourseService,
-    EnrollmentService,
-    ProgressService,
-    ReportService,
-    MemberService,
-    {
-      provide: HTTP_INTERCEPTORS,
-      useClass: AuthInterceptor,
-      multi: true
-    },
-    {
-      provide: HTTP_INTERCEPTORS,
-      useClass: ErrorInterceptor,
-      multi: true
-    }
-  ],
-  bootstrap: [AppComponent]
-})
+@NgModule({ declarations: [
+        AppComponent,
+        InactivityWarningDialogComponent
+    ],
+    bootstrap: [AppComponent], imports: [BrowserModule,
+        AppRoutingModule,
+        BrowserAnimationsModule,
+        ReactiveFormsModule,
+        FormsModule,
+        // Angular Material
+        MatToolbarModule,
+        MatSidenavModule,
+        MatListModule,
+        MatIconModule,
+        MatButtonModule,
+        MatCardModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatSelectModule,
+        MatTableModule,
+        MatPaginatorModule,
+        MatSortModule,
+        MatDialogModule,
+        MatSnackBarModule,
+        MatProgressSpinnerModule,
+        MatChipsModule,
+        MatDatepickerModule,
+        MatNativeDateModule,
+        MatTabsModule,
+        MatExpansionModule,
+        MatDividerModule], providers: [
+        AuthService,
+        InactivityService,
+        CourseService,
+        EnrollmentService,
+        ProgressService,
+        ReportService,
+        MemberService,
+        {
+            provide: HTTP_INTERCEPTORS,
+            useClass: AuthInterceptor,
+            multi: true
+        },
+        {
+            provide: HTTP_INTERCEPTORS,
+            useClass: ErrorInterceptor,
+            multi: true
+        },
+        provideHttpClient(withInterceptorsFromDi())
+    ] })
 export class AppModule { }
 // Cache fix rebuild

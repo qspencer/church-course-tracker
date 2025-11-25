@@ -1,6 +1,8 @@
 .module-dialog {
   min-width: 500px;
   max-width: 600px;
+  box-sizing: border-box;
+  overflow-x: hidden; // Prevent horizontal scrollbar
 }
 
 .module-form {
@@ -8,14 +10,21 @@
   flex-direction: column;
   gap: 16px;
   padding-top: 16px;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
 }
 
 .full-width {
   width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 mat-dialog-content {
   padding: 24px;
+  overflow-x: hidden; // Prevent horizontal scrollbar
+  box-sizing: border-box;
 }
 
 mat-dialog-actions {

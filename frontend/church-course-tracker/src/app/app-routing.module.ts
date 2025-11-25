@@ -32,6 +32,11 @@ const routes: Routes = [
         canActivate: [AuthGuard]
       },
       {
+        path: 'programs',
+        loadChildren: () => import('./components/programs/programs.module').then(m => m.ProgramsModule),
+        canActivate: [AuthGuard]
+      },
+      {
         path: 'courses/:courseId/content',
         loadChildren: () => import('./components/course-content/course-content.module').then(m => m.CourseContentModule),
         canActivate: [AuthGuard]
@@ -99,6 +104,11 @@ const routes: Routes = [
   {
     path: 'courses',
     loadChildren: () => import('./components/courses/courses.module').then(m => m.CoursesModule),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'programs',
+    loadChildren: () => import('./components/programs/programs.module').then(m => m.ProgramsModule),
     canActivate: [AuthGuard]
   },
   {

@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
-import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
-import { HttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { HttpClient, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { AuthService } from './auth.service';
 import { LoginRequest, LoginResponse, User } from '../models';
@@ -34,12 +34,14 @@ describe('AuthService', () => {
     const routerSpyObj = jasmine.createSpyObj('Router', ['navigate']);
 
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
-      providers: [
+    imports: [],
+    providers: [
         AuthService,
-        { provide: Router, useValue: routerSpyObj }
-      ]
-    });
+        { provide: Router, useValue: routerSpyObj },
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting()
+    ]
+});
 
     service = TestBed.inject(AuthService);
     httpMock = TestBed.inject(HttpTestingController);

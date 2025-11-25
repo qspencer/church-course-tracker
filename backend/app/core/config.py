@@ -128,6 +128,20 @@ class Settings(BaseSettings):
     # Logging
     LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")
 
+    # Admin User Configuration
+    # These can be overridden via environment variables:
+    #   ADMIN_USERNAME - Username for the default admin user (default: "Admin")
+    #   ADMIN_EMAIL - Email for the default admin user (default: "admin@example.com")
+    #   ADMIN_PASSWORD - Password for the default admin user (default: "Admin123!")
+    #   ADMIN_FULL_NAME - Full name for the default admin user (default: "System Admin")
+    # 
+    # To change these, set the environment variables before running migrations or starting the server.
+    # Example: export ADMIN_USERNAME="MyAdmin" ADMIN_PASSWORD="SecurePass123!"
+    ADMIN_USERNAME: str = os.getenv("ADMIN_USERNAME", "Admin")
+    ADMIN_EMAIL: str = os.getenv("ADMIN_EMAIL", "admin@example.com")
+    ADMIN_PASSWORD: str = os.getenv("ADMIN_PASSWORD", "Admin123!")
+    ADMIN_FULL_NAME: str = os.getenv("ADMIN_FULL_NAME", "System Admin")
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         # Parse ALLOWED_ORIGINS from environment variable if provided

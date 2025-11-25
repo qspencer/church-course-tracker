@@ -27,3 +27,4 @@ else
     echo "⚠️  Certificate status: $STATUS"
 fi
 
+

@@ -1,9 +1,10 @@
 import { Component, Inject, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, FormArray, FormControl } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { CourseService } from '../../../services/course.service';
-import { Course, CourseCreate, CourseUpdate } from '../../../models';
+import { UserService } from '../../../services/user.service';
+import { Course, CourseCreate, CourseUpdate, User } from '../../../models';
 
 export interface CourseDialogData {
   course: Course | null;
@@ -20,13 +21,21 @@ export class CourseDialogComponent implements OnInit {
   isEditing: boolean;
   viewMode: boolean;
   isLoading = false;
+  isSubmitted = false; // Track if form has been submitted
   course: Course | null = null;
   availablePrerequisites: Course[] = [];
   loadingPrerequisites = false;
+  availableUsers: User[] = [];
+  loadingUsers = false;
+  
+  // For chip inputs (locations and delivery modes)
+  locationInput = '';
+  deliveryModeInput = '';
 
   constructor(
     private fb: FormBuilder,
     private courseService: CourseService,
+    private userService: UserService,
     private snackBar: MatSnackBar,
     public dialogRef: MatDialogRef<CourseDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: CourseDialogData
@@ -39,12 +48,17 @@ export class CourseDialogComponent implements OnInit {
       title: ['', [Validators.required, Validators.minLength(3)]],
       description: ['', [Validators.required, Validators.minLength(10)]],
       duration_weeks: [1, [Validators.required, Validators.min(1), Validators.max(52)]],
-      prerequisites: [[]]
+      prerequisites: [[]],
+      instructors: [[]],
+      locations: [[]],
+      delivery_modes: [[]]
     });
   }
 
   ngOnInit(): void {
     this.loadAvailablePrerequisites();
+    // Load users for both view and edit modes (needed for instructor display)
+    this.loadAvailableUsers();
     
     if (this.data.course) {
       if (this.viewMode) {
@@ -55,11 +69,23 @@ export class CourseDialogComponent implements OnInit {
         const prerequisites = Array.isArray(this.data.course.prerequisites) 
           ? this.data.course.prerequisites 
           : [];
+        const instructors = Array.isArray(this.data.course.instructors)
+          ? this.data.course.instructors
+          : [];
+        const locations = Array.isArray(this.data.course.locations)
+          ? this.data.course.locations
+          : [];
+        const deliveryModes = Array.isArray(this.data.course.delivery_modes)
+          ? this.data.course.delivery_modes
+          : [];
         this.courseForm.patchValue({
           title: this.data.course.title,
           description: this.data.course.description,
           duration_weeks: this.data.course.duration_weeks,
-          prerequisites: prerequisites
+          prerequisites: prerequisites,
+          instructors: instructors,
+          locations: locations,
+          delivery_modes: deliveryModes
         });
       }
     }
@@ -86,7 +112,24 @@ export class CourseDialogComponent implements OnInit {
     });
   }
 
+  loadAvailableUsers(): void {
+    this.loadingUsers = true;
+    this.userService.getUsers().subscribe({
+      next: (users) => {
+        this.availableUsers = users.filter(u => u.is_active);
+        this.loadingUsers = false;
+      },
+      error: (error) => {
+        console.error('Error loading users:', error);
+        this.loadingUsers = false;
+      }
+    });
+  }
+
   onSubmit(): void {
+    // Mark form as submitted to show validation errors
+    this.isSubmitted = true;
+    
     // Prevent multiple submissions
     if (this.isLoading || !this.courseForm.valid) {
       return;
@@ -101,7 +144,10 @@ export class CourseDialogComponent implements OnInit {
         title: formValue.title,
         description: formValue.description,
         duration_weeks: formValue.duration_weeks,
-        prerequisites: formValue.prerequisites || []
+        prerequisites: formValue.prerequisites || [],
+        instructors: formValue.instructors || [],
+        locations: formValue.locations || [],
+        delivery_modes: formValue.delivery_modes || []
       };
 
       this.courseService.updateCourse(this.data.course.id, updateData).subscribe({
@@ -139,7 +185,10 @@ export class CourseDialogComponent implements OnInit {
         title: formValue.title,
         description: formValue.description,
         duration_weeks: formValue.duration_weeks,
-        prerequisites: formValue.prerequisites || []
+        prerequisites: formValue.prerequisites || [],
+        instructors: formValue.instructors || [],
+        locations: formValue.locations || [],
+        delivery_modes: formValue.delivery_modes || []
       };
 
       this.courseService.createCourse(createData).subscribe({
@@ -212,19 +261,30 @@ export class CourseDialogComponent implements OnInit {
 
   getErrorMessage(fieldName: string): string {
     const field = this.courseForm.get(fieldName);
-    if (field?.hasError('required')) {
+    // Only show errors if field has been touched or form has been submitted
+    if (!field || (!field.touched && !this.isSubmitted)) {
+      return '';
+    }
+    
+    if (field.hasError('required')) {
       return `${fieldName} is required`;
     }
-    if (field?.hasError('minlength')) {
+    if (field.hasError('minlength')) {
       return `${fieldName} must be at least ${field.errors?.['minlength'].requiredLength} characters`;
     }
-    if (field?.hasError('min')) {
+    if (field.hasError('min')) {
       return `${fieldName} must be at least ${field.errors?.['min'].min}`;
     }
-    if (field?.hasError('max')) {
+    if (field.hasError('max')) {
       return `${fieldName} must be at most ${field.errors?.['max'].max}`;
     }
     return '';
+  }
+  
+  shouldShowError(fieldName: string): boolean {
+    const field = this.courseForm.get(fieldName);
+    // Only show error if field is invalid AND (touched OR form submitted)
+    return !!(field && field.invalid && (field.touched || this.isSubmitted));
   }
 
   hasPrerequisites(): boolean {
@@ -239,5 +299,75 @@ export class CourseDialogComponent implements OnInit {
       return [];
     }
     return Array.isArray(this.course.prerequisites) ? this.course.prerequisites : [];
+  }
+
+  // Helper methods for chip inputs
+  addLocation(): void {
+    const location = this.locationInput.trim();
+    if (location && !this.courseForm.value.locations.includes(location)) {
+      const currentLocations = this.courseForm.value.locations || [];
+      this.courseForm.patchValue({
+        locations: [...currentLocations, location]
+      });
+      this.locationInput = '';
+    }
+  }
+
+  removeLocation(location: string): void {
+    const currentLocations = this.courseForm.value.locations || [];
+    this.courseForm.patchValue({
+      locations: currentLocations.filter((l: string) => l !== location)
+    });
+  }
+
+  addDeliveryMode(): void {
+    const mode = this.deliveryModeInput.trim();
+    if (mode && !this.courseForm.value.delivery_modes.includes(mode)) {
+      const currentModes = this.courseForm.value.delivery_modes || [];
+      this.courseForm.patchValue({
+        delivery_modes: [...currentModes, mode]
+      });
+      this.deliveryModeInput = '';
+    }
+  }
+
+  removeDeliveryMode(mode: string): void {
+    const currentModes = this.courseForm.value.delivery_modes || [];
+    this.courseForm.patchValue({
+      delivery_modes: currentModes.filter((m: string) => m !== mode)
+    });
+  }
+
+  // Helper methods for view mode
+  getInstructorDisplay(instructor: number | string): string {
+    if (instructor === 'TBD') {
+      return 'TBD';
+    }
+    if (typeof instructor === 'number') {
+      const user = this.availableUsers.find(u => u.id === instructor);
+      return user ? user.full_name : `User ID: ${instructor}`;
+    }
+    return String(instructor);
+  }
+
+  getInstructors(): (number | string)[] {
+    if (!this.course || !this.course.instructors) {
+      return [];
+    }
+    return Array.isArray(this.course.instructors) ? this.course.instructors : [];
+  }
+
+  getLocations(): string[] {
+    if (!this.course || !this.course.locations) {
+      return [];
+    }
+    return Array.isArray(this.course.locations) ? this.course.locations : [];
+  }
+
+  getDeliveryModes(): string[] {
+    if (!this.course || !this.course.delivery_modes) {
+      return [];
+    }
+    return Array.isArray(this.course.delivery_modes) ? this.course.delivery_modes : [];
   }
 }

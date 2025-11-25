@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule } from '@angular/forms';
+import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { RouterModule, Routes } from '@angular/router';
 
 // Angular Material
@@ -34,6 +34,7 @@ const routes: Routes = [
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    FormsModule,
     RouterModule.forChild(routes),
     MatCardModule,
     MatButtonModule,

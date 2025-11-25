@@ -1,0 +1,133 @@
+<div class="session-dialog">
+  <h2 mat-dialog-title>
+    <span *ngIf="viewMode">Session Details</span>
+    <span *ngIf="!viewMode && isEditing">Edit Session</span>
+    <span *ngIf="!viewMode && !isEditing">Log Session</span>
+  </h2>
+  
+  <mat-dialog-content>
+    <!-- View Mode: Read-only display -->
+    <div *ngIf="viewMode && data.session" class="session-details-view">
+      <div class="detail-section">
+        <h3 class="detail-label">Session Date</h3>
+        <p class="detail-value">{{ data.session.session_date | date:'short' }}</p>
+      </div>
+
+      <div class="detail-row" *ngIf="data.session.duration_minutes || data.session.location">
+        <div class="detail-item" *ngIf="data.session.duration_minutes">
+          <h3 class="detail-label">Duration</h3>
+          <p class="detail-value">{{ data.session.duration_minutes }} minutes</p>
+        </div>
+        <div class="detail-item" *ngIf="data.session.location">
+          <h3 class="detail-label">Location</h3>
+          <p class="detail-value">{{ data.session.location }}</p>
+        </div>
+      </div>
+
+      <div class="detail-section" *ngIf="data.session.session_type">
+        <h3 class="detail-label">Session Type</h3>
+        <p class="detail-value">{{ data.session.session_type | titlecase }}</p>
+      </div>
+
+      <div class="detail-section" *ngIf="data.session.topics_covered">
+        <h3 class="detail-label">Topics Covered</h3>
+        <p class="detail-value">{{ data.session.topics_covered }}</p>
+      </div>
+
+      <div class="detail-section" *ngIf="data.session.notes">
+        <h3 class="detail-label">Notes</h3>
+        <p class="detail-value">{{ data.session.notes }}</p>
+      </div>
+    </div>
+
+    <!-- Edit/Create Mode: Form -->
+    <form [formGroup]="sessionForm" *ngIf="!viewMode" class="session-form">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Session Date</mat-label>
+        <input matInput [matDatepicker]="picker" formControlName="session_date" required>
+        <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+        <mat-datepicker #picker></mat-datepicker>
+        <mat-error *ngIf="shouldShowError('session_date')">
+          Session date is required
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width" floatLabel="always">
+        <mat-label>Pairing (Optional)</mat-label>
+        <mat-select formControlName="pairing_id">
+          <mat-option [value]="null">No specific pairing</mat-option>
+          <mat-option *ngFor="let pairing of pairings" [value]="pairing.id">
+            {{ getPairingDisplay(pairing) }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="half-width">
+          <mat-label>Duration (minutes)</mat-label>
+          <input matInput type="number" formControlName="duration_minutes" min="0">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="half-width" floatLabel="always">
+          <mat-label>Session Type</mat-label>
+          <mat-select formControlName="session_type">
+            <mat-option *ngFor="let type of sessionTypeOptions" [value]="type.value">
+              {{ type.label }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Location</mat-label>
+        <input matInput formControlName="location">
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width" floatLabel="always">
+        <mat-label>Participants Who Attended</mat-label>
+        <mat-select formControlName="participant_ids" multiple>
+          <mat-option *ngFor="let participant of participants" [value]="participant.id">
+            {{ getParticipantDisplay(participant) }}
+          </mat-option>
+        </mat-select>
+        <mat-hint>Select all participants who attended this session</mat-hint>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width" floatLabel="always">
+        <mat-label>Topics Covered</mat-label>
+        <textarea matInput formControlName="topics_covered" rows="3"></textarea>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width" floatLabel="always">
+        <mat-label>Notes</mat-label>
+        <textarea matInput formControlName="notes" rows="4"></textarea>
+      </mat-form-field>
+
+      <div class="info-box">
+        <mat-icon>info</mat-icon>
+        <div class="info-content">
+          <strong>Progress Tracking:</strong>
+          <p>You can track content completion and milestones in the progress management section.</p>
+        </div>
+      </div>
+    </form>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button (click)="onCancel()">
+      <span *ngIf="viewMode">Close</span>
+      <span *ngIf="!viewMode">Cancel</span>
+    </button>
+    <button 
+      *ngIf="!viewMode"
+      mat-raised-button 
+      color="primary" 
+      (click)="onSubmit()"
+      [disabled]="sessionForm.invalid || isLoading">
+      <mat-spinner *ngIf="isLoading" diameter="20" style="display: inline-block; margin-right: 8px;"></mat-spinner>
+      <span *ngIf="isEditing">Update</span>
+      <span *ngIf="!isEditing">Log Session</span>
+    </button>
+  </mat-dialog-actions>
+</div>
+

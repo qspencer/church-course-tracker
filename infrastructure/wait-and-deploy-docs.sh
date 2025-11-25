@@ -4,7 +4,7 @@
 
 set -e
 
-CERT_ARN="arn:aws:acm:us-east-1:334581603621:certificate/78e18b2c-69c8-4e4a-b8c6-e35e5d865b70"
+CERT_ARN="arn:aws:acm:us-east-1:334581603621:certificate/f4429c94-2aa0-48de-aa09-c5ae560d6a99"
 REGION="us-east-1"
 CHECK_INTERVAL=30  # Check every 30 seconds
 MAX_WAIT_MINUTES=180  # Maximum wait time in minutes (3 hours - ACM can take up to 72 hours)

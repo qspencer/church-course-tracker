@@ -123,3 +123,4 @@ Once Terraform apply succeeds:
    - Wait for CloudFront to deploy
    - Visit: `https://docs.quentinspencer.com/churchcoursetracker/`
 
+

@@ -5,3 +5,4 @@ export * from './enrollment.model';
 export * from './report.model';
 export * from './course-content.model';
 export * from './audit.model';
+export * from './program.model';

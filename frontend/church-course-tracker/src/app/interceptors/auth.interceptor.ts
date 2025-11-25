@@ -9,36 +9,20 @@ export class AuthInterceptor implements HttpInterceptor {
   constructor(private authService: AuthService) {}
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    // Only log in development mode - NEVER log tokens or sensitive data in production
+    // Only log errors in development mode - reduce console noise
     if (isDevMode()) {
-      const fullUrl = req.urlWithParams || req.url;
-      console.log('AuthInterceptor - Request URL (base):', req.url);
-      console.log('AuthInterceptor - Request URL (with params):', fullUrl);
-      
       // Check both base URL and full URL with params
       // Note: In local development, HTTP is expected
       if (!req.url.startsWith('https://') && !req.url.includes('localhost')) {
         console.error('❌ AuthInterceptor - Request URL is NOT HTTPS!', req.url);
-      }
-      if (fullUrl && !fullUrl.startsWith('https://') && !fullUrl.includes('localhost')) {
-        console.error('❌ AuthInterceptor - Full URL with params is NOT HTTPS!', fullUrl);
-      }
-      
-      // Force absolute URL if it's not already
-      let requestUrl = req.url;
-      if (!requestUrl.startsWith('http://') && !requestUrl.startsWith('https://')) {
-        console.warn('⚠️ Relative URL detected, should be absolute:', requestUrl);
       }
     }
     
     const token = this.authService.getToken();
     
     if (token) {
-      // NEVER log tokens in production - this is a security risk
-      // Only log in development mode, and even then, be careful
-      if (isDevMode()) {
-        console.log('AuthInterceptor - Token present (length:', token.length + ')');
-      }
+      // Token is present and will be added to request
+      // No need to log this for every request
       
       const authReq = req.clone({
         setHeaders: {

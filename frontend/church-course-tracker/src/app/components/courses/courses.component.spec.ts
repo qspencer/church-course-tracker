@@ -152,7 +152,10 @@ describe('CoursesComponent', () => {
       component.openCourseDialog();
 
       expect(dialogSpy.open).toHaveBeenCalledWith(jasmine.any(Function), {
-        width: '600px',
+        width: '1000px',
+        maxWidth: '95vw',
+        autoFocus: false,
+        restoreFocus: true,
         data: { course: null }
       });
       expect(component.loadCourses).toHaveBeenCalled();
@@ -167,7 +170,10 @@ describe('CoursesComponent', () => {
       component.openCourseDialog(mockCourses[0]);
 
       expect(dialogSpy.open).toHaveBeenCalledWith(jasmine.any(Function), {
-        width: '600px',
+        width: '1000px',
+        maxWidth: '95vw',
+        autoFocus: false,
+        restoreFocus: true,
         data: { course: mockCourses[0] }
       });
     });
@@ -271,8 +277,10 @@ describe('CoursesComponent', () => {
       expect(dialogSpy.open).toHaveBeenCalled();
       const callArgs = dialogSpy.open.calls.mostRecent().args;
       expect(callArgs[1]).toEqual(jasmine.objectContaining({
-        width: '700px',
-        maxWidth: '90vw',
+        width: '1000px',
+        maxWidth: '95vw',
+        autoFocus: false,
+        restoreFocus: true,
         data: {
           course: mockCourses[0],
           viewMode: true

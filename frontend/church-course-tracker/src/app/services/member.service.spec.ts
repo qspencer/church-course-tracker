@@ -1,8 +1,9 @@
 import { TestBed } from '@angular/core/testing';
-import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { MemberService } from './member.service';
 import { Person } from '../models';
 import { environment } from '../../environments/environment';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('MemberService', () => {
   let service: MemberService;
@@ -21,9 +22,9 @@ describe('MemberService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
-      providers: [MemberService]
-    });
+    imports: [],
+    providers: [MemberService, provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
+});
 
     service = TestBed.inject(MemberService);
     httpMock = TestBed.inject(HttpTestingController);

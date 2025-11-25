@@ -66,7 +66,10 @@ export class CoursesComponent implements OnInit {
 
   openCourseDialog(course?: Course): void {
     const dialogRef = this.dialog.open(CourseDialogComponent, {
-      width: '800px',
+      width: '1000px',
+      maxWidth: '95vw',
+      autoFocus: false, // Prevent auto-focus to reduce aria-hidden warnings
+      restoreFocus: true, // Restore focus when dialog closes
       data: { course: course || null }
     });
 
@@ -124,8 +127,10 @@ export class CoursesComponent implements OnInit {
   viewCourseDetails(course: Course): void {
     // Open course details dialog in view mode
     this.dialog.open(CourseDialogComponent, {
-      width: '800px',
-      maxWidth: '90vw',
+      width: '1000px',
+      maxWidth: '95vw',
+      autoFocus: false, // Prevent auto-focus to reduce aria-hidden warnings
+      restoreFocus: true, // Restore focus when dialog closes
       data: { 
         course: course,
         viewMode: true 

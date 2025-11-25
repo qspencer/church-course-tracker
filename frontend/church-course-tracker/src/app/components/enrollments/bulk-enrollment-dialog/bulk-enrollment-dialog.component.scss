@@ -1,23 +1,53 @@
+// Prevent horizontal scrollbar
+:host {
+  display: block;
+  overflow-x: hidden;
+  box-sizing: border-box;
+}
+
+mat-dialog-content {
+  overflow-x: hidden;
+  box-sizing: border-box;
+}
+
+form {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+}
+
 .full-width {
   width: 100%;
+  max-width: 100%;
   margin-bottom: 16px;
+  box-sizing: border-box;
 }
 
 .dialog-description {
   margin-bottom: 24px;
   color: rgba(0, 0, 0, 0.6);
+  box-sizing: border-box;
 }
 
 .options-container {
   margin-bottom: 16px;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
 }
 
 .source-type-toggle {
   margin-bottom: 24px;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
   
   mat-radio-group {
     display: flex;
     gap: 24px;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
   }
 }
 

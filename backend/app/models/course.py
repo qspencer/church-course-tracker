@@ -25,6 +25,11 @@ class Course(Base):
     duration_weeks = Column(Integer, nullable=True)
     prerequisites = Column(JSON, nullable=True)  # List of prerequisite course IDs
     
+    # Course attributes
+    instructors = Column(JSON, nullable=True)  # List of user IDs (integers) and/or "TBD" string
+    locations = Column(JSON, nullable=True)  # List of location strings
+    delivery_modes = Column(JSON, nullable=True)  # List of delivery mode strings (e.g., "In-person", "Online", "Hybrid")
+    
     # Planning Center mapping (template/event series - not specific instance)
     planning_center_event_template_id = Column(
         String(50), nullable=True, index=True

@@ -5,32 +5,32 @@
     <mat-form-field appearance="outline" class="full-width">
       <mat-label>Title</mat-label>
       <input matInput formControlName="title" required>
-      <mat-error *ngIf="contentForm.get('title')?.hasError('required')">
+      <mat-error *ngIf="shouldShowError('title') && contentForm.get('title')?.hasError('required')">
         Title is required
       </mat-error>
-      <mat-error *ngIf="contentForm.get('title')?.hasError('minlength')">
+      <mat-error *ngIf="shouldShowError('title') && contentForm.get('title')?.hasError('minlength')">
         Title must be at least 1 character
       </mat-error>
     </mat-form-field>
 
-    <mat-form-field appearance="outline" class="full-width">
+    <mat-form-field appearance="outline" class="full-width" floatLabel="always">
       <mat-label>Description</mat-label>
       <textarea matInput formControlName="description" rows="3"></textarea>
     </mat-form-field>
 
-    <mat-form-field appearance="outline" class="full-width">
+    <mat-form-field appearance="outline" class="full-width" floatLabel="always">
       <mat-label>Content Type</mat-label>
       <mat-select formControlName="content_type" required>
         <mat-option *ngFor="let type of contentTypes" [value]="type">
           {{ getContentTypeDisplayName(type) }}
         </mat-option>
       </mat-select>
-      <mat-error *ngIf="contentForm.get('content_type')?.hasError('required')">
+      <mat-error *ngIf="shouldShowError('content_type')">
         Content type is required
       </mat-error>
     </mat-form-field>
 
-    <mat-form-field appearance="outline" class="full-width" *ngIf="data.modules.length > 0">
+    <mat-form-field appearance="outline" class="full-width" *ngIf="data.modules.length > 0" floatLabel="always">
       <mat-label>Module (Optional)</mat-label>
       <mat-select formControlName="module_id">
         <mat-option [value]="null">None</mat-option>
@@ -43,48 +43,49 @@
     <mat-form-field appearance="outline" class="full-width" 
                     *ngIf="contentForm.get('content_type')?.value === ContentType.EXTERNAL_LINK">
       <mat-label>External URL</mat-label>
-      <input matInput formControlName="external_url" type="url" placeholder="https://example.com">
-      <mat-error *ngIf="contentForm.get('external_url')?.hasError('required')">
+      <input matInput formControlName="external_url" type="url">
+      <mat-error *ngIf="shouldShowError('external_url')">
         External URL is required for external links
       </mat-error>
     </mat-form-field>
 
     <mat-form-field appearance="outline" class="full-width" 
-                    *ngIf="contentForm.get('content_type')?.value === ContentType.EMBEDDED">
+                    *ngIf="contentForm.get('content_type')?.value === ContentType.EMBEDDED" floatLabel="always">
       <mat-label>Embedded Content</mat-label>
-      <textarea matInput formControlName="embedded_content" rows="5" 
-                placeholder="Paste HTML or embed code here"></textarea>
-      <mat-error *ngIf="contentForm.get('embedded_content')?.hasError('required')">
+      <textarea matInput formControlName="embedded_content" rows="5"></textarea>
+      <mat-error *ngIf="shouldShowError('embedded_content')">
         Embedded content is required for embedded content type
       </mat-error>
     </mat-form-field>
 
     <div class="file-upload-section" 
          *ngIf="requiresFile(contentForm.get('content_type')?.value)">
-      <label class="file-upload-label">{{ isEditing ? 'Replace File' : 'File Upload' }}</label>
-      <div class="file-upload-container" *ngIf="isEditing && data.content?.file_name">
-        <span class="current-file-info">
-          <mat-icon>description</mat-icon>
-          <span>Current file: {{ data.content?.file_name }}</span>
-          <span class="file-size" *ngIf="data.content?.file_size">({{ formatFileSize(data.content!.file_size) }})</span>
-        </span>
-      </div>
-      <div class="file-upload-container">
-        <input type="file" 
-               #fileInput 
-               (change)="onFileSelected($event)"
-               accept=".pdf,.doc,.docx,.mp4,.avi,.mov,.mp3,.wav,.jpg,.jpeg,.png,.gif"
-               style="display: none;">
-        <button mat-stroked-button type="button" (click)="fileInput.click()">
-          <mat-icon>{{ isEditing ? 'swap_horiz' : 'attach_file' }}</mat-icon>
-          {{ isEditing ? 'Choose Replacement File' : 'Choose File' }}
-        </button>
-        <span class="file-name" *ngIf="selectedFile">{{ getFileName() }}</span>
-      </div>
-      <mat-hint>
-        {{ isEditing ? 'Upload a new file to replace the existing one. ' : 'Upload a file for this content. ' }}
-        Supported formats: PDF, DOC, DOCX, MP4, AVI, MOV, MP3, WAV, JPG, PNG, GIF
-      </mat-hint>
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>{{ isEditing ? 'Replace File' : 'File Upload' }}</mat-label>
+        <div class="file-upload-container" *ngIf="isEditing && data.content?.file_name">
+          <span class="current-file-info">
+            <mat-icon>description</mat-icon>
+            <span>Current file: {{ data.content?.file_name }}</span>
+            <span class="file-size" *ngIf="data.content?.file_size">({{ formatFileSize(data.content!.file_size) }})</span>
+          </span>
+        </div>
+        <div class="file-upload-container">
+          <input type="file" 
+                 #fileInput 
+                 (change)="onFileSelected($event)"
+                 accept=".pdf,.doc,.docx,.mp4,.avi,.mov,.mp3,.wav,.jpg,.jpeg,.png,.gif"
+                 style="display: none;">
+          <button mat-stroked-button type="button" (click)="fileInput.click()">
+            <mat-icon>{{ isEditing ? 'swap_horiz' : 'attach_file' }}</mat-icon>
+            {{ isEditing ? 'Choose Replacement File' : 'Choose File' }}
+          </button>
+          <span class="file-name" *ngIf="selectedFile">{{ getFileName() }}</span>
+        </div>
+        <mat-hint>
+          {{ isEditing ? 'Upload a new file to replace the existing one. ' : 'Upload a file for this content. ' }}
+          Supported formats: PDF, DOC, DOCX, MP4, AVI, MOV, MP3, WAV, JPG, PNG, GIF
+        </mat-hint>
+      </mat-form-field>
     </div>
 
     <mat-form-field appearance="outline" class="full-width">

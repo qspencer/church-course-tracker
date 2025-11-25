@@ -1,0 +1,193 @@
+.sessions-management {
+  width: 100%;
+  max-width: 1200px;
+  padding: 24px;
+  box-sizing: border-box;
+  overflow-x: hidden;
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid #e0e0e0;
+
+    h2 {
+      margin: 0;
+      color: #1976d2;
+      font-size: 24px;
+      font-weight: 600;
+    }
+  }
+
+  .actions-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    gap: 16px;
+    flex-wrap: wrap;
+
+    .filters {
+      display: flex;
+      gap: 16px;
+      flex: 1;
+      flex-wrap: wrap;
+
+      .filter-field {
+        min-width: 200px;
+      }
+
+      .search-field {
+        flex: 1;
+        min-width: 200px;
+      }
+    }
+  }
+
+  .content {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 64px;
+    
+    mat-spinner {
+      margin-bottom: 16px;
+    }
+    
+    p {
+      color: #666;
+      font-size: 16px;
+    }
+  }
+
+  .table-container {
+    width: 100%;
+    overflow-x: auto;
+    box-sizing: border-box;
+  }
+
+  .sessions-table {
+    width: 100%;
+    background: white;
+
+    .mat-column-session_date {
+      width: 20%;
+    }
+
+    .mat-column-duration {
+      width: 10%;
+    }
+
+    .mat-column-location {
+      width: 20%;
+    }
+
+    .mat-column-session_type {
+      width: 15%;
+    }
+
+    .mat-column-participants {
+      width: 25%;
+    }
+
+    .mat-column-actions {
+      width: 10%;
+    }
+  }
+
+  .participants-list {
+    font-size: 13px;
+    color: #666;
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .actions-container {
+    display: flex;
+    gap: 4px;
+    
+    button {
+      width: 32px;
+      height: 32px;
+      line-height: 32px;
+      
+      mat-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+      }
+    }
+  }
+
+  .no-data {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 64px 32px;
+    text-align: center;
+    color: #666;
+    
+    mat-icon {
+      font-size: 64px;
+      width: 64px;
+      height: 64px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+    
+    h3 {
+      margin: 0 0 8px 0;
+      font-size: 20px;
+      font-weight: 500;
+      color: #333;
+    }
+    
+    p {
+      margin: 0 0 24px 0;
+      font-size: 16px;
+    }
+  }
+
+  mat-paginator {
+    border-top: 1px solid #e0e0e0;
+    background: #fafafa;
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .sessions-management {
+    padding: 16px;
+
+    .actions-bar {
+      flex-direction: column;
+      align-items: stretch;
+
+      .filters {
+        flex-direction: column;
+      }
+    }
+
+    .sessions-table {
+      font-size: 14px;
+
+      .mat-column-location,
+      .mat-column-duration {
+        display: none;
+      }
+    }
+  }
+}
+
+

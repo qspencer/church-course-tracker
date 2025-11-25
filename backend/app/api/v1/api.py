@@ -6,7 +6,7 @@ from fastapi import APIRouter
 
 from app.api.v1.endpoints import (audit, auth, course_content, course_instances,
                                   courses, enrollments, mock_planning_center,
-                                  people, planning_center_sync, progress,
+                                  people, planning_center_sync, programs, progress,
                                   reports, sync, users)
 
 api_router = APIRouter()
@@ -17,6 +17,7 @@ api_router.include_router(auth.router, prefix="/auth", tags=["authentication"])
 # Core entity endpoints
 api_router.include_router(people.router, prefix="/people", tags=["people"])
 api_router.include_router(courses.router, prefix="/courses", tags=["courses"])
+api_router.include_router(programs.router, prefix="/programs", tags=["programs"])
 api_router.include_router(
     course_instances.router, prefix="/course-instances", tags=["course-instances"]
 )

@@ -4,9 +4,14 @@
   gap: 16px;
   min-width: 500px;
   max-width: 600px;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
 
   .full-width {
     width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
   }
 }
 
@@ -14,6 +19,8 @@ mat-dialog-content {
   padding: 24px;
   max-height: 70vh;
   overflow-y: auto;
+  overflow-x: hidden; // Prevent horizontal scrollbar
+  box-sizing: border-box;
 }
 
 mat-dialog-actions {

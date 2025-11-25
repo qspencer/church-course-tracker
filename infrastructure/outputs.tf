@@ -114,3 +114,8 @@ output "docs_url" {
   description = "Documentation site URL"
   value       = "https://docs.quentinspencer.com/churchcoursetracker/"
 }
+
+output "github_actions_docs_deploy_role_arn" {
+  description = "IAM role ARN for GitHub Actions to deploy documentation (for GitHub secret AWS_DEPLOY_ROLE_ARN)"
+  value       = aws_iam_role.github_actions_docs_deploy.arn
+}

@@ -3,6 +3,8 @@
   max-width: 1200px; // Increased from 800px for better width
   width: 100%;      // Ensure it takes available space up to max-width
   padding: 24px 32px 24px 32px;
+  box-sizing: border-box;
+  overflow-x: hidden; // Prevent horizontal scrollbar
   
   h2 {
     margin: 0 0 8px 0;
@@ -15,18 +17,131 @@
   
   mat-dialog-content {
     padding: 24px 0;
-    max-height: 80vh; // Increased from 70vh to reduce scrollbar
+    max-height: 75vh; // Reduced to prevent scrollbar
     overflow-y: auto;
+    overflow-x: hidden; // Prevent horizontal scrollbar
+    box-sizing: border-box;
   }
   
   .course-form {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 12px; // Reduced from 16px to save vertical space
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
   }
   
   .full-width {
     width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  // Reduce textarea height - override Material Design defaults
+  mat-form-field textarea {
+    min-height: auto !important;
+    height: auto !important;
+    line-height: 1.5 !important;
+  }
+  
+  // Specifically target the description textarea
+  mat-form-field:has(textarea[formcontrolname="description"]) {
+    .mat-mdc-text-field-input-control {
+      min-height: auto !important;
+    }
+    
+    textarea {
+      min-height: 48px !important; // Force smaller min-height (2 rows)
+      height: 48px !important;
+    }
+  }
+
+  // Force all labels to appear on the border with outline appearance
+  // Material Design sometimes places labels in the body for textareas and selects
+  mat-form-field[appearance="outline"] {
+    // Target all possible floating label class names (legacy and MDC)
+    .mat-mdc-floating-label,
+    .mdc-floating-label,
+    .mat-form-field-label,
+    [class*="floating-label"] {
+      // Always position label on the border (top of the outline)
+      position: absolute !important;
+      top: -6px !important;
+      left: 16px !important;
+      transform: translateY(0) scale(0.75) !important;
+      background-color: white !important;
+      padding: 0 4px !important;
+      z-index: 1 !important;
+    }
+
+    // Ensure label stays on border in all states
+    &.mat-focused,
+    &.mat-form-field-should-float,
+    &.mat-form-field-has-value,
+    &:not(.mat-focused):not(.mat-form-field-should-float):not(.mat-form-field-has-value) {
+      .mat-mdc-floating-label,
+      .mdc-floating-label,
+      .mat-form-field-label,
+      [class*="floating-label"] {
+        top: -6px !important;
+        transform: translateY(0) scale(0.75) !important;
+      }
+    }
+
+    // For empty/unfocused fields, make label slightly transparent but still on border
+    &:not(.mat-focused):not(.mat-form-field-should-float):not(.mat-form-field-has-value) {
+      .mat-mdc-floating-label,
+      .mdc-floating-label,
+      .mat-form-field-label,
+      [class*="floating-label"] {
+        opacity: 0.6;
+      }
+    }
+  }
+
+  // Ensure textarea labels are positioned on the border like input fields
+  mat-form-field:has(textarea[matInput]) {
+    .mat-mdc-text-field-wrapper {
+      .mat-mdc-form-field-flex {
+        .mat-mdc-floating-label {
+          position: absolute;
+          top: -6px;
+          left: 16px;
+          transform: translateY(0) scale(0.75);
+        }
+      }
+    }
+    
+    // When focused or has value, keep label on border
+    &.mat-focused,
+    &.mat-form-field-should-float {
+      .mat-mdc-floating-label {
+        top: -6px !important;
+        transform: translateY(0) scale(0.75) !important;
+      }
+    }
+  }
+
+  .chip-input-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+    margin-top: 8px;
+
+    mat-chip-listbox {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      min-height: 32px;
+      padding: 4px 0;
+    }
+  }
+
+  // Override mat-form-field padding for chip inputs
+  mat-form-field.chip-input-field {
+    margin-bottom: 0;
   }
   
   mat-dialog-actions {
@@ -50,6 +165,9 @@
     display: flex;
     flex-direction: column;
     gap: 32px;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
 
     .detail-section {
       display: flex;
@@ -59,6 +177,9 @@
       background: #f8f9fa;
       border-radius: 8px;
       border-left: 4px solid #1976d2;
+      box-sizing: border-box;
+      width: 100%;
+      max-width: 100%;
 
       .detail-label {
         margin: 0;
@@ -83,6 +204,9 @@
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 20px;
+      box-sizing: border-box;
+      width: 100%;
+      max-width: 100%;
 
       .detail-item {
         display: flex;
@@ -93,6 +217,10 @@
         border-radius: 8px;
         border: 1px solid #e0e0e0;
         transition: all 0.2s ease;
+        box-sizing: border-box;
+        width: 100%;
+        max-width: 100%;
+        min-width: 0; // Prevent grid items from overflowing
 
         &:hover {
           box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);

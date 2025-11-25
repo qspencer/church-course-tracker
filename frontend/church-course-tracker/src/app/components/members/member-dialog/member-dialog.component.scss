@@ -2,6 +2,8 @@
   min-width: 500px;
   max-width: 700px;
   padding: 24px 32px 24px 32px; // Add padding: top, right, bottom, left
+  box-sizing: border-box;
+  overflow-x: hidden; // Prevent horizontal scrollbar
   
   h2 {
     margin: 0 0 8px 0;
@@ -16,25 +18,37 @@
     padding: 24px 0;
     max-height: 85vh; // Increased from 80vh to reduce scrollbar
     overflow-y: auto;
+    overflow-x: hidden; // Prevent horizontal scrollbar
+    box-sizing: border-box;
   }
   
   .member-form {
     display: flex;
     flex-direction: column;
     gap: 16px;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
   }
   
   .name-row {
     display: flex;
     gap: 16px;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
     
     .half-width {
       flex: 1;
+      min-width: 0; // Prevent flex items from overflowing
+      box-sizing: border-box;
     }
   }
   
   .full-width {
     width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
   }
   
   mat-dialog-actions {
@@ -58,6 +72,9 @@
     display: flex;
     flex-direction: column;
     gap: 32px;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
 
     .detail-section {
       display: flex;
@@ -67,6 +84,9 @@
       background: #f8f9fa;
       border-radius: 8px;
       border-left: 4px solid #1976d2;
+      box-sizing: border-box;
+      width: 100%;
+      max-width: 100%;
 
       .detail-label {
         margin: 0;
@@ -105,6 +125,9 @@
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 20px;
+      box-sizing: border-box;
+      width: 100%;
+      max-width: 100%;
 
       .detail-item {
         display: flex;
@@ -115,6 +138,10 @@
         border-radius: 8px;
         border: 1px solid #e0e0e0;
         transition: all 0.2s ease;
+        box-sizing: border-box;
+        width: 100%;
+        max-width: 100%;
+        min-width: 0; // Prevent grid items from overflowing
 
         &.full-width {
           grid-column: 1 / -1;

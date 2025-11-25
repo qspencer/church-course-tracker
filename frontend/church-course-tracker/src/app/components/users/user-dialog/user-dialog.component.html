@@ -8,8 +8,8 @@
       <div class="form-row">
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Full Name</mat-label>
-          <input matInput formControlName="full_name" placeholder="Enter full name">
-          <mat-error *ngIf="userForm.get('full_name')?.invalid && userForm.get('full_name')?.touched">
+          <input matInput formControlName="full_name">
+          <mat-error *ngIf="shouldShowError('full_name')">
             {{ getErrorMessage('full_name') }}
           </mat-error>
         </mat-form-field>
@@ -18,8 +18,8 @@
       <div class="form-row">
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Email</mat-label>
-          <input matInput type="email" formControlName="email" placeholder="Enter email address">
-          <mat-error *ngIf="userForm.get('email')?.invalid && userForm.get('email')?.touched">
+          <input matInput type="email" formControlName="email">
+          <mat-error *ngIf="shouldShowError('email')">
             {{ getErrorMessage('email') }}
           </mat-error>
         </mat-form-field>
@@ -28,20 +28,20 @@
       <div class="form-row">
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Username (Optional)</mat-label>
-          <input matInput formControlName="username" placeholder="Enter username">
+          <input matInput formControlName="username">
           <mat-hint>Leave blank to use email as username</mat-hint>
         </mat-form-field>
       </div>
 
       <div class="form-row">
-        <mat-form-field appearance="outline" class="full-width">
+        <mat-form-field appearance="outline" class="full-width" floatLabel="always">
           <mat-label>Role</mat-label>
           <mat-select formControlName="role">
             <mat-option value="admin">Admin</mat-option>
             <mat-option value="staff">Staff</mat-option>
             <mat-option value="viewer">Viewer</mat-option>
           </mat-select>
-          <mat-error *ngIf="userForm.get('role')?.invalid && userForm.get('role')?.touched">
+          <mat-error *ngIf="shouldShowError('role')">
             {{ getErrorMessage('role') }}
           </mat-error>
         </mat-form-field>
@@ -51,14 +51,13 @@
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Password</mat-label>
           <input matInput [type]="hidePassword ? 'password' : 'text'" 
-                 formControlName="password" 
-                 placeholder="Enter password">
+                 formControlName="password">
           <button mat-icon-button matSuffix (click)="hidePassword = !hidePassword" type="button">
             <mat-icon>{{hidePassword ? 'visibility_off' : 'visibility'}}</mat-icon>
           </button>
           <mat-hint *ngIf="data.mode === 'edit'">Leave blank to keep current password</mat-hint>
           <mat-hint *ngIf="data.mode === 'create'">Minimum 8 characters</mat-hint>
-          <mat-error *ngIf="userForm.get('password')?.invalid && userForm.get('password')?.touched">
+          <mat-error *ngIf="shouldShowError('password')">
             {{ getErrorMessage('password') }}
           </mat-error>
         </mat-form-field>

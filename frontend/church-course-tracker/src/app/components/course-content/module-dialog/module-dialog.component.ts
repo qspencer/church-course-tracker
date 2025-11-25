@@ -19,6 +19,7 @@ export class ModuleDialogComponent implements OnInit {
   moduleForm: FormGroup;
   isEditing: boolean;
   isSubmitting = false;
+  isSubmitted = false; // Track if form has been submitted
 
   constructor(
     private fb: FormBuilder,
@@ -48,6 +49,9 @@ export class ModuleDialogComponent implements OnInit {
   }
 
   onSubmit(): void {
+    // Mark form as submitted to show validation errors
+    this.isSubmitted = true;
+    
     if (this.moduleForm.valid && !this.isSubmitting) {
       this.isSubmitting = true;
       
@@ -106,6 +110,12 @@ export class ModuleDialogComponent implements OnInit {
       return `${fieldName} must be at least ${field.errors?.['min'].min}`;
     }
     return '';
+  }
+
+  shouldShowError(fieldName: string): boolean {
+    const field = this.moduleForm.get(fieldName);
+    // Only show error if field is invalid AND (touched OR form submitted)
+    return !!(field && field.invalid && (field.touched || this.isSubmitted));
   }
 }
 

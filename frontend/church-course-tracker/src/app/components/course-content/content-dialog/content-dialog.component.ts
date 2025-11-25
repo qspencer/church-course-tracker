@@ -20,6 +20,7 @@ export class ContentDialogComponent implements OnInit {
   contentForm: FormGroup;
   isEditing: boolean;
   isLoading = false;
+  isSubmitted = false; // Track if form has been submitted
   selectedFile: File | null = null;
   
   // Enums for template
@@ -96,6 +97,9 @@ export class ContentDialogComponent implements OnInit {
   }
 
   onSubmit(): void {
+    // Mark form as submitted to show validation errors
+    this.isSubmitted = true;
+    
     if (this.isLoading || !this.contentForm.valid) {
       return;
     }
@@ -289,6 +293,12 @@ export class ContentDialogComponent implements OnInit {
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  }
+
+  shouldShowError(fieldName: string): boolean {
+    const field = this.contentForm.get(fieldName);
+    // Only show error if field is invalid AND (touched OR form submitted)
+    return !!(field && field.invalid && (field.touched || this.isSubmitted));
   }
 }
 

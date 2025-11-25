@@ -86,11 +86,16 @@ class CourseContent(Base):
         Integer, ForeignKey("course_modules.id"), nullable=True
     )  # Optional module
 
-    # Content details
-    title = Column(String(200), nullable=False)
+    # Reference to shared content (if reusable)
+    shared_content_id = Column(
+        Integer, ForeignKey("shared_content.id"), nullable=True, index=True
+    )
+
+    # Content details (nullable if using shared_content)
+    title = Column(String(200), nullable=True)  # Nullable if using shared_content
     description = Column(Text, nullable=True)
-    content_type = Column(Enum(ContentType), nullable=False)
-    storage_type = Column(Enum(StorageType), nullable=False)
+    content_type = Column(Enum(ContentType), nullable=True)  # Nullable if using shared_content
+    storage_type = Column(Enum(StorageType), nullable=True)  # Nullable if using shared_content
 
     # File information (for uploaded content)
     file_name = Column(String(255), nullable=True)
@@ -133,6 +138,7 @@ class CourseContent(Base):
     # Relationships
     course = relationship("Course", back_populates="course_content")
     module = relationship("CourseModule", back_populates="content_items")
+    shared_content = relationship("SharedContent", foreign_keys=[shared_content_id])
     created_by_user = relationship("User", foreign_keys=[created_by])
     updated_by_user = relationship("User", foreign_keys=[updated_by])
     access_logs = relationship(

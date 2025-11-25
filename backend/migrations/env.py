@@ -9,7 +9,8 @@ import sys
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 from app.core.database import Base
-from app.models import user, course, member, enrollment, progress
+from app.models import (user, course, member, enrollment, progress, program,
+                         program_content, program_progress, shared_content)
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

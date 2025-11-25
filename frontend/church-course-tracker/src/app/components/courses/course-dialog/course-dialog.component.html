@@ -74,6 +74,33 @@
         </div>
       </div>
 
+      <div class="detail-section" *ngIf="getInstructors().length > 0">
+        <h3 class="detail-label">Instructors</h3>
+        <div class="prerequisites-list">
+          <mat-chip *ngFor="let instructor of getInstructors()" selected>
+            {{ getInstructorDisplay(instructor) }}
+          </mat-chip>
+        </div>
+      </div>
+
+      <div class="detail-section" *ngIf="getLocations().length > 0">
+        <h3 class="detail-label">Locations</h3>
+        <div class="prerequisites-list">
+          <mat-chip *ngFor="let location of getLocations()" selected>
+            {{ location }}
+          </mat-chip>
+        </div>
+      </div>
+
+      <div class="detail-section" *ngIf="getDeliveryModes().length > 0">
+        <h3 class="detail-label">Delivery Modes</h3>
+        <div class="prerequisites-list">
+          <mat-chip *ngFor="let mode of getDeliveryModes()" selected>
+            {{ mode }}
+          </mat-chip>
+        </div>
+      </div>
+
       <div class="detail-row" *ngIf="course.content_unlock_mode || course.max_file_size_mb">
         <div class="detail-item" *ngIf="course.content_unlock_mode">
           <h3 class="detail-label">Content Unlock Mode</h3>
@@ -108,21 +135,21 @@
 
     <!-- Edit/Create Mode: Form -->
     <form *ngIf="!viewMode" [formGroup]="courseForm" class="course-form">
-      <mat-form-field appearance="outline" class="full-width">
+      <mat-form-field appearance="outline" class="full-width" floatLabel="always">
         <mat-label>Course Title</mat-label>
-        <input matInput formControlName="title" placeholder="Enter course title">
-        <mat-error>{{ getErrorMessage('title') }}</mat-error>
+        <input matInput formControlName="title">
+        <mat-error *ngIf="shouldShowError('title')">{{ getErrorMessage('title') }}</mat-error>
       </mat-form-field>
 
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Description</mat-label>
+      <mat-form-field appearance="outline" class="full-width" floatLabel="always">
+        <mat-label>Course Description</mat-label>
         <textarea 
           matInput 
           formControlName="description" 
-          placeholder="Enter course description"
-          rows="4">
+          rows="2"
+          style="min-height: auto; height: auto;">
         </textarea>
-        <mat-error>{{ getErrorMessage('description') }}</mat-error>
+        <mat-error *ngIf="shouldShowError('description')">{{ getErrorMessage('description') }}</mat-error>
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="full-width">
@@ -131,14 +158,13 @@
           matInput 
           type="number" 
           formControlName="duration_weeks" 
-          placeholder="Enter duration in weeks"
           min="1"
           max="52">
         <mat-hint>Enter the course duration in weeks (1-52)</mat-hint>
-        <mat-error>{{ getErrorMessage('duration_weeks') }}</mat-error>
+        <mat-error *ngIf="shouldShowError('duration_weeks')">{{ getErrorMessage('duration_weeks') }}</mat-error>
       </mat-form-field>
 
-      <mat-form-field appearance="outline" class="full-width">
+      <mat-form-field appearance="outline" class="full-width" floatLabel="always">
         <mat-label>Prerequisites</mat-label>
         <mat-select formControlName="prerequisites" multiple>
           <mat-option *ngFor="let course of availablePrerequisites" [value]="course.id">
@@ -147,6 +173,60 @@
         </mat-select>
         <mat-hint>Select courses that must be completed before enrolling in this course</mat-hint>
         <mat-spinner *ngIf="loadingPrerequisites" diameter="20" matSuffix></mat-spinner>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width" floatLabel="always">
+        <mat-label>Instructors</mat-label>
+        <mat-select formControlName="instructors" multiple>
+          <mat-option value="TBD">TBD (To Be Determined)</mat-option>
+          <mat-option *ngFor="let user of availableUsers" [value]="user.id">
+            {{ user.full_name }} ({{ user.email }})
+          </mat-option>
+        </mat-select>
+        <mat-hint>Select instructors or mark as TBD if not yet assigned</mat-hint>
+        <mat-spinner *ngIf="loadingUsers" diameter="20" matSuffix></mat-spinner>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width" floatLabel="always">
+        <mat-label>Locations</mat-label>
+        <div class="chip-input-container">
+          <mat-chip-listbox>
+            <mat-chip *ngFor="let location of courseForm.value.locations" (removed)="removeLocation(location)">
+              {{ location }}
+              <button matChipRemove>
+                <mat-icon>cancel</mat-icon>
+              </button>
+            </mat-chip>
+          </mat-chip-listbox>
+          <input 
+            matInput 
+            [(ngModel)]="locationInput" 
+            (keydown.enter)="addLocation(); $event.preventDefault()"
+            placeholder="Add location (e.g., Room 101, Online, Zoom)"
+            [ngModelOptions]="{standalone: true}">
+        </div>
+        <mat-hint>Press Enter to add location</mat-hint>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width" floatLabel="always">
+        <mat-label>Delivery Modes</mat-label>
+        <div class="chip-input-container">
+          <mat-chip-listbox>
+            <mat-chip *ngFor="let mode of courseForm.value.delivery_modes" (removed)="removeDeliveryMode(mode)">
+              {{ mode }}
+              <button matChipRemove>
+                <mat-icon>cancel</mat-icon>
+              </button>
+            </mat-chip>
+          </mat-chip-listbox>
+          <input 
+            matInput 
+            [(ngModel)]="deliveryModeInput" 
+            (keydown.enter)="addDeliveryMode(); $event.preventDefault()"
+            placeholder="Add delivery mode (e.g., In-person, Online, Hybrid)"
+            [ngModelOptions]="{standalone: true}">
+        </div>
+        <mat-hint>Press Enter to add delivery mode</mat-hint>
       </mat-form-field>
     </form>
   </mat-dialog-content>

@@ -17,6 +17,9 @@ import logging
 from app.core.config import settings
 from app.api.v1.api import api_router
 from app.core.csv_loader import load_csv_data_on_startup
+from app.core.database import SessionLocal
+from app.models.user import User
+from app.core.security import get_password_hash
 
 # Configure logging
 logging.basicConfig(level=getattr(logging, settings.LOG_LEVEL))
@@ -237,10 +240,53 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     )
 
 
+def ensure_admin_user():
+    """Ensure admin user exists in the database (idempotent)"""
+    db = SessionLocal()
+    try:
+        # Get admin credentials from config
+        admin_username = settings.ADMIN_USERNAME
+        admin_email = settings.ADMIN_EMAIL
+        admin_password = settings.ADMIN_PASSWORD
+        admin_full_name = settings.ADMIN_FULL_NAME
+        
+        # Check if admin user exists
+        admin_user = db.query(User).filter(
+            (User.username == admin_username) | (User.email == admin_email)
+        ).first()
+        
+        if not admin_user:
+            logger.info(f"Admin user not found, creating '{admin_username}'...")
+            admin_user = User(
+                username=admin_username,
+                email=admin_email,
+                full_name=admin_full_name,
+                hashed_password=get_password_hash(admin_password),
+                role="admin",
+                is_active=True
+            )
+            db.add(admin_user)
+            db.commit()
+            logger.info(f"✅ Admin user created successfully ({admin_username})")
+        else:
+            logger.info(f"✅ Admin user verified (username: {admin_user.username})")
+    except Exception as e:
+        logger.error(f"Error ensuring admin user exists: {e}")
+        db.rollback()
+    finally:
+        db.close()
+
+
 @app.on_event("startup")
 async def startup_event():
     """Application startup event handler"""
     logger.info("Starting Church Course Tracker API...")
+    
+    # Ensure admin user exists
+    try:
+        ensure_admin_user()
+    except Exception as e:
+        logger.error(f"Error ensuring admin user: {e}")
     
     # Load CSV data if enabled
     try:

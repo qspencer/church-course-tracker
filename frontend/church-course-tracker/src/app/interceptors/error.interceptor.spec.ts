@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
-import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
-import { HTTP_INTERCEPTORS, HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { HTTP_INTERCEPTORS, HttpClient, HttpErrorResponse, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ErrorInterceptor } from './error.interceptor';
 
@@ -13,16 +13,18 @@ describe('ErrorInterceptor', () => {
     const snackBarSpyObj = jasmine.createSpyObj('MatSnackBar', ['open']);
 
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
-      providers: [
+    imports: [],
+    providers: [
         { provide: MatSnackBar, useValue: snackBarSpyObj },
         {
-          provide: HTTP_INTERCEPTORS,
-          useClass: ErrorInterceptor,
-          multi: true
-        }
-      ]
-    });
+            provide: HTTP_INTERCEPTORS,
+            useClass: ErrorInterceptor,
+            multi: true
+        },
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting()
+    ]
+});
 
     httpClient = TestBed.inject(HttpClient);
     httpMock = TestBed.inject(HttpTestingController);
