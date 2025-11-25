@@ -33,7 +33,7 @@ jobs:
     - name: Run tests
       run: |
         cd frontend/church-course-tracker
-        npx ng test --browsers=ChromeHeadless --watch=false --code-coverage
+        npx ng test --watch=false --code-coverage
       env:
         CI: true
     
