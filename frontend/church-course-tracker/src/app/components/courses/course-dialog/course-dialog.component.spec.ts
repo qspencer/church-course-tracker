@@ -1,8 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ReactiveFormsModule } from '@angular/forms';
+import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { of, throwError } from 'rxjs';
 
 // Angular Material
@@ -13,6 +14,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatIconModule } from '@angular/material/icon';
 
 import { CourseDialogComponent, CourseDialogData } from './course-dialog.component';
 import { CourseService } from '../../../services/course.service';
@@ -59,6 +61,7 @@ describe('CourseDialogComponent', () => {
       declarations: [CourseDialogComponent],
       imports: [
         ReactiveFormsModule,
+        FormsModule,
         BrowserAnimationsModule,
         MatDialogModule,
         MatFormFieldModule,
@@ -66,7 +69,8 @@ describe('CourseDialogComponent', () => {
         MatButtonModule,
         MatProgressSpinnerModule,
         MatSelectModule,
-        MatChipsModule
+        MatChipsModule,
+        MatIconModule
       ],
       providers: [
         { provide: CourseService, useValue: courseSpy },
@@ -76,7 +80,8 @@ describe('CourseDialogComponent', () => {
         { provide: MatSnackBar, useValue: matSnackBarSpy },
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting()
-      ]
+      ],
+      schemas: [NO_ERRORS_SCHEMA]
     }).compileComponents();
 
     fixture = TestBed.createComponent(CourseDialogComponent);
@@ -134,6 +139,8 @@ describe('CourseDialogComponent', () => {
       const editDialogData = { course: { ...mockCourse } };
       const editCourseSpy = jasmine.createSpyObj('CourseService', ['createCourse', 'updateCourse', 'getAvailablePrerequisites']);
       editCourseSpy.getAvailablePrerequisites.and.returnValue(of([]));
+      const editUserSpy = jasmine.createSpyObj('UserService', ['getUsers']);
+      editUserSpy.getUsers.and.returnValue(of([]));
       const editMatDialogRefSpy = jasmine.createSpyObj('MatDialogRef', ['close']);
       const editMatSnackBarSpy = jasmine.createSpyObj('MatSnackBar', ['open']);
       
@@ -141,20 +148,27 @@ describe('CourseDialogComponent', () => {
         declarations: [CourseDialogComponent],
         imports: [
           ReactiveFormsModule,
+          FormsModule,
           BrowserAnimationsModule,
           MatDialogModule,
           MatFormFieldModule,
           MatInputModule,
           MatButtonModule,
           MatProgressSpinnerModule,
-          MatSelectModule
+          MatSelectModule,
+          MatChipsModule,
+          MatIconModule
         ],
         providers: [
           { provide: CourseService, useValue: editCourseSpy },
+          { provide: UserService, useValue: editUserSpy },
           { provide: MatDialogRef, useValue: editMatDialogRefSpy },
           { provide: MAT_DIALOG_DATA, useValue: editDialogData },
-          { provide: MatSnackBar, useValue: editMatSnackBarSpy }
-        ]
+          { provide: MatSnackBar, useValue: editMatSnackBarSpy },
+          provideHttpClient(withInterceptorsFromDi()),
+          provideHttpClientTesting()
+        ],
+        schemas: [NO_ERRORS_SCHEMA]
       }).compileComponents();
       
       const editFixture = TestBed.createComponent(CourseDialogComponent);

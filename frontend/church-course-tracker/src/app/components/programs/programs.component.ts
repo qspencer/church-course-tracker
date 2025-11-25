@@ -33,9 +33,14 @@ export class ProgramsComponent implements OnInit {
     private authService: AuthService,
     private dialog: MatDialog,
     private snackBar: MatSnackBar
-  ) {}
+  ) {
+    console.log('ProgramsComponent constructor called');
+    console.log('Current route:', window.location.pathname);
+  }
 
   ngOnInit(): void {
+    console.log('ProgramsComponent ngOnInit called');
+    console.log('Current route:', window.location.pathname);
     this.loadPrograms();
   }
 

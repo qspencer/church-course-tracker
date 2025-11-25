@@ -1,15 +1,11 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
-import { RouterModule, Routes } from '@angular/router';
 
 // Angular Material
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatTableModule } from '@angular/material/table';
-import { MatPaginatorModule } from '@angular/material/paginator';
-import { MatSortModule } from '@angular/material/sort';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
@@ -22,30 +18,23 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 
-import { EnrollmentsComponent } from './enrollments.component';
-import { EnrollmentDialogComponent } from './enrollment-dialog/enrollment-dialog.component';
-import { BulkEnrollmentDialogModule } from './bulk-enrollment-dialog.module';
+import { BulkEnrollmentDialogComponent } from './bulk-enrollment-dialog/bulk-enrollment-dialog.component';
 
-const routes: Routes = [
-  { path: '', component: EnrollmentsComponent }
-];
-
+/**
+ * Standalone module for BulkEnrollmentDialogComponent
+ * This module does NOT include routing, so it can be safely imported
+ * by other modules without causing route conflicts.
+ */
 @NgModule({
   declarations: [
-    EnrollmentsComponent,
-    EnrollmentDialogComponent
-    // BulkEnrollmentDialogComponent is now in BulkEnrollmentDialogModule
+    BulkEnrollmentDialogComponent
   ],
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    RouterModule.forChild(routes),
     MatCardModule,
     MatButtonModule,
     MatIconModule,
-    MatTableModule,
-    MatPaginatorModule,
-    MatSortModule,
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
@@ -56,11 +45,11 @@ const routes: Routes = [
     MatTooltipModule,
     MatCheckboxModule,
     MatRadioModule,
-    MatButtonToggleModule,
-    BulkEnrollmentDialogModule
+    MatButtonToggleModule
   ],
   exports: [
-    BulkEnrollmentDialogModule
+    BulkEnrollmentDialogComponent
   ]
 })
-export class EnrollmentsModule { }
+export class BulkEnrollmentDialogModule { }
+

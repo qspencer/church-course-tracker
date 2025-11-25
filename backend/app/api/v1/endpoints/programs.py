@@ -336,8 +336,9 @@ async def remove_program_admin(
 
 
 # Program Participant endpoints
-# NOTE: Bulk import routes must come BEFORE parameterized routes to avoid route conflicts
-@router.get("/participants", response_model=List[ProgramParticipant])
+# NOTE: All /participants routes must come BEFORE /{program_id}/participants to avoid route conflicts
+# Using explicit path without trailing slash to ensure correct matching
+@router.get("/participants", response_model=List[ProgramParticipant], name="get_all_program_participants")
 async def get_all_program_participants(
     status: Optional[str] = Query(None, description="Filter by status (active, paused, completed, ended)"),
     skip: int = Query(0, ge=0, description="Number of records to skip"),

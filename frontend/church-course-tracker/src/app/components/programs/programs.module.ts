@@ -34,7 +34,6 @@ import { SessionsManagementComponent } from './sessions-management/sessions-mana
 import { ProgressDialogComponent } from './progress-dialog/progress-dialog.component';
 import { ProgressManagementComponent } from './progress-management/progress-management.component';
 import { SharedModule } from '../../shared/shared.module';
-import { EnrollmentsModule } from '../enrollments/enrollments.module';
 
 const routes: Routes = [
   { path: '', component: ProgramsComponent }
@@ -77,8 +76,7 @@ const routes: Routes = [
     MatProgressBarModule,
     MatDatepickerModule,
     MatNativeDateModule,
-    SharedModule,
-    EnrollmentsModule
+    SharedModule
   ]
 })
 export class ProgramsModule { }

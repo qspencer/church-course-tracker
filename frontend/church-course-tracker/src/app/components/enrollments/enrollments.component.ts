@@ -38,7 +38,10 @@ export class EnrollmentsComponent implements OnInit {
     private memberService: MemberService,
     private dialog: MatDialog,
     private snackBar: MatSnackBar
-  ) {}
+  ) {
+    console.log('EnrollmentsComponent constructor called');
+    console.log('Current route:', window.location.pathname);
+  }
 
   ngOnInit(): void {
     this.loadData();

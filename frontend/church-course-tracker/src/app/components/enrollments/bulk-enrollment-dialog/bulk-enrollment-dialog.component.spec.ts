@@ -11,10 +11,14 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { of } from 'rxjs';
 
-import { BulkEnrollmentDialogComponent } from './bulk-enrollment-dialog.component';
+import { BulkEnrollmentDialogComponent, BulkImportDialogData } from './bulk-enrollment-dialog.component';
 import { PlanningCenterService } from '../../../services/planning-center.service';
 import { CourseService } from '../../../services/course.service';
 import { EnrollmentService } from '../../../services/enrollment.service';
+import { MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { ProgramService } from '../../../services/program.service';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 
 describe('BulkEnrollmentDialogComponent', () => {
   let component: BulkEnrollmentDialogComponent;
@@ -29,6 +33,9 @@ describe('BulkEnrollmentDialogComponent', () => {
     courseSpy.getCourses.and.returnValue(of([]));
     
     const enrollmentSpy = jasmine.createSpyObj('EnrollmentService', ['bulkEnrollFromPCEvent', 'bulkEnrollFromPCList']);
+    
+    const programSpy = jasmine.createSpyObj('ProgramService', ['getPrograms']);
+    programSpy.getPrograms.and.returnValue(of([]));
     
     const dialogRefSpy = jasmine.createSpyObj('MatDialogRef', ['close']);
     const snackBarSpy = jasmine.createSpyObj('MatSnackBar', ['open']);
@@ -50,8 +57,12 @@ describe('BulkEnrollmentDialogComponent', () => {
         { provide: PlanningCenterService, useValue: planningCenterSpy },
         { provide: CourseService, useValue: courseSpy },
         { provide: EnrollmentService, useValue: enrollmentSpy },
+        { provide: ProgramService, useValue: programSpy },
         { provide: MatDialogRef, useValue: dialogRefSpy },
-        { provide: MatSnackBar, useValue: snackBarSpy }
+        { provide: MAT_DIALOG_DATA, useValue: {} as BulkImportDialogData },
+        { provide: MatSnackBar, useValue: snackBarSpy },
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting()
       ]
     })
     .compileComponents();
