@@ -1,0 +1,109 @@
+<h2 mat-dialog-title>
+  <mat-icon>tune</mat-icon>
+  Review Attribute Mappings
+</h2>
+
+<div mat-dialog-content class="attribute-mapping-content">
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p>Loading attribute mappings...</p>
+  </div>
+
+  <div *ngIf="!isLoading && review" class="mapping-container">
+    <div class="info-section">
+      <p class="info-text">
+        Review how Planning Center attributes will be mapped to Church Course Tracker.
+        For each attribute, choose to accept the match, rematch to a different attribute,
+        save as a custom attribute, or ignore it.
+      </p>
+    </div>
+
+    <div class="attributes-list">
+      <div *ngFor="let match of review.matches" class="attribute-item" [class.matched]="match.match_status === 'matched'" [class.unmatched]="match.match_status === 'unmatched'">
+        <div class="attribute-header">
+          <div class="attribute-name-section">
+            <mat-icon [color]="getMatchStatusColor(match)">{{ getMatchStatusIcon(match) }}</mat-icon>
+            <div class="attribute-info">
+              <strong class="pc-attribute-name">{{ match.pc_attribute }}</strong>
+              <span class="attribute-value" [title]="getAttributeValue(match.pc_attribute)">
+                {{ formatAttributeValue(getAttributeValue(match.pc_attribute)) }}
+              </span>
+            </div>
+          </div>
+          <div class="match-info" *ngIf="match.match_status === 'matched'">
+            <span class="match-badge" [class.predefined]="match.is_predefined">
+              <mat-icon>{{ match.is_predefined ? 'verified' : 'auto_awesome' }}</mat-icon>
+              <span>→ {{ match.local_attribute }}</span>
+              <span class="similarity-score" *ngIf="!match.is_predefined">
+                ({{ (match.similarity_score * 100).toFixed(0) }}% match)
+              </span>
+            </span>
+          </div>
+        </div>
+
+        <form [formGroup]="attributeForms[match.pc_attribute]" class="attribute-form">
+          <mat-form-field appearance="outline" class="action-field">
+            <mat-label>Action</mat-label>
+            <mat-select formControlName="action">
+              <mat-option *ngFor="let action of getAvailableActions(match)" [value]="action.value">
+                <mat-icon>{{ action.icon }}</mat-icon>
+                {{ action.label }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field 
+            appearance="outline" 
+            class="local-attribute-field"
+            *ngIf="attributeForms[match.pc_attribute]?.get('action')?.value === 'rematch'">
+            <mat-label>Match to Attribute</mat-label>
+            <mat-select formControlName="local_attribute">
+              <mat-option *ngFor="let attr of getLocalAttributeOptions()" [value]="attr">
+                {{ attr }}
+              </mat-option>
+            </mat-select>
+            <mat-error *ngIf="attributeForms[match.pc_attribute]?.get('local_attribute')?.hasError('required')">
+              Please select an attribute
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field 
+            appearance="outline" 
+            class="custom-attribute-field"
+            *ngIf="attributeForms[match.pc_attribute]?.get('action')?.value === 'custom'">
+            <mat-label>Custom Attribute Name</mat-label>
+            <input matInput formControlName="custom_attribute_name" placeholder="e.g., discipler_name">
+            <mat-hint>This will be saved as a custom attribute in CCT</mat-hint>
+            <mat-error *ngIf="attributeForms[match.pc_attribute]?.get('custom_attribute_name')?.hasError('required')">
+              Custom attribute name is required
+            </mat-error>
+          </mat-form-field>
+
+          <div class="action-hint" *ngIf="attributeForms[match.pc_attribute]?.get('action')?.value === 'accept' && match.match_status === 'matched'">
+            <mat-icon>info</mat-icon>
+            <span>Will map to: <strong>{{ match.local_attribute }}</strong></span>
+          </div>
+
+          <div class="action-hint" *ngIf="attributeForms[match.pc_attribute]?.get('action')?.value === 'ignore'">
+            <mat-icon>block</mat-icon>
+            <span>This attribute will not be imported</span>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()" [disabled]="isSaving">Cancel</button>
+  <button 
+    mat-raised-button 
+    color="primary" 
+    (click)="onSubmit()" 
+    [disabled]="isLoading || isSaving || !review">
+    <mat-spinner *ngIf="isSaving" diameter="20" style="display: inline-block; margin-right: 8px;"></mat-spinner>
+    <span *ngIf="!isSaving">Save Mappings</span>
+    <span *ngIf="isSaving">Saving...</span>
+  </button>
+</div>
+

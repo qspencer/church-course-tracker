@@ -4,6 +4,7 @@ import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ProgramService } from '../../../services/program.service';
 import { CourseService } from '../../../services/course.service';
+import { AutocompleteSuggestionService } from '../../../services/autocomplete-suggestion.service';
 import { Program, ProgramCreate, ProgramUpdate, RoleDefinition, RelationshipConfig } from '../../../models/program.model';
 import { Course } from '../../../models';
 import { MatDialog } from '@angular/material/dialog';
@@ -29,6 +30,12 @@ export class ProgramDialogComponent implements OnInit {
   locationInput = '';
   deliveryModeInput = '';
   
+  // Autocomplete suggestions
+  locationSuggestions: string[] = [];
+  deliveryModeSuggestions: string[] = [];
+  filteredLocationSuggestions: string[] = [];
+  filteredDeliveryModeSuggestions: string[] = [];
+  
   // Available courses for prerequisites
   availableCourses: Course[] = [];
   loadingCourses = false;
@@ -39,6 +46,7 @@ export class ProgramDialogComponent implements OnInit {
     @Inject(MAT_DIALOG_DATA) public data: { program: Program | null; viewMode?: boolean },
     private programService: ProgramService,
     private courseService: CourseService,
+    private autocompleteService: AutocompleteSuggestionService,
     private snackBar: MatSnackBar,
     private dialog: MatDialog
   ) {
@@ -65,6 +73,7 @@ export class ProgramDialogComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadAvailableCourses();
+    this.loadAutocompleteSuggestions();
     
     if (this.program) {
       // Populate role definitions
@@ -167,6 +176,47 @@ export class ProgramDialogComponent implements OnInit {
     });
   }
 
+  // Load autocomplete suggestions
+  loadAutocompleteSuggestions(): void {
+    // Load location suggestions
+    this.autocompleteService.getSuggestions('location').subscribe({
+      next: (suggestions) => {
+        this.locationSuggestions = suggestions;
+        this.filteredLocationSuggestions = suggestions;
+      },
+      error: (error) => {
+        console.error('Error loading location suggestions:', error);
+      }
+    });
+
+    // Load delivery mode suggestions
+    this.autocompleteService.getSuggestions('delivery_mode').subscribe({
+      next: (suggestions) => {
+        this.deliveryModeSuggestions = suggestions;
+        this.filteredDeliveryModeSuggestions = suggestions;
+      },
+      error: (error) => {
+        console.error('Error loading delivery mode suggestions:', error);
+      }
+    });
+  }
+
+  // Filter location suggestions based on input
+  filterLocationSuggestions(): void {
+    const filterValue = this.locationInput.toLowerCase();
+    this.filteredLocationSuggestions = this.locationSuggestions.filter(
+      suggestion => suggestion.toLowerCase().includes(filterValue)
+    );
+  }
+
+  // Filter delivery mode suggestions based on input
+  filterDeliveryModeSuggestions(): void {
+    const filterValue = this.deliveryModeInput.toLowerCase();
+    this.filteredDeliveryModeSuggestions = this.deliveryModeSuggestions.filter(
+      suggestion => suggestion.toLowerCase().includes(filterValue)
+    );
+  }
+
   addLocation(): void {
     const location = this.locationInput.trim();
     if (location && !this.programForm.value.locations.includes(location)) {
@@ -174,7 +224,20 @@ export class ProgramDialogComponent implements OnInit {
       this.programForm.patchValue({
         locations: [...currentLocations, location]
       });
+      
+      // Save to autocomplete suggestions
+      this.autocompleteService.addSuggestion('location', location).subscribe({
+        next: () => {
+          // Reload suggestions to include the new one
+          this.loadAutocompleteSuggestions();
+        },
+        error: (error) => {
+          console.error('Error saving location suggestion:', error);
+        }
+      });
+      
       this.locationInput = '';
+      this.filteredLocationSuggestions = this.locationSuggestions;
     }
   }
 
@@ -192,8 +255,32 @@ export class ProgramDialogComponent implements OnInit {
       this.programForm.patchValue({
         delivery_modes: [...currentModes, mode]
       });
+      
+      // Save to autocomplete suggestions
+      this.autocompleteService.addSuggestion('delivery_mode', mode).subscribe({
+        next: () => {
+          // Reload suggestions to include the new one
+          this.loadAutocompleteSuggestions();
+        },
+        error: (error) => {
+          console.error('Error saving delivery mode suggestion:', error);
+        }
+      });
+      
       this.deliveryModeInput = '';
+      this.filteredDeliveryModeSuggestions = this.deliveryModeSuggestions;
     }
+  }
+
+  // Select suggestion from autocomplete
+  selectLocationSuggestion(suggestion: string): void {
+    this.locationInput = suggestion;
+    this.addLocation();
+  }
+
+  selectDeliveryModeSuggestion(suggestion: string): void {
+    this.deliveryModeInput = suggestion;
+    this.addDeliveryMode();
   }
 
   removeDeliveryMode(mode: string): void {

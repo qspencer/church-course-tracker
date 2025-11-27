@@ -4,6 +4,7 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { CourseService } from '../../../services/course.service';
 import { UserService } from '../../../services/user.service';
+import { AutocompleteSuggestionService } from '../../../services/autocomplete-suggestion.service';
 import { Course, CourseCreate, CourseUpdate, User } from '../../../models';
 
 export interface CourseDialogData {
@@ -31,11 +32,18 @@ export class CourseDialogComponent implements OnInit {
   // For chip inputs (locations and delivery modes)
   locationInput = '';
   deliveryModeInput = '';
+  
+  // Autocomplete suggestions
+  locationSuggestions: string[] = [];
+  deliveryModeSuggestions: string[] = [];
+  filteredLocationSuggestions: string[] = [];
+  filteredDeliveryModeSuggestions: string[] = [];
 
   constructor(
     private fb: FormBuilder,
     private courseService: CourseService,
     private userService: UserService,
+    private autocompleteService: AutocompleteSuggestionService,
     private snackBar: MatSnackBar,
     public dialogRef: MatDialogRef<CourseDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: CourseDialogData
@@ -59,6 +67,7 @@ export class CourseDialogComponent implements OnInit {
     this.loadAvailablePrerequisites();
     // Load users for both view and edit modes (needed for instructor display)
     this.loadAvailableUsers();
+    this.loadAutocompleteSuggestions();
     
     if (this.data.course) {
       if (this.viewMode) {
@@ -301,6 +310,47 @@ export class CourseDialogComponent implements OnInit {
     return Array.isArray(this.course.prerequisites) ? this.course.prerequisites : [];
   }
 
+  // Load autocomplete suggestions
+  loadAutocompleteSuggestions(): void {
+    // Load location suggestions
+    this.autocompleteService.getSuggestions('location').subscribe({
+      next: (suggestions) => {
+        this.locationSuggestions = suggestions;
+        this.filteredLocationSuggestions = suggestions;
+      },
+      error: (error) => {
+        console.error('Error loading location suggestions:', error);
+      }
+    });
+
+    // Load delivery mode suggestions
+    this.autocompleteService.getSuggestions('delivery_mode').subscribe({
+      next: (suggestions) => {
+        this.deliveryModeSuggestions = suggestions;
+        this.filteredDeliveryModeSuggestions = suggestions;
+      },
+      error: (error) => {
+        console.error('Error loading delivery mode suggestions:', error);
+      }
+    });
+  }
+
+  // Filter location suggestions based on input
+  filterLocationSuggestions(): void {
+    const filterValue = this.locationInput.toLowerCase();
+    this.filteredLocationSuggestions = this.locationSuggestions.filter(
+      suggestion => suggestion.toLowerCase().includes(filterValue)
+    );
+  }
+
+  // Filter delivery mode suggestions based on input
+  filterDeliveryModeSuggestions(): void {
+    const filterValue = this.deliveryModeInput.toLowerCase();
+    this.filteredDeliveryModeSuggestions = this.deliveryModeSuggestions.filter(
+      suggestion => suggestion.toLowerCase().includes(filterValue)
+    );
+  }
+
   // Helper methods for chip inputs
   addLocation(): void {
     const location = this.locationInput.trim();
@@ -309,7 +359,20 @@ export class CourseDialogComponent implements OnInit {
       this.courseForm.patchValue({
         locations: [...currentLocations, location]
       });
+      
+      // Save to autocomplete suggestions
+      this.autocompleteService.addSuggestion('location', location).subscribe({
+        next: () => {
+          // Reload suggestions to include the new one
+          this.loadAutocompleteSuggestions();
+        },
+        error: (error) => {
+          console.error('Error saving location suggestion:', error);
+        }
+      });
+      
       this.locationInput = '';
+      this.filteredLocationSuggestions = this.locationSuggestions;
     }
   }
 
@@ -327,8 +390,32 @@ export class CourseDialogComponent implements OnInit {
       this.courseForm.patchValue({
         delivery_modes: [...currentModes, mode]
       });
+      
+      // Save to autocomplete suggestions
+      this.autocompleteService.addSuggestion('delivery_mode', mode).subscribe({
+        next: () => {
+          // Reload suggestions to include the new one
+          this.loadAutocompleteSuggestions();
+        },
+        error: (error) => {
+          console.error('Error saving delivery mode suggestion:', error);
+        }
+      });
+      
       this.deliveryModeInput = '';
+      this.filteredDeliveryModeSuggestions = this.deliveryModeSuggestions;
     }
+  }
+
+  // Select suggestion from autocomplete
+  selectLocationSuggestion(suggestion: string): void {
+    this.locationInput = suggestion;
+    this.addLocation();
+  }
+
+  selectDeliveryModeSuggestion(suggestion: string): void {
+    this.deliveryModeInput = suggestion;
+    this.addDeliveryMode();
   }
 
   removeDeliveryMode(mode: string): void {

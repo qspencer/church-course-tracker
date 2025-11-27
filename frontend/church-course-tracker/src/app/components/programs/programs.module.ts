@@ -22,6 +22,7 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 
 import { ProgramsComponent } from './programs.component';
 import { ProgramDialogComponent } from './program-dialog/program-dialog.component';
@@ -76,6 +77,7 @@ const routes: Routes = [
     MatProgressBarModule,
     MatDatepickerModule,
     MatNativeDateModule,
+    MatAutocompleteModule,
     SharedModule
   ]
 })

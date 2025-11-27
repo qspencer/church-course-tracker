@@ -17,6 +17,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSelectModule } from '@angular/material/select';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 
 import { CoursesComponent } from './courses.component';
 import { CourseDialogComponent } from './course-dialog/course-dialog.component';
@@ -49,6 +50,7 @@ const routes: Routes = [
     MatChipsModule,
     MatTooltipModule,
     MatSelectModule,
+    MatAutocompleteModule,
     SharedModule
   ]
 })

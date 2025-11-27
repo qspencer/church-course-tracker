@@ -15,10 +15,12 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatIconModule } from '@angular/material/icon';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 
 import { CourseDialogComponent, CourseDialogData } from './course-dialog.component';
 import { CourseService } from '../../../services/course.service';
 import { UserService } from '../../../services/user.service';
+import { AutocompleteSuggestionService } from '../../../services/autocomplete-suggestion.service';
 import { Course, User } from '../../../models';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
@@ -54,6 +56,10 @@ describe('CourseDialogComponent', () => {
     const userSpy = jasmine.createSpyObj('UserService', ['getUsers']);
     userSpy.getUsers.and.returnValue(of([]));
     
+    const autocompleteSpy = jasmine.createSpyObj('AutocompleteSuggestionService', ['getSuggestions', 'addSuggestion']);
+    autocompleteSpy.getSuggestions.and.returnValue(of([]));
+    autocompleteSpy.addSuggestion.and.returnValue(of({}));
+    
     const matDialogRefSpy = jasmine.createSpyObj('MatDialogRef', ['close']);
     const matSnackBarSpy = jasmine.createSpyObj('MatSnackBar', ['open']);
 
@@ -70,11 +76,13 @@ describe('CourseDialogComponent', () => {
         MatProgressSpinnerModule,
         MatSelectModule,
         MatChipsModule,
-        MatIconModule
+        MatIconModule,
+        MatAutocompleteModule
       ],
       providers: [
         { provide: CourseService, useValue: courseSpy },
         { provide: UserService, useValue: userSpy },
+        { provide: AutocompleteSuggestionService, useValue: autocompleteSpy },
         { provide: MatDialogRef, useValue: matDialogRefSpy },
         { provide: MAT_DIALOG_DATA, useFactory: createMockDialogData },
         { provide: MatSnackBar, useValue: matSnackBarSpy },
@@ -141,6 +149,9 @@ describe('CourseDialogComponent', () => {
       editCourseSpy.getAvailablePrerequisites.and.returnValue(of([]));
       const editUserSpy = jasmine.createSpyObj('UserService', ['getUsers']);
       editUserSpy.getUsers.and.returnValue(of([]));
+      const editAutocompleteSpy = jasmine.createSpyObj('AutocompleteSuggestionService', ['getSuggestions', 'addSuggestion']);
+      editAutocompleteSpy.getSuggestions.and.returnValue(of([]));
+      editAutocompleteSpy.addSuggestion.and.returnValue(of({}));
       const editMatDialogRefSpy = jasmine.createSpyObj('MatDialogRef', ['close']);
       const editMatSnackBarSpy = jasmine.createSpyObj('MatSnackBar', ['open']);
       
@@ -157,11 +168,13 @@ describe('CourseDialogComponent', () => {
           MatProgressSpinnerModule,
           MatSelectModule,
           MatChipsModule,
-          MatIconModule
+          MatIconModule,
+          MatAutocompleteModule
         ],
         providers: [
           { provide: CourseService, useValue: editCourseSpy },
           { provide: UserService, useValue: editUserSpy },
+          { provide: AutocompleteSuggestionService, useValue: editAutocompleteSpy },
           { provide: MatDialogRef, useValue: editMatDialogRefSpy },
           { provide: MAT_DIALOG_DATA, useValue: editDialogData },
           { provide: MatSnackBar, useValue: editMatSnackBarSpy },
@@ -342,6 +355,9 @@ describe('CourseDialogComponent', () => {
       
       const editUserSpy = jasmine.createSpyObj('UserService', ['getUsers']);
       editUserSpy.getUsers.and.returnValue(of([]));
+      const editAutocompleteSpy2 = jasmine.createSpyObj('AutocompleteSuggestionService', ['getSuggestions', 'addSuggestion']);
+      editAutocompleteSpy2.getSuggestions.and.returnValue(of([]));
+      editAutocompleteSpy2.addSuggestion.and.returnValue(of({}));
       
       await TestBed.configureTestingModule({
         declarations: [CourseDialogComponent],
@@ -356,11 +372,13 @@ describe('CourseDialogComponent', () => {
           MatProgressSpinnerModule,
           MatSelectModule,
           MatChipsModule,
-          MatIconModule
+          MatIconModule,
+          MatAutocompleteModule
         ],
         providers: [
           { provide: CourseService, useValue: editCourseSpy },
           { provide: UserService, useValue: editUserSpy },
+          { provide: AutocompleteSuggestionService, useValue: editAutocompleteSpy2 },
           { provide: MatDialogRef, useValue: editMatDialogRefSpy },
           { provide: MAT_DIALOG_DATA, useValue: editDialogData },
           { provide: MatSnackBar, useValue: editMatSnackBarSpy },
@@ -416,6 +434,9 @@ describe('CourseDialogComponent', () => {
       
       const createUserSpy = jasmine.createSpyObj('UserService', ['getUsers']);
       createUserSpy.getUsers.and.returnValue(of([]));
+      const createAutocompleteSpy = jasmine.createSpyObj('AutocompleteSuggestionService', ['getSuggestions', 'addSuggestion']);
+      createAutocompleteSpy.getSuggestions.and.returnValue(of([]));
+      createAutocompleteSpy.addSuggestion.and.returnValue(of({}));
       
       await TestBed.configureTestingModule({
         declarations: [CourseDialogComponent],
@@ -430,11 +451,13 @@ describe('CourseDialogComponent', () => {
           MatProgressSpinnerModule,
           MatSelectModule,
           MatChipsModule,
-          MatIconModule
+          MatIconModule,
+          MatAutocompleteModule
         ],
         providers: [
           { provide: CourseService, useValue: createCourseSpy },
           { provide: UserService, useValue: createUserSpy },
+          { provide: AutocompleteSuggestionService, useValue: createAutocompleteSpy },
           { provide: MatDialogRef, useValue: createMatDialogRefSpy },
           { provide: MAT_DIALOG_DATA, useValue: createDialogData },
           { provide: MatSnackBar, useValue: createMatSnackBarSpy },

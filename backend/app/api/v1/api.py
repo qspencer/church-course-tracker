@@ -4,8 +4,8 @@ API v1 router configuration
 
 from fastapi import APIRouter
 
-from app.api.v1.endpoints import (audit, auth, course_content, course_instances,
-                                  courses, enrollments, mock_planning_center,
+from app.api.v1.endpoints import (audit, auth, autocomplete_suggestions, course_content, course_instances,
+                                  courses, custom_attributes, enrollments, mock_planning_center,
                                   people, planning_center_sync, programs, progress,
                                   reports, sync, users)
 
@@ -45,6 +45,16 @@ api_router.include_router(sync.router, prefix="/sync", tags=["sync"])
 
 # Audit endpoints
 api_router.include_router(audit.router, prefix="/audit", tags=["audit"])
+
+# Autocomplete suggestions endpoints
+api_router.include_router(
+    autocomplete_suggestions.router, prefix="/autocomplete-suggestions", tags=["autocomplete-suggestions"]
+)
+
+# Custom attributes endpoints
+api_router.include_router(
+    custom_attributes.router, prefix="/custom-attributes", tags=["custom-attributes"]
+)
 
 # Mock Planning Center endpoints (for development/testing)
 api_router.include_router(

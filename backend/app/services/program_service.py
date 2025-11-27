@@ -406,15 +406,29 @@ class ProgramService:
 
     # Program Pairing methods
     def get_program_pairings(
-        self, program_id: int, status: Optional[str] = None
+        self, program_id: int, status: Optional[str] = None, primary_participant_id: Optional[int] = None
     ) -> List[ProgramPairingModel]:
-        """Get all pairings for a program"""
+        """Get all pairings for a program, optionally filtered by status or primary participant"""
         query = self.db.query(ProgramPairingModel).filter(
             ProgramPairingModel.program_id == program_id
         )
         if status:
             query = query.filter(ProgramPairingModel.status == status)
+        if primary_participant_id:
+            query = query.filter(ProgramPairingModel.primary_participant_id == primary_participant_id)
         return query.all()
+    
+    def get_pairing_count_for_primary(
+        self, program_id: int, primary_participant_id: int, status: Optional[str] = "active"
+    ) -> int:
+        """Get count of active pairings for a primary participant"""
+        query = self.db.query(ProgramPairingModel).filter(
+            ProgramPairingModel.program_id == program_id,
+            ProgramPairingModel.primary_participant_id == primary_participant_id
+        )
+        if status:
+            query = query.filter(ProgramPairingModel.status == status)
+        return query.count()
 
     def get_pairing(self, pairing_id: int) -> Optional[ProgramPairingModel]:
         """Get a specific pairing by ID"""

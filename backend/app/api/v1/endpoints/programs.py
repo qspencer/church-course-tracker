@@ -569,10 +569,53 @@ async def remove_program_participant(
 
 
 # Program Pairing endpoints
+@router.get("/{program_id}/pairings/count", response_model=dict)
+async def get_pairing_count_for_primary(
+    program_id: int,
+    primary_participant_id: int = Query(..., description="Primary participant ID"),
+    status: Optional[str] = Query("active", description="Filter by status (default: active)"),
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_active_user),
+):
+    """Get count of active pairings for a primary participant"""
+    program_service = ProgramService(db)
+    
+    # Check if program exists
+    program = program_service.get_program(program_id)
+    if not program:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Program with ID {program_id} not found",
+        )
+    
+    # Check if user is program admin or system admin
+    if not program_service.is_program_admin(program_id, current_user["id"]):
+        from app.api.v1.endpoints.auth import get_current_admin_user
+        try:
+            await get_current_admin_user(current_user=current_user)
+        except HTTPException:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Only program admins or system admins can view pairing counts",
+            )
+    
+    count = program_service.get_pairing_count_for_primary(
+        program_id,
+        primary_participant_id,
+        status=status
+    )
+    return {
+        "program_id": program_id,
+        "primary_participant_id": primary_participant_id,
+        "count": count
+    }
+
+
 @router.get("/{program_id}/pairings", response_model=List[ProgramPairing])
 async def get_program_pairings(
     program_id: int,
     status: Optional[str] = None,
+    primary_participant_id: Optional[int] = Query(None, description="Filter by primary participant ID"),
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_active_user),
 ):
@@ -587,7 +630,11 @@ async def get_program_pairings(
             detail=f"Program with ID {program_id} not found",
         )
     
-    pairings = program_service.get_program_pairings(program_id, status=status)
+    pairings = program_service.get_program_pairings(
+        program_id, 
+        status=status,
+        primary_participant_id=primary_participant_id
+    )
     return pairings
 
 

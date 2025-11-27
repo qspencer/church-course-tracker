@@ -2,13 +2,18 @@
 Planning Center Sync API endpoints
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Literal
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
+from app.api.v1.endpoints.auth import get_current_active_user
 from app.services.planning_center_sync_service import PlanningCenterSyncService
+from app.schemas.attribute_mapping import AttributeMappingReview, AttributeMappingDecisions
+from app.utils.attribute_matcher import AttributeMatcher
+from app.models.course import Course
+from app.models.program import Program
 
 router = APIRouter()
 
@@ -168,3 +173,148 @@ async def process_webhook(request: Request, db: Session = Depends(get_db)):
         )
 
     return result
+
+
+@router.get("/attribute-mappings", response_model=AttributeMappingReview)
+async def get_attribute_mappings(
+    source_type: Literal["event", "list"] = Query(..., description="Source type from Planning Center"),
+    source_id: str = Query(..., description="Planning Center source ID (event_id or list_id)"),
+    target_type: Literal["course", "program"] = Query(..., description="Target type in CCT"),
+    target_id: int = Query(..., description="Target ID (course_id or program_id)"),
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_active_user),
+):
+    """
+    Get attribute mappings for review before import
+    """
+    sync_service = PlanningCenterSyncService(db)
+    matcher = AttributeMatcher(similarity_threshold=0.75)
+    
+    # Get PC data based on source type
+    pc_attributes = {}
+    if source_type == "event":
+        events = sync_service.get_events()
+        event = next((e for e in events if e.get("id") == source_id), None)
+        if not event:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Planning Center event '{source_id}' not found"
+            )
+        pc_attributes = event.get("attributes", {})
+    elif source_type == "list":
+        # For lists, we need to get people from the list
+        # For now, we'll get the first person's attributes as a sample
+        people = sync_service.get_list_people(source_id)
+        if not people:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Planning Center list '{source_id}' not found or empty"
+            )
+        # Merge attributes from all people (taking first non-null value for each attribute)
+        for person in people:
+            attrs = person.get("attributes", {})
+            for key, value in attrs.items():
+                if key not in pc_attributes and value is not None:
+                    pc_attributes[key] = value
+    
+    # Get local attributes based on target type
+    local_attributes = []
+    if target_type == "course":
+        # Get Course model attributes
+        course = db.query(Course).filter(Course.id == target_id).first()
+        if not course:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Course with ID {target_id} not found"
+            )
+        # Common Course attributes that can be mapped
+        local_attributes = [
+            "title", "description", "duration_weeks", "prerequisites",
+            "instructors", "locations", "delivery_modes",
+            "planning_center_event_id", "planning_center_event_name",
+            "event_start_date", "event_end_date", "max_capacity"
+        ]
+    elif target_type == "program":
+        # Get Program model attributes
+        program = db.query(Program).filter(Program.id == target_id).first()
+        if not program:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Program with ID {target_id} not found"
+            )
+        # Common Program attributes that can be mapped
+        local_attributes = [
+            "title", "description", "role_definitions", "relationship_config",
+            "locations", "delivery_modes", "prerequisites",
+            "planning_center_event_template_id", "planning_center_event_id",
+            "planning_center_event_name", "is_active"
+        ]
+    
+    # Match attributes
+    from app.schemas.attribute_mapping import AttributeMappingMatch
+    matches = []
+    for pc_attr_name, pc_attr_value in pc_attributes.items():
+        match_result = matcher.find_best_match(pc_attr_name, local_attributes)
+        if match_result:
+            local_attr, score = match_result
+            matches.append(AttributeMappingMatch(
+                pc_attribute=pc_attr_name,
+                local_attribute=local_attr,
+                similarity_score=score,
+                is_predefined=False,  # Could enhance this with predefined mappings
+                match_status="matched"
+            ))
+        else:
+            matches.append(AttributeMappingMatch(
+                pc_attribute=pc_attr_name,
+                local_attribute=None,
+                similarity_score=0.0,
+                is_predefined=False,
+                match_status="unmatched"
+            ))
+    
+    return AttributeMappingReview(
+        source_type=source_type,
+        source_id=source_id,
+        target_type=target_type,
+        target_id=target_id,
+        pc_attributes=pc_attributes,
+        local_attributes=local_attributes,
+        matches=matches
+    )
+
+
+@router.post("/attribute-mappings/decisions", response_model=Dict[str, Any])
+async def save_attribute_mapping_decisions(
+    decisions: AttributeMappingDecisions,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_active_user),
+):
+    """
+    Save user's attribute mapping decisions.
+    This endpoint stores decisions for later use during import.
+    """
+    # For now, we just validate and return success
+    # In a full implementation, you might store these in a cache or database
+    # The actual application of decisions happens during the import process
+    
+    # Validate decisions
+    for decision in decisions.decisions:
+        if decision.action in ["accept", "rematch"]:
+            if not decision.local_attribute:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"local_attribute is required for action '{decision.action}'"
+                )
+        elif decision.action == "custom":
+            if not decision.custom_attribute_name:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="custom_attribute_name is required for 'custom' action"
+                )
+    
+    return {
+        "status": "success",
+        "message": "Mapping decisions saved",
+        "decisions": decisions.decisions
+    }

@@ -30,6 +30,8 @@ from .shared_content import SharedContent
 from .user import User
 from .failed_login_attempt import FailedLoginAttempt
 from .user_preference import UserPreference
+from .custom_attribute import CustomAttribute
+from .autocomplete_suggestion import AutocompleteSuggestion
 
 __all__ = [
     "User",

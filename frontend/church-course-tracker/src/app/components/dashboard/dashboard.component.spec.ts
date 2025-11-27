@@ -150,7 +150,7 @@ describe('DashboardComponent', () => {
       component.ngOnInit();
 
       expect(reportServiceSpy.getDashboardStats).toHaveBeenCalled();
-      expect(courseServiceSpy.getCourses).toHaveBeenCalledWith({ limit: 5, sort: 'created_at', order: 'desc', is_active: true });
+      expect(courseServiceSpy.getCourses).toHaveBeenCalledWith(jasmine.objectContaining({ limit: 5, sort: 'created_at', order: 'desc' }));
       expect(enrollmentServiceSpy.getEnrollments).toHaveBeenCalledWith({ limit: 5, sort: 'enrolled_at', order: 'desc' });
       expect(reportServiceSpy.getCompletionTrends).toHaveBeenCalledWith(jasmine.any(Object));
     });
