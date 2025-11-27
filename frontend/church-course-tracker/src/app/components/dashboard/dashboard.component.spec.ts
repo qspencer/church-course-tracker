@@ -10,6 +10,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 
 // Chart.js
 import { NgChartsModule } from 'ng2-charts';
@@ -107,6 +108,7 @@ describe('DashboardComponent', () => {
         MatProgressSpinnerModule,
         MatProgressBarModule,
         MatChipsModule,
+        MatSlideToggleModule,
         NgChartsModule
       ],
       providers: [
@@ -148,7 +150,7 @@ describe('DashboardComponent', () => {
       component.ngOnInit();
 
       expect(reportServiceSpy.getDashboardStats).toHaveBeenCalled();
-      expect(courseServiceSpy.getCourses).toHaveBeenCalledWith({ limit: 5, sort: 'created_at', order: 'desc' });
+      expect(courseServiceSpy.getCourses).toHaveBeenCalledWith({ limit: 5, sort: 'created_at', order: 'desc', is_active: true });
       expect(enrollmentServiceSpy.getEnrollments).toHaveBeenCalledWith({ limit: 5, sort: 'enrolled_at', order: 'desc' });
       expect(reportServiceSpy.getCompletionTrends).toHaveBeenCalledWith(jasmine.any(Object));
     });

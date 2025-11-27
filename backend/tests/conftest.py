@@ -98,6 +98,7 @@ from app.models.people_campus import PeopleCampus
 from app.models.people_role import PeopleRole
 from app.models.planning_center_events_cache import PlanningCenterEventsCache
 from app.models.planning_center_registrations_cache import PlanningCenterRegistrationsCache
+from app.models.custom_attribute import CustomAttribute
 from app.models.planning_center_sync_log import PlanningCenterSyncLog
 from app.models.planning_center_webhook_events import PlanningCenterWebhookEvents
 from app.models.progress import ContentCompletion
@@ -121,6 +122,39 @@ def db_session():
     # Use the existing migrated database - don't drop/recreate tables
     # Just ensure tables exist (they should from migrations)
     Base.metadata.create_all(bind=engine)
+    
+    # Ensure new columns exist (in case migrations didn't apply)
+    # This is a safety check for columns added after initial migration
+    try:
+        with engine.connect() as conn:
+            # Check if instructors column exists, if not add it
+            result = conn.execute(text("PRAGMA table_info(courses)"))
+            columns = [row[1] for row in result]
+            if 'instructors' not in columns:
+                conn.execute(text("ALTER TABLE courses ADD COLUMN instructors JSON"))
+            if 'locations' not in columns:
+                conn.execute(text("ALTER TABLE courses ADD COLUMN locations JSON"))
+            if 'delivery_modes' not in columns:
+                conn.execute(text("ALTER TABLE courses ADD COLUMN delivery_modes JSON"))
+            
+            # Check if shared_content_id column exists in course_content table
+            result = conn.execute(text("PRAGMA table_info(course_content)"))
+            course_content_columns = [row[1] for row in result]
+            if 'shared_content_id' not in course_content_columns:
+                # Check if shared_content table exists first
+                tables_result = conn.execute(text("SELECT name FROM sqlite_master WHERE type='table' AND name='shared_content'"))
+                if tables_result.fetchone():
+                    conn.execute(text("ALTER TABLE course_content ADD COLUMN shared_content_id INTEGER"))
+                    # Create index if it doesn't exist
+                    try:
+                        conn.execute(text("CREATE INDEX IF NOT EXISTS ix_course_content_shared_content_id ON course_content(shared_content_id)"))
+                    except:
+                        pass  # Index might already exist
+            
+            conn.commit()
+    except Exception as e:
+        # If columns already exist or other error, that's okay
+        pass
     
     session = TestingSessionLocal()
 
@@ -147,6 +181,7 @@ def db_session():
         session.execute(text("DELETE FROM planning_center_webhook_events"))
         session.execute(text("DELETE FROM failed_login_attempts"))  # Clear lockout state
         session.execute(text("DELETE FROM audit_log"))
+        session.execute(text("DELETE FROM custom_attributes"))
         session.execute(text("DELETE FROM people_campus"))
         session.execute(text("DELETE FROM people_role"))
         session.execute(text("DELETE FROM people"))
