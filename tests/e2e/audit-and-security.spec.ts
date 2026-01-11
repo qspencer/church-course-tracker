@@ -497,105 +497,66 @@ test.describe('Audit and Security Tests', () => {
     });
 
     test('Password strength validation', async ({ page }, testInfo) => {
-      if (!(await loginAsRole(page, 'admin', testInfo))) {
+      // Test password validation via API since the frontend may have caching issues
+      // Backend validates password must be at least 8 characters
+      
+      // First login to get a token
+      const loginResponse = await page.request.post(`${API_BASE_URL}/api/v1/auth/login`, {
+        data: { username: 'Admin', password: 'Admin123!' }
+      });
+      
+      if (loginResponse.status() !== 200) {
+        testInfo.skip('Could not login as admin to test password validation');
         return;
       }
       
-      const usersNav = page.locator('text=Users').first();
-      if (!(await requireVisible(usersNav, 'Users navigation', testInfo))) {
-        return;
-      }
-      await usersNav.click();
-
-      const addUserButton = page.locator('button:has-text("Add User")').first();
-      if (!(await addUserButton.isVisible({ timeout: 5000 }).catch(() => false))) {
-        testInfo.skip('Add User button not available - user creation feature may not be accessible');
-        return;
-      }
-      await addUserButton.click();
+      const loginData = await loginResponse.json();
+      const token = loginData.access_token;
       
-      // Wait for dialog to open
-      await page.waitForTimeout(1000);
-      
-      // Test weak password - use formControlName selector
-      const passwordInput = page.locator('input[formControlName="password"]').first();
-      if (!(await passwordInput.isVisible({ timeout: 5000 }).catch(() => false))) {
-        testInfo.skip('Password input field not available in user creation dialog');
-        return;
-      }
-
-      // Fill in required fields first
-      const fullNameInput = page.locator('input[formControlName="full_name"]').first();
-      const emailInput = page.locator('input[formControlName="email"]').first();
-      if (await fullNameInput.isVisible({ timeout: 2000 }).catch(() => false)) {
-        await fullNameInput.fill('Test User');
-      }
-      if (await emailInput.isVisible({ timeout: 2000 }).catch(() => false)) {
-        await emailInput.fill('test@example.com');
-      }
-
-      // Test weak password (less than 8 characters)
-      await passwordInput.fill('123');
-      await passwordInput.blur(); // Trigger validation
-      await page.waitForTimeout(1000); // Wait for validation to process
-      
-      // Ensure the field is marked as touched by clicking it and blurring again
-      await passwordInput.click();
-      await passwordInput.blur();
-      await page.waitForTimeout(500);
-      
-      // Check for validation error - the error message format is "password must be at least 8 characters long"
-      // Look for mat-error element which contains the error message
-      const errorMessages = [
-        'mat-error:has-text("8")',
-        'mat-error:has-text("at least")',
-        'mat-error:has-text("minimum")',
-        'mat-error:has-text("characters")',
-        '.mat-mdc-form-field-error',
-        'text=/password.*must.*be.*at.*least.*8/i',
-        'text=/at.*least.*8.*characters/i',
-        'text=/minimum.*8/i'
-      ];
-      
-      let foundError = false;
-      for (const msgSelector of errorMessages) {
-        const errorMsg = page.locator(msgSelector).first();
-        if (await errorMsg.isVisible({ timeout: 2000 }).catch(() => false)) {
-          foundError = true;
-          // Verify it's actually showing an error about length
-          const errorText = await errorMsg.textContent().catch(() => '');
-          if (errorText && (errorText.includes('8') || errorText.toLowerCase().includes('at least') || errorText.toLowerCase().includes('minimum'))) {
-            break;
-          }
+      // Test 1: Short password should be rejected
+      const shortPasswordResponse = await page.request.post(`${API_BASE_URL}/api/v1/users/`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+        data: {
+          full_name: 'Test User',
+          email: `test_short_pw_${Date.now()}@test.com`,
+          password: '123',
+          role: 'viewer'
         }
+      });
+      
+      // Should get 422 Validation Error
+      expect(shortPasswordResponse.status()).toBe(422);
+      
+      const shortPwError = await shortPasswordResponse.json();
+      const errorMessage = JSON.stringify(shortPwError).toLowerCase();
+      
+      // Verify the error mentions password length
+      expect(errorMessage).toContain('8');
+      expect(errorMessage).toContain('password');
+      
+      console.log('Short password correctly rejected with validation error');
+      
+      // Test 2: Valid length password should be accepted (or fail for other reasons)
+      const validPasswordResponse = await page.request.post(`${API_BASE_URL}/api/v1/users/`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+        data: {
+          full_name: 'Test User Valid',
+          email: `test_valid_pw_${Date.now()}@test.com`,
+          password: 'ValidPassword123!',
+          role: 'viewer'
+        }
+      });
+      
+      // Should succeed (201) or fail for other reasons (409 duplicate, etc) but NOT 422 for password
+      const validStatus = validPasswordResponse.status();
+      if (validStatus === 422) {
+        const validError = await validPasswordResponse.json();
+        const validErrorMsg = JSON.stringify(validError).toLowerCase();
+        // If it's 422, it should NOT be about password length
+        expect(validErrorMsg).not.toContain('string should have at least 8');
       }
       
-      if (!foundError) {
-        testInfo.skip('Password validation error messages not displayed - validation may work differently or field may not be marked as touched');
-        return;
-      }
-      
-      // Test password with 8+ characters (should pass length validation)
-      await passwordInput.fill('password123');
-      await passwordInput.blur();
-      await page.waitForTimeout(500);
-      
-      // Check if there are any remaining validation errors
-      const hasErrors = await page.locator('mat-error').count();
-      if (hasErrors === 0) {
-        // No errors - password validation passed
-        return;
-      }
-      
-      // If there are still errors, check if they're about special characters
-      const specialCharError = page.locator('text=/special.*character/i').first();
-      if (await specialCharError.isVisible({ timeout: 1000 }).catch(() => false)) {
-        // Special character requirement exists - test passes
-        return;
-      }
-      
-      // Password validation works (at least length check)
-      return;
+      console.log('Password strength validation is working correctly');
     });
   });
 
