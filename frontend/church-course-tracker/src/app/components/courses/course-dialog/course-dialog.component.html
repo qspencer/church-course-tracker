@@ -43,6 +43,22 @@
         </div>
       </div>
 
+      <!-- Import Registrations Section -->
+      <div class="detail-row" *ngIf="course.planning_center_event_id">
+        <div class="detail-item full-width">
+          <h3 class="detail-label">Event Registrations</h3>
+          <p class="detail-value">
+            <button 
+              mat-raised-button 
+              color="accent" 
+              (click)="viewEventRegistrations()">
+              <mat-icon>people</mat-icon>
+              View/Import Registrations
+            </button>
+          </p>
+        </div>
+      </div>
+
       <div class="detail-row" *ngIf="course.event_start_date || course.event_end_date">
         <div class="detail-item" *ngIf="course.event_start_date">
           <h3 class="detail-label">Event Start Date</h3>

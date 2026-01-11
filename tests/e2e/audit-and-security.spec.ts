@@ -324,8 +324,13 @@ test.describe('Audit and Security Tests', () => {
       // Simulate session timeout by clearing cookies and storage
       await page.context().clearCookies();
       await page.evaluate(() => {
-        localStorage.clear();
-        sessionStorage.clear();
+        try {
+          localStorage.clear();
+          sessionStorage.clear();
+        } catch (e) {
+          // localStorage may not be accessible (cross-origin or security restriction)
+          console.log('Could not clear localStorage:', e);
+        }
       });
       
       // Try to navigate to dashboard - should redirect to auth
@@ -598,8 +603,13 @@ test.describe('Audit and Security Tests', () => {
       // Clear cookies and login as staff
       await page.context().clearCookies();
       await page.evaluate(() => {
-        localStorage.clear();
-        sessionStorage.clear();
+        try {
+          localStorage.clear();
+          sessionStorage.clear();
+        } catch (e) {
+          // localStorage may not be accessible (cross-origin or security restriction)
+          console.log('Could not clear localStorage:', e);
+        }
       });
       
       if (!(await loginAsRole(page, 'staff', testInfo))) {
@@ -624,8 +634,13 @@ test.describe('Audit and Security Tests', () => {
       // Test viewer API access (should be denied)
       await page.context().clearCookies();
       await page.evaluate(() => {
-        localStorage.clear();
-        sessionStorage.clear();
+        try {
+          localStorage.clear();
+          sessionStorage.clear();
+        } catch (e) {
+          // localStorage may not be accessible (cross-origin or security restriction)
+          console.log('Could not clear localStorage:', e);
+        }
       });
       
       if (!(await loginAsRole(page, 'viewer', testInfo))) {

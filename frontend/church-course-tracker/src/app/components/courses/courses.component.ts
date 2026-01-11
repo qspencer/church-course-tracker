@@ -10,6 +10,7 @@ import { AuthService } from '../../services/auth.service';
 import { Course } from '../../models';
 import { CourseDialogComponent } from './course-dialog/course-dialog.component';
 import { ConfirmDialogComponent } from '../../shared/confirm-dialog/confirm-dialog.component';
+import { PCImportDialogComponent, PCImportDialogData } from './pc-import-dialog/pc-import-dialog.component';
 
 @Component({
   selector: 'app-courses',
@@ -64,18 +65,32 @@ export class CoursesComponent implements OnInit {
     }
   }
 
-  openCourseDialog(course?: Course): void {
+  openCourseDialog(course?: Course, importData?: any): void {
     const dialogRef = this.dialog.open(CourseDialogComponent, {
       width: '1000px',
       maxWidth: '95vw',
       autoFocus: false, // Prevent auto-focus to reduce aria-hidden warnings
       restoreFocus: true, // Restore focus when dialog closes
-      data: { course: course || null }
+      data: { course: course || null, importData: importData || null }
     });
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
         this.loadCourses();
+      }
+    });
+  }
+
+  openImportDialog(): void {
+    const dialogRef = this.dialog.open(PCImportDialogComponent, {
+      width: '700px',
+      data: { entityType: 'course' } as PCImportDialogData
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        // Open course dialog with import data
+        this.openCourseDialog(undefined, result);
       }
     });
   }

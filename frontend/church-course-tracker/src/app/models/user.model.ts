@@ -3,8 +3,9 @@ export interface User {
   username?: string;
   email: string;
   full_name: string;
-  role: 'admin' | 'staff' | 'viewer';
+  role: 'admin' | 'staff' | 'viewer' | 'instructor';
   is_active: boolean;
+  planning_center_person_id?: string;
   created_at: string;
   updated_at: string;
   last_login?: string;
@@ -14,7 +15,7 @@ export interface UserCreate {
   username?: string;
   email: string;
   full_name: string;
-  role?: 'admin' | 'staff' | 'viewer';
+  role?: 'admin' | 'staff' | 'viewer' | 'instructor';
   is_active?: boolean;
   password: string;
 }
@@ -23,7 +24,7 @@ export interface UserUpdate {
   username?: string;
   email?: string;
   full_name?: string;
-  role?: 'admin' | 'staff' | 'viewer';
+  role?: 'admin' | 'staff' | 'viewer' | 'instructor';
   is_active?: boolean;
   password?: string;
 }

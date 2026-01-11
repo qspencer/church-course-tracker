@@ -151,6 +151,17 @@ def db_session():
                     except:
                         pass  # Index might already exist
             
+            # Check if planning_center_person_id column exists in users table
+            result = conn.execute(text("PRAGMA table_info(users)"))
+            users_columns = [row[1] for row in result]
+            if 'planning_center_person_id' not in users_columns:
+                conn.execute(text("ALTER TABLE users ADD COLUMN planning_center_person_id VARCHAR(50)"))
+                # Create index if it doesn't exist
+                try:
+                    conn.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS ix_users_planning_center_person_id ON users(planning_center_person_id)"))
+                except:
+                    pass  # Index might already exist
+            
             conn.commit()
     except Exception as e:
         # If columns already exist or other error, that's okay
@@ -172,6 +183,13 @@ def db_session():
         session.execute(text("DELETE FROM certification_progress"))
         session.execute(text("DELETE FROM certification"))
         session.execute(text("DELETE FROM courses"))
+        # Clean up program-related tables (in reverse dependency order)
+        session.execute(text("DELETE FROM program_progress"))
+        session.execute(text("DELETE FROM program_sessions"))
+        session.execute(text("DELETE FROM program_pairings"))
+        session.execute(text("DELETE FROM program_participants"))
+        session.execute(text("DELETE FROM program_admins"))
+        session.execute(text("DELETE FROM programs"))
         session.execute(text("DELETE FROM failed_login_attempts"))  # Clear lockout state
         session.execute(text("DELETE FROM content_type"))
         session.execute(text("DELETE FROM content"))

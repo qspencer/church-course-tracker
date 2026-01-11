@@ -6,7 +6,7 @@ from fastapi import APIRouter
 
 from app.api.v1.endpoints import (audit, auth, autocomplete_suggestions, course_content, course_instances,
                                   courses, custom_attributes, enrollments, mock_planning_center,
-                                  people, planning_center_sync, programs, progress,
+                                  people, planning_center_sync, program_content, programs, progress,
                                   reports, sync, users)
 
 api_router = APIRouter()
@@ -28,6 +28,11 @@ api_router.include_router(
 # Course content endpoints
 api_router.include_router(
     course_content.router, prefix="/content", tags=["course-content"]
+)
+
+# Program content endpoints
+api_router.include_router(
+    program_content.router, prefix="/program-content", tags=["program-content"]
 )
 
 # Progress and reporting endpoints

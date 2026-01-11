@@ -12,6 +12,11 @@ from app.schemas.enrollment import CourseEnrollment
 from app.schemas.people import People, PeopleCreate, PeopleUpdate
 from app.services.enrollment_service import CourseEnrollmentService
 from app.services.people_service import PeopleService
+from app.services.planning_center_sync_service import PlanningCenterSyncService
+from app.api.v1.endpoints.auth import get_current_active_user
+from pydantic import BaseModel
+import httpx
+import logging
 
 router = APIRouter()
 
@@ -111,3 +116,118 @@ async def get_person_enrollments(person_id: int, db: Session = Depends(get_db)):
     enrollment_service = CourseEnrollmentService(db)
     enrollments = enrollment_service.get_enrollments(people_id=person_id)
     return enrollments
+
+
+class ImportMemberFromPCRequest(BaseModel):
+    planning_center_person_id: str
+
+
+@router.post("/import-from-pc", response_model=People)
+async def import_member_from_planning_center(
+    request: ImportMemberFromPCRequest,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_active_user),
+):
+    """Import a member from Planning Center by person ID"""
+    logger = logging.getLogger(__name__)
+    sync_service = PlanningCenterSyncService(db)
+    people_service = PeopleService(db)
+    
+    try:
+        # Fetch the person data from Planning Center with emails and phone numbers included
+        with httpx.Client(timeout=30.0) as client:
+            response = client.get(
+                f"https://api.planningcenteronline.com/people/v2/people/{request.planning_center_person_id}",
+                headers=sync_service.headers,
+                params={"include": "emails,phone_numbers"}
+            )
+            
+            if response.status_code == 404:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Person not found in Planning Center"
+                )
+            
+            response.raise_for_status()
+            data = response.json()
+            person_data = data.get("data")
+            included = data.get("included", [])
+            
+            if not person_data:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Person data not found in Planning Center response"
+                )
+        
+        # Process included emails and phone numbers and attach to person_data
+        # This matches the logic in PlanningCenterSyncService._attach_included_data
+        emails_by_id = {}
+        phones_by_id = {}
+        
+        for item in included:
+            item_type = item.get("type")
+            item_id = item.get("id")
+            attrs = item.get("attributes", {})
+            
+            if item_type == "Email":
+                emails_by_id[item_id] = attrs.get("address", "")
+            elif item_type == "PhoneNumber":
+                phones_by_id[item_id] = attrs.get("number", "")
+        
+        # Attach emails and phone numbers to person attributes
+        relationships = person_data.get("relationships", {})
+        person_attrs = person_data.get("attributes", {})
+        
+        # Get email addresses
+        email_data = relationships.get("emails", {}).get("data", [])
+        emails = []
+        for email_ref in email_data:
+            email_id = email_ref.get("id")
+            if email_id in emails_by_id:
+                emails.append(emails_by_id[email_id])
+        
+        # Get phone numbers
+        phone_data = relationships.get("phone_numbers", {}).get("data", [])
+        phone_numbers = []
+        for phone_ref in phone_data:
+            phone_id = phone_ref.get("id")
+            if phone_id in phones_by_id:
+                phone_numbers.append(phones_by_id[phone_id])
+        
+        # Attach to person attributes for sync_from_planning_center to use
+        if emails:
+            person_attrs["email"] = emails[0]  # Primary email
+            person_attrs["emails"] = emails  # All emails
+            logger.info(f"Attached email to person: {emails[0]} (total: {len(emails)})")
+        else:
+            logger.warning(f"No emails found for person {request.planning_center_person_id}")
+            
+        if phone_numbers:
+            person_attrs["phone_number"] = phone_numbers[0]  # Primary phone
+            person_attrs["phone_numbers"] = phone_numbers  # All phone numbers
+            logger.info(f"Attached phone to person: {phone_numbers[0]} (total: {len(phone_numbers)})")
+        else:
+            logger.warning(f"No phone numbers found for person {request.planning_center_person_id}")
+        
+        # Sync/create member from Planning Center person data
+        member = people_service.sync_from_planning_center(
+            person_data,
+            updated_by=current_user["id"]
+        )
+        
+        return member
+        
+    except HTTPException:
+        raise
+    except httpx.HTTPStatusError as e:
+        logger.error(f"Planning Center API error: {e.response.status_code} - {e.response.text}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error fetching person from Planning Center: {e.response.status_code}"
+        )
+    except Exception as e:
+        logger.exception(f"Unexpected error importing member from Planning Center: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Unable to import member from Planning Center: {str(e)}"
+        )

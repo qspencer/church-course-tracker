@@ -35,7 +35,8 @@ module "vpc" {
   private_subnets = ["10.0.1.0/24", "10.0.2.0/24"]
   public_subnets  = ["10.0.101.0/24", "10.0.102.0/24"]
   
-  enable_nat_gateway = true
+  # Use NAT instance instead of NAT Gateway for cost savings
+  enable_nat_gateway = false
   enable_vpn_gateway = false
   
   tags = {
@@ -366,6 +367,108 @@ resource "aws_db_subnet_group" "main" {
     Environment = var.environment
     Application = var.app_name
   }
+}
+
+# Security Group for NAT Instances
+resource "aws_security_group" "nat_instance" {
+  name_prefix = "${var.app_name}-nat-instance-"
+  vpc_id      = module.vpc.vpc_id
+  description = "Security group for NAT instances"
+  
+  ingress {
+    from_port   = 0
+    to_port     = 65535
+    protocol    = "tcp"
+    cidr_blocks = ["10.0.1.0/24", "10.0.2.0/24"]  # Private subnet CIDR blocks
+    description = "Allow traffic from private subnets"
+  }
+  
+  ingress {
+    from_port   = 0
+    to_port     = 65535
+    protocol    = "udp"
+    cidr_blocks = ["10.0.1.0/24", "10.0.2.0/24"]  # Private subnet CIDR blocks
+    description = "Allow UDP traffic from private subnets"
+  }
+  
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "Allow all outbound traffic"
+  }
+  
+  tags = {
+    Name        = "${var.app_name}-nat-instance-sg"
+    Environment = var.environment
+    Application = var.app_name
+  }
+}
+
+# Data source to get the latest Amazon Linux 2 AMI
+data "aws_ami" "amazon_linux_2" {
+  most_recent = true
+  owners      = ["amazon"]
+  
+  filter {
+    name   = "name"
+    values = ["amzn2-ami-hvm-*-x86_64-gp2"]
+  }
+  
+  filter {
+    name   = "state"
+    values = ["available"]
+  }
+}
+
+# NAT Instances (one per availability zone)
+resource "aws_instance" "nat" {
+  count = length(module.vpc.public_subnets)
+  
+  ami                    = data.aws_ami.amazon_linux_2.id
+  instance_type          = var.nat_instance_type
+  subnet_id              = module.vpc.public_subnets[count.index]
+  vpc_security_group_ids = [aws_security_group.nat_instance.id]
+  source_dest_check      = false  # Required for NAT functionality
+  associate_public_ip_address = true
+  
+  user_data = <<-EOF
+              #!/bin/bash
+              # Enable IP forwarding
+              echo 1 > /proc/sys/net/ipv4/ip_forward
+              # Make it persistent
+              echo 'net.ipv4.ip_forward = 1' >> /etc/sysctl.conf
+              sysctl -p
+              # Configure iptables for NAT
+              iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+              # Save iptables rules
+              service iptables save || true
+              EOF
+  
+  tags = {
+    Name        = "${var.app_name}-nat-instance-${count.index + 1}"
+    Environment = var.environment
+    Application = var.app_name
+  }
+}
+
+# Get the primary network interface for each NAT instance
+data "aws_network_interface" "nat" {
+  count = length(aws_instance.nat)
+  
+  id = aws_instance.nat[count.index].primary_network_interface_id
+}
+
+# Update private route tables to use NAT instances instead of NAT Gateway
+resource "aws_route" "private_nat" {
+  count = length(module.vpc.private_route_table_ids)
+  
+  route_table_id         = module.vpc.private_route_table_ids[count.index]
+  destination_cidr_block = "0.0.0.0/0"
+  network_interface_id   = data.aws_network_interface.nat[count.index].id
+  
+  depends_on = [aws_instance.nat]
 }
 
 # CloudFront Origin Access Identity

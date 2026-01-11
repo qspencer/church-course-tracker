@@ -63,11 +63,16 @@ def update_aws_admin_user():
             
             # Update the existing user
             print("🔄 Updating existing user in AWS database...")
-            existing_user.hashed_password = hash_password("Matthew778*")
-            existing_user.email = "admin@quentinspencer.com"
-            existing_user.full_name = "Admin User"
-            existing_user.role = "admin"
-            existing_user.is_active = True
+            # Only update is_active if it's False, keep other fields as they are
+            if not existing_user.is_active:
+                print("🔄 Activating inactive Admin user...")
+                existing_user.is_active = True
+                session.commit()
+                print("✅ Admin user activated!")
+            else:
+                print("✅ Admin user is already active!")
+            # Optionally update password if needed for tests
+            # existing_user.hashed_password = hash_password("Admin123!")
             
             session.commit()
             print("✅ User updated successfully in AWS database!")

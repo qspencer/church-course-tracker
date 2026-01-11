@@ -65,3 +65,9 @@ variable "docs_certificate_arn" {
   type        = string
   default     = ""
 }
+
+variable "nat_instance_type" {
+  description = "EC2 instance type for NAT instance"
+  type        = string
+  default     = "t3.micro"
+}

@@ -81,8 +81,8 @@
   <div *ngIf="!isLoading" class="reports-content">
     <!-- Summary Stats -->
     <div class="stats-section">
-      <mat-card class="stat-card">
-        <mat-card-content>
+      <mat-card class="stat-card clickable-card" (click)="navigateToCourses()" style="cursor: pointer; position: relative;">
+        <mat-card-content style="pointer-events: auto;">
           <div class="stat-content">
             <mat-icon class="stat-icon courses">school</mat-icon>
             <div class="stat-info">
@@ -93,8 +93,8 @@
         </mat-card-content>
       </mat-card>
 
-      <mat-card class="stat-card">
-        <mat-card-content>
+      <mat-card class="stat-card clickable-card" (click)="navigateToEnrollments()" style="cursor: pointer; position: relative;">
+        <mat-card-content style="pointer-events: auto;">
           <div class="stat-content">
             <mat-icon class="stat-icon enrollments">assignment</mat-icon>
             <div class="stat-info">

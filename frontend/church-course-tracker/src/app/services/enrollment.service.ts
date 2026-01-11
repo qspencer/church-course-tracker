@@ -57,6 +57,15 @@ export class EnrollmentService {
     return this.http.delete<void>(`${this.API_URL}/${id}`);
   }
 
+  importRegistrations(courseId: number, eventId: string, registrationIds: string[]): Observable<Enrollment[]> {
+    return this.http.post<Enrollment[]>(`${this.API_URL}/import-registrations`, {
+      course_id: courseId,
+      event_id: eventId,
+      registration_ids: registrationIds,
+      update_existing: true
+    });
+  }
+
   getEnrollmentsByPerson(personId: number): Observable<Enrollment[]> {
     return this.http.get<Enrollment[]>(`${this.API_URL}/person/${personId}`);
   }

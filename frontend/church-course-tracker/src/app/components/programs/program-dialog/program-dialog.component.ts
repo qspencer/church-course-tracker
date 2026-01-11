@@ -2,6 +2,7 @@ import { Component, Inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, FormArray, FormControl, AbstractControl } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { Router } from '@angular/router';
 import { ProgramService } from '../../../services/program.service';
 import { CourseService } from '../../../services/course.service';
 import { AutocompleteSuggestionService } from '../../../services/autocomplete-suggestion.service';
@@ -43,12 +44,13 @@ export class ProgramDialogComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private dialogRef: MatDialogRef<ProgramDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: { program: Program | null; viewMode?: boolean },
+    @Inject(MAT_DIALOG_DATA) public data: { program: Program | null; viewMode?: boolean; importData?: any },
     private programService: ProgramService,
     private courseService: CourseService,
     private autocompleteService: AutocompleteSuggestionService,
     private snackBar: MatSnackBar,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private router: Router
   ) {
     this.program = data.program;
     this.viewMode = data.viewMode || false;
@@ -75,7 +77,40 @@ export class ProgramDialogComponent implements OnInit {
     this.loadAvailableCourses();
     this.loadAutocompleteSuggestions();
     
-    if (this.program) {
+    // If import data is provided, populate form with it
+    if (this.data.importData) {
+      const importData = this.data.importData.previewData;
+      this.programForm.patchValue({
+        title: importData.title || '',
+        description: importData.description || '',
+        is_active: true,
+        locations: importData.locations || [],
+        delivery_modes: importData.delivery_modes || [],
+        prerequisites: []
+      });
+      // Store PC list/event data for later use in submission
+      (this.programForm as any).pcData = {
+        planning_center_list_id: importData.planning_center_list_id,
+        planning_center_list_name: importData.planning_center_list_name,
+        planning_center_event_id: importData.planning_center_event_id,
+        planning_center_event_name: importData.planning_center_event_name
+      };
+      // Add default roles if not editing
+      if (!this.isEditMode) {
+        this.addRoleDefinition({
+          name: 'Mentor',
+          min_participants: 1,
+          max_participants: 1,
+          is_primary: true
+        });
+        this.addRoleDefinition({
+          name: 'Mentee',
+          min_participants: 1,
+          max_participants: 3,
+          is_primary: false
+        });
+      }
+    } else if (this.program) {
       // Populate role definitions
       if (this.program.role_definitions && this.program.role_definitions.length > 0) {
         this.program.role_definitions.forEach(role => {
@@ -362,6 +397,17 @@ export class ProgramDialogComponent implements OnInit {
         prerequisites: this.programForm.value.prerequisites || []
       };
 
+      // If this is from an import, add PC event/list data
+      if ((this.programForm as any).pcData) {
+        const pcData = (this.programForm as any).pcData;
+        if (pcData.planning_center_event_id) {
+          createData.planning_center_event_id = pcData.planning_center_event_id;
+          createData.planning_center_event_name = pcData.planning_center_event_name;
+        }
+        // Note: Programs don't currently have planning_center_list_id field in the schema
+        // If needed, this could be stored as a custom attribute
+      }
+
       this.programService.createProgram(createData).subscribe({
         next: () => {
           this.snackBar.open('Program created successfully', 'Close', { duration: 3000 });
@@ -418,6 +464,14 @@ export class ProgramDialogComponent implements OnInit {
       maxWidth: '1200px',
       data: { program: this.program }
     });
+  }
+
+  manageContent(): void {
+    if (!this.program) return;
+    
+    // Close the dialog and navigate to program content page
+    this.dialogRef.close();
+    this.router.navigate(['/churchcoursetracker/programs', this.program.id, 'content']);
   }
 
   shouldShowError(fieldName: string): boolean {

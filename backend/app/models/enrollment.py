@@ -58,7 +58,7 @@ class CourseEnrollment(Base):
 
     # Relationships
     people = relationship("People", back_populates="course_enrollments")
-    course_instance = relationship("CourseInstance", back_populates="enrollments")
+    course_instance = relationship("CourseInstance", back_populates="enrollments", lazy="select")
     course = relationship("Course", foreign_keys=[course_id])  # Legacy relationship
     assigned_teacher = relationship(
         "CourseInstanceTeacher",

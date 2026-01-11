@@ -15,7 +15,10 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 import { MemberDialogComponent } from './member-dialog.component';
 import { MemberService } from '../../../services/member.service';
-import { Person } from '../../../models';
+import { UserService } from '../../../services/user.service';
+import { Person, User } from '../../../models';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 
 describe('MemberDialogComponent', () => {
   let component: MemberDialogComponent;
@@ -41,12 +44,14 @@ describe('MemberDialogComponent', () => {
 
   beforeEach(async () => {
     const memberSpy = jasmine.createSpyObj('MemberService', ['createMember', 'updateMember']);
+    const userSpy = jasmine.createSpyObj('UserService', ['importUserFromPlanningCenter']);
     const matDialogRefSpy = jasmine.createSpyObj('MatDialogRef', ['close']);
     const matSnackBarSpy = jasmine.createSpyObj('MatSnackBar', ['open']);
     
     // Set up default return values for service methods
     memberSpy.createMember.and.returnValue(of(mockMember));
     memberSpy.updateMember.and.returnValue(of(mockMember));
+    userSpy.importUserFromPlanningCenter.and.returnValue(of({ id: 1, username: 'test', full_name: 'Test User', email: 'test@example.com', role: 'instructor', is_active: true } as User));
 
     await TestBed.configureTestingModule({
       declarations: [MemberDialogComponent],
@@ -62,9 +67,12 @@ describe('MemberDialogComponent', () => {
       ],
       providers: [
         { provide: MemberService, useValue: memberSpy },
+        { provide: UserService, useValue: userSpy },
         { provide: MatDialogRef, useValue: matDialogRefSpy },
         { provide: MAT_DIALOG_DATA, useValue: mockDialogData },
-        { provide: MatSnackBar, useValue: matSnackBarSpy }
+        { provide: MatSnackBar, useValue: matSnackBarSpy },
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting()
       ]
     }).compileComponents();
 
@@ -278,11 +286,15 @@ describe('MemberDialogComponent', () => {
   describe('template rendering', () => {
     let templateFixture: ComponentFixture<MemberDialogComponent>;
     let templateComponent: MemberDialogComponent;
+    let templateUserSpy: jasmine.SpyObj<UserService>;
 
     beforeEach(async () => {
       // Create a fresh component instance for template tests
       // Reset TestBed to ensure clean state
       TestBed.resetTestingModule();
+      
+      templateUserSpy = jasmine.createSpyObj('UserService', ['importUserFromPlanningCenter']);
+      templateUserSpy.importUserFromPlanningCenter.and.returnValue(of({ id: 1, username: 'test', full_name: 'Test User', email: 'test@example.com', role: 'instructor', is_active: true } as User));
       
       await TestBed.configureTestingModule({
         declarations: [MemberDialogComponent],
@@ -298,9 +310,12 @@ describe('MemberDialogComponent', () => {
         ],
         providers: [
           { provide: MemberService, useValue: memberServiceSpy },
+          { provide: UserService, useValue: templateUserSpy },
           { provide: MatDialogRef, useValue: dialogRefSpy },
           { provide: MAT_DIALOG_DATA, useValue: mockDialogData },
-          { provide: MatSnackBar, useValue: snackBarSpy }
+          { provide: MatSnackBar, useValue: snackBarSpy },
+          provideHttpClient(withInterceptorsFromDi()),
+          provideHttpClientTesting()
         ]
       }).compileComponents();
 
@@ -348,10 +363,14 @@ describe('MemberDialogComponent', () => {
   describe('create mode', () => {
     let createFixture: ComponentFixture<MemberDialogComponent>;
     let createComponent: MemberDialogComponent;
+    let createUserSpy: jasmine.SpyObj<UserService>;
 
     beforeEach(async () => {
       // Reset TestBed to allow reconfiguration
       TestBed.resetTestingModule();
+      
+      createUserSpy = jasmine.createSpyObj('UserService', ['importUserFromPlanningCenter']);
+      createUserSpy.importUserFromPlanningCenter.and.returnValue(of({ id: 1, username: 'test', full_name: 'Test User', email: 'test@example.com', role: 'instructor', is_active: true } as User));
       
       // Create a new test module for create mode
       await TestBed.configureTestingModule({
@@ -368,9 +387,12 @@ describe('MemberDialogComponent', () => {
         ],
         providers: [
           { provide: MemberService, useValue: memberServiceSpy },
+          { provide: UserService, useValue: createUserSpy },
           { provide: MatDialogRef, useValue: dialogRefSpy },
           { provide: MAT_DIALOG_DATA, useValue: { member: null } },
-          { provide: MatSnackBar, useValue: snackBarSpy }
+          { provide: MatSnackBar, useValue: snackBarSpy },
+          provideHttpClient(withInterceptorsFromDi()),
+          provideHttpClientTesting()
         ]
       }).compileComponents();
 

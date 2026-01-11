@@ -28,6 +28,8 @@ class PeopleBase(BaseModel):
     status: Optional[str] = Field(default="active", max_length=50)
     join_date: Optional[date] = None
     is_active: bool = Field(default=True)
+    campus_id: Optional[int] = Field(None, description="Current campus assignment")
+    campus_assigned_date: Optional[date] = Field(None, description="Date when current campus assignment started")
 
 
 class PeopleCreate(PeopleBase):
@@ -55,6 +57,8 @@ class PeopleUpdate(BaseModel):
     status: Optional[str] = Field(None, max_length=50)
     join_date: Optional[date] = None
     is_active: Optional[bool] = None
+    campus_id: Optional[int] = Field(None, description="Current campus assignment")
+    campus_assigned_date: Optional[date] = Field(None, description="Date when current campus assignment started")
 
 
 class People(PeopleBase):

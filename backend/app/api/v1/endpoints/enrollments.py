@@ -12,6 +12,7 @@ from app.core.database import get_db
 from app.schemas.enrollment import (
     BulkEnrollFromPCEventRequest,
     BulkEnrollFromPCListRequest,
+    ImportRegistrationsRequest,
     CourseEnrollment,
     CourseEnrollmentCreate,
     CourseEnrollmentUpdate
@@ -29,12 +30,15 @@ async def get_enrollments(
     course_id: Optional[int] = None,
     people_id: Optional[int] = None,
     status: Optional[str] = None,
+    sort: Optional[str] = None,
+    order: Optional[str] = "asc",
     db: Session = Depends(get_db),
 ):
-    """Get enrollments with optional filtering"""
+    """Get enrollments with optional filtering and sorting"""
     enrollment_service = CourseEnrollmentService(db)
     return enrollment_service.get_enrollments(
-        skip=skip, limit=limit, course_id=course_id, people_id=people_id, status=status
+        skip=skip, limit=limit, course_id=course_id, people_id=people_id, status=status,
+        sort=sort, order=order
     )
 
 
@@ -194,6 +198,49 @@ async def update_progress(
             status_code=status.HTTP_404_NOT_FOUND, detail="Enrollment not found"
         )
     return enrollment
+
+
+@router.post(
+    "/import-registrations",
+    response_model=List[CourseEnrollment],
+    status_code=status.HTTP_201_CREATED
+)
+async def import_registrations(
+    request: ImportRegistrationsRequest,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_active_user),
+):
+    """
+    Import selected registrations from a Planning Center event as enrollments.
+    Automatically syncs people from Planning Center if they don't exist locally.
+    Requires admin or staff role.
+    """
+    if not current_user or current_user["role"] not in ["admin", "staff"]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only admin and staff users can import registrations",
+        )
+    
+    enrollment_service = CourseEnrollmentService(db)
+    try:
+        enrollments = enrollment_service.import_registrations(
+            course_id=request.course_id,
+            registration_ids=request.registration_ids,
+            event_id=request.event_id,
+            created_by=current_user["id"],
+            update_existing=request.update_existing,
+        )
+        return enrollments
+    except HTTPException:
+        raise
+    except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.exception(f"Error importing registrations: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to import registrations: {str(e)}"
+        )
 
 
 @router.delete("/{enrollment_id}", status_code=status.HTTP_204_NO_CONTENT)

@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
+import { Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ReportService } from '../../services/report.service';
 import { CourseService } from '../../services/course.service';
@@ -97,6 +98,7 @@ export class ReportsComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
+    private router: Router,
     private reportService: ReportService,
     private courseService: CourseService,
     private snackBar: MatSnackBar
@@ -233,5 +235,13 @@ export class ReportsComponent implements OnInit {
     if (progress >= 80) return '#4CAF50';
     if (progress >= 60) return '#FF9800';
     return '#F44336';
+  }
+
+  navigateToCourses(): void {
+    this.router.navigate(['/churchcoursetracker/courses']);
+  }
+
+  navigateToEnrollments(): void {
+    this.router.navigate(['/churchcoursetracker/enrollments']);
   }
 }

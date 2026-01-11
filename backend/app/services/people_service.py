@@ -240,8 +240,16 @@ class PeopleService:
             # Update existing person
             existing_person.first_name = get_val("first_name") or "Unknown"
             existing_person.last_name = get_val("last_name") or "Person"
-            existing_person.email = get_val("email")
-            existing_person.phone = get_val("phone_number") or get_val("phone")
+            # Get email - prefer from attributes (which may have been set from included data)
+            email_val = get_val("email")
+            existing_person.email = email_val
+            # Get phone - prefer phone_number (from included data) over phone
+            phone_val = get_val("phone_number") or get_val("phone") or None
+            existing_person.phone = phone_val
+            
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.info(f"Updating person {pc_id}: email={email_val}, phone={phone_val}")
             existing_person.date_of_birth = get_date_val("birthdate") or get_date_val("date_of_birth")
             existing_person.gender = get_val("gender")
             # Address handling could be more complex in PC API, but basic mapping:
@@ -263,12 +271,19 @@ class PeopleService:
             return existing_person
         else:
             # Create new person
+            email_val = get_val("email")
+            phone_val = get_val("phone_number") or get_val("phone") or None
+            
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.info(f"Creating person {pc_id}: email={email_val}, phone={phone_val}")
+            
             person_data = PeopleCreate(
                 planning_center_id=pc_id,
                 first_name=get_val("first_name") or "Unknown", # Provide default if missing
                 last_name=get_val("last_name") or "Person", # Provide default if missing
-                email=get_val("email"),
-                phone=get_val("phone_number") or get_val("phone"),
+                email=email_val,
+                phone=phone_val,
                 date_of_birth=get_date_val("birthdate") or get_date_val("date_of_birth"),
                 gender=get_val("gender"),
                 address1=get_val("address1"),

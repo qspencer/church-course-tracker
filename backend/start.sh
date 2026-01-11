@@ -128,6 +128,98 @@ if DATABASE_URL:
         # Check and add data_source columns for each table
         tables = ['users', 'role', 'campus', 'people', 'courses', 'course_modules', 'course_content', 'course_enrollment']
         
+        # Check for the specific columns we need and add them if missing
+        print("\n🔍 Checking and adding critical columns if needed...")
+        critical_columns = [
+            ('people', 'campus_id', 'INTEGER', True),
+            ('people', 'campus_assigned_date', 'DATE', True),
+            ('courses', 'planning_center_event_template_id', 'VARCHAR(50)', True),
+            ('course_enrollment', 'course_instance_id', 'INTEGER', True),
+            ('course_enrollment', 'assigned_teacher_id', 'INTEGER', True),
+        ]
+        
+        for table_name, column_name, column_type, nullable in critical_columns:
+            cur.execute("""
+                SELECT column_name 
+                FROM information_schema.columns 
+                WHERE table_name=%s AND column_name=%s
+            """, (table_name, column_name))
+            
+            if not cur.fetchone():
+                print(f"⚠️  MISSING: {table_name}.{column_name} - adding now...")
+                try:
+                    null_clause = '' if not nullable else 'NULL'
+                    cur.execute(f'ALTER TABLE {table_name} ADD COLUMN {column_name} {column_type} {null_clause}')
+                    conn.commit()
+                    print(f"✅ ADDED: {table_name}.{column_name}")
+                    columns_added.append(f"{table_name}.{column_name}")
+                    
+                    # Add index for foreign keys
+                    if column_name.endswith('_id') and column_name != 'id':
+                        try:
+                            cur.execute(f'CREATE INDEX IF NOT EXISTS ix_{table_name}_{column_name} ON {table_name}({column_name})')
+                            conn.commit()
+                            print(f"✅ INDEX CREATED: ix_{table_name}_{column_name}")
+                        except Exception as e:
+                            print(f"⚠️  Could not create index: {e}")
+                            conn.rollback()
+                except Exception as e:
+                    print(f"❌ ERROR adding {table_name}.{column_name}: {e}")
+                    errors_encountered.append(f"{table_name}.{column_name}: {e}")
+                    conn.rollback()
+            else:
+                print(f"✅ EXISTS: {table_name}.{column_name}")
+                columns_checked.append(f"{table_name}.{column_name}")
+        
+        # Add foreign key constraints if columns were added
+        print("\n🔗 Checking foreign key constraints...")
+        fk_checks = [
+            ('people', 'campus_id', 'campus', 'id'),
+            ('course_enrollment', 'course_instance_id', 'course_instances', 'id'),
+            ('course_enrollment', 'assigned_teacher_id', 'course_instance_teachers', 'id'),
+        ]
+        
+        for table_name, column_name, ref_table, ref_column in fk_checks:
+            # Check if FK constraint exists
+            cur.execute("""
+                SELECT tc.constraint_name
+                FROM information_schema.table_constraints tc
+                JOIN information_schema.key_column_usage kcu
+                    ON tc.constraint_name = kcu.constraint_name
+                    AND tc.table_schema = kcu.table_schema
+                WHERE tc.table_name = %s
+                    AND kcu.column_name = %s
+                    AND tc.constraint_type = 'FOREIGN KEY'
+            """, (table_name, column_name))
+            
+            if not cur.fetchone():
+                # Check if ref table exists
+                cur.execute("""
+                    SELECT table_name 
+                    FROM information_schema.tables 
+                    WHERE table_name = %s
+                """, (ref_table,))
+                
+                if cur.fetchone():
+                    try:
+                        fk_name = f'fk_{table_name}_{column_name}'
+                        cur.execute(f"""
+                            ALTER TABLE {table_name} 
+                            ADD CONSTRAINT {fk_name} 
+                            FOREIGN KEY ({column_name}) 
+                            REFERENCES {ref_table}({ref_column})
+                            ON DELETE SET NULL
+                        """)
+                        conn.commit()
+                        print(f"✅ FK CREATED: {table_name}.{column_name} -> {ref_table}.{ref_column}")
+                    except Exception as e:
+                        print(f"⚠️  Could not create FK: {e}")
+                        conn.rollback()
+                else:
+                    print(f"⚠️  Ref table {ref_table} does not exist, skipping FK")
+            else:
+                print(f"✅ FK EXISTS: {table_name}.{column_name} -> {ref_table}.{ref_column}")
+        
         for table in tables:
             # Check if column exists
             cur.execute("""

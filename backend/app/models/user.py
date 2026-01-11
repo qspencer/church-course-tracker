@@ -20,8 +20,11 @@ class User(Base):
     email = Column(String(255), unique=True, index=True, nullable=False)
     full_name = Column(String(200), nullable=False)
     hashed_password = Column(String(255), nullable=False)
-    role = Column(String(20), default="staff", nullable=False)  # admin, staff, viewer
+    role = Column(String(20), default="staff", nullable=False)  # admin, staff, viewer, instructor
     is_active = Column(Boolean, default=True, nullable=False)
+    
+    # Planning Center integration
+    planning_center_person_id = Column(String(50), unique=True, index=True, nullable=True)
 
     # CSV source tracking
     data_source = Column(String(20), nullable=True)  # 'csv', 'api', 'manual', etc.

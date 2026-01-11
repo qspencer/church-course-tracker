@@ -42,6 +42,11 @@ const routes: Routes = [
         canActivate: [AuthGuard]
       },
       {
+        path: 'programs/:programId/content',
+        loadChildren: () => import('./components/program-content/program-content.module').then(m => m.ProgramContentModule),
+        canActivate: [AuthGuard]
+      },
+      {
         path: 'enrollments',
         loadChildren: () => import('./components/enrollments/enrollments.module').then(m => m.EnrollmentsModule),
         canActivate: [AuthGuard]

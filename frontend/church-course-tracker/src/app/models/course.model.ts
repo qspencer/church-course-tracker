@@ -28,6 +28,11 @@ export interface Course {
 }
 
 export interface CourseCreate {
+  planning_center_event_id?: string;
+  planning_center_event_name?: string;
+  event_start_date?: string | Date;
+  event_end_date?: string | Date;
+  max_capacity?: number;
   title: string;
   description: string;
   duration_weeks: number;

@@ -42,8 +42,9 @@ describe('CourseDialogComponent', () => {
     updated_at: '2023-01-01T00:00:00Z'
   };
 
-  const createMockDialogData = (): CourseDialogData => ({
-    course: { ...mockCourse }
+  const createMockDialogData = (overrides?: Partial<CourseDialogData>): CourseDialogData => ({
+    course: { ...mockCourse },
+    ...overrides
   });
 
   beforeEach(async () => {
@@ -53,8 +54,9 @@ describe('CourseDialogComponent', () => {
     courseSpy.updateCourse.and.returnValue(of(mockCourse));
     courseSpy.getAvailablePrerequisites.and.returnValue(of([]));
     
-    const userSpy = jasmine.createSpyObj('UserService', ['getUsers']);
+    const userSpy = jasmine.createSpyObj('UserService', ['getUsers', 'getInstructors']);
     userSpy.getUsers.and.returnValue(of([]));
+    userSpy.getInstructors.and.returnValue(of([]));
     
     const autocompleteSpy = jasmine.createSpyObj('AutocompleteSuggestionService', ['getSuggestions', 'addSuggestion']);
     autocompleteSpy.getSuggestions.and.returnValue(of([]));
@@ -147,7 +149,8 @@ describe('CourseDialogComponent', () => {
       const editDialogData = { course: { ...mockCourse } };
       const editCourseSpy = jasmine.createSpyObj('CourseService', ['createCourse', 'updateCourse', 'getAvailablePrerequisites']);
       editCourseSpy.getAvailablePrerequisites.and.returnValue(of([]));
-      const editUserSpy = jasmine.createSpyObj('UserService', ['getUsers']);
+      const editUserSpy = jasmine.createSpyObj('UserService', ['getUsers', 'getInstructors']);
+      editUserSpy.getInstructors.and.returnValue(of([]));
       editUserSpy.getUsers.and.returnValue(of([]));
       const editAutocompleteSpy = jasmine.createSpyObj('AutocompleteSuggestionService', ['getSuggestions', 'addSuggestion']);
       editAutocompleteSpy.getSuggestions.and.returnValue(of([]));
@@ -353,7 +356,8 @@ describe('CourseDialogComponent', () => {
       const editMatDialogRefSpy = jasmine.createSpyObj('MatDialogRef', ['close']);
       const editMatSnackBarSpy = jasmine.createSpyObj('MatSnackBar', ['open']);
       
-      const editUserSpy = jasmine.createSpyObj('UserService', ['getUsers']);
+      const editUserSpy = jasmine.createSpyObj('UserService', ['getUsers', 'getInstructors']);
+      editUserSpy.getInstructors.and.returnValue(of([]));
       editUserSpy.getUsers.and.returnValue(of([]));
       const editAutocompleteSpy2 = jasmine.createSpyObj('AutocompleteSuggestionService', ['getSuggestions', 'addSuggestion']);
       editAutocompleteSpy2.getSuggestions.and.returnValue(of([]));
@@ -432,7 +436,8 @@ describe('CourseDialogComponent', () => {
       const createMatDialogRefSpy = jasmine.createSpyObj('MatDialogRef', ['close']);
       const createMatSnackBarSpy = jasmine.createSpyObj('MatSnackBar', ['open']);
       
-      const createUserSpy = jasmine.createSpyObj('UserService', ['getUsers']);
+      const createUserSpy = jasmine.createSpyObj('UserService', ['getUsers', 'getInstructors']);
+      createUserSpy.getInstructors.and.returnValue(of([]));
       createUserSpy.getUsers.and.returnValue(of([]));
       const createAutocompleteSpy = jasmine.createSpyObj('AutocompleteSuggestionService', ['getSuggestions', 'addSuggestion']);
       createAutocompleteSpy.getSuggestions.and.returnValue(of([]));
@@ -485,6 +490,108 @@ describe('CourseDialogComponent', () => {
       const compiled = createFixture.nativeElement;
       const submitButton = compiled.querySelector('button[color="primary"]');
       expect(submitButton.textContent.trim()).toBe('Create');
+    });
+  });
+
+  describe('import mode', () => {
+    let importFixture: ComponentFixture<CourseDialogComponent>;
+    let importComponent: CourseDialogComponent;
+    let importCourseServiceSpy: jasmine.SpyObj<CourseService>;
+
+    beforeEach(() => {
+      const importData = {
+        sourceType: 'event',
+        sourceId: 'pc_event_123',
+        previewData: {
+          title: 'Imported Course',
+          description: 'Imported Description',
+          planning_center_event_id: 'pc_event_123',
+          planning_center_event_name: 'Imported Event',
+          event_start_date: '2024-01-15T00:00:00Z',
+          event_end_date: '2024-01-20T00:00:00Z',
+          max_capacity: 50,
+          locations: ['Location 1'],
+          delivery_modes: ['Online']
+        }
+      };
+
+      const importDialogData = createMockDialogData({ course: null, importData });
+
+      TestBed.resetTestingModule();
+      importCourseServiceSpy = jasmine.createSpyObj('CourseService', ['createCourse', 'updateCourse', 'getAvailablePrerequisites']);
+      importCourseServiceSpy.getAvailablePrerequisites.and.returnValue(of([]));
+      const createdCourse = {
+        ...mockCourse,
+        planning_center_event_id: importData.previewData.planning_center_event_id,
+        planning_center_event_name: importData.previewData.planning_center_event_name,
+        event_start_date: importData.previewData.event_start_date,
+        event_end_date: importData.previewData.event_end_date,
+        max_capacity: importData.previewData.max_capacity
+      };
+      importCourseServiceSpy.createCourse.and.returnValue(of(createdCourse));
+
+      const userSpy = jasmine.createSpyObj('UserService', ['getUsers', 'getInstructors']);
+      userSpy.getUsers.and.returnValue(of([]));
+      userSpy.getInstructors.and.returnValue(of([]));
+
+      const autocompleteSpy = jasmine.createSpyObj('AutocompleteSuggestionService', ['getSuggestions', 'addSuggestion']);
+      autocompleteSpy.getSuggestions.and.returnValue(of([]));
+      autocompleteSpy.addSuggestion.and.returnValue(of({}));
+
+      const matDialogRefSpy = jasmine.createSpyObj('MatDialogRef', ['close']);
+      const matSnackBarSpy = jasmine.createSpyObj('MatSnackBar', ['open']);
+
+      TestBed.configureTestingModule({
+        declarations: [CourseDialogComponent],
+        imports: [
+          ReactiveFormsModule,
+          FormsModule,
+          BrowserAnimationsModule,
+          MatDialogModule,
+          MatFormFieldModule,
+          MatInputModule,
+          MatButtonModule,
+          MatProgressSpinnerModule,
+          MatSelectModule,
+          MatChipsModule,
+          MatIconModule,
+          MatAutocompleteModule
+        ],
+        providers: [
+          { provide: CourseService, useValue: importCourseServiceSpy },
+          { provide: UserService, useValue: userSpy },
+          { provide: AutocompleteSuggestionService, useValue: autocompleteSpy },
+          { provide: MatDialogRef, useValue: matDialogRefSpy },
+          { provide: MAT_DIALOG_DATA, useValue: importDialogData },
+          { provide: MatSnackBar, useValue: matSnackBarSpy },
+          provideHttpClient(withInterceptorsFromDi()),
+          provideHttpClientTesting()
+        ],
+        schemas: [NO_ERRORS_SCHEMA]
+      }).compileComponents();
+
+      importFixture = TestBed.createComponent(CourseDialogComponent);
+      importComponent = importFixture.componentInstance;
+      importFixture.detectChanges();
+    });
+
+    it('should populate form with import data', () => {
+      expect(importComponent.courseForm.get('title')?.value).toBe('Imported Course');
+      expect(importComponent.courseForm.get('description')?.value).toBe('Imported Description');
+      expect(importComponent.courseForm.get('locations')?.value).toEqual(['Location 1']);
+      expect(importComponent.courseForm.get('delivery_modes')?.value).toEqual(['Online']);
+    });
+
+    it('should include PC event data when creating course', () => {
+      importComponent.onSubmit();
+
+      expect(importCourseServiceSpy.createCourse).toHaveBeenCalled();
+      const createCall = importCourseServiceSpy.createCourse.calls.mostRecent();
+      const createData = createCall.args[0];
+
+      expect(createData.planning_center_event_id).toBe('pc_event_123');
+      expect(createData.planning_center_event_name).toBe('Imported Event');
+      expect(createData.max_capacity).toBe(50);
     });
   });
 });

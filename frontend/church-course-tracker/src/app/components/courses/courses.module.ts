@@ -18,10 +18,13 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSelectModule } from '@angular/material/select';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 
 import { CoursesComponent } from './courses.component';
 import { CourseDialogComponent } from './course-dialog/course-dialog.component';
+import { EventRegistrationsDialogComponent } from './event-registrations-dialog/event-registrations-dialog.component';
 import { SharedModule } from '../../shared/shared.module';
+import { PCImportDialogModule } from './pc-import-dialog/pc-import-dialog.module';
 
 const routes: Routes = [
   { path: '', component: CoursesComponent }
@@ -30,7 +33,8 @@ const routes: Routes = [
 @NgModule({
   declarations: [
     CoursesComponent,
-    CourseDialogComponent
+    CourseDialogComponent,
+    EventRegistrationsDialogComponent
   ],
   imports: [
     CommonModule,
@@ -51,7 +55,9 @@ const routes: Routes = [
     MatTooltipModule,
     MatSelectModule,
     MatAutocompleteModule,
-    SharedModule
+    MatCheckboxModule,
+    SharedModule,
+    PCImportDialogModule
   ]
 })
 export class CoursesModule { }

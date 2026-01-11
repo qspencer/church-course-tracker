@@ -200,6 +200,26 @@
             font-weight: 500;
             padding: 0 12px;
           }
+
+          button {
+            mat-icon {
+              margin-right: 8px;
+            }
+          }
+
+          .user-account-exists {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #4caf50;
+            font-weight: 500;
+
+            mat-icon {
+              font-size: 20px;
+              width: 20px;
+              height: 20px;
+            }
+          }
         }
       }
     }

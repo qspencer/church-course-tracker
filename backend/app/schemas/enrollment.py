@@ -15,7 +15,9 @@ class CourseEnrollmentBase(BaseModel):
     """Base course enrollment schema"""
 
     people_id: Optional[int] = None
-    course_id: int
+    course_id: Optional[int] = None  # Legacy field - deprecated, use course_instance_id
+    course_instance_id: Optional[int] = None  # New field - links to CourseInstance
+    assigned_teacher_id: Optional[int] = None  # Links to CourseInstanceTeacher
     
     @model_validator(mode='before')
     @classmethod
@@ -130,6 +132,18 @@ class BulkEnrollFromPCListRequest(BaseModel):
     
     course_id: int = Field(..., description="Course ID to enroll people in")
     pc_list_id: str = Field(..., description="Planning Center list ID")
+    update_existing: bool = Field(
+        default=True,
+        description="Whether to update existing enrollments"
+    )
+
+
+class ImportRegistrationsRequest(BaseModel):
+    """Schema for importing selected registrations from Planning Center event"""
+    
+    course_id: int = Field(..., description="Course ID to enroll people in")
+    event_id: str = Field(..., description="Planning Center event ID")
+    registration_ids: List[str] = Field(..., description="List of Planning Center registration IDs to import")
     update_existing: bool = Field(
         default=True,
         description="Whether to update existing enrollments"

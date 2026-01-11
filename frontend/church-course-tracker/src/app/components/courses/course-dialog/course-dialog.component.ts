@@ -1,15 +1,17 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, FormArray, FormControl } from '@angular/forms';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogRef, MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { CourseService } from '../../../services/course.service';
 import { UserService } from '../../../services/user.service';
 import { AutocompleteSuggestionService } from '../../../services/autocomplete-suggestion.service';
 import { Course, CourseCreate, CourseUpdate, User } from '../../../models';
+import { EventRegistrationsDialogComponent } from '../event-registrations-dialog/event-registrations-dialog.component';
 
 export interface CourseDialogData {
   course: Course | null;
   viewMode?: boolean; // If true, show read-only view
+  importData?: any; // Data from Planning Center import
 }
 
 @Component({
@@ -45,6 +47,7 @@ export class CourseDialogComponent implements OnInit {
     private userService: UserService,
     private autocompleteService: AutocompleteSuggestionService,
     private snackBar: MatSnackBar,
+    private dialog: MatDialog,
     public dialogRef: MatDialogRef<CourseDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: CourseDialogData
   ) {
@@ -69,7 +72,27 @@ export class CourseDialogComponent implements OnInit {
     this.loadAvailableUsers();
     this.loadAutocompleteSuggestions();
     
-    if (this.data.course) {
+    // If import data is provided, populate form with it
+    if (this.data.importData) {
+      const importData = this.data.importData.previewData;
+      this.courseForm.patchValue({
+        title: importData.title || '',
+        description: importData.description || '',
+        duration_weeks: importData.duration_weeks || 1,
+        prerequisites: [],
+        instructors: [],
+        locations: importData.locations || [],
+        delivery_modes: importData.delivery_modes || []
+      });
+      // Store PC event data for later use in submission
+      (this.courseForm as any).pcEventData = {
+        planning_center_event_id: importData.planning_center_event_id,
+        planning_center_event_name: importData.planning_center_event_name,
+        event_start_date: importData.event_start_date,
+        event_end_date: importData.event_end_date,
+        max_capacity: importData.max_capacity
+      };
+    } else if (this.data.course) {
       if (this.viewMode) {
         // In view mode, just store the course data
         this.course = this.data.course;
@@ -123,14 +146,25 @@ export class CourseDialogComponent implements OnInit {
 
   loadAvailableUsers(): void {
     this.loadingUsers = true;
-    this.userService.getUsers().subscribe({
+    // Load only instructors for the instructors dropdown
+    this.userService.getInstructors().subscribe({
       next: (users) => {
         this.availableUsers = users.filter(u => u.is_active);
         this.loadingUsers = false;
       },
       error: (error) => {
-        console.error('Error loading users:', error);
-        this.loadingUsers = false;
+        console.error('Error loading instructors:', error);
+        // Fallback to all users if instructor filter fails
+        this.userService.getUsers().subscribe({
+          next: (users) => {
+            this.availableUsers = users.filter(u => u.is_active);
+            this.loadingUsers = false;
+          },
+          error: (err) => {
+            console.error('Error loading users:', err);
+            this.loadingUsers = false;
+          }
+        });
       }
     });
   }
@@ -199,6 +233,16 @@ export class CourseDialogComponent implements OnInit {
         locations: formValue.locations || [],
         delivery_modes: formValue.delivery_modes || []
       };
+
+      // If this is from an import, add PC event data
+      if ((this.courseForm as any).pcEventData) {
+        const pcData = (this.courseForm as any).pcEventData;
+        createData.planning_center_event_id = pcData.planning_center_event_id;
+        createData.planning_center_event_name = pcData.planning_center_event_name;
+        createData.event_start_date = pcData.event_start_date;
+        createData.event_end_date = pcData.event_end_date;
+        createData.max_capacity = pcData.max_capacity;
+      }
 
       this.courseService.createCourse(createData).subscribe({
         next: (course) => {
@@ -456,5 +500,28 @@ export class CourseDialogComponent implements OnInit {
       return [];
     }
     return Array.isArray(this.course.delivery_modes) ? this.course.delivery_modes : [];
+  }
+
+  viewEventRegistrations(): void {
+    if (!this.course?.planning_center_event_id) {
+      this.snackBar.open('This course does not have a Planning Center event ID', 'Close', { duration: 3000 });
+      return;
+    }
+
+    const dialogRef = this.dialog.open(EventRegistrationsDialogComponent, {
+      width: '800px',
+      maxWidth: '90vw',
+      data: {
+        eventId: this.course.planning_center_event_id,
+        eventName: this.course.planning_center_event_name || this.course.title,
+        courseId: this.course.id
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result && result.imported) {
+        this.snackBar.open(`Successfully imported ${result.count} registration(s) as enrollments`, 'Close', { duration: 5000 });
+      }
+    });
   }
 }

@@ -104,6 +104,28 @@
           <p class="detail-value">{{ formatDate(member.last_synced_at) }}</p>
         </div>
       </div>
+
+      <!-- Create User Account Section -->
+      <div class="detail-row" *ngIf="member.planning_center_id">
+        <div class="detail-item full-width">
+          <h3 class="detail-label">User Account</h3>
+          <p class="detail-value">
+            <button 
+              *ngIf="!hasUserAccount"
+              mat-raised-button 
+              color="primary" 
+              (click)="createUserAccount()"
+              [disabled]="isCreatingUser">
+              <mat-icon>person_add</mat-icon>
+              Create User Account (Instructor)
+            </button>
+            <span *ngIf="hasUserAccount" class="user-account-exists">
+              <mat-icon color="primary">check_circle</mat-icon>
+              User account exists
+            </span>
+          </p>
+        </div>
+      </div>
     </div>
 
     <!-- Edit/Create Mode: Form -->

@@ -14,6 +14,7 @@ import { SessionsManagementComponent } from './sessions-management/sessions-mana
 import { ProgressManagementComponent } from './progress-management/progress-management.component';
 import { ConfirmDialogComponent } from '../../shared/confirm-dialog/confirm-dialog.component';
 import { BulkEnrollmentDialogComponent } from '../enrollments/bulk-enrollment-dialog/bulk-enrollment-dialog.component';
+import { PCImportDialogComponent, PCImportDialogData } from '../courses/pc-import-dialog/pc-import-dialog.component';
 
 @Component({
   selector: 'app-programs',
@@ -74,16 +75,30 @@ export class ProgramsComponent implements OnInit {
     }
   }
 
-  openProgramDialog(program?: Program): void {
+  openProgramDialog(program?: Program, importData?: any): void {
     const dialogRef = this.dialog.open(ProgramDialogComponent, {
       width: '1000px',
       maxWidth: '95vw',
-      data: { program: program || null }
+      data: { program: program || null, importData: importData || null }
     });
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
         this.loadPrograms();
+      }
+    });
+  }
+
+  openImportDialog(): void {
+    const dialogRef = this.dialog.open(PCImportDialogComponent, {
+      width: '700px',
+      data: { entityType: 'program' } as PCImportDialogData
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        // Open program dialog with import data
+        this.openProgramDialog(undefined, result);
       }
     });
   }

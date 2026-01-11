@@ -16,10 +16,13 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { MembersComponent } from './members.component';
 import { MemberDialogComponent } from './member-dialog/member-dialog.component';
 import { MemberEnrollmentsDialogComponent } from './member-enrollments-dialog/member-enrollments-dialog.component';
+import { MemberImportDialogComponent } from './member-import-dialog/member-import-dialog.component';
 
 const routes: Routes = [
   { path: '', component: MembersComponent }
@@ -29,7 +32,8 @@ const routes: Routes = [
   declarations: [
     MembersComponent,
     MemberDialogComponent,
-    MemberEnrollmentsDialogComponent
+    MemberEnrollmentsDialogComponent,
+    MemberImportDialogComponent
   ],
   imports: [
     CommonModule,
@@ -46,7 +50,9 @@ const routes: Routes = [
     MatDialogModule,
     MatProgressSpinnerModule,
     MatTooltipModule,
-    MatChipsModule
+    MatChipsModule,
+    MatAutocompleteModule,
+    MatSnackBarModule
   ]
 })
 export class MembersModule { }

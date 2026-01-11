@@ -27,6 +27,7 @@ class CourseBase(BaseModel):
         None,
         description="List of delivery mode strings (e.g., 'In-person', 'Online', 'Hybrid', 'Self-paced')"
     )
+    planning_center_event_template_id: Optional[str] = Field(None, max_length=50, description="Planning Center event template/series ID")
     planning_center_event_id: Optional[str] = Field(None, max_length=50)
     planning_center_event_name: Optional[str] = Field(None, max_length=200)
     event_start_date: Optional[datetime] = None
@@ -72,6 +73,7 @@ class CourseUpdate(BaseModel):
         None,
         description="List of delivery mode strings"
     )
+    planning_center_event_template_id: Optional[str] = Field(None, max_length=50, description="Planning Center event template/series ID")
     planning_center_event_id: Optional[str] = Field(None, max_length=50)
     planning_center_event_name: Optional[str] = Field(None, max_length=200)
     event_start_date: Optional[datetime] = None

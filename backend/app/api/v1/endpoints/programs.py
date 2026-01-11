@@ -96,7 +96,16 @@ async def get_programs(
     """Get all programs with pagination and optional filtering"""
     program_service = ProgramService(db)
     programs = program_service.get_programs(skip=skip, limit=limit, is_active=is_active)
-    return [program_to_schema(program) for program in programs]
+    try:
+        return [program_to_schema(program) for program in programs]
+    except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error serializing programs: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error processing programs: {str(e)}"
+        )
 
 
 @router.get("/{program_id}", response_model=Program)

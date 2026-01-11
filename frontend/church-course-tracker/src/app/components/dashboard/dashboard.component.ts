@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { ReportService } from '../../services/report.service';
 import { CourseService } from '../../services/course.service';
 import { EnrollmentService } from '../../services/enrollment.service';
@@ -136,6 +137,7 @@ export class DashboardComponent implements OnInit {
   };
 
   constructor(
+    private router: Router,
     private reportService: ReportService,
     private courseService: CourseService,
     private enrollmentService: EnrollmentService,
@@ -507,5 +509,21 @@ export class DashboardComponent implements OnInit {
       enrollment.people_id ?? // legacy compat if backend ever sends
       enrollment.id;
     return `Member #${fallbackId}`;
+  }
+
+  navigateToCourses(): void {
+    this.router.navigate(['/churchcoursetracker/courses']);
+  }
+
+  navigateToEnrollments(): void {
+    this.router.navigate(['/churchcoursetracker/enrollments']);
+  }
+
+  navigateToMembers(): void {
+    this.router.navigate(['/churchcoursetracker/members']);
+  }
+
+  navigateToPrograms(): void {
+    this.router.navigate(['/churchcoursetracker/programs']);
   }
 }

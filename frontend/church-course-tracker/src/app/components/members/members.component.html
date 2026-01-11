@@ -1,10 +1,16 @@
 <div class="members-container">
   <div class="members-header">
     <h1>Members Management</h1>
-    <button mat-raised-button color="primary" (click)="openMemberDialog()">
-      <mat-icon>person_add</mat-icon>
-      Add New Member
-    </button>
+    <div class="header-actions">
+      <button mat-raised-button color="accent" (click)="openImportDialog()">
+        <mat-icon>cloud_download</mat-icon>
+        Import from Planning Center
+      </button>
+      <button mat-raised-button color="primary" (click)="openMemberDialog()">
+        <mat-icon>person_add</mat-icon>
+        Add New Member
+      </button>
+    </div>
   </div>
 
   <mat-card class="members-card">

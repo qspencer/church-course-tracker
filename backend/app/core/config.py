@@ -94,6 +94,12 @@ class Settings(BaseSettings):
     PLANNING_CENTER_ACCESS_TOKEN: Optional[str] = os.getenv(
         "PLANNING_CENTER_ACCESS_TOKEN"
     )
+    PLANNING_CENTER_MAX_EVENTS: int = int(
+        os.getenv("PLANNING_CENTER_MAX_EVENTS", "2000")
+    )  # Maximum number of events to fetch (to avoid timeouts)
+    PLANNING_CENTER_CACHE_TTL_MINUTES: int = int(
+        os.getenv("PLANNING_CENTER_CACHE_TTL_MINUTES", "10")
+    )  # Cache TTL in minutes for Planning Center events/lists (0 = disabled)
 
     # Mock Planning Center API (for development)
     USE_MOCK_PLANNING_CENTER: bool = (

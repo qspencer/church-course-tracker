@@ -29,8 +29,8 @@
     <div class="stats-grid">
       <!-- Courses View Stats -->
       <ng-container *ngIf="viewMode === 'courses' && stats">
-        <mat-card class="stat-card">
-          <mat-card-content>
+        <mat-card class="stat-card clickable-card" (click)="navigateToCourses()" style="cursor: pointer; position: relative;">
+          <mat-card-content style="pointer-events: auto;">
             <div class="stat-content">
               <div class="stat-icon courses-icon">
                 <mat-icon>school</mat-icon>
@@ -44,8 +44,8 @@
           </mat-card-content>
         </mat-card>
 
-        <mat-card class="stat-card">
-          <mat-card-content>
+        <mat-card class="stat-card clickable-card" (click)="navigateToEnrollments()" style="cursor: pointer; position: relative;">
+          <mat-card-content style="pointer-events: auto;">
             <div class="stat-content">
               <div class="stat-icon enrollments-icon">
                 <mat-icon>assignment</mat-icon>
@@ -59,8 +59,8 @@
           </mat-card-content>
         </mat-card>
 
-        <mat-card class="stat-card">
-          <mat-card-content>
+        <mat-card class="stat-card clickable-card" (click)="navigateToMembers()" style="cursor: pointer; position: relative;">
+          <mat-card-content style="pointer-events: auto;">
             <div class="stat-content">
               <div class="stat-icon members-icon">
                 <mat-icon>people</mat-icon>
@@ -77,8 +77,8 @@
 
       <!-- Programs View Stats -->
       <ng-container *ngIf="viewMode === 'programs' && programStats">
-        <mat-card class="stat-card">
-          <mat-card-content>
+        <mat-card class="stat-card clickable-card" (click)="navigateToPrograms()" style="cursor: pointer; position: relative;">
+          <mat-card-content style="pointer-events: auto;">
             <div class="stat-content">
               <div class="stat-icon courses-icon">
                 <mat-icon>groups</mat-icon>
@@ -92,8 +92,8 @@
           </mat-card-content>
         </mat-card>
 
-        <mat-card class="stat-card">
-          <mat-card-content>
+        <mat-card class="stat-card clickable-card" (click)="navigateToPrograms()" style="cursor: pointer; position: relative;">
+          <mat-card-content style="pointer-events: auto;">
             <div class="stat-content">
               <div class="stat-icon enrollments-icon">
                 <mat-icon>person</mat-icon>
@@ -107,8 +107,8 @@
           </mat-card-content>
         </mat-card>
 
-        <mat-card class="stat-card">
-          <mat-card-content>
+        <mat-card class="stat-card clickable-card" (click)="navigateToPrograms()" style="cursor: pointer; position: relative;">
+          <mat-card-content style="pointer-events: auto;">
             <div class="stat-content">
               <div class="stat-icon members-icon">
                 <mat-icon>handshake</mat-icon>
@@ -122,8 +122,8 @@
           </mat-card-content>
         </mat-card>
 
-        <mat-card class="stat-card">
-          <mat-card-content>
+        <mat-card class="stat-card clickable-card" (click)="navigateToPrograms()" style="cursor: pointer; position: relative;">
+          <mat-card-content style="pointer-events: auto;">
             <div class="stat-content">
               <div class="stat-icon enrollments-icon">
                 <mat-icon>event</mat-icon>

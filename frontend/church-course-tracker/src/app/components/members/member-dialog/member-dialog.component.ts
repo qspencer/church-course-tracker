@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MemberService } from '../../../services/member.service';
+import { UserService } from '../../../services/user.service';
 import { Person } from '../../../models';
 
 export interface MemberDialogData {
@@ -22,10 +23,13 @@ export class MemberDialogComponent implements OnInit {
   isLoading = false;
   isSubmitted = false; // Track if form has been submitted
   member: Person | null = null;
+  hasUserAccount = false;
+  isCreatingUser = false;
 
          constructor(
            private fb: FormBuilder,
            private memberService: MemberService,
+           private userService: UserService,
            private snackBar: MatSnackBar,
            public dialogRef: MatDialogRef<MemberDialogComponent>,
            @Inject(MAT_DIALOG_DATA) public data: MemberDialogData
@@ -48,6 +52,10 @@ export class MemberDialogComponent implements OnInit {
              if (this.viewMode) {
                // In view mode, just store the member data
                this.member = this.data.member;
+               // Check if user account exists
+               if (this.member.planning_center_id) {
+                 this.checkUserAccount();
+               }
              } else {
                // In edit/create mode, populate the form
                this.memberForm.patchValue({
@@ -60,6 +68,45 @@ export class MemberDialogComponent implements OnInit {
              }
            }
          }
+
+  checkUserAccount(): void {
+    if (!this.member?.planning_center_id) {
+      return;
+    }
+    // Check if a user exists with this planning_center_person_id
+    // Note: We'd need an endpoint to check this, or we can try to import and handle the error
+    // For now, we'll assume no user account exists and let the import handle duplicates
+    this.hasUserAccount = false;
+  }
+
+  createUserAccount(): void {
+    if (!this.member?.planning_center_id) {
+      this.snackBar.open('Member must have a Planning Center ID to create a user account', 'Close', { duration: 5000 });
+      return;
+    }
+
+    this.isCreatingUser = true;
+    
+    // Import user from Planning Center with instructor role
+    this.userService.importUserFromPlanningCenter(this.member.planning_center_id, 'instructor').subscribe({
+      next: (user) => {
+        this.isCreatingUser = false;
+        this.hasUserAccount = true;
+        this.snackBar.open(`User account created successfully! ${user.full_name} is now an instructor.`, 'Close', { duration: 5000 });
+      },
+      error: (error) => {
+        this.isCreatingUser = false;
+        console.error('Error creating user account:', error);
+        if (error.status === 409) {
+          // User already exists
+          this.hasUserAccount = true;
+          this.snackBar.open('User account already exists for this member', 'Close', { duration: 5000 });
+        } else {
+          this.snackBar.open('Error creating user account: ' + (error.error?.detail || error.message), 'Close', { duration: 5000 });
+        }
+      }
+    });
+  }
 
   formatDate(date: string | null | undefined): string {
     if (!date) return 'N/A';

@@ -17,6 +17,8 @@ from app.schemas.password import ChangePasswordRequest
 from app.schemas.user_preference import UserPreference, UserPreferenceUpdate
 from app.services.user_service import UserService
 from app.services.user_preference_service import UserPreferenceService
+from app.services.planning_center_sync_service import PlanningCenterSyncService
+from pydantic import BaseModel
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -140,10 +142,15 @@ async def update_user_preferences(
 
 @router.get("", response_model=List[User])
 @router.get("/", response_model=List[User])
-async def get_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    """Get all users"""
+async def get_users(
+    skip: int = 0, 
+    limit: int = 100, 
+    role: str = None,
+    db: Session = Depends(get_db)
+):
+    """Get all users, optionally filtered by role"""
     user_service = UserService(db)
-    return user_service.get_users(skip=skip, limit=limit)
+    return user_service.get_users(skip=skip, limit=limit, role=role)
 
 
 @router.get("/{user_id}", response_model=User)
@@ -231,3 +238,118 @@ async def delete_user(
             status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
     return {"message": "User deleted successfully"}
+
+
+class ImportUserFromPCRequest(BaseModel):
+    planning_center_person_id: str
+    role: str = "instructor"
+
+
+@router.post("/import-from-pc", response_model=User)
+async def import_user_from_planning_center(
+    request: ImportUserFromPCRequest,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_active_user),
+):
+    """Import a user from Planning Center by person ID"""
+    sync_service = PlanningCenterSyncService(db)
+    user_service = UserService(db)
+    
+    try:
+        # Fetch the person data from Planning Center with emails and phone numbers included
+        import httpx
+        with httpx.Client(timeout=30.0) as client:
+            response = client.get(
+                f"https://api.planningcenteronline.com/people/v2/people/{request.planning_center_person_id}",
+                headers=sync_service.headers,
+                params={"include": "emails,phone_numbers"}
+            )
+            
+            if response.status_code == 404:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Person not found in Planning Center"
+                )
+            
+            response.raise_for_status()
+            data = response.json()
+            person_data = data.get("data")
+            included = data.get("included", [])
+            
+            if not person_data:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Person data not found in Planning Center response"
+                )
+        
+        # Process included emails and phone numbers and attach to person_data
+        emails_by_id = {}
+        phones_by_id = {}
+        
+        for item in included:
+            item_type = item.get("type")
+            item_id = item.get("id")
+            attrs = item.get("attributes", {})
+            
+            if item_type == "Email":
+                emails_by_id[item_id] = attrs.get("address", "")
+            elif item_type == "PhoneNumber":
+                phones_by_id[item_id] = attrs.get("number", "")
+        
+        # Attach emails and phone numbers to person attributes
+        relationships = person_data.get("relationships", {})
+        person_attrs = person_data.get("attributes", {})
+        
+        # Get email addresses
+        email_data = relationships.get("emails", {}).get("data", [])
+        emails = []
+        for email_ref in email_data:
+            email_id = email_ref.get("id")
+            if email_id in emails_by_id:
+                emails.append(emails_by_id[email_id])
+        
+        # Get phone numbers
+        phone_data = relationships.get("phone_numbers", {}).get("data", [])
+        phone_numbers = []
+        for phone_ref in phone_data:
+            phone_id = phone_ref.get("id")
+            if phone_id in phones_by_id:
+                phone_numbers.append(phones_by_id[phone_id])
+        
+        # Attach to person attributes for create_user_from_planning_center to use
+        if emails:
+            person_attrs["email"] = emails[0]  # Primary email
+            person_attrs["emails"] = emails  # All emails
+        if phone_numbers:
+            person_attrs["phone_number"] = phone_numbers[0]  # Primary phone
+            person_attrs["phone_numbers"] = phone_numbers  # All phone numbers
+        
+        # Create user from Planning Center person data
+        user = user_service.create_user_from_planning_center(
+            person_data,
+            default_role=request.role,
+            created_by=current_user["id"]
+        )
+        
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Failed to create user from Planning Center person"
+            )
+        
+        return user
+        
+    except HTTPException:
+        raise
+    except httpx.HTTPStatusError as e:
+        logger.error(f"Planning Center API error: {e.response.status_code} - {e.response.text}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error fetching person from Planning Center: {e.response.status_code}"
+        )
+    except Exception as e:
+        logger.exception(f"Unexpected error importing user from Planning Center: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Unable to import user from Planning Center: {str(e)}"
+        )

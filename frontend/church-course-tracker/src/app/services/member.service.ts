@@ -52,4 +52,10 @@ export class MemberService {
   getMemberProgress(id: number): Observable<any> {
     return this.http.get<any>(`${this.API_URL}/${id}/progress`);
   }
+
+  importMemberFromPlanningCenter(planningCenterPersonId: string): Observable<Person> {
+    return this.http.post<Person>(`${this.API_URL}/import-from-pc`, {
+      planning_center_person_id: planningCenterPersonId
+    });
+  }
 }

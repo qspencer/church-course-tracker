@@ -8,6 +8,7 @@ import { MemberService } from '../../services/member.service';
 import { Person } from '../../models';
 import { MemberDialogComponent } from './member-dialog/member-dialog.component';
 import { MemberEnrollmentsDialogComponent } from './member-enrollments-dialog/member-enrollments-dialog.component';
+import { MemberImportDialogComponent } from './member-import-dialog/member-import-dialog.component';
 import { ConfirmDialogComponent } from '../../shared/confirm-dialog/confirm-dialog.component';
 
 @Component({
@@ -70,6 +71,19 @@ export class MembersComponent implements OnInit {
     const dialogRef = this.dialog.open(MemberDialogComponent, {
       width: '500px',
       data: { member: member || null }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.loadMembers();
+      }
+    });
+  }
+
+  openImportDialog(): void {
+    const dialogRef = this.dialog.open(MemberImportDialogComponent, {
+      width: '600px',
+      maxWidth: '95vw'
     });
 
     dialogRef.afterClosed().subscribe(result => {

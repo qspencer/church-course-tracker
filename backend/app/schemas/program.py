@@ -56,16 +56,26 @@ class ProgramBase(BaseModel):
         for role in v:
             if not isinstance(role, dict):
                 raise ValueError("Each role definition must be a dictionary")
-            required_fields = ['name', 'min_participants', 'max_participants', 'is_primary']
-            for field in required_fields:
-                if field not in role:
-                    raise ValueError(f"Role definition missing required field: {field}")
+            # Required field: name
+            if 'name' not in role:
+                raise ValueError("Role definition missing required field: name")
             if not isinstance(role['name'], str) or len(role['name']) == 0:
                 raise ValueError("Role name must be a non-empty string")
+            
+            # Optional fields with defaults for backward compatibility
+            if 'min_participants' not in role:
+                role['min_participants'] = 1  # Default to 1
+            if 'max_participants' not in role:
+                role['max_participants'] = None  # Default to None (unlimited)
+            if 'is_primary' not in role:
+                role['is_primary'] = False  # Default to False
+            
+            # Validate types and values
             if not isinstance(role['min_participants'], int) or role['min_participants'] < 0:
                 raise ValueError("min_participants must be a non-negative integer")
-            if not isinstance(role['max_participants'], int) or role['max_participants'] < role['min_participants']:
-                raise ValueError("max_participants must be an integer >= min_participants")
+            if role['max_participants'] is not None:
+                if not isinstance(role['max_participants'], int) or role['max_participants'] < role['min_participants']:
+                    raise ValueError("max_participants must be an integer >= min_participants or None")
             if not isinstance(role['is_primary'], bool):
                 raise ValueError("is_primary must be a boolean")
         return v

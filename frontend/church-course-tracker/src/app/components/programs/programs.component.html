@@ -6,9 +6,17 @@
         *ngIf="canCreateProgram()" 
         mat-stroked-button 
         color="accent" 
-        (click)="openBulkImportDialog()">
+        (click)="openImportDialog()">
         <mat-icon>cloud_download</mat-icon>
-        Import from Planning Center
+        Import Program from Planning Center
+      </button>
+      <button 
+        *ngIf="canCreateProgram()" 
+        mat-stroked-button 
+        color="accent" 
+        (click)="openBulkImportDialog()">
+        <mat-icon>people</mat-icon>
+        Import Participants from Planning Center
       </button>
       <button 
         *ngIf="canCreateProgram()" 

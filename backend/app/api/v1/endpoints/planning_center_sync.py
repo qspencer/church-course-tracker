@@ -2,6 +2,7 @@
 Planning Center Sync API endpoints
 """
 
+import logging
 from typing import Any, Dict, List, Optional, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
@@ -76,11 +77,27 @@ async def start_sync_events(db: Session = Depends(get_db)):
 
 
 @router.get("/events", response_model=List[Dict[str, Any]])
-async def get_planning_center_events(db: Session = Depends(get_db)):
+async def get_planning_center_events(
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_active_user),
+):
     """Get list of events from Planning Center (real-time)"""
     sync_service = PlanningCenterSyncService(db)
     try:
-        return sync_service.get_events()
+        events = sync_service.get_events()
+        return events
+    except ValueError as e:
+        # ValueError from Planning Center API issues
+        error_msg = str(e)
+        if "authentication failed" in error_msg.lower():
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail=error_msg
+            )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=error_msg
+        )
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -88,16 +105,275 @@ async def get_planning_center_events(db: Session = Depends(get_db)):
         )
 
 
+@router.get("/events/diagnostics", response_model=Dict[str, Any])
+async def get_events_diagnostics(
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_active_user),
+):
+    """
+    Get diagnostic information about fetched events, including date ranges.
+    Shows which API is used, the oldest/newest events, and whether the limit was hit.
+    """
+    sync_service = PlanningCenterSyncService(db)
+    try:
+        events = sync_service.get_events()
+        
+        if not events:
+            return {
+                "total_events": 0,
+                "message": "No events found",
+                "api_used": "unknown"
+            }
+        
+        # Extract dates from events (handle both Check-Ins and Calendar API formats)
+        dates_created = []
+        dates_start = []
+        events_with_created_at = []  # Track events that have created_at
+        
+        for event in events:
+            attrs = event.get("attributes", {})
+            
+            # Check-Ins API uses created_at
+            created_at_str = attrs.get("created_at")
+            if created_at_str:
+                try:
+                    from dateutil import parser
+                    created_at_dt = parser.parse(created_at_str)
+                    dates_created.append(created_at_dt)
+                    events_with_created_at.append((event, created_at_dt))
+                except:
+                    pass
+            
+            # Calendar API uses starts_at, Check-Ins uses start_date
+            start_date_str = attrs.get("starts_at") or attrs.get("start_date")
+            if start_date_str:
+                try:
+                    from dateutil import parser
+                    dates_start.append(parser.parse(start_date_str))
+                except:
+                    pass
+        
+        # Determine which API is being used based on event structure
+        api_used = "unknown"
+        sort_order = "unknown"
+        first_event = events[0] if events else {}
+        if "created_at" in first_event.get("attributes", {}):
+            api_used = "Check-Ins API"
+            sort_order = "created_at (newest created first)"
+        elif "starts_at" in first_event.get("attributes", {}):
+            api_used = "Calendar API"
+            sort_order = "starts_at (newest start date first)"
+        
+        # Check if limit was likely applied (exactly 1000 events)
+        limit_applied = len(events) >= 1000
+        from app.core.config import settings
+        configured_limit = settings.PLANNING_CENTER_MAX_EVENTS
+        
+        result = {
+            "total_events": len(events),
+            "api_used": api_used,
+            "sort_order": sort_order,
+            "configured_limit": configured_limit,
+            "limit_applied": limit_applied,
+        }
+        
+        if dates_created:
+            dates_created.sort()
+            result["created_at_range"] = {
+                "newest_created": dates_created[-1].isoformat() if dates_created else None,
+                "oldest_created": dates_created[0].isoformat() if dates_created else None,
+                "newest_created_formatted": dates_created[-1].strftime("%Y-%m-%d %H:%M:%S") if dates_created else None,
+                "oldest_created_formatted": dates_created[0].strftime("%Y-%m-%d %H:%M:%S") if dates_created else None,
+            }
+        
+        if dates_start:
+            dates_start.sort()
+            result["start_date_range"] = {
+                "newest_start": dates_start[-1].isoformat() if dates_start else None,
+                "oldest_start": dates_start[0].isoformat() if dates_start else None,
+                "newest_start_formatted": dates_start[-1].strftime("%Y-%m-%d %H:%M:%S") if dates_start else None,
+                "oldest_start_formatted": dates_start[0].strftime("%Y-%m-%d %H:%M:%S") if dates_start else None,
+            }
+        
+        # Find the oldest event by created_at date (if available)
+        if events_with_created_at:
+            # Sort by created_at to find the oldest
+            events_with_created_at.sort(key=lambda x: x[1])  # Sort by created_at datetime
+            oldest_by_created_at = events_with_created_at[0][0]  # First item is oldest
+            oldest_attrs = oldest_by_created_at.get("attributes", {})
+            result["oldest_event_by_created_at"] = {
+                "id": oldest_by_created_at.get("id"),
+                "name": oldest_attrs.get("name"),
+                "created_at": oldest_attrs.get("created_at"),
+                "created_at_formatted": events_with_created_at[0][1].strftime("%Y-%m-%d %H:%M:%S"),
+                "start_date": oldest_attrs.get("start_date"),
+                "starts_at": oldest_attrs.get("starts_at"),
+                "note": "This is the event with the oldest created_at date in the fetched list"
+            }
+        
+        # Find the oldest event in the list (last item since sorted descending by API order)
+        if events:
+            oldest_event = events[-1]
+            oldest_attrs = oldest_event.get("attributes", {})
+            result["oldest_event_in_list"] = {
+                "id": oldest_event.get("id"),
+                "name": oldest_attrs.get("name"),
+                "created_at": oldest_attrs.get("created_at"),
+                "start_date": oldest_attrs.get("start_date"),
+                "starts_at": oldest_attrs.get("starts_at"),
+                "note": "This is the last event in the sorted list (may not be oldest by created_at if sorted by start_date)"
+            }
+        
+        # Find the newest event in the list (first item since sorted descending)
+        if events:
+            newest_event = events[0]
+            newest_attrs = newest_event.get("attributes", {})
+            result["newest_event_in_list"] = {
+                "id": newest_event.get("id"),
+                "name": newest_attrs.get("name"),
+                "created_at": newest_attrs.get("created_at"),
+                "start_date": newest_attrs.get("start_date"),
+                "starts_at": newest_attrs.get("starts_at"),
+                "note": "This is the newest event being fetched (first in sorted list)"
+            }
+        
+        return result
+        
+    except ValueError as e:
+        error_msg = str(e)
+        if "authentication failed" in error_msg.lower():
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail=error_msg
+            )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=error_msg
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to fetch event diagnostics: {str(e)}"
+        )
+
+
 @router.get("/lists", response_model=List[Dict[str, Any]])
-async def get_planning_center_lists(db: Session = Depends(get_db)):
+async def get_planning_center_lists(
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_active_user),
+):
     """Get all lists from Planning Center (real-time)"""
     sync_service = PlanningCenterSyncService(db)
     try:
-        return sync_service.get_lists()
+        lists = sync_service.get_lists()
+        return lists
+    except ValueError as e:
+        # ValueError from Planning Center API issues
+        error_msg = str(e)
+        if "authentication failed" in error_msg.lower():
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail=error_msg
+            )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=error_msg
+        )
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=str(e)
+        )
+
+
+@router.get("/events/{event_id}", response_model=Dict[str, Any])
+async def get_planning_center_event(
+    event_id: str,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_active_user),
+):
+    """Get a single event from Planning Center by ID"""
+    sync_service = PlanningCenterSyncService(db)
+    try:
+        event = sync_service.get_event(event_id)
+        if not event:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Event with ID {event_id} not found"
+            )
+        return event
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
+
+
+@router.get("/lists/{list_id}", response_model=Dict[str, Any])
+async def get_planning_center_list(
+    list_id: str,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_active_user),
+):
+    """Get a single list from Planning Center by ID"""
+    sync_service = PlanningCenterSyncService(db)
+    try:
+        list_data = sync_service.get_list(list_id)
+        if not list_data:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"List with ID {list_id} not found"
+            )
+        return list_data
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
+
+
+@router.get("/events/{event_id}/registrations", response_model=List[Dict[str, Any]])
+async def get_event_registrations(
+    event_id: str,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_active_user),
+):
+    """
+    Get registrations for a specific Planning Center event.
+    Requires admin or staff role.
+    """
+    if not current_user or current_user["role"] not in ["admin", "staff"]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only admin and staff users can view Planning Center registrations",
+        )
+    sync_service = PlanningCenterSyncService(db)
+    try:
+        registrations = sync_service.get_event_registrations(event_id)
+        return registrations
+    except ValueError as e:
+        error_msg = str(e)
+        # If event not found or no registrations, return empty list instead of error
+        if "not found" in error_msg.lower() or "has no registrations" in error_msg.lower() or "404" in error_msg:
+            logger.info(f"Event {event_id} not found or has no registrations: {error_msg}")
+            return []
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=error_msg
+        )
+    except Exception as e:
+        error_msg = str(e)
+        # Handle connection errors or other issues - still return empty list to be user-friendly
+        logger.warning(f"Error fetching event registrations for {event_id}: {error_msg}")
+        if "not found" in error_msg.lower() or "404" in error_msg:
+            return []
+        logger.exception(f"Error fetching event registrations: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error fetching event registrations",
         )
 
 
@@ -318,3 +594,36 @@ async def save_attribute_mapping_decisions(
         "message": "Mapping decisions saved",
         "decisions": decisions.decisions
     }
+
+
+@router.get("/people/search", response_model=List[Dict[str, Any]])
+async def search_planning_center_people(
+    q: str = Query(..., description="Search term (name, email, or phone)"),
+    limit: int = Query(20, ge=1, le=100, description="Maximum number of results"),
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_active_user),
+):
+    """
+    Search for people in Planning Center by name, email, or phone number.
+    Requires admin or staff role.
+    """
+    if not current_user or current_user["role"] not in ["admin", "staff"]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only admin and staff users can search Planning Center people",
+        )
+    sync_service = PlanningCenterSyncService(db)
+    try:
+        people = sync_service.search_people(q, limit=limit)
+        return people
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
+        )
+    except Exception as e:
+        logger = logging.getLogger(__name__)
+        logger.exception(f"Error searching Planning Center people: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error searching Planning Center people",
+        )

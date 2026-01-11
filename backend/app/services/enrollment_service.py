@@ -5,7 +5,7 @@ CourseEnrollment service layer (Maps to Planning Center Registrations)
 from datetime import datetime
 from typing import List, Optional
 
-from sqlalchemy.orm import Session, selectinload
+from sqlalchemy.orm import Session, selectinload, defer
 
 from app.models.enrollment import CourseEnrollment as CourseEnrollmentModel
 from app.schemas.enrollment import (CourseEnrollmentCreate,
@@ -29,13 +29,18 @@ class CourseEnrollmentService:
         course_id: Optional[int] = None,
         people_id: Optional[int] = None,
         status: Optional[str] = None,
+        sort: Optional[str] = None,
+        order: Optional[str] = "asc",
     ) -> List[CourseEnrollmentModel]:
-        """Get enrollments with optional filtering"""
+        """Get enrollments with optional filtering and sorting"""
+        from sqlalchemy import desc, asc
+        
+        # Only load relationships that exist - avoid course_instance if column doesn't exist
         query = (
             self.db.query(CourseEnrollmentModel)
             .options(
                 selectinload(CourseEnrollmentModel.people),
-                selectinload(CourseEnrollmentModel.course),
+                selectinload(CourseEnrollmentModel.course),  # Uses course_id which exists
             )
         )
 
@@ -45,6 +50,30 @@ class CourseEnrollmentService:
             query = query.filter(CourseEnrollmentModel.people_id == people_id)
         if status:
             query = query.filter(CourseEnrollmentModel.status == status)
+
+        # Handle sorting
+        if sort:
+            # Map frontend field names to model column names
+            sort_mapping = {
+                "enrolled_at": CourseEnrollmentModel.enrollment_date,
+                "enrollment_date": CourseEnrollmentModel.enrollment_date,
+                "created_at": CourseEnrollmentModel.created_at,
+                "updated_at": CourseEnrollmentModel.updated_at,
+                "status": CourseEnrollmentModel.status,
+            }
+            
+            sort_column = sort_mapping.get(sort.lower())
+            if sort_column:
+                if order and order.lower() == "desc":
+                    query = query.order_by(desc(sort_column))
+                else:
+                    query = query.order_by(asc(sort_column))
+            else:
+                # Default to enrollment_date desc if sort field not recognized
+                query = query.order_by(desc(CourseEnrollmentModel.enrollment_date))
+        else:
+            # Default sorting by enrollment_date desc
+            query = query.order_by(desc(CourseEnrollmentModel.enrollment_date))
 
         return query.offset(skip).limit(limit).all()
 
@@ -550,5 +579,177 @@ class CourseEnrollmentService:
             import logging
             logger = logging.getLogger(__name__)
             logger.warning(f"Bulk enrollment from PC list had {len(errors)} errors: {errors}")
+
+        return enrollments
+
+    def import_registrations(
+        self,
+        course_id: int,
+        registration_ids: List[str],
+        event_id: str,
+        created_by: Optional[int] = None,
+        update_existing: bool = True,
+    ) -> List[CourseEnrollmentModel]:
+        """
+        Import selected registrations from a Planning Center event as enrollments.
+        Automatically syncs people from Planning Center if they don't exist locally.
+        
+        Args:
+            course_id: The course to enroll people in
+            registration_ids: List of Planning Center registration IDs to import
+            event_id: Planning Center event ID (used to fetch full registration data)
+            created_by: User creating the enrollments
+            update_existing: Whether to update existing enrollments (default: True)
+        
+        Returns:
+            List of created/updated enrollments
+        """
+        from app.services.planning_center_sync_service import PlanningCenterSyncService
+        
+        # Validate course exists
+        course_service = CourseService(self.db)
+        course = course_service.get_course(course_id)
+        if not course:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Course with ID {course_id} not found"
+            )
+
+        # Get all registrations from the event
+        pc_service = PlanningCenterSyncService(self.db)
+        try:
+            all_registrations = pc_service.get_event_registrations(event_id)
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Failed to fetch registrations from Planning Center: {str(e)}"
+            )
+
+        # Filter to only the selected registration IDs
+        selected_registrations = [
+            reg for reg in all_registrations
+            if reg.get('id') in registration_ids
+        ]
+
+        if not selected_registrations:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"None of the specified registration IDs were found in the event"
+            )
+
+        enrollments = []
+        errors = []
+        people_service = PeopleService(self.db)
+        
+        for reg in selected_registrations:
+            try:
+                # Extract registration data
+                reg_id = reg.get('id')
+                reg_attributes = reg.get('attributes', {})
+                
+                # Get person ID from registration
+                pc_person_id = (
+                    reg.get('relationships', {}).get('person', {}).get('data', {}).get('id')
+                    or reg_attributes.get('person_id')
+                )
+                
+                if not pc_person_id:
+                    errors.append(f"Registration {reg_id}: Missing person ID")
+                    continue
+
+                # Get or create person locally
+                person = people_service.get_person_by_pc_id(pc_person_id)
+                if not person:
+                    # Person doesn't exist - sync from Planning Center
+                    try:
+                        # Fetch full person data from Planning Center
+                        import httpx
+                        with httpx.Client(timeout=30.0) as client:
+                            response = client.get(
+                                f"{pc_service.base_url}/people/v2/people/{pc_person_id}",
+                                headers=pc_service.headers,
+                                params={"include": "emails,phone_numbers"}
+                            )
+                            
+                            if response.status_code == 404:
+                                errors.append(f"Registration {reg_id}: Person {pc_person_id} not found in Planning Center")
+                                continue
+                            
+                            response.raise_for_status()
+                            data = response.json()
+                            pc_person_data = data.get("data")
+                            included = data.get("included", [])
+                            
+                            if not pc_person_data:
+                                errors.append(f"Registration {reg_id}: Person data not found in Planning Center response")
+                                continue
+                            
+                            # Attach included data (emails, phone numbers)
+                            pc_person_data = pc_service._attach_included_data([pc_person_data], included)[0]
+                            
+                            # Sync person from Planning Center
+                            person = people_service.sync_from_planning_center(
+                                pc_person_data, updated_by=created_by
+                            )
+                    except Exception as e:
+                        errors.append(f"Registration {reg_id}: Failed to sync person {pc_person_id} from Planning Center: {str(e)}")
+                        continue
+
+                people_id = person.id
+
+                # Check if enrollment already exists
+                existing = self.get_enrollment_by_pc_registration_id(reg_id) if reg_id else None
+                
+                if existing:
+                    if update_existing:
+                        # Update existing enrollment
+                        pc_status = reg_attributes.get('status', 'registered') or 'registered'
+                        enrollment_update = CourseEnrollmentUpdate(
+                            status=self._map_pc_status_to_enrollment_status(pc_status),
+                            registration_status=pc_status,
+                            registration_notes=reg_attributes.get('notes'),
+                            planning_center_synced=True,
+                        )
+                        updated = self.update_enrollment(existing.id, enrollment_update, updated_by=created_by)
+                        if updated:
+                            enrollments.append(updated)
+                else:
+                    # Create new enrollment
+                    pc_status = reg_attributes.get('status', 'registered') or 'registered'
+                    
+                    # Parse registration date
+                    registration_date = reg_attributes.get('created_at') or reg_attributes.get('registration_date')
+                    if registration_date:
+                        try:
+                            from dateutil.parser import parse as parse_date
+                            registration_date = parse_date(registration_date)
+                        except:
+                            registration_date = datetime.utcnow()
+                    else:
+                        registration_date = datetime.utcnow()
+
+                    enrollment_data = CourseEnrollmentCreate(
+                        people_id=people_id,
+                        course_id=course_id,
+                        planning_center_registration_id=reg_id,
+                        enrollment_date=registration_date,
+                        status=self._map_pc_status_to_enrollment_status(pc_status),
+                        registration_status=pc_status,
+                        registration_notes=reg_attributes.get('notes'),
+                        data_source='api',
+                        planning_center_synced=True,
+                    )
+                    enrollment = self.create_enrollment(enrollment_data, created_by=created_by)
+                    enrollments.append(enrollment)
+                    
+            except Exception as e:
+                errors.append(f"Registration {reg.get('id', 'unknown')}: {str(e)}")
+                continue
+
+        if errors:
+            # Log errors but still return successful enrollments
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.warning(f"Import registrations had {len(errors)} errors: {errors}")
 
         return enrollments

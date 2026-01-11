@@ -156,7 +156,7 @@ describe('CoursesComponent', () => {
         maxWidth: '95vw',
         autoFocus: false,
         restoreFocus: true,
-        data: { course: null }
+        data: { course: null, importData: null }
       });
       expect(component.loadCourses).toHaveBeenCalled();
     });
@@ -174,7 +174,7 @@ describe('CoursesComponent', () => {
         maxWidth: '95vw',
         autoFocus: false,
         restoreFocus: true,
-        data: { course: mockCourses[0] }
+        data: { course: mockCourses[0], importData: null }
       });
     });
   });

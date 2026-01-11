@@ -14,7 +14,7 @@ class UserBase(BaseModel):
     username: Optional[str] = Field(None, min_length=1, max_length=50)
     email: EmailStr
     full_name: str = Field(..., min_length=1, max_length=200)
-    role: str = Field(default="staff", pattern="^(admin|staff|viewer)$")
+    role: str = Field(default="staff", pattern="^(admin|staff|viewer|instructor)$")
     is_active: bool = True
 
 
@@ -30,7 +30,7 @@ class UserUpdate(BaseModel):
     username: Optional[str] = Field(None, min_length=1, max_length=50)
     email: Optional[EmailStr] = None
     full_name: Optional[str] = Field(None, min_length=1, max_length=200)
-    role: Optional[str] = Field(None, pattern="^(admin|staff|viewer)$")
+    role: Optional[str] = Field(None, pattern="^(admin|staff|viewer|instructor)$")
     is_active: Optional[bool] = None
     password: Optional[str] = Field(None, min_length=8)
 
@@ -47,6 +47,7 @@ class User(UserBase):
     """Schema for user response"""
 
     id: int
+    planning_center_person_id: Optional[str] = None
     created_at: datetime
     updated_at: datetime
     last_login: Optional[datetime] = None

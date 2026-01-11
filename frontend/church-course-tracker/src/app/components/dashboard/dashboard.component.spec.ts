@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
 
 // Angular Material
@@ -20,7 +21,7 @@ import { ReportService } from '../../services/report.service';
 import { CourseService } from '../../services/course.service';
 import { EnrollmentService } from '../../services/enrollment.service';
 import { ProgramService } from '../../services/program.service';
-import { DashboardStats, Course, Enrollment } from '../../models';
+import { DashboardStats, Course, Enrollment, Program, ProgramStats } from '../../models';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 
@@ -30,6 +31,8 @@ describe('DashboardComponent', () => {
   let reportServiceSpy: jasmine.SpyObj<ReportService>;
   let courseServiceSpy: jasmine.SpyObj<CourseService>;
   let enrollmentServiceSpy: jasmine.SpyObj<EnrollmentService>;
+  let programServiceSpy: jasmine.SpyObj<ProgramService>;
+  let routerSpy: jasmine.SpyObj<Router>;
 
   const mockStats: DashboardStats = {
     total_courses: 10,
@@ -92,10 +95,12 @@ describe('DashboardComponent', () => {
     const courseSpy = jasmine.createSpyObj('CourseService', ['getCourses']);
     const enrollmentSpy = jasmine.createSpyObj('EnrollmentService', ['getEnrollments']);
     const programSpy = jasmine.createSpyObj('ProgramService', ['getPrograms', 'getProgramParticipants', 'getProgramPairings', 'getProgramSessions']);
+    const router = jasmine.createSpyObj('Router', ['navigate']);
     programSpy.getPrograms.and.returnValue(of([]));
     programSpy.getProgramParticipants.and.returnValue(of([]));
     programSpy.getProgramPairings.and.returnValue(of([]));
     programSpy.getProgramSessions.and.returnValue(of([]));
+    router.navigate.and.returnValue(Promise.resolve(true));
 
     await TestBed.configureTestingModule({
       declarations: [DashboardComponent],
@@ -116,6 +121,7 @@ describe('DashboardComponent', () => {
         { provide: CourseService, useValue: courseSpy },
         { provide: EnrollmentService, useValue: enrollmentSpy },
         { provide: ProgramService, useValue: programSpy },
+        { provide: Router, useValue: router },
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting()
       ]
@@ -126,6 +132,8 @@ describe('DashboardComponent', () => {
     reportServiceSpy = TestBed.inject(ReportService) as jasmine.SpyObj<ReportService>;
     courseServiceSpy = TestBed.inject(CourseService) as jasmine.SpyObj<CourseService>;
     enrollmentServiceSpy = TestBed.inject(EnrollmentService) as jasmine.SpyObj<EnrollmentService>;
+    programServiceSpy = TestBed.inject(ProgramService) as jasmine.SpyObj<ProgramService>;
+    routerSpy = TestBed.inject(Router) as jasmine.SpyObj<Router>;
   });
 
   beforeEach(() => {
@@ -270,6 +278,182 @@ describe('DashboardComponent', () => {
       component.refreshDashboard();
 
       expect(component.loadDashboardData).toHaveBeenCalled();
+    });
+  });
+
+  describe('navigation methods', () => {
+    it('should navigate to courses page', () => {
+      component.navigateToCourses();
+      expect(routerSpy.navigate).toHaveBeenCalledWith(['/churchcoursetracker/courses']);
+    });
+
+    it('should navigate to enrollments page', () => {
+      component.navigateToEnrollments();
+      expect(routerSpy.navigate).toHaveBeenCalledWith(['/churchcoursetracker/enrollments']);
+    });
+
+    it('should navigate to members page', () => {
+      component.navigateToMembers();
+      expect(routerSpy.navigate).toHaveBeenCalledWith(['/churchcoursetracker/members']);
+    });
+
+    it('should navigate to programs page', () => {
+      component.navigateToPrograms();
+      expect(routerSpy.navigate).toHaveBeenCalledWith(['/churchcoursetracker/programs']);
+    });
+  });
+
+  describe('onViewModeChange', () => {
+    it('should change view mode and reload data', () => {
+      spyOn(component, 'loadDashboardData');
+      
+      component.onViewModeChange('programs');
+      
+      expect(component.viewMode).toBe('programs');
+      expect(component.loadDashboardData).toHaveBeenCalled();
+    });
+  });
+
+  describe('loadProgramsData', () => {
+    it('should load programs data', () => {
+      const mockPrograms = [{
+        id: 1,
+        title: 'Test Program',
+        description: 'Test Description',
+        start_date: '2023-01-01',
+        end_date: '2023-12-31',
+        is_active: true,
+        created_at: '2023-01-01T00:00:00Z',
+        updated_at: '2023-01-01T00:00:00Z'
+      }];
+      
+      const programServiceSpy = TestBed.inject(ProgramService) as jasmine.SpyObj<ProgramService>;
+      programServiceSpy.getPrograms.and.returnValue(of(mockPrograms));
+      programServiceSpy.getProgramParticipants.and.returnValue(of([]));
+      programServiceSpy.getProgramPairings.and.returnValue(of([]));
+      programServiceSpy.getProgramSessions.and.returnValue(of([]));
+
+      component.viewMode = 'programs';
+      component['loadProgramsData']();
+
+      expect(programServiceSpy.getPrograms).toHaveBeenCalled();
+    });
+
+    it('should handle programs loading error', () => {
+      const programServiceSpy = TestBed.inject(ProgramService) as jasmine.SpyObj<ProgramService>;
+      programServiceSpy.getPrograms.and.returnValue(throwError(() => new Error('Programs error')));
+      spyOn(console, 'error');
+
+      component.viewMode = 'programs';
+      component['loadProgramsData']();
+
+      expect(console.error).toHaveBeenCalledWith('Error loading programs:', jasmine.any(Error));
+    });
+  });
+
+  describe('calculateProgramStats', () => {
+    it('should calculate program stats from programs array', () => {
+      const mockPrograms = [
+        { id: 1, is_active: true, created_at: '2023-01-01T00:00:00Z', updated_at: '2023-01-01T00:00:00Z' } as any,
+        { id: 2, is_active: false, created_at: '2023-01-02T00:00:00Z', updated_at: '2023-01-02T00:00:00Z' } as any
+      ];
+
+      const programServiceSpy = TestBed.inject(ProgramService) as jasmine.SpyObj<ProgramService>;
+      programServiceSpy.getProgramParticipants.and.returnValue(of([]));
+      programServiceSpy.getProgramPairings.and.returnValue(of([]));
+      programServiceSpy.getProgramSessions.and.returnValue(of([]));
+
+      component['calculateProgramStats'](mockPrograms);
+
+      expect(component.programStats).toBeTruthy();
+      expect(component.programStats?.total_programs).toBe(2);
+      expect(component.programStats?.active_programs).toBe(1);
+    });
+  });
+
+  describe('updateProgramStats', () => {
+    it('should update program stats', () => {
+      // Initialize programStats first since the method only updates if it exists
+      component.programStats = {
+        total_participants: 0,
+        active_participants: 0,
+        total_pairings: 0,
+        active_pairings: 0,
+        total_sessions: 0,
+        completion_rate: 0,
+        total_programs: 0,
+        active_programs: 0
+      };
+      
+      component['updateProgramStats'](10, 8, 5, 4, 20, 2);
+
+      expect(component.programStats).toBeTruthy();
+      expect(component.programStats?.total_participants).toBe(10);
+      expect(component.programStats?.active_participants).toBe(8);
+      expect(component.programStats?.total_pairings).toBe(5);
+      expect(component.programStats?.active_pairings).toBe(4);
+      expect(component.programStats?.total_sessions).toBe(20);
+    });
+  });
+
+  describe('updateCompletionChart', () => {
+    it('should update completion chart with program stats', () => {
+      component.programStats = {
+        total_participants: 100,
+        active_participants: 50,
+        total_programs: 10,
+        active_programs: 8,
+        total_pairings: 20,
+        active_pairings: 15,
+        total_sessions: 50,
+        completion_rate: 50
+      };
+
+      component['updateProgramCompletionChart']();
+
+      expect(component.completionChartData.datasets[0].data).toBeDefined();
+    });
+  });
+
+  describe('getEnrollmentMemberName', () => {
+    it('should return member name from enrollment', () => {
+      const enrollment: Enrollment = {
+        id: 1,
+        person_id: 1,
+        course_id: 1,
+        enrolled_at: '2023-01-01T00:00:00Z',
+        status: 'enrolled' as any,
+        progress_percentage: 0,
+        created_at: '2023-01-01T00:00:00Z',
+        updated_at: '2023-01-01T00:00:00Z',
+        person: {
+          id: 1,
+          first_name: 'John',
+          last_name: 'Doe',
+          email: 'john@example.com',
+          created_at: '2023-01-01T00:00:00Z',
+          updated_at: '2023-01-01T00:00:00Z'
+        }
+      };
+
+      const name = component.getEnrollmentMemberName(enrollment);
+      expect(name).toBe('John Doe');
+    });
+
+    it('should return fallback ID when no person name', () => {
+      const enrollment: Enrollment = {
+        id: 1,
+        person_id: 1,
+        course_id: 1,
+        enrolled_at: '2023-01-01T00:00:00Z',
+        status: 'enrolled' as any,
+        progress_percentage: 0,
+        created_at: '2023-01-01T00:00:00Z',
+        updated_at: '2023-01-01T00:00:00Z'
+      };
+
+      const name = component.getEnrollmentMemberName(enrollment);
+      expect(name).toContain('Member #');
     });
   });
 

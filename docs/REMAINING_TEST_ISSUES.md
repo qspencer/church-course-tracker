@@ -74,3 +74,4 @@ Or create a new migration file to add this column.
 *Critical Issue: Missing database column*  
 *Next: Add migration and retest*
 
+

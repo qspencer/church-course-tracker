@@ -1,14 +1,24 @@
 <div class="courses-container">
   <div class="courses-header">
     <h1>Courses Management</h1>
-    <button 
-      *ngIf="canCreateCourse()" 
-      mat-raised-button 
-      color="primary" 
-      (click)="openCourseDialog()">
-      <mat-icon>add</mat-icon>
-      Add New Course
-    </button>
+    <div class="header-actions">
+      <button 
+        *ngIf="canCreateCourse()" 
+        mat-stroked-button 
+        color="accent" 
+        (click)="openImportDialog()">
+        <mat-icon>cloud_download</mat-icon>
+        Import from Planning Center
+      </button>
+      <button 
+        *ngIf="canCreateCourse()" 
+        mat-raised-button 
+        color="primary" 
+        (click)="openCourseDialog()">
+        <mat-icon>add</mat-icon>
+        Add New Course
+      </button>
+    </div>
   </div>
 
   <mat-card class="courses-card">

@@ -69,57 +69,62 @@ class TestAttributeMappingEndpoints:
     
     def test_get_attribute_mappings_for_list(self, client, db_session, admin_token):
         """Test GET /planning-center/attribute-mappings for list"""
-        # Create a program with minimal fields
-        program = Program(
-            title="Test Program",
-            description="Test Description",
-            is_active=True
-        )
-        db_session.add(program)
-        db_session.flush()  # Flush to get ID without committing
-        program_id = program.id
-        
-        # Mock Planning Center service
-        mock_person_data = {
-            "id": "pc_person_123",
-            "attributes": {
-                "first_name": "John",
-                "last_name": "Doe",
-                "email": "john@example.com",
-                "Discipler Name": "Jane Smith",
-                "Testimony Entered?": "Yes"
-            }
-        }
-        
-        # Patch the service instantiation to return a mock
-        with patch('app.api.v1.endpoints.planning_center_sync.PlanningCenterSyncService') as MockService:
-            mock_service_instance = Mock()
-            mock_service_instance.get_list_people.return_value = [mock_person_data]
-            MockService.return_value = mock_service_instance
-            
-            headers = {"Authorization": f"Bearer {admin_token}"}
-            response = client.get(
-                "/api/v1/planning-center/attribute-mappings",
-                params={
-                    "source_type": "list",
-                    "source_id": "pc_list_123",
-                    "target_type": "program",
-                    "target_id": program_id
-                },
-                headers=headers
+        program = None
+        try:
+            # Create a program with minimal fields
+            program = Program(
+                title="Test Program",
+                description="Test Description",
+                is_active=True
             )
+            db_session.add(program)
+            db_session.flush()  # Flush to get ID without committing
+            program_id = program.id
+        
+            # Mock Planning Center service
+            mock_person_data = {
+                "id": "pc_person_123",
+                "attributes": {
+                    "first_name": "John",
+                    "last_name": "Doe",
+                    "email": "john@example.com",
+                    "Discipler Name": "Jane Smith",
+                    "Testimony Entered?": "Yes"
+                }
+            }
             
-            assert response.status_code == 200
-            data = response.json()
-            
-            assert data["source_type"] == "list"
-            assert data["source_id"] == "pc_list_123"
-            assert data["target_type"] == "program"
-            assert data["target_id"] == program_id
-            assert "matches" in data
-            assert len(data["matches"]) > 0
-            assert "matches" in data
-            assert len(data["matches"]) > 0
+            # Patch the service instantiation to return a mock
+            with patch('app.api.v1.endpoints.planning_center_sync.PlanningCenterSyncService') as MockService:
+                mock_service_instance = Mock()
+                mock_service_instance.get_list_people.return_value = [mock_person_data]
+                MockService.return_value = mock_service_instance
+                
+                headers = {"Authorization": f"Bearer {admin_token}"}
+                response = client.get(
+                    "/api/v1/planning-center/attribute-mappings",
+                    params={
+                        "source_type": "list",
+                        "source_id": "pc_list_123",
+                        "target_type": "program",
+                        "target_id": program_id
+                    },
+                    headers=headers
+                )
+                
+                assert response.status_code == 200
+                data = response.json()
+                
+                assert data["source_type"] == "list"
+                assert data["source_id"] == "pc_list_123"
+                assert data["target_type"] == "program"
+                assert data["target_id"] == program_id
+                assert "matches" in data
+                assert len(data["matches"]) > 0
+        finally:
+            # Clean up test data
+            if program:
+                db_session.delete(program)
+                db_session.commit()
     
     def test_save_attribute_mapping_decisions(self, client, db_session, admin_token):
         """Test POST /planning-center/attribute-mappings/decisions"""
