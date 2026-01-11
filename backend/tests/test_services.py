@@ -462,8 +462,9 @@ class TestCourseEnrollmentService:
         enrollments = service.get_enrollments()
         
         assert len(enrollments) == 2
-        assert enrollments[0].status == "enrolled"
-        assert enrollments[1].status == "completed"
+        # Check both statuses exist (order may vary)
+        statuses = {e.status for e in enrollments}
+        assert statuses == {"enrolled", "completed"}
     
     def test_get_enrollments_with_filters(self, db_session, sample_people_data, sample_course_data):
         """Test getting enrollments with filters"""
@@ -734,6 +735,104 @@ class TestCourseEnrollmentService:
 
 class TestPlanningCenterSyncService:
     """Test PlanningCenterSyncService"""
+    
+    def test_get_event(self, db_session):
+        """Test get_event() method"""
+        from unittest.mock import patch, MagicMock
+        
+        service = PlanningCenterSyncService(db_session)
+        
+        mock_event = {
+            "id": "pc_event_123",
+            "type": "Event",
+            "attributes": {
+                "name": "Test Event",
+                "start_date": "2024-01-15T10:00:00Z",
+                "end_date": "2024-01-15T12:00:00Z"
+            }
+        }
+        
+        with patch('app.services.planning_center_sync_service.httpx.Client') as MockClient:
+            mock_response = MagicMock()
+            mock_response.status_code = 200
+            mock_response.json.return_value = {"data": mock_event}
+            mock_response.raise_for_status = MagicMock()
+            
+            mock_client_instance = MagicMock()
+            mock_client_instance.__enter__.return_value = mock_client_instance
+            mock_client_instance.__exit__.return_value = None
+            mock_client_instance.get.return_value = mock_response
+            MockClient.return_value = mock_client_instance
+            
+            result = service.get_event("pc_event_123")
+            assert result == mock_event
+    
+    def test_get_event_not_found(self, db_session):
+        """Test get_event() with non-existent event"""
+        from unittest.mock import patch, MagicMock
+        
+        service = PlanningCenterSyncService(db_session)
+        
+        with patch('app.services.planning_center_sync_service.httpx.Client') as MockClient:
+            mock_response = MagicMock()
+            mock_response.status_code = 404
+            
+            mock_client_instance = MagicMock()
+            mock_client_instance.__enter__.return_value = mock_client_instance
+            mock_client_instance.__exit__.return_value = None
+            mock_client_instance.get.return_value = mock_response
+            MockClient.return_value = mock_client_instance
+            
+            result = service.get_event("non_existent_event")
+            assert result is None
+    
+    def test_get_list(self, db_session):
+        """Test get_list() method"""
+        from unittest.mock import patch, MagicMock
+        
+        service = PlanningCenterSyncService(db_session)
+        
+        mock_list = {
+            "id": "pc_list_123",
+            "type": "List",
+            "attributes": {
+                "name": "Test List"
+            }
+        }
+        
+        with patch('app.services.planning_center_sync_service.httpx.Client') as MockClient:
+            mock_response = MagicMock()
+            mock_response.status_code = 200
+            mock_response.json.return_value = {"data": mock_list}
+            mock_response.raise_for_status = MagicMock()
+            
+            mock_client_instance = MagicMock()
+            mock_client_instance.__enter__.return_value = mock_client_instance
+            mock_client_instance.__exit__.return_value = None
+            mock_client_instance.get.return_value = mock_response
+            MockClient.return_value = mock_client_instance
+            
+            result = service.get_list("pc_list_123")
+            assert result == mock_list
+    
+    def test_get_list_not_found(self, db_session):
+        """Test get_list() with non-existent list"""
+        from unittest.mock import patch, MagicMock
+        
+        service = PlanningCenterSyncService(db_session)
+        
+        with patch('app.services.planning_center_sync_service.httpx.Client') as MockClient:
+            mock_response = MagicMock()
+            mock_response.status_code = 404
+            
+            mock_client_instance = MagicMock()
+            mock_client_instance.__enter__.return_value = mock_client_instance
+            mock_client_instance.__exit__.return_value = None
+            mock_client_instance.get.return_value = mock_response
+            MockClient.return_value = mock_client_instance
+            
+            result = service.get_list("non_existent_list")
+            assert result is None
     
     def test_create_sync_task(self, db_session):
         """Test creating a sync task"""

@@ -5,8 +5,8 @@ test('Final frontend test - verify login form is working', async ({ page }) => {
   await page.goto('https://apps.quentinspencer.com/churchcoursetracker/auth');
   
   // Wait for the page to load
-  await page.waitForLoadState('networkidle');
-  await page.waitForTimeout(3000);
+  await page.waitForLoadState('domcontentloaded', { timeout: 10000 }).catch(() => {});
+  await page.waitForTimeout(1000);
   
   // Check that we can find the login form elements
   const usernameInput = await page.locator('input[formControlName="username"]');

@@ -495,8 +495,9 @@ class TestEnrollmentEndpoints:
         
         data = response.json()
         assert len(data) == 2
-        assert data[0]["status"] == "enrolled"
-        assert data[1]["status"] == "completed"
+        # Check both statuses exist (order may vary)
+        statuses = {e["status"] for e in data}
+        assert statuses == {"enrolled", "completed"}
     
     def test_get_enrollments_with_filters(self, client, db_session, sample_people_data, sample_course_data):
         """Test GET /enrollments with filters"""
@@ -816,3 +817,91 @@ class TestPlanningCenterSyncEndpoints:
         
         data = response.json()
         assert data["detail"] == "Invalid JSON payload"
+    
+    def test_get_planning_center_event(self, client, admin_token):
+        """Test GET /planning-center/events/{event_id} endpoint"""
+        from unittest.mock import patch, MagicMock
+        
+        mock_event = {
+            "id": "pc_event_123",
+            "type": "Event",
+            "attributes": {
+                "name": "Test Event",
+                "start_date": "2024-01-15T10:00:00Z",
+                "end_date": "2024-01-15T12:00:00Z",
+                "capacity": 50
+            }
+        }
+        
+        with patch('app.api.v1.endpoints.planning_center_sync.PlanningCenterSyncService') as MockService:
+            mock_service_instance = MagicMock()
+            mock_service_instance.get_event.return_value = mock_event
+            MockService.return_value = mock_service_instance
+            
+            response = client.get(
+                "/api/v1/planning-center/events/pc_event_123",
+                headers={"Authorization": f"Bearer {admin_token}"}
+            )
+            assert response.status_code == 200
+            
+            data = response.json()
+            assert data["id"] == "pc_event_123"
+            assert data["attributes"]["name"] == "Test Event"
+    
+    def test_get_planning_center_event_not_found(self, client, admin_token):
+        """Test GET /planning-center/events/{event_id} with non-existent event"""
+        from unittest.mock import patch, MagicMock
+        
+        with patch('app.api.v1.endpoints.planning_center_sync.PlanningCenterSyncService') as MockService:
+            mock_service_instance = MagicMock()
+            mock_service_instance.get_event.return_value = None
+            MockService.return_value = mock_service_instance
+            
+            response = client.get(
+                "/api/v1/planning-center/events/non_existent_event",
+                headers={"Authorization": f"Bearer {admin_token}"}
+            )
+            assert response.status_code == 404
+    
+    def test_get_planning_center_list(self, client, admin_token):
+        """Test GET /planning-center/lists/{list_id} endpoint"""
+        from unittest.mock import patch, MagicMock
+        
+        mock_list = {
+            "id": "pc_list_123",
+            "type": "List",
+            "attributes": {
+                "name": "Test List",
+                "created_at": "2024-01-01T00:00:00Z"
+            }
+        }
+        
+        with patch('app.api.v1.endpoints.planning_center_sync.PlanningCenterSyncService') as MockService:
+            mock_service_instance = MagicMock()
+            mock_service_instance.get_list.return_value = mock_list
+            MockService.return_value = mock_service_instance
+            
+            response = client.get(
+                "/api/v1/planning-center/lists/pc_list_123",
+                headers={"Authorization": f"Bearer {admin_token}"}
+            )
+            assert response.status_code == 200
+            
+            data = response.json()
+            assert data["id"] == "pc_list_123"
+            assert data["attributes"]["name"] == "Test List"
+    
+    def test_get_planning_center_list_not_found(self, client, admin_token):
+        """Test GET /planning-center/lists/{list_id} with non-existent list"""
+        from unittest.mock import patch, MagicMock
+        
+        with patch('app.api.v1.endpoints.planning_center_sync.PlanningCenterSyncService') as MockService:
+            mock_service_instance = MagicMock()
+            mock_service_instance.get_list.return_value = None
+            MockService.return_value = mock_service_instance
+            
+            response = client.get(
+                "/api/v1/planning-center/lists/non_existent_list",
+                headers={"Authorization": f"Bearer {admin_token}"}
+            )
+            assert response.status_code == 404
