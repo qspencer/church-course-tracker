@@ -16,10 +16,13 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 
 // Components
 import { UsersComponent } from './users.component';
 import { UserDialogComponent } from './user-dialog/user-dialog.component';
+import { UserImportDialogComponent } from './user-import-dialog/user-import-dialog.component';
+import { ResetPasswordDialogComponent } from './reset-password-dialog/reset-password-dialog.component';
 
 const routes: Routes = [
   {
@@ -31,7 +34,9 @@ const routes: Routes = [
 @NgModule({
   declarations: [
     UsersComponent,
-    UserDialogComponent
+    UserDialogComponent,
+    UserImportDialogComponent,
+    ResetPasswordDialogComponent
   ],
   imports: [
     CommonModule,
@@ -50,7 +55,8 @@ const routes: Routes = [
     MatSnackBarModule,
     MatMenuModule,
     MatChipsModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    MatAutocompleteModule
   ]
 })
 export class UsersModule { }

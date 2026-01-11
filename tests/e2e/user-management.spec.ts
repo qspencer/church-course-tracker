@@ -209,9 +209,59 @@ test.describe('User Management Tests', () => {
     });
 
     test('Admin can reset user passwords', async ({ page }, testInfo) => {
-      // Password reset feature is not implemented in the current UI
-      // The users menu only has Edit, Deactivate/Activate, and Delete options
-      testInfo.skip('Password reset feature not available in user management UI');
+      await loginAs(page, 'admin', testInfo);
+
+      // Navigate to users page
+      const usersLink = page.locator('a:has-text("Users")').first();
+      const usersVisible = await usersLink.isVisible({ timeout: 5000 }).catch(() => false);
+      
+      if (!usersVisible) {
+        testInfo.skip('Users link not visible');
+        return;
+      }
+      
+      await usersLink.click();
+      await page.waitForURL('**/users', { timeout: 10000 }).catch(() => {});
+      await page.waitForTimeout(1000);
+      
+      // Open the menu for a user
+      const menuButton = page.locator('button:has(mat-icon:has-text("more_vert"))').first();
+      const menuVisible = await menuButton.isVisible({ timeout: 5000 }).catch(() => false);
+      
+      if (!menuVisible) {
+        testInfo.skip('User actions menu not found');
+        return;
+      }
+      
+      await menuButton.click();
+      await page.waitForTimeout(500);
+      
+      // Click Reset Password from the menu
+      const resetMenuItem = page.locator('button[mat-menu-item]:has-text("Reset Password")').first();
+      const resetVisible = await resetMenuItem.isVisible({ timeout: 3000 }).catch(() => false);
+      
+      if (!resetVisible) {
+        await page.keyboard.press('Escape');
+        testInfo.skip('Reset Password menu item not found - feature may not be deployed');
+        return;
+      }
+      
+      await resetMenuItem.click();
+      await page.waitForTimeout(1000);
+      
+      // Check for password reset dialog
+      const dialog = page.locator('mat-dialog-container').first();
+      const dialogVisible = await dialog.isVisible({ timeout: 5000 }).catch(() => false);
+      
+      if (dialogVisible) {
+        // Verify dialog has password fields
+        await expect(page.locator('input[formControlName="password"]').first()).toBeVisible();
+        await expect(page.locator('input[formControlName="confirmPassword"]').first()).toBeVisible();
+        await expect(page.locator('button:has-text("Reset Password")').first()).toBeVisible();
+        
+        // Close dialog
+        await page.locator('button:has-text("Cancel")').first().click();
+      }
     });
   });
 

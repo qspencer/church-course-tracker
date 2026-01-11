@@ -5,6 +5,8 @@ import { UserService } from '../../services/user.service';
 import { AuthService } from '../../services/auth.service';
 import { MatDialog } from '@angular/material/dialog';
 import { UserDialogComponent } from './user-dialog/user-dialog.component';
+import { UserImportDialogComponent } from './user-import-dialog/user-import-dialog.component';
+import { ResetPasswordDialogComponent } from './reset-password-dialog/reset-password-dialog.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
@@ -64,6 +66,34 @@ export class UsersComponent implements OnInit {
     });
   }
 
+  openImportDialog(): void {
+    const dialogRef = this.dialog.open(UserImportDialogComponent, {
+      width: '600px',
+      maxWidth: '95vw'
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        // Import the user from Planning Center
+        this.importUserFromPC(result);
+      }
+    });
+  }
+
+  importUserFromPC(importData: any): void {
+    this.userService.importUserFromPlanningCenter(importData.planning_center_person_id, importData.role).subscribe({
+      next: (user) => {
+        this.snackBar.open(`User "${user.full_name}" imported successfully. A temporary password has been generated and the user will need to reset it on first login.`, 'Close', { duration: 5000 });
+        this.loadUsers();
+      },
+      error: (error) => {
+        console.error('Error importing user:', error);
+        const errorMsg = error?.error?.detail || 'Error importing user from Planning Center';
+        this.snackBar.open(errorMsg, 'Close', { duration: 5000 });
+      }
+    });
+  }
+
   openEditDialog(user: User): void {
     const dialogRef = this.dialog.open(UserDialogComponent, {
       width: '500px',
@@ -74,6 +104,13 @@ export class UsersComponent implements OnInit {
       if (result) {
         this.loadUsers();
       }
+    });
+  }
+
+  openResetPasswordDialog(user: User): void {
+    this.dialog.open(ResetPasswordDialogComponent, {
+      width: '450px',
+      data: { user: user }
     });
   }
 

@@ -1,10 +1,16 @@
 <div class="users-container">
   <div class="header">
     <h1>User Management</h1>
-    <button mat-raised-button color="primary" (click)="openCreateDialog()">
-      <mat-icon>add</mat-icon>
-      Add User
-    </button>
+    <div class="header-actions">
+      <button mat-raised-button color="accent" (click)="openImportDialog()">
+        <mat-icon>cloud_download</mat-icon>
+        Import from Planning Center
+      </button>
+      <button mat-raised-button color="primary" (click)="openCreateDialog()">
+        <mat-icon>add</mat-icon>
+        Add User
+      </button>
+    </div>
   </div>
 
   <div class="content">
@@ -71,6 +77,10 @@
                 <button mat-menu-item (click)="openEditDialog(user)">
                   <mat-icon>edit</mat-icon>
                   <span>Edit</span>
+                </button>
+                <button mat-menu-item (click)="openResetPasswordDialog(user)">
+                  <mat-icon>lock_reset</mat-icon>
+                  <span>Reset Password</span>
                 </button>
                 <button mat-menu-item (click)="toggleUserStatus(user)">
                   <mat-icon>{{ user.is_active ? 'block' : 'check_circle' }}</mat-icon>
