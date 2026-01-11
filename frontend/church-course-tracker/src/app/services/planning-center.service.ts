@@ -62,8 +62,65 @@ export class PlanningCenterService {
     return this.http.get<PlanningCenterList[]>(url);
   }
 
+  getEvent(eventId: string): Observable<PlanningCenterEvent> {
+    const url = `${this.API_URL}/events/${eventId}`;
+    return this.http.get<PlanningCenterEvent>(url);
+  }
+
+  getList(listId: string): Observable<PlanningCenterList> {
+    const url = `${this.API_URL}/lists/${listId}`;
+    return this.http.get<PlanningCenterList>(url);
+  }
+
   syncAll(): Observable<any> {
     const url = `${this.API_URL}/all`;
     return this.http.post(url, {});
   }
+
+  searchPeople(searchTerm: string, limit: number = 20): Observable<PlanningCenterPerson[]> {
+    const url = `${this.API_URL}/people/search`;
+    return this.http.get<PlanningCenterPerson[]>(url, {
+      params: { q: searchTerm, limit: limit.toString() }
+    });
+  }
+
+  getEventRegistrations(eventId: string): Observable<PlanningCenterRegistration[]> {
+    const url = `${this.API_URL}/events/${eventId}/registrations`;
+    return this.http.get<PlanningCenterRegistration[]>(url);
+  }
+}
+
+export interface PlanningCenterRegistration {
+  id: string;
+  type: string;
+  attributes: {
+    status?: string;
+    registration_date?: string;
+    notes?: string;
+    [key: string]: any;
+  };
+  relationships?: {
+    person?: {
+      data: {
+        id: string;
+        type: string;
+      };
+    };
+    [key: string]: any;
+  };
+}
+
+export interface PlanningCenterPerson {
+  id: string;
+  type: string;
+  attributes: {
+    first_name: string;
+    last_name: string;
+    email?: string;
+    phone_number?: string;
+    [key: string]: any;
+  };
+  relationships?: {
+    [key: string]: any;
+  };
 }
