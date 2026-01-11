@@ -1,0 +1,32 @@
+.confirm-dialog {
+  .content {
+    min-width: 400px;
+    padding: 20px;
+    
+    .title {
+      margin: 0 0 16px 0;
+      font-size: 20px;
+      font-weight: 500;
+    }
+    
+    .message {
+      margin: 0 0 16px 0;
+      color: rgba(0, 0, 0, 0.87);
+      line-height: 1.5;
+    }
+    
+    .option-checkbox {
+      margin-top: 16px;
+      display: block;
+    }
+  }
+  
+  mat-dialog-actions {
+    padding: 8px 24px 24px;
+    margin: 0;
+  }
+}
+
+
+
+

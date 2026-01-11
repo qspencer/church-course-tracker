@@ -1,0 +1,50 @@
+.member-import-dialog {
+  min-width: 500px;
+  max-width: 600px;
+
+  .full-width {
+    width: 100%;
+  }
+
+  .person-option {
+    display: flex;
+    flex-direction: column;
+    padding: 8px 0;
+
+    .person-name {
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+
+    .person-details {
+      font-size: 0.875rem;
+      color: rgba(0, 0, 0, 0.6);
+    }
+  }
+
+  .selected-person {
+    margin-top: 20px;
+    padding: 16px;
+    background-color: rgba(0, 0, 0, 0.02);
+    border-radius: 4px;
+
+    h3 {
+      margin-top: 0;
+      margin-bottom: 12px;
+    }
+
+    .person-info {
+      margin-bottom: 16px;
+
+      p {
+        margin: 8px 0;
+      }
+    }
+  }
+
+  mat-dialog-actions {
+    margin-top: 20px;
+  }
+}
+
+

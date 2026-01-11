@@ -1,0 +1,76 @@
+<h2 mat-dialog-title>{{ isEditing ? 'Edit Content' : 'Create Content' }}</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="contentForm" class="content-form">
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Title</mat-label>
+      <input matInput formControlName="title" required>
+      <mat-error *ngIf="shouldShowError('title') && contentForm.get('title')?.hasError('required')">
+        Title is required
+      </mat-error>
+      <mat-error *ngIf="shouldShowError('title') && contentForm.get('title')?.hasError('minlength')">
+        Title must be at least 1 character
+      </mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width" floatLabel="always">
+      <mat-label>Description</mat-label>
+      <textarea matInput formControlName="description" rows="3"></textarea>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width" floatLabel="always">
+      <mat-label>Content Type</mat-label>
+      <mat-select formControlName="content_type">
+        <mat-option *ngFor="let type of contentTypes" [value]="type">
+          {{ getContentTypeDisplayName(type) }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width" *ngIf="data.modules.length > 0" floatLabel="always">
+      <mat-label>Category (Optional)</mat-label>
+      <mat-select formControlName="module_id">
+        <mat-option [value]="null">None</mat-option>
+        <mat-option *ngFor="let module of data.modules" [value]="module.id">
+          {{ module.title }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width" 
+                    *ngIf="contentForm.get('content_type')?.value === ContentType.EXTERNAL_LINK">
+      <mat-label>External URL</mat-label>
+      <input matInput formControlName="external_url" type="url">
+      <mat-error *ngIf="shouldShowError('external_url')">
+        External URL is required for external links
+      </mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width" 
+                    *ngIf="contentForm.get('content_type')?.value === ContentType.EMBEDDED" floatLabel="always">
+      <mat-label>Embedded Content</mat-label>
+      <textarea matInput formControlName="embedded_content" rows="5"></textarea>
+      <mat-error *ngIf="shouldShowError('embedded_content')">
+        Embedded content is required for embedded content type
+      </mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Order Index</mat-label>
+      <input matInput formControlName="order_index" type="number" min="0">
+      <mat-hint>Lower numbers appear first</mat-hint>
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()" [disabled]="isLoading">
+    Cancel
+  </button>
+  <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="isLoading || !contentForm.valid">
+    <mat-spinner *ngIf="isLoading" diameter="20" style="display: inline-block; margin-right: 8px;"></mat-spinner>
+    <span *ngIf="!isLoading">{{ isEditing ? 'Update' : 'Create' }}</span>
+  </button>
+</mat-dialog-actions>
+
+

@@ -1,0 +1,66 @@
+<div class="member-import-dialog">
+  <h2 mat-dialog-title>Import Member from Planning Center</h2>
+  
+  <mat-dialog-content>
+    <form [formGroup]="searchForm">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Search by Name, Email, or Phone</mat-label>
+        <input 
+          matInput 
+          [matAutocomplete]="auto"
+          formControlName="search"
+          placeholder="Enter name, email, or phone number">
+        <mat-autocomplete 
+          #auto="matAutocomplete"
+          [displayWith]="displayPerson"
+          (optionSelected)="onPersonSelected($event.option.value)">
+          <mat-option 
+            *ngFor="let person of filteredResults | async" 
+            [value]="person">
+            <div class="person-option">
+              <div class="person-name">
+                {{ person.attributes.first_name }} {{ person.attributes.last_name }}
+              </div>
+              <div class="person-details" *ngIf="person.attributes.email || person.attributes.phone_number">
+                <span *ngIf="person.attributes.email">{{ person.attributes.email }}</span>
+                <span *ngIf="person.attributes.email && person.attributes.phone_number"> • </span>
+                <span *ngIf="person.attributes.phone_number">{{ person.attributes.phone_number }}</span>
+              </div>
+            </div>
+          </mat-option>
+          <mat-option *ngIf="isLoading">
+            <mat-spinner diameter="20"></mat-spinner>
+            <span style="margin-left: 10px;">Searching...</span>
+          </mat-option>
+          <mat-option *ngIf="!isLoading && (filteredResults | async)?.length === 0 && searchControl.value?.length >= 2">
+            No results found
+          </mat-option>
+        </mat-autocomplete>
+        <mat-spinner *ngIf="isLoading" diameter="20" matSuffix></mat-spinner>
+        <mat-hint>Search for people in Planning Center by name, email, or phone number</mat-hint>
+      </mat-form-field>
+
+      <div *ngIf="selectedPerson" class="selected-person">
+        <h3>Selected Person:</h3>
+        <div class="person-info">
+          <p><strong>Name:</strong> {{ selectedPerson.attributes.first_name }} {{ selectedPerson.attributes.last_name }}</p>
+          <p *ngIf="selectedPerson.attributes.email"><strong>Email:</strong> {{ selectedPerson.attributes.email }}</p>
+          <p *ngIf="selectedPerson.attributes.phone_number"><strong>Phone:</strong> {{ selectedPerson.attributes.phone_number }}</p>
+        </div>
+      </div>
+    </form>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button (click)="onCancel()">Cancel</button>
+    <button 
+      mat-raised-button 
+      color="primary" 
+      (click)="onImport()"
+      [disabled]="!selectedPerson || !searchForm.valid">
+      Import Member
+    </button>
+  </mat-dialog-actions>
+</div>
+
+

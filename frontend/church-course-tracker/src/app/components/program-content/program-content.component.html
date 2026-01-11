@@ -1,0 +1,113 @@
+<div class="program-content-container">
+  <div class="header">
+    <h1>{{ program?.title || 'Program Content' }}</h1>
+    <p class="program-description" *ngIf="program?.description">{{ program?.description }}</p>
+  </div>
+
+  <div class="content" *ngIf="!isLoading">
+    <div class="tabs">
+      <mat-tab-group [(selectedIndex)]="viewMode" (selectedIndexChange)="setViewMode($event === 0 ? 'content' : 'modules')">
+        
+        <!-- Content Tab -->
+        <mat-tab label="Content">
+          <div class="content-actions-header">
+            <button mat-raised-button color="primary" (click)="createContent()" *ngIf="canCreateContent()">
+              <mat-icon>add</mat-icon>
+              Add Content
+            </button>
+          </div>
+          <div class="content-list">
+            <div *ngFor="let content of contentItems" class="content-item">
+              <div class="content-info">
+                <mat-icon>{{ getContentTypeIcon(content.content_type) }}</mat-icon>
+                <div class="content-details">
+                  <h3>{{ content.title || 'Untitled Content' }}</h3>
+                  <p *ngIf="content.description">{{ content.description }}</p>
+                  <div class="content-meta">
+                    <span class="content-type" *ngIf="content.content_type">{{ getContentTypeDisplayName(content.content_type) }}</span>
+                    <span *ngIf="content.file_size" class="file-size">{{ formatFileSize(content.file_size) }}</span>
+                    <span *ngIf="content.duration" class="duration">{{ formatDuration(content.duration) }}</span>
+                    <span *ngIf="content.module_id" class="module-badge">Category: {{ getModuleTitle(content.module_id) }}</span>
+                  </div>
+                </div>
+              </div>
+              <div class="content-actions">
+                <button mat-button color="primary" (click)="viewContent(content)">
+                  <mat-icon>visibility</mat-icon>
+                  View
+                </button>
+                <button mat-button color="accent" (click)="editContent(content)" *ngIf="canEditContent()">
+                  <mat-icon>edit</mat-icon>
+                  Edit
+                </button>
+                <button mat-button color="warn" (click)="deleteContent(content)" *ngIf="canDeleteContent()">
+                  <mat-icon>delete</mat-icon>
+                  Delete
+                </button>
+              </div>
+            </div>
+            
+            <div *ngIf="contentItems.length === 0" class="no-content">
+              <p>No content available for this program.</p>
+              <button mat-raised-button color="primary" (click)="createContent()" *ngIf="canCreateContent()">
+                <mat-icon>add</mat-icon>
+                Add Content
+              </button>
+            </div>
+          </div>
+        </mat-tab>
+
+        <!-- Modules Tab -->
+        <mat-tab label="Categories" *ngIf="canManageContent()">
+          <div class="modules-list">
+            <div class="modules-header">
+              <button mat-raised-button color="primary" (click)="createModule()" *ngIf="canCreateModules()">
+                <mat-icon>add</mat-icon>
+                Create Category
+              </button>
+            </div>
+            <div *ngFor="let module of modules" class="module-item">
+              <div class="module-info">
+                <h3>{{ module.title }}</h3>
+                <p *ngIf="module.description">{{ module.description }}</p>
+                <div class="module-meta">
+                  <span>{{ getContentForModule(module.id).length }} content items</span>
+                  <span class="order-index">Order: {{ module.order_index }}</span>
+                </div>
+              </div>
+              <div class="module-actions">
+                <button mat-button color="primary" (click)="selectModule(module.id)">
+                  <mat-icon>visibility</mat-icon>
+                  View Content
+                </button>
+                <button mat-button color="accent" (click)="editModule(module)">
+                  <mat-icon>edit</mat-icon>
+                  Edit
+                </button>
+                <button mat-button color="warn" (click)="deleteModule(module)">
+                  <mat-icon>delete</mat-icon>
+                  Delete
+                </button>
+              </div>
+            </div>
+            
+            <div *ngIf="modules.length === 0" class="no-modules">
+              <p>No categories created for this program.</p>
+              <button mat-raised-button color="primary" (click)="createModule()">
+                <mat-icon>add</mat-icon>
+                Create Category
+              </button>
+            </div>
+          </div>
+        </mat-tab>
+        
+      </mat-tab-group>
+    </div>
+  </div>
+
+  <div *ngIf="isLoading" class="loading">
+    <mat-spinner></mat-spinner>
+    <p>Loading program content...</p>
+  </div>
+</div>
+
