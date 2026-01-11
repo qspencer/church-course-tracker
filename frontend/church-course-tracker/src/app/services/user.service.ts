@@ -12,12 +12,20 @@ export class UserService {
 
   constructor(private http: HttpClient) {}
 
-  getUsers(skip: number = 0, limit: number = 100): Observable<User[]> {
+  getUsers(skip: number = 0, limit: number = 100, role?: string): Observable<User[]> {
     let httpParams = new HttpParams()
       .set('skip', skip.toString())
       .set('limit', limit.toString());
     
+    if (role) {
+      httpParams = httpParams.set('role', role);
+    }
+    
     return this.http.get<User[]>(this.API_URL, { params: httpParams });
+  }
+  
+  getInstructors(): Observable<User[]> {
+    return this.getUsers(0, 1000, 'instructor');
   }
 
   getUser(userId: number): Observable<User> {
@@ -51,5 +59,12 @@ export class UserService {
 
   updateUserPreferences(preferences: UserPreferenceUpdate): Observable<UserPreference> {
     return this.http.patch<UserPreference>(`${this.API_URL}/me/preferences`, preferences);
+  }
+
+  importUserFromPlanningCenter(planningCenterPersonId: string, role: string = 'instructor'): Observable<User> {
+    return this.http.post<User>(`${this.API_URL}/import-from-pc`, {
+      planning_center_person_id: planningCenterPersonId,
+      role: role
+    });
   }
 }
