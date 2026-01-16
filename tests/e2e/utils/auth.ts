@@ -12,7 +12,7 @@ const DEFAULT_APP_BASE_URL = 'https://apps.quentinspencer.com/churchcoursetracke
 const DEFAULT_API_BASE_URL = 'https://tinev5iszf.execute-api.us-east-1.amazonaws.com';
 
 const DEFAULT_CREDENTIALS: Record<UserRole, Credentials> = {
-  admin: { username: 'Admin', password: 'Admin123!' },
+  admin: { username: 'Admin', password: 'Matthew778*' },
   staff: { username: 'staff', password: 'staff123' },
   viewer: { username: 'viewer', password: 'viewer123' },
 };

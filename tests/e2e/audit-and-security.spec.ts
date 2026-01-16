@@ -543,7 +543,7 @@ test.describe('Audit and Security Tests', () => {
       
       // First login to get a token
       const loginResponse = await page.request.post(`${API_BASE_URL}/api/v1/auth/login`, {
-        data: { username: 'Admin', password: 'Admin123!' }
+        data: { username: 'Admin', password: 'Matthew778*' }
       });
       
       if (loginResponse.status() !== 200) {

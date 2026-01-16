@@ -4,7 +4,7 @@ import { test, expect } from '@playwright/test';
 // Note: Using actual admin credentials that exist in production
 // Staff and viewer users may need to be created in the database first
 const testUsers = {
-  admin: { username: "Admin", password: "Admin123!" },  // Using actual production admin
+  admin: { username: "Admin", password: "Matthew778*" },  // Using actual production admin
   staff: { username: 'staff', password: 'staff123' },
   viewer: { username: 'viewer', password: 'viewer123' }
 };
@@ -502,7 +502,7 @@ test.describe('Church Course Tracker - Comprehensive Test Suite', () => {
         headers: {
           'Content-Type': 'application/json'
         },
-        data: { username: "Admin", password: "Admin123!" }
+        data: { username: "Admin", password: "Matthew778*" }
       });
       // Allow for rate limiting (429), bad request (400), and unauthorized (401)
       const postStatus = postResponse.status();

@@ -14,7 +14,7 @@ const ADMIN_PASSWORD =
   env.E2E_ADMIN_PASSWORD ??
   env.ADMIN_PASSWORD ??
   env.API_PASSWORD ??
-  'Admin123!';
+  'Matthew778*';
 
 test.describe('API Endpoint Tests', () => {
   test('API health endpoint is accessible', async ({ request }) => {
@@ -44,7 +44,7 @@ test.describe('API Endpoint Tests', () => {
   test('API authentication endpoint works', async ({ request }, testInfo) => {
     // Use default credentials from config if not provided
     const username = ADMIN_USERNAME || 'Admin';
-    const password = ADMIN_PASSWORD || 'Admin123!';
+    const password = ADMIN_PASSWORD || 'Matthew778*';
 
     const response = await request.post(`${API_BASE_URL}/api/v1/auth/login`, {
       headers: {

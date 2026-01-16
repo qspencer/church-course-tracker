@@ -686,7 +686,7 @@ test.describe('Role-Based Access Control', () => {
       if (!adminCreds) {
         // Use default admin credentials
       const username = 'Admin';
-      const password = 'Admin123!';
+      const password = 'Matthew778*';
         return;
       }
       

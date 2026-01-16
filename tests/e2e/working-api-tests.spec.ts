@@ -14,7 +14,7 @@ const ADMIN_PASSWORD =
   env.E2E_ADMIN_PASSWORD ??
   env.ADMIN_PASSWORD ??
   env.API_PASSWORD ??
-  'Admin123!';
+  'Matthew778*';
 
 test.describe('Working API Tests', () => {
   test('API courses endpoint responds correctly', async ({ request }) => {
