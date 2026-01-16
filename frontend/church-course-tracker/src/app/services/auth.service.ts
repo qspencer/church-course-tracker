@@ -31,16 +31,25 @@ export class AuthService {
       .pipe(
         tap(response => {
           this.setToken(response.access_token);
-          this.setCurrentUser(response.user);
-          this.isAuthenticatedSubject.next(true);
-          this.currentUserSubject.next(response.user);
 
-          // Set user context for error tracking
-          this.logger.setUser(
-            response.user.id,
-            response.user.username || 'unknown',
-            response.user.email
-          );
+          // Handle missing user gracefully (should not happen in normal flow)
+          if (response.user) {
+            this.setCurrentUser(response.user);
+            this.isAuthenticatedSubject.next(true);
+            this.currentUserSubject.next(response.user);
+
+            // Set user context for error tracking
+            this.logger.setUser(
+              response.user.id,
+              response.user.username || 'unknown',
+              response.user.email
+            );
+          } else {
+            // User data missing - set minimal authenticated state
+            this.isAuthenticatedSubject.next(true);
+            this.currentUserSubject.next(null);
+            this.logger.warn('Login response missing user data');
+          }
         })
       );
   }
