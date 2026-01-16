@@ -66,7 +66,7 @@ describe('UsersComponent', () => {
     ]);
     // Set up default return values for the service methods
     userServiceSpy.getUsers.and.returnValue(of(mockUsers));
-    userServiceSpy.deleteUser.and.returnValue(of({}));
+    userServiceSpy.deleteUser.and.returnValue(of({ success: true, message: 'User deleted' }));
     userServiceSpy.updateUser.and.returnValue(of(mockUsers[0]));
     
     const authServiceSpy = jasmine.createSpyObj('AuthService', ['isAdmin']);

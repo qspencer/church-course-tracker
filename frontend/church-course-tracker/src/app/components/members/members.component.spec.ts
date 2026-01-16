@@ -240,7 +240,12 @@ describe('MembersComponent', () => {
 
   describe('viewMemberEnrollments', () => {
     it('should open enrollments dialog with fetched data', () => {
-      const mockEnrollments = [{ id: 1, course_title: 'Test Course' }];
+      const mockEnrollments = [{
+        id: 1,
+        course_id: 1,
+        status: 'enrolled',
+        enrollment_date: '2024-01-01'
+      }];
       memberServiceSpy.getMemberEnrollments.and.returnValue(of(mockEnrollments));
       const dialogRefSpy = jasmine.createSpyObj('MatDialogRef', ['afterClosed']);
       dialogSpy.open.and.returnValue(dialogRefSpy);

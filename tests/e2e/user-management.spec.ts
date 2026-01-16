@@ -309,11 +309,12 @@ test.describe('User Management Tests', () => {
     });
 
     test('Staff can provide user support', async ({ page }, testInfo) => {
+      await loginAs(page, 'staff', testInfo);
+
       // User Support feature is not implemented in the current version
-      // The navigation does not include "User Support"
-      // User Support feature may not be implemented - verify admin can access other admin features
+      // Staff should successfully login and land on an authorized page
       const currentUrl = page.url();
-      expect(currentUrl.includes('/dashboard') || currentUrl.includes('/users') || currentUrl.includes('/settings')).toBeTruthy();
+      expect(currentUrl.includes('/dashboard') || currentUrl.includes('/courses') || currentUrl.includes('/members') || currentUrl.includes('/enrollments')).toBeTruthy();
     });
   });
 

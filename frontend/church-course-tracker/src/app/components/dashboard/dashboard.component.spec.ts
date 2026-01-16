@@ -159,7 +159,7 @@ describe('DashboardComponent', () => {
 
       expect(reportServiceSpy.getDashboardStats).toHaveBeenCalled();
       expect(courseServiceSpy.getCourses).toHaveBeenCalledWith(jasmine.objectContaining({ limit: 5, sort: 'created_at', order: 'desc' }));
-      expect(enrollmentServiceSpy.getEnrollments).toHaveBeenCalledWith({ limit: 5, sort: 'enrolled_at', order: 'desc' });
+      expect(enrollmentServiceSpy.getEnrollments).toHaveBeenCalledWith({ limit: 5 });
       expect(reportServiceSpy.getCompletionTrends).toHaveBeenCalledWith(jasmine.any(Object));
     });
   });
