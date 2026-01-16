@@ -10,11 +10,9 @@ if (environment.production && environment.enableErrorReporting) {
     dsn: environment.sentry.dsn,
     environment: environment.sentry.environment,
     integrations: [
-      new Sentry.BrowserTracing({
-        tracePropagationTargets: environment.sentry.tracePropagationTargets,
-        routingInstrumentation: Sentry.routingInstrumentation,
-      }),
+      Sentry.browserTracingIntegration(),
     ],
+    tracePropagationTargets: environment.sentry.tracePropagationTargets,
     tracesSampleRate: environment.sentry.tracesSampleRate,
     beforeSend(event) {
       // Filter out sensitive data

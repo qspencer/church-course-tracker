@@ -97,6 +97,7 @@ export class PlanningCenterService {
 export interface PlanningCenterRegistration {
   id: string;
   type: string;
+  imported?: boolean; // UI flag to track if registration has been imported
   attributes: {
     status?: string;
     registration_date?: string;
