@@ -143,7 +143,12 @@ describe('MemberService', () => {
 
   describe('getMemberEnrollments', () => {
     it('should fetch member enrollments', () => {
-      const mockEnrollments = [{ id: 1, course_title: 'Test Course' }];
+      const mockEnrollments = [{
+        id: 1,
+        course_id: 1,
+        status: 'enrolled',
+        enrollment_date: '2024-01-01'
+      }];
 
       service.getMemberEnrollments(1).subscribe(enrollments => {
         expect(enrollments).toEqual(mockEnrollments);
@@ -157,7 +162,11 @@ describe('MemberService', () => {
 
   describe('getMemberProgress', () => {
     it('should fetch member progress', () => {
-      const mockProgress = { overall_progress: 75, completed_courses: 3 };
+      const mockProgress = {
+        total_courses: 10,
+        completed_courses: 3,
+        in_progress_courses: 2
+      };
 
       service.getMemberProgress(1).subscribe(progress => {
         expect(progress).toEqual(mockProgress);

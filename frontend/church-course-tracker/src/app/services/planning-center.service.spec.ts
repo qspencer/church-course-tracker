@@ -141,7 +141,11 @@ describe('PlanningCenterService', () => {
   });
 
   it('should sync all', () => {
-    const mockResponse = { status: 'started' };
+    const mockResponse = {
+      success: true,
+      message: 'Sync started',
+      synced_count: 10
+    };
 
     service.syncAll().subscribe(response => {
       expect(response).toEqual(mockResponse);
