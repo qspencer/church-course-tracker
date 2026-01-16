@@ -208,7 +208,7 @@ describe('UsersComponent', () => {
   describe('deleteUser', () => {
     it('should delete user when confirmed', () => {
       spyOn(window, 'confirm').and.returnValue(true);
-      userService.deleteUser.and.returnValue(of({}));
+      userService.deleteUser.and.returnValue(of({ success: true, message: 'User deleted' }));
 
       component.deleteUser(mockUsers[0]);
 
