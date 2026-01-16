@@ -90,9 +90,9 @@ class ProgramBase(BaseModel):
             raise ValueError("relationship_config must be a dictionary")
         if 'allow_multiple_secondary' in v and not isinstance(v['allow_multiple_secondary'], bool):
             raise ValueError("allow_multiple_secondary must be a boolean")
-        if 'max_secondary_per_primary' in v:
+        if 'max_secondary_per_primary' in v and v['max_secondary_per_primary'] is not None:
             if not isinstance(v['max_secondary_per_primary'], int) or v['max_secondary_per_primary'] < 1:
-                raise ValueError("max_secondary_per_primary must be a positive integer")
+                raise ValueError("max_secondary_per_primary must be a positive integer or None")
         if 'require_pairing' in v and not isinstance(v['require_pairing'], bool):
             raise ValueError("require_pairing must be a boolean")
         return v

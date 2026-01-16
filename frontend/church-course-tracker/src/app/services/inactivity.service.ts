@@ -4,6 +4,7 @@ import { debounceTime, takeUntil } from 'rxjs/operators';
 import { AuthService } from './auth.service';
 import { MatDialog } from '@angular/material/dialog';
 import { InactivityWarningDialogComponent } from '../components/inactivity-warning-dialog/inactivity-warning-dialog.component';
+import { LoggerService } from './logger.service';
 
 @Injectable({
   providedIn: 'root'
@@ -21,7 +22,8 @@ export class InactivityService implements OnDestroy {
 
   constructor(
     private authService: AuthService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private logger: LoggerService
   ) {}
 
   /**
@@ -163,9 +165,9 @@ export class InactivityService implements OnDestroy {
 
     // Log user out
     this.authService.logout();
-    
-    // Show notification
-    console.log('Logged out due to inactivity');
+
+    // Log notification
+    this.logger.info('User logged out due to inactivity', { component: 'InactivityService', action: 'handleInactivity' });
   }
 
   /**

@@ -6,6 +6,7 @@ import { Subject, takeUntil } from 'rxjs';
 import { AuditService } from '../../services/audit.service';
 import { AuthService } from '../../services/auth.service';
 import { UserService } from '../../services/user.service';
+import { LoggerService } from '../../services/logger.service';
 import { 
   AuditLog, 
   AuditLogFilters, 
@@ -59,7 +60,8 @@ export class AuditComponent implements OnInit, OnDestroy {
     private authService: AuthService,
     private userService: UserService,
     private dialog: MatDialog,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private logger: LoggerService
   ) {}
 
   ngOnInit(): void {
@@ -84,7 +86,7 @@ export class AuditComponent implements OnInit, OnDestroy {
         this.isLoading = false;
       },
       error: (error) => {
-        console.error('Error loading audit logs:', error);
+        this.logger.error('Error loading audit logs', error, { component: 'AuditComponent', action: 'loadAuditLogs' });
         this.snackBar.open('Error loading audit logs', 'Close', { duration: 3000 });
         this.isLoading = false;
       }
@@ -103,7 +105,7 @@ export class AuditComponent implements OnInit, OnDestroy {
         this.totalCount = summary.total_logs;
       },
       error: (error) => {
-        console.error('Error loading audit summary:', error);
+        this.logger.error('Error loading audit summary', error, { component: 'AuditComponent', action: 'loadSummary' });
       }
     });
   }
@@ -117,7 +119,7 @@ export class AuditComponent implements OnInit, OnDestroy {
         this.availableUsers = users;
       },
       error: (error) => {
-        console.error('Error loading users:', error);
+        this.logger.error('Error loading users', error, { component: 'AuditComponent', action: 'loadFilterOptions' });
       }
     });
   }

@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { LoggerService } from '../../services/logger.service';
 
 @Component({
   selector: 'app-auth',
@@ -24,7 +25,8 @@ export class AuthComponent implements OnInit {
     private fb: FormBuilder,
     private authService: AuthService,
     private router: Router,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private logger: LoggerService
   ) {
     this.loginForm = this.fb.group({
       username: ['', [Validators.required]],
@@ -66,7 +68,7 @@ export class AuthComponent implements OnInit {
         },
         error: (error) => {
           this.isLoading = false;
-          console.error('Login error:', error);
+          this.logger.error('Login error', error, { component: 'AuthComponent', action: 'login', username: credentials.username });
           
           // Handle account lockout (423 status)
           if (error?.status === 423) {
@@ -157,7 +159,7 @@ export class AuthComponent implements OnInit {
         },
         error: (error) => {
           this.isLoading = false;
-          console.error('Registration error:', error);
+          this.logger.error('Registration error', error, { component: 'AuthComponent', action: 'register', username: userData.username });
           
           // Show user-friendly error message
           let errorMessage = 'Registration failed. Please try again.';

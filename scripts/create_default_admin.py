@@ -19,7 +19,11 @@ import sys
 from datetime import datetime
 
 # Add the backend directory to the Python path
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+# Get the project root (parent of scripts directory)
+script_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.dirname(script_dir)
+backend_dir = os.path.join(project_root, "backend")
+sys.path.insert(0, backend_dir)
 
 from app.core.database import SessionLocal, Base
 from app.models.user import User

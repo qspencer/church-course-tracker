@@ -2,7 +2,7 @@
 Service for managing user preferences
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 import logging
 
@@ -52,7 +52,7 @@ class UserPreferenceService:
         for field, value in update_data.items():
             setattr(preferences, field, value)
         
-        preferences.updated_at = datetime.utcnow()
+        preferences.updated_at = datetime.now(timezone.utc)
         self.db.commit()
         self.db.refresh(preferences)
         

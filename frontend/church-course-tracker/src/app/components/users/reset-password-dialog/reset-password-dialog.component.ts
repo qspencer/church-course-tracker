@@ -2,7 +2,9 @@ import { Component, Inject } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { finalize } from 'rxjs/operators';
 import { UserService } from '../../../services/user.service';
+import { LoggerService } from '../../../services/logger.service';
 
 export interface ResetPasswordDialogData {
   user: {
@@ -28,7 +30,8 @@ export class ResetPasswordDialogComponent {
     private dialogRef: MatDialogRef<ResetPasswordDialogComponent>,
     private userService: UserService,
     private snackBar: MatSnackBar,
-    @Inject(MAT_DIALOG_DATA) public data: ResetPasswordDialogData
+    @Inject(MAT_DIALOG_DATA) public data: ResetPasswordDialogData,
+    private logger: LoggerService
   ) {
     this.passwordForm = this.fb.group({
       password: ['', [Validators.required, Validators.minLength(8)]],
@@ -48,11 +51,16 @@ export class ResetPasswordDialogComponent {
   }
 
   onSubmit(): void {
-    if (this.passwordForm.valid) {
-      this.isSubmitting = true;
-      const newPassword = this.passwordForm.get('password')?.value;
-      
-      this.userService.updateUser(this.data.user.id, { password: newPassword }).subscribe({
+    if (this.isSubmitting || !this.passwordForm.valid) {
+      return;
+    }
+
+    this.isSubmitting = true;
+    const newPassword = this.passwordForm.get('password')?.value;
+
+    this.userService.updateUser(this.data.user.id, { password: newPassword })
+      .pipe(finalize(() => this.isSubmitting = false))
+      .subscribe({
         next: () => {
           this.snackBar.open(`Password reset successfully for ${this.data.user.full_name}`, 'Close', {
             duration: 3000
@@ -60,13 +68,11 @@ export class ResetPasswordDialogComponent {
           this.dialogRef.close(true);
         },
         error: (error) => {
-          console.error('Error resetting password:', error);
+          this.logger.error('Error resetting password', error, { component: 'ResetPasswordDialogComponent', action: 'resetPassword', userId: this.data.user.id });
           const message = error?.error?.detail || 'Failed to reset password';
           this.snackBar.open(message, 'Close', { duration: 5000 });
-          this.isSubmitting = false;
         }
       });
-    }
   }
 
   onCancel(): void {

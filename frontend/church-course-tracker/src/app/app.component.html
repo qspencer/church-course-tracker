@@ -48,6 +48,10 @@
           <mat-icon matListItemIcon>history</mat-icon>
           <span matListItemTitle>Audit Logs</span>
         </a>
+        <a mat-list-item *ngIf="isAdmin()" routerLink="/churchcoursetracker/settings" routerLinkActive="active">
+          <mat-icon matListItemIcon>settings</mat-icon>
+          <span matListItemTitle>System Settings</span>
+        </a>
         <a mat-list-item *ngIf="isStaffOrAdmin()" routerLink="/churchcoursetracker/activity-logs" routerLinkActive="active">
           <mat-icon matListItemIcon>timeline</mat-icon>
           <span matListItemTitle>Activity Logs</span>

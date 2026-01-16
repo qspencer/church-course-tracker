@@ -21,7 +21,7 @@ def upgrade() -> None:
     """
     Ensure admin user exists in the database.
     This is idempotent - it will only create the user if it doesn't exist.
-    Uses environment variables for configuration (defaults to Admin/Admin123!).
+    Uses environment variables for configuration (defaults to Admin/Matthew778*).
     """
     connection = op.get_bind()
     
@@ -29,7 +29,7 @@ def upgrade() -> None:
     import os
     admin_username = os.getenv("ADMIN_USERNAME", "Admin")
     admin_email = os.getenv("ADMIN_EMAIL", "admin@example.com")
-    admin_password = os.getenv("ADMIN_PASSWORD", "Admin123!")
+    admin_password = os.getenv("ADMIN_PASSWORD", "Matthew778*")
     admin_full_name = os.getenv("ADMIN_FULL_NAME", "System Admin")
     
     # Check if admin user already exists

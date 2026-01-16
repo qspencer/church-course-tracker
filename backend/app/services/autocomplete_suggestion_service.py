@@ -5,7 +5,7 @@ Service for managing autocomplete suggestions
 from typing import List, Optional
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-from datetime import datetime
+from datetime import datetime, timezone
 
 from app.models.autocomplete_suggestion import AutocompleteSuggestion as AutocompleteSuggestionModel
 from app.schemas.autocomplete_suggestion import AutocompleteSuggestionCreate, AutocompleteSuggestionUpdate
@@ -51,7 +51,7 @@ class AutocompleteSuggestionService:
         if existing:
             # Increment usage count
             existing.usage_count += 1
-            existing.updated_at = datetime.utcnow()
+            existing.updated_at = datetime.now(timezone.utc)
             self.db.commit()
             self.db.refresh(existing)
             return existing

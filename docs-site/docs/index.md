@@ -17,10 +17,12 @@ This documentation is designed to be easy to understand, even if you're not a te
 Church Course Tracker is a web-based application designed specifically for churches to manage their educational programs. It helps you:
 
 - **Organize Courses** - Create and manage educational courses for your church members
+- **Manage Programs** - Create and manage mentoring and discipleship programs with participants, pairings, and sessions
 - **Track Enrollments** - See who is enrolled in which courses
-- **Monitor Progress** - Track how members are progressing through course materials
+- **Monitor Progress** - Track how members are progressing through course materials and programs
 - **Manage Content** - Upload and organize videos, documents, and other course materials
 - **Generate Reports** - Create reports on enrollment, completion rates, and more
+- **Configure System Settings** - Manage system configuration, Planning Center integration, security, and backup settings (Administrators only)
 - **Control Access** - Set up different user roles (Administrators, Staff, and Viewers) with appropriate permissions
 
 ## 🌐 Accessing the Application
@@ -35,9 +37,9 @@ You can access it from any computer, tablet, or smartphone with an internet conn
 
 The system is designed for three types of users:
 
-1. **Administrators** - Full access to all features, including user management and system settings
-2. **Staff** - Can manage courses, enrollments, and content, but cannot manage users or system settings
-3. **Viewers** - Can view courses, enroll themselves, and track their own progress
+1. **Administrators** - Full access to all features, including user management, system settings, and system configuration
+2. **Staff** - Can manage courses, programs, enrollments, and content, but cannot manage users or system settings
+3. **Viewers** - Can view courses and programs, enroll themselves, and track their own progress
 
 ## 📖 How to Use This Documentation
 

@@ -3,9 +3,11 @@ import { FormBuilder, FormGroup, Validators, FormArray, FormControl, AbstractCon
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
+import { finalize } from 'rxjs/operators';
 import { ProgramService } from '../../../services/program.service';
 import { CourseService } from '../../../services/course.service';
 import { AutocompleteSuggestionService } from '../../../services/autocomplete-suggestion.service';
+import { LoggerService } from '../../../services/logger.service';
 import { Program, ProgramCreate, ProgramUpdate, RoleDefinition, RelationshipConfig } from '../../../models/program.model';
 import { Course } from '../../../models';
 import { MatDialog } from '@angular/material/dialog';
@@ -50,7 +52,8 @@ export class ProgramDialogComponent implements OnInit {
     private autocompleteService: AutocompleteSuggestionService,
     private snackBar: MatSnackBar,
     private dialog: MatDialog,
-    private router: Router
+    private router: Router,
+    private logger: LoggerService
   ) {
     this.program = data.program;
     this.viewMode = data.viewMode || false;
@@ -197,18 +200,19 @@ export class ProgramDialogComponent implements OnInit {
 
   loadAvailableCourses(): void {
     if (this.viewMode) return;
-    
+
     this.loadingCourses = true;
-    this.courseService.getCourses().subscribe({
-      next: (courses) => {
-        this.availableCourses = courses.filter(c => c.is_active);
-        this.loadingCourses = false;
-      },
-      error: (error) => {
-        console.error('Error loading courses:', error);
-        this.loadingCourses = false;
-      }
-    });
+    this.courseService.getCourses()
+      .pipe(finalize(() => this.loadingCourses = false))
+      .subscribe({
+        next: (courses) => {
+          this.availableCourses = courses.filter(c => c.is_active);
+        },
+        error: (error) => {
+          this.logger.error('Error loading courses', error, { component: 'ProgramDialogComponent' });
+          this.snackBar.open('Failed to load courses', 'Close', { duration: 5000 });
+        }
+      });
   }
 
   // Load autocomplete suggestions
@@ -220,7 +224,7 @@ export class ProgramDialogComponent implements OnInit {
         this.filteredLocationSuggestions = suggestions;
       },
       error: (error) => {
-        console.error('Error loading location suggestions:', error);
+        this.logger.error('Error loading location suggestions', error);
       }
     });
 
@@ -231,7 +235,7 @@ export class ProgramDialogComponent implements OnInit {
         this.filteredDeliveryModeSuggestions = suggestions;
       },
       error: (error) => {
-        console.error('Error loading delivery mode suggestions:', error);
+        this.logger.error('Error loading delivery mode suggestions', error);
       }
     });
   }
@@ -267,7 +271,7 @@ export class ProgramDialogComponent implements OnInit {
           this.loadAutocompleteSuggestions();
         },
         error: (error) => {
-          console.error('Error saving location suggestion:', error);
+          this.logger.error('Error saving location suggestion', error);
         }
       });
       
@@ -298,7 +302,7 @@ export class ProgramDialogComponent implements OnInit {
           this.loadAutocompleteSuggestions();
         },
         error: (error) => {
-          console.error('Error saving delivery mode suggestion:', error);
+          this.logger.error('Error saving delivery mode suggestion', error);
         }
       });
       
@@ -345,7 +349,7 @@ export class ProgramDialogComponent implements OnInit {
     }
 
     this.isLoading = true;
-    
+
     // Build role definitions
     const roleDefinitions: RoleDefinition[] = this.roleDefinitions.controls.map(control => ({
       name: control.get('name')?.value,
@@ -374,17 +378,18 @@ export class ProgramDialogComponent implements OnInit {
         prerequisites: this.programForm.value.prerequisites || []
       };
 
-      this.programService.updateProgram(this.program.id, updateData).subscribe({
-        next: () => {
-          this.snackBar.open('Program updated successfully', 'Close', { duration: 3000 });
-          this.dialogRef.close(true);
-        },
-        error: (error) => {
-          console.error('Error updating program:', error);
-          this.snackBar.open('Error updating program', 'Close', { duration: 3000 });
-          this.isLoading = false;
-        }
-      });
+      this.programService.updateProgram(this.program.id, updateData)
+        .pipe(finalize(() => this.isLoading = false))
+        .subscribe({
+          next: () => {
+            this.snackBar.open('Program updated successfully', 'Close', { duration: 3000 });
+            this.dialogRef.close(true);
+          },
+          error: (error) => {
+            this.logger.error('Error updating program', error, { component: 'ProgramDialogComponent', programId: this.program?.id });
+            this.snackBar.open('Error updating program', 'Close', { duration: 5000 });
+          }
+        });
     } else {
       const createData: ProgramCreate = {
         title: this.programForm.value.title,
@@ -408,17 +413,18 @@ export class ProgramDialogComponent implements OnInit {
         // If needed, this could be stored as a custom attribute
       }
 
-      this.programService.createProgram(createData).subscribe({
-        next: () => {
-          this.snackBar.open('Program created successfully', 'Close', { duration: 3000 });
-          this.dialogRef.close(true);
-        },
-        error: (error) => {
-          console.error('Error creating program:', error);
-          this.snackBar.open('Error creating program', 'Close', { duration: 3000 });
-          this.isLoading = false;
-        }
-      });
+      this.programService.createProgram(createData)
+        .pipe(finalize(() => this.isLoading = false))
+        .subscribe({
+          next: () => {
+            this.snackBar.open('Program created successfully', 'Close', { duration: 3000 });
+            this.dialogRef.close(true);
+          },
+          error: (error) => {
+            this.logger.error('Error creating program', error, { component: 'ProgramDialogComponent' });
+            this.snackBar.open('Error creating program', 'Close', { duration: 5000 });
+          }
+        });
     }
   }
 

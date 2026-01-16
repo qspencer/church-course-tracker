@@ -8,6 +8,7 @@ import { takeUntil, finalize } from 'rxjs/operators';
 import { ProgramContentService } from '../../services/program-content.service';
 import { AuthService } from '../../services/auth.service';
 import { ProgramService } from '../../services/program.service';
+import { LoggerService } from '../../services/logger.service';
 import {
   ProgramModule, ProgramContent, ContentType,
   ProgramModuleCreate, ProgramContentCreate
@@ -52,6 +53,7 @@ export class ProgramContentComponent implements OnInit, OnDestroy {
   constructor(
     private programContentService: ProgramContentService,
     private programService: ProgramService,
+    private logger: LoggerService,
     private authService: AuthService,
     private route: ActivatedRoute,
     private router: Router,
@@ -88,7 +90,7 @@ export class ProgramContentComponent implements OnInit, OnDestroy {
         this.program = program;
       },
       error: (error) => {
-        console.error('Error loading program:', error);
+        this.logger.error('Error loading program', error);
         this.snackBar.open('Error loading program details', 'Close', { duration: 3000 });
       }
     });
@@ -101,7 +103,7 @@ export class ProgramContentComponent implements OnInit, OnDestroy {
         this.modules = modules.sort((a, b) => a.order_index - b.order_index);
       },
       error: (error) => {
-        console.error('Error loading modules:', error);
+        this.logger.error('Error loading modules', error);
         this.snackBar.open('Error loading program modules', 'Close', { duration: 3000 });
       }
     });
@@ -115,7 +117,7 @@ export class ProgramContentComponent implements OnInit, OnDestroy {
         this.isLoading = false;
       },
       error: (error) => {
-        console.error('Error loading content items:', error);
+        this.logger.error('Error loading content items', error);
         this.snackBar.open('Error loading program content', 'Close', { duration: 3000 });
         this.isLoading = false;
       }
@@ -273,7 +275,7 @@ export class ProgramContentComponent implements OnInit, OnDestroy {
             this.loadData();
           },
           error: (error) => {
-            console.error('Error deleting module:', error);
+            this.logger.error('Error deleting module', error);
             const errorMessage = error?.error?.detail || 'Error deleting module';
             this.snackBar.open(errorMessage, 'Close', { duration: 5000 });
           }
@@ -334,7 +336,7 @@ export class ProgramContentComponent implements OnInit, OnDestroy {
             this.loadData();
           },
           error: error => {
-            console.error('Error deleting content:', error);
+            this.logger.error('Error deleting content', error);
             let errorMessage = 'Failed to delete content. Please try again.';
             if (error?.error?.detail) {
               errorMessage = error.error.detail;

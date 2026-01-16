@@ -14,6 +14,7 @@ export interface AuditLogCreate extends AuditLogBase {}
 export interface AuditLog extends AuditLogBase {
   id: number;
   changed_at: string;
+  changed_by_user_name?: string;  // User name for display
 }
 
 export interface AuditLogFilters {

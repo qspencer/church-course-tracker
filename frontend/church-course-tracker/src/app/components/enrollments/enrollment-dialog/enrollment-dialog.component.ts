@@ -3,9 +3,11 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { forkJoin } from 'rxjs';
+import { finalize } from 'rxjs/operators';
 import { EnrollmentService } from '../../../services/enrollment.service';
 import { CourseService } from '../../../services/course.service';
 import { MemberService } from '../../../services/member.service';
+import { LoggerService } from '../../../services/logger.service';
 import { Enrollment, Course, Person, EnrollmentStatus } from '../../../models';
 
 export interface EnrollmentDialogData {
@@ -40,7 +42,8 @@ export class EnrollmentDialogComponent implements OnInit {
     private memberService: MemberService,
     private snackBar: MatSnackBar,
     public dialogRef: MatDialogRef<EnrollmentDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: EnrollmentDialogData
+    @Inject(MAT_DIALOG_DATA) public data: EnrollmentDialogData,
+    private logger: LoggerService
   ) {
     this.viewMode = !!data.viewMode;
     this.isEditing = !this.viewMode && !!data.enrollment;
@@ -72,71 +75,76 @@ export class EnrollmentDialogComponent implements OnInit {
 
   loadData(): void {
     this.isLoading = true;
-    
+
     forkJoin({
       courses: this.courseService.getCourses({ is_active: true }),
       members: this.memberService.getMembers()
-    }).subscribe({
-      next: (data) => {
-        this.courses = data.courses;
-        this.members = data.members;
-        this.isLoading = false;
-      },
-      error: (error) => {
-        console.error('Error loading data:', error);
-        this.isLoading = false;
-      }
-    });
+    })
+      .pipe(finalize(() => this.isLoading = false))
+      .subscribe({
+        next: (data) => {
+          this.courses = data.courses;
+          this.members = data.members;
+        },
+        error: (error) => {
+          this.logger.error('Error loading data', error, { component: 'EnrollmentDialogComponent', action: 'loadData' });
+          this.snackBar.open('Failed to load courses and members', 'Close', { duration: 5000 });
+        }
+      });
   }
 
   onSubmit(): void {
     if (this.viewMode) {
       return;
     }
-    
+
     // Mark form as submitted to show validation errors
     this.isSubmitted = true;
-    
-    if (this.enrollmentForm.valid) {
-      this.isLoading = true;
-      const formValue = this.enrollmentForm.value;
 
-      if (this.isEditing && this.data.enrollment) {
-        // Update existing enrollment
-        const updateData = {
-          status: formValue.status
-        };
+    if (this.isLoading || !this.enrollmentForm.valid) {
+      return;
+    }
 
-        this.enrollmentService.updateEnrollment(this.data.enrollment.id, updateData).subscribe({
+    this.isLoading = true;
+    const formValue = this.enrollmentForm.value;
+
+    if (this.isEditing && this.data.enrollment) {
+      // Update existing enrollment
+      const updateData = {
+        status: formValue.status
+      };
+
+      this.enrollmentService.updateEnrollment(this.data.enrollment.id, updateData)
+        .pipe(finalize(() => this.isLoading = false))
+        .subscribe({
           next: (enrollment) => {
-            this.isLoading = false;
             this.snackBar.open('Enrollment updated successfully', 'Close', { duration: 3000 });
             this.dialogRef.close(enrollment);
           },
           error: (error) => {
-            this.isLoading = false;
-            console.error('Error updating enrollment:', error);
+            this.logger.error('Error updating enrollment', error, { component: 'EnrollmentDialogComponent', action: 'updateEnrollment', enrollmentId: this.data.enrollment?.id });
+            this.snackBar.open('Failed to update enrollment', 'Close', { duration: 5000 });
           }
         });
-      } else {
-        // Create new enrollment
-        const createData = {
-          person_id: formValue.person_id,
-          course_id: formValue.course_id
-        };
+    } else {
+      // Create new enrollment
+      const createData = {
+        person_id: formValue.person_id,
+        course_id: formValue.course_id
+      };
 
-        this.enrollmentService.createEnrollment(createData).subscribe({
+      this.enrollmentService.createEnrollment(createData)
+        .pipe(finalize(() => this.isLoading = false))
+        .subscribe({
           next: (enrollment) => {
-            this.isLoading = false;
             this.snackBar.open('Enrollment created successfully', 'Close', { duration: 3000 });
             this.dialogRef.close(enrollment);
           },
           error: (error) => {
-            this.isLoading = false;
-            console.error('Error creating enrollment:', error);
+            this.logger.error('Error creating enrollment', error, { component: 'EnrollmentDialogComponent', action: 'createEnrollment', personId: createData.person_id, courseId: createData.course_id });
+            this.snackBar.open('Failed to create enrollment', 'Close', { duration: 5000 });
           }
         });
-      }
     }
   }
 

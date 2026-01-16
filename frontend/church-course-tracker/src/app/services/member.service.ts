@@ -12,12 +12,13 @@ export class MemberService {
 
   constructor(private http: HttpClient) {}
 
-  getMembers(params?: any): Observable<Person[]> {
+  getMembers(params?: { skip?: number; limit?: number; search?: string; is_active?: boolean }): Observable<Person[]> {
     let httpParams = new HttpParams();
     if (params) {
-      Object.keys(params).forEach(key => {
-        if (params[key] !== null && params[key] !== undefined) {
-          httpParams = httpParams.set(key, params[key].toString());
+      Object.keys(params).forEach((key: string) => {
+        const value = params[key as keyof typeof params];
+        if (value !== null && value !== undefined) {
+          httpParams = httpParams.set(key, value.toString());
         }
       });
     }
@@ -45,12 +46,12 @@ export class MemberService {
     return this.http.get<Person[]>(`${this.API_URL}/search`, { params });
   }
 
-  getMemberEnrollments(id: number): Observable<any[]> {
-    return this.http.get<any[]>(`${this.API_URL}/${id}/enrollments`);
+  getMemberEnrollments(id: number): Observable<Array<{ id: number; course_id: number; status: string; enrollment_date: string }>> {
+    return this.http.get<Array<{ id: number; course_id: number; status: string; enrollment_date: string }>>(`${this.API_URL}/${id}/enrollments`);
   }
 
-  getMemberProgress(id: number): Observable<any> {
-    return this.http.get<any>(`${this.API_URL}/${id}/progress`);
+  getMemberProgress(id: number): Observable<{ total_courses: number; completed_courses: number; in_progress_courses: number }> {
+    return this.http.get<{ total_courses: number; completed_courses: number; in_progress_courses: number }>(`${this.API_URL}/${id}/progress`);
   }
 
   importMemberFromPlanningCenter(planningCenterPersonId: string): Observable<Person> {

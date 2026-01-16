@@ -2,6 +2,7 @@ import { Injectable, isDevMode } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { LoggerService } from './logger.service';
 import { Enrollment, EnrollmentCreate, EnrollmentUpdate } from '../models';
 
 @Injectable({
@@ -10,19 +11,23 @@ import { Enrollment, EnrollmentCreate, EnrollmentUpdate } from '../models';
 export class EnrollmentService {
   private readonly API_URL = `${environment.apiUrl}/enrollments`;
 
-  constructor(private http: HttpClient) {
+  constructor(
+    private http: HttpClient,
+    private logger: LoggerService
+  ) {
     // Only log errors in development mode - reduce console noise
     if (isDevMode() && !this.API_URL.startsWith('https://') && !this.API_URL.includes('localhost')) {
-      console.error('❌ EnrollmentService API_URL is NOT HTTPS!', this.API_URL);
+      this.logger.error('EnrollmentService API_URL is NOT HTTPS!', { url: this.API_URL });
     }
   }
 
-  getEnrollments(params?: any): Observable<Enrollment[]> {
+  getEnrollments(params?: { skip?: number; limit?: number; course_id?: number; people_id?: number; status?: string }): Observable<Enrollment[]> {
     let httpParams = new HttpParams();
     if (params) {
-      Object.keys(params).forEach(key => {
-        if (params[key] !== null && params[key] !== undefined) {
-          httpParams = httpParams.set(key, params[key].toString());
+      (Object.keys(params) as Array<keyof typeof params>).forEach((key) => {
+        const value = params[key];
+        if (value !== null && value !== undefined) {
+          httpParams = httpParams.set(String(key), String(value));
         }
       });
     }
@@ -34,7 +39,7 @@ export class EnrollmentService {
     if (isDevMode()) {
       const fullUrlWithParams = `${url}?${httpParams.toString()}`;
       if (!fullUrlWithParams.startsWith('https://') && !fullUrlWithParams.includes('localhost')) {
-        console.error('❌ EnrollmentService - Full URL with params is NOT HTTPS!', fullUrlWithParams);
+        this.logger.error('EnrollmentService - Full URL with params is NOT HTTPS!', { url: fullUrlWithParams });
       }
     }
     

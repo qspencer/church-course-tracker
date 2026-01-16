@@ -44,7 +44,14 @@ echo "✅ Backend image pushed to ECR!"
 # Build and deploy frontend
 echo "🌐 Building and deploying frontend..."
 
-cd ../frontend/church-course-tracker
+# Increment version before building
+echo "📌 Incrementing application version..."
+cd "$(dirname "$0")/.."
+chmod +x scripts/increment-version.sh
+NEW_VERSION=$(scripts/increment-version.sh)
+echo "✅ Version incremented to $NEW_VERSION"
+
+cd frontend/church-course-tracker
 
 # Install dependencies
 echo "📦 Installing frontend dependencies..."

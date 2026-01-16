@@ -2,7 +2,7 @@
 Authentication endpoints
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
@@ -117,7 +117,7 @@ async def login(login_data: LoginRequest, db: Session = Depends(get_db)):
     try:
         is_locked, locked_until = failed_login_service.is_locked(login_data.username)
         if is_locked and locked_until:
-            remaining_minutes = int((locked_until - datetime.utcnow()).total_seconds() / 60) + 1
+            remaining_minutes = int((locked_until - datetime.now(timezone.utc)).total_seconds() / 60) + 1
             raise HTTPException(
                 status_code=status.HTTP_423_LOCKED,
                 detail=f"Account locked due to too many failed login attempts. Please try again in {remaining_minutes} minute(s).",
@@ -147,7 +147,12 @@ async def login(login_data: LoginRequest, db: Session = Depends(get_db)):
             # Check if account is now locked
             is_locked, locked_until = failed_login_service.is_locked(login_data.username)
             if is_locked and locked_until:
-                remaining_minutes = int((locked_until - datetime.utcnow()).total_seconds() / 60) + 1
+                # Ensure locked_until is timezone-aware for comparison
+                now = datetime.now(timezone.utc)
+                if locked_until.tzinfo is None:
+                    # If locked_until is naive (from SQLite), assume it's UTC
+                    locked_until = locked_until.replace(tzinfo=timezone.utc)
+                remaining_minutes = int((locked_until - now).total_seconds() / 60) + 1
                 raise HTTPException(
                     status_code=status.HTTP_423_LOCKED,
                     detail=f"Account locked due to too many failed login attempts. Please try again in {remaining_minutes} minute(s).",
@@ -185,7 +190,7 @@ async def login(login_data: LoginRequest, db: Session = Depends(get_db)):
     )
 
     # Update last login
-    user.last_login = datetime.utcnow()
+    user.last_login = datetime.now(timezone.utc)
     db.commit()
 
     return {

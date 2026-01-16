@@ -4,6 +4,7 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ProgramService } from '../../../services/program.service';
 import { MemberService } from '../../../services/member.service';
+import { LoggerService } from '../../../services/logger.service';
 import { Program, ProgramPairing, ProgramPairingCreate, ProgramPairingUpdate, ProgramParticipant } from '../../../models/program.model';
 import { Person } from '../../../models';
 
@@ -43,7 +44,8 @@ export class PairingDialogComponent implements OnInit {
     private memberService: MemberService,
     private snackBar: MatSnackBar,
     public dialogRef: MatDialogRef<PairingDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: PairingDialogData
+    @Inject(MAT_DIALOG_DATA) public data: PairingDialogData,
+    private logger: LoggerService
   ) {
     this.viewMode = !!data.viewMode;
     this.isEditing = !this.viewMode && !!data.pairing;
@@ -100,7 +102,7 @@ export class PairingDialogComponent implements OnInit {
         this.members = members;
       },
       error: (error) => {
-        console.error('Error loading members:', error);
+        this.logger.error('Error loading members', error, { component: 'PairingDialogComponent', action: 'loadMembers' });
       }
     });
   }
@@ -158,7 +160,7 @@ export class PairingDialogComponent implements OnInit {
           this.dialogRef.close(true);
         },
         error: (error) => {
-          console.error('Error updating pairing:', error);
+          this.logger.error('Error updating pairing', error, { component: 'PairingDialogComponent', action: 'updatePairing', pairingId: this.data.pairing?.id, programId: this.program.id });
           const errorMsg = error?.error?.detail || 'Error updating pairing';
           this.snackBar.open(errorMsg, 'Close', { duration: 3000 });
           this.isLoading = false;
@@ -179,7 +181,7 @@ export class PairingDialogComponent implements OnInit {
           this.dialogRef.close(true);
         },
         error: (error) => {
-          console.error('Error creating pairing:', error);
+          this.logger.error('Error creating pairing', error, { component: 'PairingDialogComponent', action: 'createPairing', programId: this.program.id });
           const errorMsg = error?.error?.detail || 'Error creating pairing';
           this.snackBar.open(errorMsg, 'Close', { duration: 3000 });
           this.isLoading = false;

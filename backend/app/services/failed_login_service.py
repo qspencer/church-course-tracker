@@ -2,7 +2,7 @@
 Service for managing failed login attempts and account lockout
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional, Tuple
 import logging
 
@@ -35,23 +35,23 @@ class FailedLoginService:
             if attempt:
                 # Update existing attempt
                 attempt.attempt_count += 1
-                attempt.last_attempt_time = datetime.utcnow()
-                attempt.updated_at = datetime.utcnow()
+                attempt.last_attempt_time = datetime.now(timezone.utc)
+                attempt.updated_at = datetime.now(timezone.utc)
 
                 # Lock account if max attempts reached
                 if attempt.attempt_count >= MAX_FAILED_ATTEMPTS:
-                    attempt.locked_until = datetime.utcnow() + timedelta(
-                        minutes=LOCKOUT_DURATION_MINUTES
-                    )
+                    now = datetime.now(timezone.utc)
+                    attempt.locked_until = now + timedelta(minutes=LOCKOUT_DURATION_MINUTES)
                     logger.warning(
                         f"Account locked for {username_or_email} after {attempt.attempt_count} failed attempts"
                     )
             else:
                 # Create new attempt record
+                now = datetime.now(timezone.utc)
                 attempt = FailedLoginAttemptModel(
                     username_or_email=username_or_email,
                     attempt_count=1,
-                    last_attempt_time=datetime.utcnow(),
+                    last_attempt_time=now,
                 )
                 self.db.add(attempt)
 
@@ -93,7 +93,14 @@ class FailedLoginService:
                 return False, None
 
             # Check if lockout has expired
-            if attempt.locked_until <= datetime.utcnow():
+            # Ensure both datetimes are timezone-aware for comparison
+            now = datetime.now(timezone.utc)
+            locked_until = attempt.locked_until
+            if locked_until.tzinfo is None:
+                # If locked_until is naive, assume it's UTC
+                from datetime import timezone as tz
+                locked_until = locked_until.replace(tzinfo=tz.utc)
+            if locked_until <= now:
                 # Lockout expired, clear it
                 try:
                     self.db.delete(attempt)
@@ -121,7 +128,14 @@ class FailedLoginService:
             if not attempt:
                 return MAX_FAILED_ATTEMPTS
 
-            if attempt.locked_until and attempt.locked_until > datetime.utcnow():
+            # Ensure both datetimes are timezone-aware for comparison
+            now = datetime.now(timezone.utc)
+            locked_until = attempt.locked_until
+            if locked_until and locked_until.tzinfo is None:
+                # If locked_until is naive, assume it's UTC
+                from datetime import timezone as tz
+                locked_until = locked_until.replace(tzinfo=tz.utc)
+            if locked_until and locked_until > now:
                 return 0  # Account is locked
 
             return max(0, MAX_FAILED_ATTEMPTS - attempt.attempt_count)

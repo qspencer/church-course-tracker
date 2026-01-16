@@ -53,37 +53,38 @@ def verify_token(token: str) -> Optional[int]:
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    """Verify a password against its hash"""
-    # Handle both bcrypt and simple SHA256 hashes
+    """Verify a password against its hash
+    
+    Only supports bcrypt hashes. SHA256 fallback has been removed for security.
+    Users with SHA256 hashes must reset their password.
+    """
+    import logging
+    logger = logging.getLogger(__name__)
+    
+    # Only accept bcrypt hashes - reject SHA256 and other formats
+    if not (hashed_password.startswith("$2b$") or 
+            hashed_password.startswith("$2a$") or 
+            hashed_password.startswith("$2y$")):
+        # Not a bcrypt hash - log warning and require password reset
+        logger.warning("Password hash is not bcrypt format - user must reset password")
+        return False
+    
     try:
-        # Try bcrypt first (for regular users)
-        # If this is a bytes-like prefix but string, convert or handle
-        if hashed_password.startswith("$2b$") or hashed_password.startswith("$2a$") or hashed_password.startswith("$2y$"):
-             import bcrypt
-             # Ensure hashed_password is bytes for bcrypt
-             if isinstance(hashed_password, str):
-                 hashed_password_bytes = hashed_password.encode('utf-8')
-             else:
-                 hashed_password_bytes = hashed_password
-             
-             return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password_bytes)
-             
-        return pwd_context.verify(plain_password, hashed_password)
+        import bcrypt
+        # Ensure hashed_password is bytes for bcrypt
+        if isinstance(hashed_password, str):
+            hashed_password_bytes = hashed_password.encode('utf-8')
+        else:
+            hashed_password_bytes = hashed_password
+        
+        return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password_bytes)
     except (ValueError, AttributeError, Exception) as e:
-        # Try raw bcrypt verification (for direct bcrypt hashes)
+        # Try passlib context as fallback for bcrypt variants
         try:
-            import bcrypt
-
-            return bcrypt.checkpw(
-                plain_password.encode("utf-8"), hashed_password.encode("utf-8")
-            )
+            return pwd_context.verify(plain_password, hashed_password)
         except Exception:
-            # Fall back to simple SHA256 for old admin user
-            import hashlib
-
-            return (
-                hashlib.sha256(plain_password.encode()).hexdigest() == hashed_password
-            )
+            logger.warning(f"Password verification failed: {type(e).__name__}: {str(e)}")
+            return False
 
 
 def get_password_hash(password: str) -> str:

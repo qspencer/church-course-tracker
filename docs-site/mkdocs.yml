@@ -51,6 +51,7 @@ nav:
   - Getting Started: getting-started.md
   - User Guide: user-guide.md
   - Features: features.md
+  - Custom Attributes: custom-attributes.md
   - Documentation Guide: DOCUMENTATION_GUIDE.md
 
 plugins:

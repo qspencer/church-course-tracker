@@ -2,6 +2,7 @@ import { Injectable, isDevMode } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { LoggerService } from './logger.service';
 
 export interface PlanningCenterEvent {
   id: string;
@@ -12,7 +13,7 @@ export interface PlanningCenterEvent {
     end_date: string;
     created_at: string;
     updated_at: string;
-    [key: string]: any;
+    [key: string]: string | number | boolean | null | undefined;
   };
   relationships: {
     event_type: {
@@ -31,7 +32,7 @@ export interface PlanningCenterList {
     name: string;
     created_at: string;
     updated_at: string;
-    [key: string]: any;
+    [key: string]: string | number | boolean | null | undefined;
   };
 }
 
@@ -41,12 +42,15 @@ export interface PlanningCenterList {
 export class PlanningCenterService {
   private readonly API_URL = `${environment.apiUrl}/planning-center`;
 
-  constructor(private http: HttpClient) { 
+  constructor(
+    private http: HttpClient,
+    private logger: LoggerService
+  ) { 
     // Only log in development mode
     if (isDevMode()) {
-      console.log('PlanningCenterService API_URL:', this.API_URL);
+      this.logger.debug('PlanningCenterService API_URL', { apiUrl: this.API_URL });
       if (!this.API_URL.startsWith('https://') && !this.API_URL.includes('localhost')) {
-        console.error('❌ PlanningCenterService API_URL is NOT HTTPS!', this.API_URL);
+        this.logger.error('PlanningCenterService API_URL is NOT HTTPS!', null, { apiUrl: this.API_URL });
       }
     }
   }
@@ -72,9 +76,9 @@ export class PlanningCenterService {
     return this.http.get<PlanningCenterList>(url);
   }
 
-  syncAll(): Observable<any> {
+  syncAll(): Observable<{ success: boolean; message: string; synced_count?: number }> {
     const url = `${this.API_URL}/all`;
-    return this.http.post(url, {});
+    return this.http.post<{ success: boolean; message: string; synced_count?: number }>(url, {});
   }
 
   searchPeople(searchTerm: string, limit: number = 20): Observable<PlanningCenterPerson[]> {
@@ -97,7 +101,7 @@ export interface PlanningCenterRegistration {
     status?: string;
     registration_date?: string;
     notes?: string;
-    [key: string]: any;
+    [key: string]: string | number | boolean | null | undefined;
   };
   relationships?: {
     person?: {
@@ -106,7 +110,12 @@ export interface PlanningCenterRegistration {
         type: string;
       };
     };
-    [key: string]: any;
+    [key: string]: {
+      data?: {
+        id: string;
+        type: string;
+      };
+    } | string | number | boolean | null | undefined;
   };
 }
 
@@ -118,9 +127,9 @@ export interface PlanningCenterPerson {
     last_name: string;
     email?: string;
     phone_number?: string;
-    [key: string]: any;
+    [key: string]: string | number | boolean | null | undefined;
   };
   relationships?: {
-    [key: string]: any;
+    [key: string]: string | number | boolean | null | undefined;
   };
 }

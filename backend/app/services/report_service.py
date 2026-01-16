@@ -242,7 +242,7 @@ class ReportService:
 
         return ReportResponse(
             report_type=ReportType.ENROLLMENT,
-            generated_at=datetime.utcnow(),
+            generated_at=datetime.now(timezone.utc),
             filters={
                 "course_id": course_id,
                 "start_date": start_date,
@@ -266,7 +266,7 @@ class ReportService:
 
         return ReportResponse(
             report_type=ReportType.COMPLETION,
-            generated_at=datetime.utcnow(),
+            generated_at=datetime.now(timezone.utc),
             filters={
                 "course_id": course_id,
                 "start_date": start_date,
@@ -287,7 +287,7 @@ class ReportService:
 
         return ReportResponse(
             report_type=ReportType.MEMBER_PROGRESS,
-            generated_at=datetime.utcnow(),
+            generated_at=datetime.now(timezone.utc),
             filters={"member_id": member_id, "course_id": course_id},
             data=ReportData(headers=headers, rows=rows, summary=summary),
             total_records=0,
@@ -317,7 +317,7 @@ class ReportService:
         return {
             "content": output.getvalue(),
             "content_type": "text/csv",
-            "filename": f"{report.report_type}_report_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.csv",
+            "filename": f"{report.report_type}_report_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.csv",
         }
 
     def _export_pdf(self, report: ReportResponse) -> Dict[str, Any]:
@@ -326,7 +326,7 @@ class ReportService:
         return {
             "content": "PDF content placeholder",
             "content_type": "application/pdf",
-            "filename": f"{report.report_type}_report_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.pdf",
+            "filename": f"{report.report_type}_report_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.pdf",
         }
 
     def _count_by_status(self, enrollments: List[EnrollmentModel]) -> Dict[str, int]:

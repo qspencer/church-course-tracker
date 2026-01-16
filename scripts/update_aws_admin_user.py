@@ -16,8 +16,11 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from dotenv import load_dotenv
 
-# Add the app directory to the path
-sys.path.append(os.path.join(os.path.dirname(__file__), 'app'))
+# Add the backend directory to the path so we can import app modules
+script_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.dirname(script_dir)
+backend_dir = os.path.join(project_root, "backend")
+sys.path.insert(0, backend_dir)
 
 from app.models.user import User
 from passlib.context import CryptContext
@@ -63,19 +66,19 @@ def update_aws_admin_user():
             
             # Update the existing user
             print("🔄 Updating existing user in AWS database...")
+            
+            # Update password to Matthew778*
+            print("🔐 Updating password to Matthew778*...")
+            existing_user.hashed_password = hash_password("Matthew778*")
+            
             # Only update is_active if it's False, keep other fields as they are
             if not existing_user.is_active:
                 print("🔄 Activating inactive Admin user...")
                 existing_user.is_active = True
-                session.commit()
-                print("✅ Admin user activated!")
-            else:
-                print("✅ Admin user is already active!")
-            # Optionally update password if needed for tests
-            # existing_user.hashed_password = hash_password("Admin123!")
             
             session.commit()
             print("✅ User updated successfully in AWS database!")
+            print(f"   Password: Matthew778*")
             
         else:
             print("🆕 Creating new admin user in AWS database...")

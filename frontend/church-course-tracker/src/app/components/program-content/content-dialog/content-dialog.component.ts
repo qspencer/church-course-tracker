@@ -2,7 +2,9 @@ import { Component, Inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { finalize } from 'rxjs/operators';
 import { ProgramContentService } from '../../../services/program-content.service';
+import { LoggerService } from '../../../services/logger.service';
 import { ProgramContent, ProgramContentCreate, ProgramContentUpdate, ContentType, ProgramModule, getContentTypeDisplayName } from '../../../models/program-content.model';
 
 export interface ContentDialogData {
@@ -29,6 +31,7 @@ export class ContentDialogComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private programContentService: ProgramContentService,
+    private logger: LoggerService,
     private snackBar: MatSnackBar,
     public dialogRef: MatDialogRef<ContentDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: ContentDialogData
@@ -89,11 +92,11 @@ export class ContentDialogComponent implements OnInit {
 
   onSubmit(): void {
     this.isSubmitted = true;
-    
+
     if (this.isLoading || !this.contentForm.valid) {
       return;
     }
-    
+
     this.isLoading = true;
     const formValue = this.contentForm.value;
 
@@ -109,22 +112,22 @@ export class ContentDialogComponent implements OnInit {
         order_index: formValue.order_index || 0
       };
 
-      this.programContentService.updateContent(this.data.content.id, updateData).subscribe({
-        next: (content) => {
-          this.isLoading = false;
-          this.snackBar.open('Content updated successfully', 'Close', { duration: 3000 });
-          this.dialogRef.close(content);
-        },
-        error: (error) => {
-          this.isLoading = false;
-          console.error('Error updating content:', error);
-          let errorMessage = 'Failed to update content. Please try again.';
-          if (error?.error?.detail) {
-            errorMessage = error.error.detail;
+      this.programContentService.updateContent(this.data.content.id, updateData)
+        .pipe(finalize(() => this.isLoading = false))
+        .subscribe({
+          next: (content) => {
+            this.snackBar.open('Content updated successfully', 'Close', { duration: 3000 });
+            this.dialogRef.close(content);
+          },
+          error: (error) => {
+            this.logger.error('Error updating content', error, { component: 'ContentDialogComponent', contentId: this.data.content?.id });
+            let errorMessage = 'Failed to update content. Please try again.';
+            if (error?.error?.detail) {
+              errorMessage = error.error.detail;
+            }
+            this.snackBar.open(errorMessage, 'Close', { duration: 5000 });
           }
-          this.snackBar.open(errorMessage, 'Close', { duration: 5000 });
-        }
-      });
+        });
     } else {
       // Create new content
       const contentData: ProgramContentCreate = {
@@ -139,22 +142,22 @@ export class ContentDialogComponent implements OnInit {
         is_active: true
       };
 
-      this.programContentService.createContent(contentData).subscribe({
-        next: (content) => {
-          this.isLoading = false;
-          this.snackBar.open('Content created successfully', 'Close', { duration: 3000 });
-          this.dialogRef.close(content);
-        },
-        error: (error) => {
-          this.isLoading = false;
-          console.error('Error creating content:', error);
-          let errorMessage = 'Failed to create content. Please try again.';
-          if (error?.error?.detail) {
-            errorMessage = error.error.detail;
+      this.programContentService.createContent(contentData)
+        .pipe(finalize(() => this.isLoading = false))
+        .subscribe({
+          next: (content) => {
+            this.snackBar.open('Content created successfully', 'Close', { duration: 3000 });
+            this.dialogRef.close(content);
+          },
+          error: (error) => {
+            this.logger.error('Error creating content', error, { component: 'ContentDialogComponent', programId: this.data.programId });
+            let errorMessage = 'Failed to create content. Please try again.';
+            if (error?.error?.detail) {
+              errorMessage = error.error.detail;
+            }
+            this.snackBar.open(errorMessage, 'Close', { duration: 5000 });
           }
-          this.snackBar.open(errorMessage, 'Close', { duration: 5000 });
-        }
-      });
+        });
     }
   }
 

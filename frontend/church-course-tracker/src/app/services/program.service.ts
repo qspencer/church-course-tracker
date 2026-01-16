@@ -2,6 +2,7 @@ import { Injectable, isDevMode } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { LoggerService } from './logger.service';
 import {
   Program,
   ProgramCreate,
@@ -29,9 +30,12 @@ import {
 export class ProgramService {
   private readonly API_URL = `${environment.apiUrl}/programs`;
 
-  constructor(private http: HttpClient) {
+  constructor(
+    private http: HttpClient,
+    private logger: LoggerService
+  ) {
     if (isDevMode()) {
-      console.log('ProgramService API_URL:', this.API_URL);
+      this.logger.debug('ProgramService API_URL', { apiUrl: this.API_URL });
     }
   }
 
@@ -90,12 +94,32 @@ export class ProgramService {
     return this.http.get<ProgramParticipant[]>(`${this.API_URL}/participants`, { params: httpParams });
   }
 
-  getProgramParticipants(programId: number, status?: string): Observable<ProgramParticipant[]> {
+  getProgramParticipants(programId: number, status?: string, skip?: number, limit?: number, search?: string): Observable<ProgramParticipant[]> {
     let httpParams = new HttpParams();
     if (status) {
       httpParams = httpParams.set('status', status);
     }
+    if (skip !== undefined && skip !== null) {
+      httpParams = httpParams.set('skip', skip.toString());
+    }
+    if (limit !== undefined && limit !== null) {
+      httpParams = httpParams.set('limit', limit.toString());
+    }
+    if (search) {
+      httpParams = httpParams.set('search', search);
+    }
     return this.http.get<ProgramParticipant[]>(`${this.API_URL}/${programId}/participants`, { params: httpParams });
+  }
+
+  getProgramParticipantsCount(programId: number, status?: string, search?: string): Observable<{ count: number }> {
+    let httpParams = new HttpParams();
+    if (status) {
+      httpParams = httpParams.set('status', status);
+    }
+    if (search) {
+      httpParams = httpParams.set('search', search);
+    }
+    return this.http.get<{ count: number }>(`${this.API_URL}/${programId}/participants/count`, { params: httpParams });
   }
 
   addProgramParticipant(programId: number, participant: ProgramParticipantCreate): Observable<ProgramParticipant> {

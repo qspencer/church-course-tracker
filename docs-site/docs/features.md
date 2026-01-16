@@ -25,6 +25,26 @@ This document provides an overview of all the features available in the Church C
 
 ---
 
+### Program Management
+
+!!! success "Core Feature"
+    Create and manage mentoring and discipleship programs with participants, pairings, sessions, and progress tracking.
+
+**Key Capabilities**:
+- Create new programs for mentoring and discipleship
+- Manage program participants
+- Create and manage pairings (e.g., mentor-mentee relationships)
+- Schedule and manage program sessions
+- Track participant progress
+- Import programs and participants from Planning Center
+- Organize program content and materials
+
+**Who can use it**: Administrators and Staff can create and manage programs. All users can view available programs.
+
+**Why it's useful**: Provides a structured way to manage relationship-based learning programs, track mentoring relationships, and monitor participant engagement in discipleship programs.
+
+---
+
 ### Enrollment Tracking
 
 **What it does**: Track which members are enrolled in which courses.
@@ -128,6 +148,23 @@ This document provides an overview of all the features available in the Church C
 
 ---
 
+### System Settings Management
+
+**What it does**: Configure system-wide settings, integrations, security policies, and backup configurations.
+
+**Key Capabilities**:
+- Configure system settings (application name, version, environment, debug mode, session timeout, upload limits)
+- Manage Planning Center integration (API credentials, connection settings, caching)
+- Set security policies (password requirements, account lockout, session management, rate limiting)
+- Configure backup settings (frequency, retention, maintenance windows)
+- View and update system configuration
+
+**Who can use it**: Administrators only.
+
+**Why it's useful**: Allows administrators to customize the system to their church's needs, integrate with Planning Center, enforce security policies, and ensure data is backed up regularly.
+
+---
+
 ### Role-Based Access Control
 
 **What it does**: Different user roles have different permissions and capabilities.
@@ -141,18 +178,19 @@ This document provides an overview of all the features available in the Church C
    - Can view all audit logs
 
 2. **Staff**
-   - Can create and manage courses
+   - Can create and manage courses and programs
    - Can enroll members
    - Can upload and manage content
+   - Can manage program participants, pairings, and sessions
    - Can view reports
-   - Cannot manage users or delete courses
+   - Cannot manage users, system settings, or delete courses/programs
 
 3. **Viewer**
-   - Can view available courses
+   - Can view available courses and programs
    - Can enroll themselves in courses
-   - Can access course content
+   - Can access course and program content
    - Can track their own progress
-   - Cannot create or manage courses
+   - Cannot create or manage courses or programs
 
 **Why it's useful**: Ensures that people only have access to the features they need, improving security and preventing accidental changes.
 
@@ -194,16 +232,37 @@ This document provides an overview of all the features available in the Church C
 
 ### Planning Center Integration
 
-**What it does**: Connects with Planning Center (a church management system) to sync member data.
+**What it does**: Connects with Planning Center (a church management system) to sync member data, import programs, and manage participants.
 
 **Key Capabilities**:
 - Syncs member information from Planning Center
+- Import programs from Planning Center events
+- Import participants from Planning Center lists and events
+- Attribute mapping for custom fields
 - Keeps member data up to date
 - Reduces manual data entry
+- Configurable API settings and caching
 
-**Note**: This feature uses a mock API for demonstration purposes. In a production environment, it would connect to the actual Planning Center system.
+**Note**: The system includes a mock mode for testing. In production, it connects to the actual Planning Center API.
 
-**Why it's useful**: Saves time by automatically keeping member information synchronized between systems.
+**Why it's useful**: Saves time by automatically keeping member information synchronized between systems and allows seamless import of programs and participants with custom attribute mapping.
+
+---
+
+### Custom Attributes
+
+**What it does**: Store and manage additional data fields that don't have direct equivalents in the standard database schema.
+
+**Key Capabilities**:
+- Store custom attributes for people, courses, programs, enrollments, and program participants
+- Map Planning Center custom fields to custom attributes during import
+- Flexible key-value storage for any entity type
+- Track attribute source (Planning Center, manual entry, etc.)
+- Support for different attribute types (string, integer, date, boolean, JSON)
+
+**Who can use it**: Administrators and Staff can create and manage custom attributes. All users can view custom attributes for entities they have access to.
+
+**Why it's useful**: Allows you to store program-specific or event-specific data that doesn't fit into standard fields, especially when importing from Planning Center with custom fields.
 
 ---
 

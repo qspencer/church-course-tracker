@@ -2,8 +2,10 @@ import { Component, Inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { finalize } from 'rxjs/operators';
 import { MemberService } from '../../../services/member.service';
 import { UserService } from '../../../services/user.service';
+import { LoggerService } from '../../../services/logger.service';
 import { Person } from '../../../models';
 
 export interface MemberDialogData {
@@ -30,6 +32,7 @@ export class MemberDialogComponent implements OnInit {
            private fb: FormBuilder,
            private memberService: MemberService,
            private userService: UserService,
+    private logger: LoggerService,
            private snackBar: MatSnackBar,
            public dialogRef: MatDialogRef<MemberDialogComponent>,
            @Inject(MAT_DIALOG_DATA) public data: MemberDialogData
@@ -80,32 +83,34 @@ export class MemberDialogComponent implements OnInit {
   }
 
   createUserAccount(): void {
+    if (this.isCreatingUser) return; // Prevent double-submission
+
     if (!this.member?.planning_center_id) {
       this.snackBar.open('Member must have a Planning Center ID to create a user account', 'Close', { duration: 5000 });
       return;
     }
 
     this.isCreatingUser = true;
-    
+
     // Import user from Planning Center with instructor role
-    this.userService.importUserFromPlanningCenter(this.member.planning_center_id, 'instructor').subscribe({
-      next: (user) => {
-        this.isCreatingUser = false;
-        this.hasUserAccount = true;
-        this.snackBar.open(`User account created successfully! ${user.full_name} is now an instructor.`, 'Close', { duration: 5000 });
-      },
-      error: (error) => {
-        this.isCreatingUser = false;
-        console.error('Error creating user account:', error);
-        if (error.status === 409) {
-          // User already exists
+    this.userService.importUserFromPlanningCenter(this.member.planning_center_id, 'instructor')
+      .pipe(finalize(() => this.isCreatingUser = false))
+      .subscribe({
+        next: (user) => {
           this.hasUserAccount = true;
-          this.snackBar.open('User account already exists for this member', 'Close', { duration: 5000 });
-        } else {
-          this.snackBar.open('Error creating user account: ' + (error.error?.detail || error.message), 'Close', { duration: 5000 });
+          this.snackBar.open(`User account created successfully! ${user.full_name} is now an instructor.`, 'Close', { duration: 5000 });
+        },
+        error: (error) => {
+          this.logger.error('Error creating user account', error, { component: 'MemberDialogComponent', memberId: this.member?.id });
+          if (error.status === 409) {
+            // User already exists
+            this.hasUserAccount = true;
+            this.snackBar.open('User account already exists for this member', 'Close', { duration: 5000 });
+          } else {
+            this.snackBar.open('Error creating user account: ' + (error.error?.detail || error.message), 'Close', { duration: 5000 });
+          }
         }
-      }
-    });
+      });
   }
 
   formatDate(date: string | null | undefined): string {
@@ -126,43 +131,47 @@ export class MemberDialogComponent implements OnInit {
   onSubmit(): void {
     // Mark form as submitted to show validation errors
     this.isSubmitted = true;
-    
-    if (this.memberForm.valid) {
-      this.isLoading = true;
-      const formValue = { ...this.memberForm.value };
-      
-      // Remove planning_center_id if it's empty (optional field)
-      if (!formValue.planning_center_id || formValue.planning_center_id.trim() === '') {
-        delete formValue.planning_center_id;
-      }
 
-      if (this.isEditing && this.data.member) {
-        // Update existing member
-        this.memberService.updateMember(this.data.member.id, formValue).subscribe({
+    if (this.isLoading || !this.memberForm.valid) {
+      return;
+    }
+
+    this.isLoading = true;
+    const formValue = { ...this.memberForm.value };
+
+    // Remove planning_center_id if it's empty (optional field)
+    if (!formValue.planning_center_id || formValue.planning_center_id.trim() === '') {
+      delete formValue.planning_center_id;
+    }
+
+    if (this.isEditing && this.data.member) {
+      // Update existing member
+      this.memberService.updateMember(this.data.member.id, formValue)
+        .pipe(finalize(() => this.isLoading = false))
+        .subscribe({
           next: (member) => {
-            this.isLoading = false;
             this.snackBar.open('Member updated successfully', 'Close', { duration: 3000 });
             this.dialogRef.close(member);
           },
           error: (error) => {
-            this.isLoading = false;
-            console.error('Error updating member:', error);
+            this.logger.error('Error updating member', error, { component: 'MemberDialogComponent', memberId: this.data.member?.id });
+            this.snackBar.open('Failed to update member. Please try again.', 'Close', { duration: 5000 });
           }
         });
-      } else {
-        // Create new member
-        this.memberService.createMember(formValue).subscribe({
+    } else {
+      // Create new member
+      this.memberService.createMember(formValue)
+        .pipe(finalize(() => this.isLoading = false))
+        .subscribe({
           next: (member) => {
-            this.isLoading = false;
             this.snackBar.open('Member created successfully', 'Close', { duration: 3000 });
             this.dialogRef.close(member);
           },
           error: (error) => {
-            this.isLoading = false;
-            console.error('Error creating member:', error);
+            this.logger.error('Error creating member', error, { component: 'MemberDialogComponent' });
+            this.snackBar.open('Failed to create member. Please try again.', 'Close', { duration: 5000 });
           }
         });
-      }
     }
   }
 

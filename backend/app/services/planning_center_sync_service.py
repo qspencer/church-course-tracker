@@ -3,6 +3,7 @@ Planning Center Sync Service
 """
 
 import asyncio
+import logging
 import re
 import threading
 import uuid
@@ -15,6 +16,14 @@ import httpx
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
+from app.core.exceptions import (
+    PlanningCenterAPIError,
+    PlanningCenterAuthenticationError,
+    PlanningCenterRateLimitError,
+    PlanningCenterNotFoundError,
+)
+
+logger = logging.getLogger(__name__)
 from app.models.planning_center_events_cache import PlanningCenterEventsCache
 from app.models.planning_center_registrations_cache import \
     PlanningCenterRegistrationsCache
@@ -83,7 +92,7 @@ class PlanningCenterSyncService:
         sync_tasks[task_id] = {
             "task_type": task_type,
             "status": "pending",
-            "started_at": datetime.utcnow(),
+            "started_at": datetime.now(timezone.utc),
             "progress": 0,
             "message": "Task queued",
             "result": None,
@@ -113,9 +122,18 @@ class PlanningCenterSyncService:
 
         # Start background task
         def run_sync():
-            asyncio.run(self._sync_people_background(task_id, updated_by))
+            try:
+                asyncio.run(self._sync_people_background(task_id, updated_by))
+                logger.info(f"Background sync {task_id} completed successfully")
+                self._update_sync_task(task_id, status="completed")
+            except Exception as e:
+                logger.error(f"Background sync {task_id} failed: {e}", exc_info=True)
+                try:
+                    self._update_sync_task(task_id, status="failed", message=str(e))
+                except Exception as db_error:
+                    logger.error(f"Failed to update task status: {db_error}", exc_info=True)
 
-        thread = threading.Thread(target=run_sync, daemon=True)
+        thread = threading.Thread(target=run_sync, daemon=False)
         thread.start()
 
         return task_id
@@ -126,9 +144,18 @@ class PlanningCenterSyncService:
 
         # Start background task
         def run_sync():
-            asyncio.run(self._sync_events_background(task_id, updated_by))
+            try:
+                asyncio.run(self._sync_events_background(task_id, updated_by))
+                logger.info(f"Background sync {task_id} completed successfully")
+                self._update_sync_task(task_id, status="completed")
+            except Exception as e:
+                logger.error(f"Background sync {task_id} failed: {e}", exc_info=True)
+                try:
+                    self._update_sync_task(task_id, status="failed", message=str(e))
+                except Exception as db_error:
+                    logger.error(f"Failed to update task status: {db_error}", exc_info=True)
 
-        thread = threading.Thread(target=run_sync, daemon=True)
+        thread = threading.Thread(target=run_sync, daemon=False)
         thread.start()
 
         return task_id
@@ -141,11 +168,20 @@ class PlanningCenterSyncService:
 
         # Start background task
         def run_sync():
-            asyncio.run(
-                self._sync_registrations_background(task_id, event_id, updated_by)
-            )
+            try:
+                asyncio.run(
+                    self._sync_registrations_background(task_id, event_id, updated_by)
+                )
+                logger.info(f"Background sync {task_id} completed successfully")
+                self._update_sync_task(task_id, status="completed")
+            except Exception as e:
+                logger.error(f"Background sync {task_id} failed: {e}", exc_info=True)
+                try:
+                    self._update_sync_task(task_id, status="failed", message=str(e))
+                except Exception as db_error:
+                    logger.error(f"Failed to update task status: {db_error}", exc_info=True)
 
-        thread = threading.Thread(target=run_sync, daemon=True)
+        thread = threading.Thread(target=run_sync, daemon=False)
         thread.start()
 
         return task_id
@@ -176,7 +212,7 @@ class PlanningCenterSyncService:
             sync_log = PlanningCenterSyncLog(
                 sync_type="people",
                 sync_direction="from_pc",
-                started_at=datetime.utcnow(),
+                started_at=datetime.now(timezone.utc),
                 created_by=updated_by,
             )
             db.add(sync_log)
@@ -189,14 +225,33 @@ class PlanningCenterSyncService:
                     progress=10,
                     message="Fetching people from Planning Center...",
                 )
-                response = await client.get(
-                    f"{self.base_url}/people/v2/people",
-                    headers=self.headers,
-                    params={"per_page": 100},
-                )
-                response.raise_for_status()
-
-                people_data = response.json()
+                try:
+                    response = await client.get(
+                        f"{self.base_url}/people/v2/people",
+                        headers=self.headers,
+                        params={"per_page": 100},
+                    )
+                    response.raise_for_status()
+                    people_data = response.json()
+                except httpx.TimeoutException:
+                    logger.warning(f"Request timed out: {self.base_url}/people/v2/people")
+                    raise PlanningCenterAPIError("Request timed out", status_code=504)
+                except httpx.HTTPStatusError as e:
+                    if e.response.status_code == 401:
+                        raise PlanningCenterAuthenticationError("Authentication failed", status_code=401)
+                    elif e.response.status_code == 429:
+                        raise PlanningCenterRateLimitError("Rate limit exceeded", status_code=429)
+                    elif e.response.status_code == 404:
+                        raise PlanningCenterNotFoundError("Resource not found", status_code=404)
+                    else:
+                        logger.error(f"HTTP error {e.response.status_code}: {e}")
+                        raise PlanningCenterAPIError(f"HTTP {e.response.status_code}", status_code=e.response.status_code)
+                except httpx.ConnectError as e:
+                    logger.error(f"Connection error: {e}")
+                    raise PlanningCenterAPIError("Cannot connect to Planning Center")
+                except ValueError as e:  # JSON decode errors
+                    logger.error(f"Invalid JSON response: {e}")
+                    raise PlanningCenterAPIError("Invalid response format")
                 records_processed = 0
                 records_successful = 0
                 records_failed = 0
@@ -255,7 +310,7 @@ class PlanningCenterSyncService:
                 sync_log.records_processed = records_processed
                 sync_log.records_successful = records_successful
                 sync_log.records_failed = records_failed
-                sync_log.completed_at = datetime.utcnow()
+                sync_log.completed_at = datetime.now(timezone.utc)
                 if errors:
                     sync_log.error_details = {"errors": errors}
 
@@ -285,7 +340,7 @@ class PlanningCenterSyncService:
                 error=str(e),
             )
             if "sync_log" in locals():
-                sync_log.completed_at = datetime.utcnow()
+                sync_log.completed_at = datetime.now(timezone.utc)
                 sync_log.error_details = {"error": str(e)}
                 db.commit()
         finally:
@@ -304,7 +359,7 @@ class PlanningCenterSyncService:
             sync_log = PlanningCenterSyncLog(
                 sync_type="events",
                 sync_direction="from_pc",
-                started_at=datetime.utcnow(),
+                started_at=datetime.now(timezone.utc),
                 created_by=updated_by,
             )
             db.add(sync_log)
@@ -317,14 +372,33 @@ class PlanningCenterSyncService:
                     progress=10,
                     message="Fetching events from Planning Center...",
                 )
-                response = await client.get(
-                    f"{self.base_url}/events/v2/events",
-                    headers=self.headers,
-                    params={"per_page": 100},
-                )
-                response.raise_for_status()
-
-                events_data = response.json()
+                try:
+                    response = await client.get(
+                        f"{self.base_url}/events/v2/events",
+                        headers=self.headers,
+                        params={"per_page": 100},
+                    )
+                    response.raise_for_status()
+                    events_data = response.json()
+                except httpx.TimeoutException:
+                    logger.warning(f"Request timed out: {self.base_url}/events/v2/events")
+                    raise PlanningCenterAPIError("Request timed out", status_code=504)
+                except httpx.HTTPStatusError as e:
+                    if e.response.status_code == 401:
+                        raise PlanningCenterAuthenticationError("Authentication failed", status_code=401)
+                    elif e.response.status_code == 429:
+                        raise PlanningCenterRateLimitError("Rate limit exceeded", status_code=429)
+                    elif e.response.status_code == 404:
+                        raise PlanningCenterNotFoundError("Resource not found", status_code=404)
+                    else:
+                        logger.error(f"HTTP error {e.response.status_code}: {e}")
+                        raise PlanningCenterAPIError(f"HTTP {e.response.status_code}", status_code=e.response.status_code)
+                except httpx.ConnectError as e:
+                    logger.error(f"Connection error: {e}")
+                    raise PlanningCenterAPIError("Cannot connect to Planning Center")
+                except ValueError as e:  # JSON decode errors
+                    logger.error(f"Invalid JSON response: {e}")
+                    raise PlanningCenterAPIError("Invalid response format")
                 records_processed = 0
                 records_successful = 0
                 records_failed = 0
@@ -365,7 +439,7 @@ class PlanningCenterSyncService:
                 sync_log.records_processed = records_processed
                 sync_log.records_successful = records_successful
                 sync_log.records_failed = records_failed
-                sync_log.completed_at = datetime.utcnow()
+                sync_log.completed_at = datetime.now(timezone.utc)
                 if errors:
                     sync_log.error_details = {"errors": errors}
 
@@ -395,7 +469,7 @@ class PlanningCenterSyncService:
                 error=str(e),
             )
             if "sync_log" in locals():
-                sync_log.completed_at = datetime.utcnow()
+                sync_log.completed_at = datetime.now(timezone.utc)
                 sync_log.error_details = {"error": str(e)}
                 db.commit()
         finally:
@@ -417,7 +491,7 @@ class PlanningCenterSyncService:
             sync_log = PlanningCenterSyncLog(
                 sync_type="registrations",
                 sync_direction="from_pc",
-                started_at=datetime.utcnow(),
+                started_at=datetime.now(timezone.utc),
                 created_by=updated_by,
             )
             db.add(sync_log)
@@ -436,13 +510,33 @@ class PlanningCenterSyncService:
                         progress=10,
                         message=f"Fetching registrations for event {event_id}...",
                     )
-                    response = await client.get(
-                        f"{self.base_url}/events/v2/events/{event_id}/registrations",
-                        headers=self.headers,
-                        params={"per_page": 100},
-                    )
-                    response.raise_for_status()
-                    registrations_data = response.json()
+                    try:
+                        response = await client.get(
+                            f"{self.base_url}/events/v2/events/{event_id}/registrations",
+                            headers=self.headers,
+                            params={"per_page": 100},
+                        )
+                        response.raise_for_status()
+                        registrations_data = response.json()
+                    except httpx.TimeoutException:
+                        logger.warning(f"Request timed out: event {event_id} registrations")
+                        raise PlanningCenterAPIError("Request timed out", status_code=504)
+                    except httpx.HTTPStatusError as e:
+                        if e.response.status_code == 401:
+                            raise PlanningCenterAuthenticationError("Authentication failed", status_code=401)
+                        elif e.response.status_code == 429:
+                            raise PlanningCenterRateLimitError("Rate limit exceeded", status_code=429)
+                        elif e.response.status_code == 404:
+                            raise PlanningCenterNotFoundError("Resource not found", status_code=404)
+                        else:
+                            logger.error(f"HTTP error {e.response.status_code}: {e}")
+                            raise PlanningCenterAPIError(f"HTTP {e.response.status_code}", status_code=e.response.status_code)
+                    except httpx.ConnectError as e:
+                        logger.error(f"Connection error: {e}")
+                        raise PlanningCenterAPIError("Cannot connect to Planning Center")
+                    except ValueError as e:  # JSON decode errors
+                        logger.error(f"Invalid JSON response: {e}")
+                        raise PlanningCenterAPIError("Invalid response format")
 
                     total_records = len(registrations_data.get("data", []))
                     self._update_sync_task(
@@ -485,13 +579,33 @@ class PlanningCenterSyncService:
                         progress=10,
                         message="Fetching all events for registration sync...",
                     )
-                    events_response = await client.get(
-                        f"{self.base_url}/events/v2/events",
-                        headers=self.headers,
-                        params={"per_page": 100},
-                    )
-                    events_response.raise_for_status()
-                    events_data = events_response.json()
+                    try:
+                        events_response = await client.get(
+                            f"{self.base_url}/events/v2/events",
+                            headers=self.headers,
+                            params={"per_page": 100},
+                        )
+                        events_response.raise_for_status()
+                        events_data = events_response.json()
+                    except httpx.TimeoutException:
+                        logger.warning(f"Request timed out: fetching events")
+                        raise PlanningCenterAPIError("Request timed out", status_code=504)
+                    except httpx.HTTPStatusError as e:
+                        if e.response.status_code == 401:
+                            raise PlanningCenterAuthenticationError("Authentication failed", status_code=401)
+                        elif e.response.status_code == 429:
+                            raise PlanningCenterRateLimitError("Rate limit exceeded", status_code=429)
+                        elif e.response.status_code == 404:
+                            raise PlanningCenterNotFoundError("Resource not found", status_code=404)
+                        else:
+                            logger.error(f"HTTP error {e.response.status_code}: {e}")
+                            raise PlanningCenterAPIError(f"HTTP {e.response.status_code}", status_code=e.response.status_code)
+                    except httpx.ConnectError as e:
+                        logger.error(f"Connection error: {e}")
+                        raise PlanningCenterAPIError("Cannot connect to Planning Center")
+                    except ValueError as e:  # JSON decode errors
+                        logger.error(f"Invalid JSON response: {e}")
+                        raise PlanningCenterAPIError("Invalid response format")
 
                     total_events = len(events_data.get("data", []))
                     self._update_sync_task(
@@ -502,13 +616,33 @@ class PlanningCenterSyncService:
 
                     for event_idx, event_data in enumerate(events_data.get("data", [])):
                         event_id = event_data.get("id")
-                        registrations_response = await client.get(
-                            f"{self.base_url}/events/v2/events/{event_id}/registrations",
-                            headers=self.headers,
-                            params={"per_page": 100},
-                        )
-                        registrations_response.raise_for_status()
-                        registrations_data = registrations_response.json()
+                        try:
+                            registrations_response = await client.get(
+                                f"{self.base_url}/events/v2/events/{event_id}/registrations",
+                                headers=self.headers,
+                                params={"per_page": 100},
+                            )
+                            registrations_response.raise_for_status()
+                            registrations_data = registrations_response.json()
+                        except httpx.TimeoutException:
+                            logger.warning(f"Request timed out: event {event_id} registrations")
+                            raise PlanningCenterAPIError("Request timed out", status_code=504)
+                        except httpx.HTTPStatusError as e:
+                            if e.response.status_code == 401:
+                                raise PlanningCenterAuthenticationError("Authentication failed", status_code=401)
+                            elif e.response.status_code == 429:
+                                raise PlanningCenterRateLimitError("Rate limit exceeded", status_code=429)
+                            elif e.response.status_code == 404:
+                                raise PlanningCenterNotFoundError("Resource not found", status_code=404)
+                            else:
+                                logger.error(f"HTTP error {e.response.status_code}: {e}")
+                                raise PlanningCenterAPIError(f"HTTP {e.response.status_code}", status_code=e.response.status_code)
+                        except httpx.ConnectError as e:
+                            logger.error(f"Connection error: {e}")
+                            raise PlanningCenterAPIError("Cannot connect to Planning Center")
+                        except ValueError as e:  # JSON decode errors
+                            logger.error(f"Invalid JSON response: {e}")
+                            raise PlanningCenterAPIError("Invalid response format")
 
                         for registration_data in registrations_data.get("data", []):
                             records_processed += 1
@@ -540,7 +674,7 @@ class PlanningCenterSyncService:
                 sync_log.records_processed = records_processed
                 sync_log.records_successful = records_successful
                 sync_log.records_failed = records_failed
-                sync_log.completed_at = datetime.utcnow()
+                sync_log.completed_at = datetime.now(timezone.utc)
                 if errors:
                     sync_log.error_details = {"errors": errors}
 
@@ -570,7 +704,7 @@ class PlanningCenterSyncService:
                 error=str(e),
             )
             if "sync_log" in locals():
-                sync_log.completed_at = datetime.utcnow()
+                sync_log.completed_at = datetime.now(timezone.utc)
                 sync_log.error_details = {"error": str(e)}
                 db.commit()
         finally:
@@ -641,7 +775,7 @@ class PlanningCenterSyncService:
         sync_log = PlanningCenterSyncLog(
             sync_type="people",
             sync_direction="from_pc",
-            started_at=datetime.utcnow(),
+            started_at=datetime.now(timezone.utc),
             created_by=updated_by,
         )
         self.db.add(sync_log)
@@ -650,14 +784,33 @@ class PlanningCenterSyncService:
         try:
             async with httpx.AsyncClient() as client:
                 # Get all people from Planning Center
-                response = await client.get(
-                    f"{self.base_url}/people/v2/people",
-                    headers=self.headers,
-                    params={"per_page": 100},
-                )
-                response.raise_for_status()
-
-                people_data = response.json()
+                try:
+                    response = await client.get(
+                        f"{self.base_url}/people/v2/people",
+                        headers=self.headers,
+                        params={"per_page": 100},
+                    )
+                    response.raise_for_status()
+                    people_data = response.json()
+                except httpx.TimeoutException:
+                    logger.warning(f"Request timed out: {self.base_url}/people/v2/people")
+                    raise PlanningCenterAPIError("Request timed out", status_code=504)
+                except httpx.HTTPStatusError as e:
+                    if e.response.status_code == 401:
+                        raise PlanningCenterAuthenticationError("Authentication failed", status_code=401)
+                    elif e.response.status_code == 429:
+                        raise PlanningCenterRateLimitError("Rate limit exceeded", status_code=429)
+                    elif e.response.status_code == 404:
+                        raise PlanningCenterNotFoundError("Resource not found", status_code=404)
+                    else:
+                        logger.error(f"HTTP error {e.response.status_code}: {e}")
+                        raise PlanningCenterAPIError(f"HTTP {e.response.status_code}", status_code=e.response.status_code)
+                except httpx.ConnectError as e:
+                    logger.error(f"Connection error: {e}")
+                    raise PlanningCenterAPIError("Cannot connect to Planning Center")
+                except ValueError as e:  # JSON decode errors
+                    logger.error(f"Invalid JSON response: {e}")
+                    raise PlanningCenterAPIError("Invalid response format")
                 records_processed = 0
                 records_successful = 0
                 records_failed = 0
@@ -678,7 +831,7 @@ class PlanningCenterSyncService:
                 sync_log.records_processed = records_processed
                 sync_log.records_successful = records_successful
                 sync_log.records_failed = records_failed
-                sync_log.completed_at = datetime.utcnow()
+                sync_log.completed_at = datetime.now(timezone.utc)
                 if errors:
                     sync_log.error_details = {"errors": errors}
 
@@ -693,7 +846,7 @@ class PlanningCenterSyncService:
                 }
 
         except Exception as e:
-            sync_log.completed_at = datetime.utcnow()
+            sync_log.completed_at = datetime.now(timezone.utc)
             sync_log.error_details = {"error": str(e)}
             self.db.commit()
 
@@ -704,7 +857,7 @@ class PlanningCenterSyncService:
         sync_log = PlanningCenterSyncLog(
             sync_type="events",
             sync_direction="from_pc",
-            started_at=datetime.utcnow(),
+            started_at=datetime.now(timezone.utc),
             created_by=updated_by,
         )
         self.db.add(sync_log)
@@ -713,14 +866,33 @@ class PlanningCenterSyncService:
         try:
             async with httpx.AsyncClient() as client:
                 # Get all events from Planning Center
-                response = await client.get(
-                    f"{self.base_url}/events/v2/events",
-                    headers=self.headers,
-                    params={"per_page": 100},
-                )
-                response.raise_for_status()
-
-                events_data = response.json()
+                try:
+                    response = await client.get(
+                        f"{self.base_url}/events/v2/events",
+                        headers=self.headers,
+                        params={"per_page": 100},
+                    )
+                    response.raise_for_status()
+                    events_data = response.json()
+                except httpx.TimeoutException:
+                    logger.warning(f"Request timed out: {self.base_url}/events/v2/events")
+                    raise PlanningCenterAPIError("Request timed out", status_code=504)
+                except httpx.HTTPStatusError as e:
+                    if e.response.status_code == 401:
+                        raise PlanningCenterAuthenticationError("Authentication failed", status_code=401)
+                    elif e.response.status_code == 429:
+                        raise PlanningCenterRateLimitError("Rate limit exceeded", status_code=429)
+                    elif e.response.status_code == 404:
+                        raise PlanningCenterNotFoundError("Resource not found", status_code=404)
+                    else:
+                        logger.error(f"HTTP error {e.response.status_code}: {e}")
+                        raise PlanningCenterAPIError(f"HTTP {e.response.status_code}", status_code=e.response.status_code)
+                except httpx.ConnectError as e:
+                    logger.error(f"Connection error: {e}")
+                    raise PlanningCenterAPIError("Cannot connect to Planning Center")
+                except ValueError as e:  # JSON decode errors
+                    logger.error(f"Invalid JSON response: {e}")
+                    raise PlanningCenterAPIError("Invalid response format")
                 records_processed = 0
                 records_successful = 0
                 records_failed = 0
@@ -745,7 +917,7 @@ class PlanningCenterSyncService:
                 sync_log.records_processed = records_processed
                 sync_log.records_successful = records_successful
                 sync_log.records_failed = records_failed
-                sync_log.completed_at = datetime.utcnow()
+                sync_log.completed_at = datetime.now(timezone.utc)
                 if errors:
                     sync_log.error_details = {"errors": errors}
 
@@ -760,7 +932,7 @@ class PlanningCenterSyncService:
                 }
 
         except Exception as e:
-            sync_log.completed_at = datetime.utcnow()
+            sync_log.completed_at = datetime.now(timezone.utc)
             sync_log.error_details = {"error": str(e)}
             self.db.commit()
 
@@ -870,11 +1042,22 @@ class PlanningCenterSyncService:
                             self._update_events_cache(events)
                         return events
                     raise
+        except httpx.TimeoutException:
+            logger.warning("Request timed out while fetching events")
+            raise PlanningCenterAPIError("Request timed out", status_code=504)
+        except httpx.ConnectError as e:
+            logger.error(f"Connection error: {e}")
+            raise PlanningCenterAPIError("Cannot connect to Planning Center")
         except httpx.RequestError as e:
-            raise ValueError(f"Failed to connect to Planning Center API: {str(e)}")
+            logger.error(f"Request error: {e}")
+            raise PlanningCenterAPIError(f"Request failed: {str(e)}")
+        except ValueError as e:  # JSON decode errors
+            logger.error(f"Invalid JSON response: {e}")
+            raise PlanningCenterAPIError("Invalid response format")
         except Exception as e:
-            raise ValueError(f"Unexpected error fetching events: {str(e)}")
-    
+            logger.error(f"Unexpected error fetching events: {e}", exc_info=True)
+            raise
+
     def _get_events_from_calendar(self, client) -> List[Dict[str, Any]]:
         """
         Get events from Calendar API as fallback when Check-Ins API is not available
@@ -905,7 +1088,8 @@ class PlanningCenterSyncService:
                     try:
                         error_data = response.json()
                         error_detail = error_data.get("errors", [{}])[0].get("detail", str(response.text))
-                    except:
+                    except (ValueError, KeyError, IndexError) as e:
+                        logger.debug(f"Could not parse error JSON from Planning Center response: {e}")
                         error_detail = str(response.text)
                     raise ValueError(f"Planning Center API authentication failed. Please check your PLANNING_CENTER_APP_ID and PLANNING_CENTER_SECRET credentials. Error: {error_detail}")
                 
@@ -935,32 +1119,40 @@ class PlanningCenterSyncService:
             
             logger.info(f"Retrieved {len(events)} events from Calendar API")
             return events
+        except httpx.TimeoutException:
+            logger.warning("Request timed out while fetching events from Calendar API")
+            raise PlanningCenterAPIError("Request timed out", status_code=504)
         except httpx.HTTPStatusError as e:
             if e.response.status_code == 401:
-                raise
-            raise ValueError(f"Planning Center Calendar API error: {e.response.status_code} - {e.response.text}")
-        except Exception as e:
-            raise ValueError(f"Unexpected error fetching events from Calendar API: {str(e)}")
-        except httpx.HTTPStatusError as e:
-            if e.response.status_code == 404:
-                return []
-            elif e.response.status_code == 401:
-                # Authentication failed - raise error with details
-                import logging
-                logger = logging.getLogger(__name__)
                 error_detail = "Unknown error"
                 try:
                     error_data = e.response.json()
                     error_detail = error_data.get("errors", [{}])[0].get("detail", str(e.response.text))
-                except:
+                except (ValueError, KeyError, IndexError) as json_error:
+                    logger.debug(f"Could not parse error JSON from Planning Center response: {json_error}")
                     error_detail = str(e.response.text)
                 logger.error(f"Planning Center API authentication failed (401): {error_detail}")
-                raise ValueError(f"Planning Center API authentication failed. Please check your PLANNING_CENTER_APP_ID and PLANNING_CENTER_SECRET credentials. Error: {error_detail}")
-            raise ValueError(f"Planning Center API error: {e.response.status_code} - {e.response.text}")
+                raise PlanningCenterAuthenticationError(f"Authentication failed: {error_detail}", status_code=401)
+            elif e.response.status_code == 429:
+                raise PlanningCenterRateLimitError("Rate limit exceeded", status_code=429)
+            elif e.response.status_code == 404:
+                logger.warning("Calendar API returned 404")
+                raise PlanningCenterNotFoundError("Resource not found", status_code=404)
+            else:
+                logger.error(f"HTTP error {e.response.status_code}: {e}")
+                raise PlanningCenterAPIError(f"HTTP {e.response.status_code}", status_code=e.response.status_code)
+        except httpx.ConnectError as e:
+            logger.error(f"Connection error: {e}")
+            raise PlanningCenterAPIError("Cannot connect to Planning Center")
         except httpx.RequestError as e:
-            raise ValueError(f"Failed to connect to Planning Center API: {str(e)}")
+            logger.error(f"Request error: {e}")
+            raise PlanningCenterAPIError(f"Request failed: {str(e)}")
+        except ValueError as e:  # JSON decode errors
+            logger.error(f"Invalid JSON response: {e}")
+            raise PlanningCenterAPIError("Invalid response format")
         except Exception as e:
-            raise ValueError(f"Unexpected error fetching events: {str(e)}")
+            logger.error(f"Unexpected error fetching events from Calendar API: {e}", exc_info=True)
+            raise
 
     def get_lists(self) -> List[Dict[str, Any]]:
         """
@@ -1082,16 +1274,31 @@ class PlanningCenterSyncService:
                 data = response.json()
                 
                 return data.get("data")
+        except httpx.TimeoutException:
+            logger.warning(f"Request timed out: event {event_id}")
+            raise PlanningCenterAPIError("Request timed out", status_code=504)
         except httpx.HTTPStatusError as e:
             if e.response.status_code in (401, 404):
                 # Try Calendar API as fallback
                 return self._get_event_from_calendar(event_id)
-            raise ValueError(f"Planning Center API error: {e.response.status_code} - {e.response.text}")
+            elif e.response.status_code == 429:
+                raise PlanningCenterRateLimitError("Rate limit exceeded", status_code=429)
+            else:
+                logger.error(f"HTTP error {e.response.status_code}: {e}")
+                raise PlanningCenterAPIError(f"HTTP {e.response.status_code}", status_code=e.response.status_code)
+        except httpx.ConnectError as e:
+            logger.error(f"Connection error: {e}")
+            raise PlanningCenterAPIError("Cannot connect to Planning Center")
         except httpx.RequestError as e:
-            raise ValueError(f"Failed to connect to Planning Center API: {str(e)}")
+            logger.error(f"Request error: {e}")
+            raise PlanningCenterAPIError(f"Request failed: {str(e)}")
+        except ValueError as e:  # JSON decode errors
+            logger.error(f"Invalid JSON response: {e}")
+            raise PlanningCenterAPIError("Invalid response format")
         except Exception as e:
-            raise ValueError(f"Unexpected error fetching event: {str(e)}")
-    
+            logger.error(f"Unexpected error fetching event: {e}", exc_info=True)
+            raise
+
     def _get_event_from_calendar(self, event_id: str) -> Optional[Dict[str, Any]]:
         """
         Get a single event from Calendar API (fallback method)
@@ -1118,14 +1325,31 @@ class PlanningCenterSyncService:
                 data = response.json()
                 
                 return data.get("data")
+        except httpx.TimeoutException:
+            logger.warning(f"Request timed out: calendar event {event_id}")
+            raise PlanningCenterAPIError("Request timed out", status_code=504)
         except httpx.HTTPStatusError as e:
             if e.response.status_code == 404:
                 return None
-            raise ValueError(f"Planning Center Calendar API error: {e.response.status_code} - {e.response.text}")
+            elif e.response.status_code == 401:
+                raise PlanningCenterAuthenticationError("Authentication failed", status_code=401)
+            elif e.response.status_code == 429:
+                raise PlanningCenterRateLimitError("Rate limit exceeded", status_code=429)
+            else:
+                logger.error(f"HTTP error {e.response.status_code}: {e}")
+                raise PlanningCenterAPIError(f"HTTP {e.response.status_code}", status_code=e.response.status_code)
+        except httpx.ConnectError as e:
+            logger.error(f"Connection error: {e}")
+            raise PlanningCenterAPIError("Cannot connect to Planning Center")
         except httpx.RequestError as e:
-            raise ValueError(f"Failed to connect to Planning Center Calendar API: {str(e)}")
+            logger.error(f"Request error: {e}")
+            raise PlanningCenterAPIError(f"Request failed: {str(e)}")
+        except ValueError as e:  # JSON decode errors
+            logger.error(f"Invalid JSON response: {e}")
+            raise PlanningCenterAPIError("Invalid response format")
         except Exception as e:
-            raise ValueError(f"Unexpected error fetching event from Calendar API: {str(e)}")
+            logger.error(f"Unexpected error fetching event from Calendar API: {e}", exc_info=True)
+            raise
 
     def search_people(self, search_term: str, limit: int = 20) -> List[Dict[str, Any]]:
         """
@@ -1279,18 +1503,32 @@ class PlanningCenterSyncService:
                         page += 1
                 
                 return filtered_people[:limit]
-                
+
+        except httpx.TimeoutException:
+            logger.warning("Request timed out while searching people")
+            raise PlanningCenterAPIError("Request timed out", status_code=504)
         except httpx.HTTPStatusError as e:
             if e.response.status_code == 404:
                 return []
-            logger.error(f"Planning Center API error: {e.response.status_code} - {e.response.text}")
-            raise ValueError(f"Planning Center API error: {e.response.status_code} - {e.response.text}")
+            elif e.response.status_code == 401:
+                raise PlanningCenterAuthenticationError("Authentication failed", status_code=401)
+            elif e.response.status_code == 429:
+                raise PlanningCenterRateLimitError("Rate limit exceeded", status_code=429)
+            else:
+                logger.error(f"HTTP error {e.response.status_code}: {e}")
+                raise PlanningCenterAPIError(f"HTTP {e.response.status_code}", status_code=e.response.status_code)
+        except httpx.ConnectError as e:
+            logger.error(f"Connection error: {e}")
+            raise PlanningCenterAPIError("Cannot connect to Planning Center")
         except httpx.RequestError as e:
-            logger.error(f"Failed to connect to Planning Center API: {str(e)}")
-            raise ValueError(f"Failed to connect to Planning Center API: {str(e)}")
+            logger.error(f"Request error: {e}")
+            raise PlanningCenterAPIError(f"Request failed: {str(e)}")
+        except ValueError as e:  # JSON decode errors
+            logger.error(f"Invalid JSON response: {e}")
+            raise PlanningCenterAPIError("Invalid response format")
         except Exception as e:
-            logger.exception(f"Unexpected error searching people: {str(e)}")
-            raise ValueError(f"Unexpected error searching people: {str(e)}")
+            logger.error(f"Unexpected error searching people: {e}", exc_info=True)
+            raise
     
     def _attach_included_data(self, people: List[Dict[str, Any]], included: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """
@@ -1446,16 +1684,33 @@ class PlanningCenterSyncService:
                     
                 response.raise_for_status()
                 data = response.json()
-                
+
                 return data.get("data")
+        except httpx.TimeoutException:
+            logger.warning(f"Request timed out while fetching list {list_id}")
+            raise PlanningCenterAPIError("Request timed out", status_code=504)
         except httpx.HTTPStatusError as e:
             if e.response.status_code == 404:
                 return None
-            raise ValueError(f"Planning Center API error: {e.response.status_code} - {e.response.text}")
+            elif e.response.status_code == 401:
+                raise PlanningCenterAuthenticationError("Authentication failed", status_code=401)
+            elif e.response.status_code == 429:
+                raise PlanningCenterRateLimitError("Rate limit exceeded", status_code=429)
+            else:
+                logger.error(f"HTTP error {e.response.status_code}: {e}")
+                raise PlanningCenterAPIError(f"HTTP {e.response.status_code}", status_code=e.response.status_code)
+        except httpx.ConnectError as e:
+            logger.error(f"Connection error: {e}")
+            raise PlanningCenterAPIError("Cannot connect to Planning Center")
         except httpx.RequestError as e:
-            raise ValueError(f"Failed to connect to Planning Center API: {str(e)}")
+            logger.error(f"Request error: {e}")
+            raise PlanningCenterAPIError(f"Request failed: {str(e)}")
+        except ValueError as e:  # JSON decode errors
+            logger.error(f"Invalid JSON response: {e}")
+            raise PlanningCenterAPIError("Invalid response format")
         except Exception as e:
-            raise ValueError(f"Unexpected error fetching list: {str(e)}")
+            logger.error(f"Unexpected error fetching list: {e}", exc_info=True)
+            raise
 
     def get_event_registrations(self, event_id: str) -> List[Dict[str, Any]]:
         """
@@ -2597,21 +2852,36 @@ class PlanningCenterSyncService:
                 # No registrations found in any API
                 logger.warning(f"No registrations found for event '{event_id}' in any Planning Center API endpoint")
                 return []
+        except httpx.TimeoutException:
+            logger.warning(f"Request timed out while fetching registrations for event {event_id}")
+            raise PlanningCenterAPIError("Request timed out", status_code=504)
         except httpx.HTTPStatusError as e:
             if e.response.status_code == 404:
                 # Event not found or has no registrations - return empty list
                 logger.info(f"Planning Center event '{event_id}' not found or has no registrations (HTTP 404)")
                 return []
-            if e.response.status_code == 401:
+            elif e.response.status_code == 401:
                 # No access to registrations - return empty list
                 logger.info(f"Planning Center event '{event_id}' - no access to registrations (HTTP 401)")
                 return []
-            error_text = str(e.response.text) if e.response.text else str(e.response.status_code)
-            raise ValueError(f"Planning Center API error: {e.response.status_code} - {error_text}")
+            elif e.response.status_code == 429:
+                raise PlanningCenterRateLimitError("Rate limit exceeded", status_code=429)
+            else:
+                error_text = str(e.response.text) if e.response.text else str(e.response.status_code)
+                logger.error(f"HTTP error {e.response.status_code}: {error_text}")
+                raise PlanningCenterAPIError(f"HTTP {e.response.status_code}", status_code=e.response.status_code)
+        except httpx.ConnectError as e:
+            logger.error(f"Connection error: {e}")
+            raise PlanningCenterAPIError("Cannot connect to Planning Center")
         except httpx.RequestError as e:
-            raise ValueError(f"Failed to connect to Planning Center API: {str(e)}")
+            logger.error(f"Request error: {e}")
+            raise PlanningCenterAPIError(f"Request failed: {str(e)}")
+        except ValueError as e:  # JSON decode errors
+            logger.error(f"Invalid JSON response: {e}")
+            raise PlanningCenterAPIError("Invalid response format")
         except Exception as e:
-            raise ValueError(f"Unexpected error fetching registrations: {str(e)}")
+            logger.error(f"Unexpected error fetching registrations: {e}", exc_info=True)
+            raise
 
     def _get_registrations_from_checkins(self, event_id: str) -> List[Dict[str, Any]]:
         """
@@ -2723,7 +2993,7 @@ class PlanningCenterSyncService:
         sync_log = PlanningCenterSyncLog(
             sync_type="registrations",
             sync_direction="from_pc",
-            started_at=datetime.utcnow(),
+            started_at=datetime.now(timezone.utc),
             created_by=updated_by,
         )
         self.db.add(sync_log)
@@ -2804,7 +3074,7 @@ class PlanningCenterSyncService:
                 sync_log.records_processed = records_processed
                 sync_log.records_successful = records_successful
                 sync_log.records_failed = records_failed
-                sync_log.completed_at = datetime.utcnow()
+                sync_log.completed_at = datetime.now(timezone.utc)
                 if errors:
                     sync_log.error_details = {"errors": errors}
 
@@ -2819,7 +3089,7 @@ class PlanningCenterSyncService:
                 }
 
         except Exception as e:
-            sync_log.completed_at = datetime.utcnow()
+            sync_log.completed_at = datetime.now(timezone.utc)
             sync_log.error_details = {"error": str(e)}
             self.db.commit()
 
@@ -3033,8 +3303,8 @@ class PlanningCenterSyncService:
             existing_cache.custom_field_responses = get_val(
                 "custom_field_responses"
             )
-            existing_cache.last_synced_at = datetime.utcnow()
-            existing_cache.updated_at = datetime.utcnow()
+            existing_cache.last_synced_at = datetime.now(timezone.utc)
+            existing_cache.updated_at = datetime.now(timezone.utc)
         else:
             # Create new cache entry
             cache_entry = PlanningCenterRegistrationsCache(
@@ -3047,7 +3317,7 @@ class PlanningCenterSyncService:
                 ),
                 registration_notes=get_val("notes"),
                 custom_field_responses=get_val("custom_field_responses"),
-                last_synced_at=datetime.utcnow(),
+                last_synced_at=datetime.now(timezone.utc),
             )
             db.add(cache_entry)
 
@@ -3095,7 +3365,7 @@ class PlanningCenterSyncService:
 
             # Mark webhook as processed
             webhook_event.processed = True
-            webhook_event.processed_at = datetime.utcnow()
+            webhook_event.processed_at = datetime.now(timezone.utc)
             self.db.commit()
 
             return {"status": "success", "message": "Webhook processed successfully"}
@@ -3104,7 +3374,7 @@ class PlanningCenterSyncService:
             # Mark webhook as failed
             if "webhook_event" in locals():
                 webhook_event.processed = True
-                webhook_event.processed_at = datetime.utcnow()
+                webhook_event.processed_at = datetime.now(timezone.utc)
                 webhook_event.error_message = str(e)
                 self.db.commit()
 

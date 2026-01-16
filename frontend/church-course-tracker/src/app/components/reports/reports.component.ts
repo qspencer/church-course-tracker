@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ReportService } from '../../services/report.service';
 import { CourseService } from '../../services/course.service';
+import { LoggerService } from '../../services/logger.service';
 import { DashboardStats, ProgressReport, Course, ReportFilters } from '../../models';
 import { ChartConfiguration, ChartData } from 'chart.js';
 
@@ -101,6 +102,7 @@ export class ReportsComponent implements OnInit {
     private router: Router,
     private reportService: ReportService,
     private courseService: CourseService,
+    private logger: LoggerService,
     private snackBar: MatSnackBar
   ) {
     this.filterForm = this.fb.group({
@@ -124,7 +126,7 @@ export class ReportsComponent implements OnInit {
         this.dashboardStats = stats;
       },
       error: (error) => {
-        console.error('Error loading dashboard stats:', error);
+        this.logger.error('Error loading dashboard stats', error);
       }
     });
 
@@ -134,7 +136,7 @@ export class ReportsComponent implements OnInit {
         this.courses = courses;
       },
       error: (error) => {
-        console.error('Error loading courses:', error);
+        this.logger.error('Error loading courses', error);
       }
     });
 
@@ -154,7 +156,7 @@ export class ReportsComponent implements OnInit {
         this.isLoading = false;
       },
       error: (error) => {
-        console.error('Error generating report:', error);
+        this.logger.error('Error generating report', error);
         this.isGeneratingReport = false;
         this.isLoading = false;
       }
@@ -214,7 +216,7 @@ export class ReportsComponent implements OnInit {
         this.snackBar.open(`Report exported as ${format.toUpperCase()}`, 'Close', { duration: 3000 });
       },
       error: (error) => {
-        console.error('Error exporting report:', error);
+        this.logger.error('Error exporting report', error);
         this.snackBar.open('Error exporting report', 'Close', { duration: 3000 });
       }
     });

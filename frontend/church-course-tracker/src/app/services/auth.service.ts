@@ -4,6 +4,7 @@ import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { Router } from '@angular/router';
 import { environment } from '../../environments/environment';
 import { User, LoginRequest, LoginResponse } from '../models';
+import { LoggerService } from './logger.service';
 
 @Injectable({
   providedIn: 'root'
@@ -21,7 +22,8 @@ export class AuthService {
 
   constructor(
     private http: HttpClient,
-    private router: Router
+    private router: Router,
+    private logger: LoggerService
   ) {}
 
   login(credentials: LoginRequest): Observable<LoginResponse> {
@@ -32,6 +34,13 @@ export class AuthService {
           this.setCurrentUser(response.user);
           this.isAuthenticatedSubject.next(true);
           this.currentUserSubject.next(response.user);
+
+          // Set user context for error tracking
+          this.logger.setUser(
+            response.user.id,
+            response.user.username || 'unknown',
+            response.user.email
+          );
         })
       );
   }
@@ -41,6 +50,10 @@ export class AuthService {
     localStorage.removeItem(this.USER_KEY);
     this.isAuthenticatedSubject.next(false);
     this.currentUserSubject.next(null);
+
+    // Clear user context from error tracking
+    this.logger.clearUser();
+
     this.router.navigate(['/churchcoursetracker/auth']);
   }
 
@@ -103,9 +116,7 @@ export class AuthService {
         error: (error) => {
           // If refresh fails with 401, the token is invalid/expired
           // Logout will be handled by the interceptor
-          if (isDevMode()) {
-            console.error('Token refresh failed:', error);
-          }
+          this.logger.error('Token refresh failed', error);
           if (error.status === 401) {
             // Token is invalid, clear everything and logout
             this.logout();

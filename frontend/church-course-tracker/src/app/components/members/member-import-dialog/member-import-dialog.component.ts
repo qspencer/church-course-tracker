@@ -4,6 +4,7 @@ import { MatDialogRef } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { PlanningCenterService, PlanningCenterPerson } from '../../../services/planning-center.service';
 import { MemberService } from '../../../services/member.service';
+import { LoggerService } from '../../../services/logger.service';
 import { Observable, of } from 'rxjs';
 import { map, startWith, debounceTime, distinctUntilChanged, switchMap, catchError } from 'rxjs/operators';
 
@@ -26,6 +27,7 @@ export class MemberImportDialogComponent implements OnInit {
     private fb: FormBuilder,
     private planningCenterService: PlanningCenterService,
     private memberService: MemberService,
+    private logger: LoggerService,
     private snackBar: MatSnackBar,
     public dialogRef: MatDialogRef<MemberImportDialogComponent>
   ) {
@@ -49,7 +51,7 @@ export class MemberImportDialogComponent implements OnInit {
         this.isLoading = true;
         return this.planningCenterService.searchPeople(value, 20).pipe(
           catchError(error => {
-            console.error('Error searching Planning Center:', error);
+            this.logger.error('Error searching Planning Center', error);
             this.snackBar.open('Error searching Planning Center', 'Close', { duration: 3000 });
             return of([]);
           })
@@ -89,7 +91,7 @@ export class MemberImportDialogComponent implements OnInit {
         this.dialogRef.close(member);
       },
       error: (error) => {
-        console.error('Error importing member:', error);
+        this.logger.error('Error importing member', error);
         const errorMsg = error?.error?.detail || 'Error importing member from Planning Center';
         this.snackBar.open(errorMsg, 'Close', { duration: 5000 });
       }

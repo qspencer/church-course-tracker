@@ -2,9 +2,11 @@
 Course service layer (Maps to Planning Center Events)
 """
 
+import logging
 from datetime import datetime, timezone
 from typing import Dict, List, Optional
 
+from fastapi import HTTPException, status
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
@@ -12,6 +14,8 @@ from app.models.course import Course as CourseModel
 from app.models.enrollment import CourseEnrollment as EnrollmentModel
 from app.schemas.course import CourseCreate, CourseUpdate
 from app.services.audit_service import AuditService
+
+logger = logging.getLogger(__name__)
 
 
 class CourseService:
@@ -153,28 +157,41 @@ class CourseService:
         self, course: CourseCreate, created_by: Optional[int] = None
     ) -> CourseModel:
         """Create a new course"""
-        # Validate prerequisites
-        self._validate_prerequisites(course.prerequisites)
+        try:
+            # Validate prerequisites
+            self._validate_prerequisites(course.prerequisites)
 
-        db_course = CourseModel(**course.model_dump())
-        db_course.created_at = datetime.now(timezone.utc)
-        db_course.updated_at = datetime.now(timezone.utc)
-        db_course.created_by = created_by
+            db_course = CourseModel(**course.model_dump())
+            db_course.created_at = datetime.now(timezone.utc)
+            db_course.updated_at = datetime.now(timezone.utc)
+            db_course.created_by = created_by
 
-        self.db.add(db_course)
-        self.db.commit()
-        self.db.refresh(db_course)
-        AuditService(self.db).log_change(
-            table_name=CourseModel.__tablename__,
-            record_id=db_course.id,
-            action="insert",
-            changed_by=created_by,
-            new_values=AuditService.serialize_model(db_course),
-        )
-        
-        # Query again with user relationships to ensure they're loaded
-        from sqlalchemy.orm import joinedload
-        return self.get_course(db_course.id)
+            self.db.add(db_course)
+            self.db.flush()  # Get ID without committing
+
+            # Log audit in same transaction
+            AuditService(self.db).log_change(
+                table_name=CourseModel.__tablename__,
+                record_id=db_course.id,
+                action="insert",
+                changed_by=created_by,
+                new_values=AuditService.serialize_model(db_course),
+            )
+
+            self.db.commit()  # Commit both together
+            self.db.refresh(db_course)
+
+            # Query again with user relationships to ensure they're loaded
+            from sqlalchemy.orm import joinedload
+            return self.get_course(db_course.id)
+
+        except Exception as e:
+            self.db.rollback()  # Rollback both if either fails
+            logger.error(f"Failed to create course: {e}", exc_info=True)
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to create course"
+            )
 
     def update_course(
         self,
@@ -183,34 +200,47 @@ class CourseService:
         updated_by: Optional[int] = None,
     ) -> Optional[CourseModel]:
         """Update an existing course"""
-        db_course = self.get_course(course_id)
-        if not db_course:
-            return None
+        try:
+            db_course = self.get_course(course_id)
+            if not db_course:
+                return None
 
-        # Validate prerequisites if they're being updated
-        if "prerequisites" in course_update.model_dump(exclude_unset=True):
-            self._validate_prerequisites(course_update.prerequisites, course_id)
+            # Validate prerequisites if they're being updated
+            if "prerequisites" in course_update.model_dump(exclude_unset=True):
+                self._validate_prerequisites(course_update.prerequisites, course_id)
 
-        old_values = AuditService.serialize_model(db_course)
-        update_data = course_update.model_dump(exclude_unset=True)
-        for field, value in update_data.items():
-            setattr(db_course, field, value)
+            old_values = AuditService.serialize_model(db_course)
+            update_data = course_update.model_dump(exclude_unset=True)
+            for field, value in update_data.items():
+                setattr(db_course, field, value)
 
-        db_course.updated_at = datetime.now(timezone.utc)
-        db_course.updated_by = updated_by
-        self.db.commit()
-        self.db.refresh(db_course)
-        AuditService(self.db).log_change(
-            table_name=CourseModel.__tablename__,
-            record_id=db_course.id,
-            action="update",
-            changed_by=updated_by,
-            old_values=old_values,
-            new_values=AuditService.serialize_model(db_course),
-        )
-        
-        # Query again with user relationships to ensure they're loaded
-        return self.get_course(course_id)
+            db_course.updated_at = datetime.now(timezone.utc)
+            db_course.updated_by = updated_by
+            self.db.flush()  # Flush changes without committing
+
+            # Log audit in same transaction
+            AuditService(self.db).log_change(
+                table_name=CourseModel.__tablename__,
+                record_id=db_course.id,
+                action="update",
+                changed_by=updated_by,
+                old_values=old_values,
+                new_values=AuditService.serialize_model(db_course),
+            )
+
+            self.db.commit()  # Commit both together
+            self.db.refresh(db_course)
+
+            # Query again with user relationships to ensure they're loaded
+            return self.get_course(course_id)
+
+        except Exception as e:
+            self.db.rollback()  # Rollback both if either fails
+            logger.error(f"Failed to update course {course_id}: {e}", exc_info=True)
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to update course"
+            )
 
     def delete_course(self, course_id: int, deleted_by: Optional[int] = None) -> bool:
         """Delete a course"""

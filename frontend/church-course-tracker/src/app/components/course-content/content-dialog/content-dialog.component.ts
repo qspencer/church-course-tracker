@@ -4,6 +4,7 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { CourseContentService } from '../../../services/course-content.service';
 import { CourseContent, CourseContentCreate, CourseContentUpdate, CourseContentType, StorageType, CourseModule, ContentUploadResponse } from '../../../models';
+import { LoggerService } from '../../../services/logger.service';
 
 export interface ContentDialogData {
   courseId: number;
@@ -39,6 +40,7 @@ export class ContentDialogComponent implements OnInit {
     private fb: FormBuilder,
     private courseContentService: CourseContentService,
     private snackBar: MatSnackBar,
+    private logger: LoggerService,
     public dialogRef: MatDialogRef<ContentDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: ContentDialogData
   ) {
@@ -136,7 +138,12 @@ export class ContentDialogComponent implements OnInit {
               },
               error: (uploadError) => {
                 this.isLoading = false;
-                console.error('Error replacing file:', uploadError);
+                this.logger.error('Error replacing file', uploadError, {
+                  component: 'ContentDialogComponent',
+                  action: 'onSubmit-updateFile',
+                  contentId: content.id,
+                  courseId: this.data.courseId
+                });
                 let errorMessage = 'Content updated but file replacement failed. You can try uploading again later.';
                 if (uploadError?.error?.detail) {
                   errorMessage = `Content updated but file replacement failed: ${uploadError.error.detail}`;
@@ -158,7 +165,12 @@ export class ContentDialogComponent implements OnInit {
         },
         error: (error) => {
           this.isLoading = false;
-          console.error('Error updating content:', error);
+          this.logger.error('Error updating content', error, {
+            component: 'ContentDialogComponent',
+            action: 'onSubmit-update',
+            contentId: this.data.content?.id,
+            courseId: this.data.courseId
+          });
           let errorMessage = 'Failed to update content. Please try again.';
           if (error?.error?.detail) {
             errorMessage = error.error.detail;
@@ -212,7 +224,12 @@ export class ContentDialogComponent implements OnInit {
               },
               error: (uploadError) => {
                 this.isLoading = false;
-                console.error('Error uploading file:', uploadError);
+                this.logger.error('Error uploading file', uploadError, {
+                  component: 'ContentDialogComponent',
+                  action: 'onSubmit-uploadFile',
+                  contentId: content.id,
+                  courseId: this.data.courseId
+                });
                 let errorMessage = 'Content created but file upload failed. You can upload the file later.';
                 if (uploadError?.error?.detail) {
                   errorMessage = `Content created but file upload failed: ${uploadError.error.detail}`;
@@ -234,7 +251,11 @@ export class ContentDialogComponent implements OnInit {
         },
         error: (error) => {
           this.isLoading = false;
-          console.error('Error creating content:', error);
+          this.logger.error('Error creating content', error, {
+            component: 'ContentDialogComponent',
+            action: 'onSubmit-create',
+            courseId: this.data.courseId
+          });
           let errorMessage = 'Failed to create content. Please try again.';
           if (error?.error?.detail) {
             errorMessage = error.error.detail;

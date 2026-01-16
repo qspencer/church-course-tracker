@@ -1,8 +1,10 @@
-import { NgModule } from '@angular/core';
+import { NgModule, ErrorHandler } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
+import * as Sentry from '@sentry/angular';
+import { environment } from '../environments/environment';
 
 // Angular Material Modules
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -40,6 +42,7 @@ import { EnrollmentService } from './services/enrollment.service';
 import { ProgressService } from './services/progress.service';
 import { ReportService } from './services/report.service';
 import { MemberService } from './services/member.service';
+import { LoggerService } from './services/logger.service';
 
 // Interceptors
 import { AuthInterceptor } from './interceptors/auth.interceptor';
@@ -83,6 +86,7 @@ import { ErrorInterceptor } from './interceptors/error.interceptor';
         ProgressService,
         ReportService,
         MemberService,
+        LoggerService,
         {
             provide: HTTP_INTERCEPTORS,
             useClass: AuthInterceptor,
@@ -92,6 +96,12 @@ import { ErrorInterceptor } from './interceptors/error.interceptor';
             provide: HTTP_INTERCEPTORS,
             useClass: ErrorInterceptor,
             multi: true
+        },
+        {
+            provide: ErrorHandler,
+            useValue: environment.production && environment.enableErrorReporting
+                ? Sentry.createErrorHandler({ showDialog: false })
+                : new ErrorHandler()
         },
         provideHttpClient(withInterceptorsFromDi())
     ] })

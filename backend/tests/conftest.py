@@ -7,6 +7,7 @@ import asyncio
 import os
 import subprocess
 import pathlib
+from pathlib import Path
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from fastapi.testclient import TestClient
@@ -29,14 +30,25 @@ data_dir = backend_dir / "data"
 data_dir.mkdir(exist_ok=True)
 
 # Update database path to be relative to backend directory
-SQLALCHEMY_DATABASE_URL = f"sqlite:///{data_dir}/church_course_tracker.db"
+# CRITICAL: Use /tmp for test database to ensure it NEVER affects dev database
+test_data_dir = Path("/tmp")
+SQLALCHEMY_DATABASE_URL = f"sqlite:///{test_data_dir}/church_course_tracker_test.db"
 os.environ["DATABASE_URL"] = SQLALCHEMY_DATABASE_URL
 
+# SAFEGUARD: Verify we're not using the dev database path
+dev_db_path = Path(__file__).parent.parent / "data" / "church_course_tracker.db"
+test_db_path = test_data_dir / "church_course_tracker_test.db"
+
+if str(test_db_path.resolve()) == str(dev_db_path.resolve()):
+    raise RuntimeError(
+        "CRITICAL ERROR: Test database path matches dev database path! "
+        "This would cause data loss. Aborting tests."
+    )
+
 # Remove existing test database to ensure clean state
-db_file = data_dir / "church_course_tracker.db"
-if db_file.exists():
+if test_db_path.exists():
     try:
-        os.remove(db_file)
+        os.remove(test_db_path)
         print("🗑️  Removed existing test database")
     except Exception as e:
         print(f"⚠️  Could not remove test database: {e}")
@@ -123,6 +135,15 @@ def db_session():
     # Just ensure tables exist (they should from migrations)
     Base.metadata.create_all(bind=engine)
     
+    # SAFEGUARD: Double-check we're using test database, not dev database
+    current_db_path = str(Path(SQLALCHEMY_DATABASE_URL.replace("sqlite:///", "")).resolve())
+    dev_db_path = str((Path(__file__).parent.parent / "data" / "church_course_tracker.db").resolve())
+    if current_db_path == dev_db_path:
+        raise RuntimeError(
+            "CRITICAL ERROR: Tests are using dev database! This would cause data loss. "
+            f"Test DB: {current_db_path}, Dev DB: {dev_db_path}"
+        )
+    
     # Ensure new columns exist (in case migrations didn't apply)
     # This is a safety check for columns added after initial migration
     try:
@@ -161,6 +182,12 @@ def db_session():
                     conn.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS ix_users_planning_center_person_id ON users(planning_center_person_id)"))
                 except:
                     pass  # Index might already exist
+            
+            # Check if can_manage_admins column exists in program_admins table
+            result = conn.execute(text("PRAGMA table_info(program_admins)"))
+            program_admins_columns = [row[1] for row in result]
+            if 'can_manage_admins' not in program_admins_columns:
+                conn.execute(text("ALTER TABLE program_admins ADD COLUMN can_manage_admins BOOLEAN DEFAULT 0 NOT NULL"))
             
             conn.commit()
     except Exception as e:

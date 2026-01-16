@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import and_
 
 from app.models.custom_attribute import CustomAttribute as CustomAttributeModel
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 class CustomAttributeService:
@@ -121,7 +121,7 @@ class CustomAttributeService:
         
         custom_attr.attribute_value = value_str
         custom_attr.attribute_type = attribute_type
-        custom_attr.updated_at = datetime.utcnow()
+        custom_attr.updated_at = datetime.now(timezone.utc)
         custom_attr.updated_by = updated_by
         
         self.db.commit()

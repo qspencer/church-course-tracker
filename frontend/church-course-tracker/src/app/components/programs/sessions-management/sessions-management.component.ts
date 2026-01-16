@@ -7,6 +7,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { forkJoin } from 'rxjs';
 import { ProgramService } from '../../../services/program.service';
 import { MemberService } from '../../../services/member.service';
+import { LoggerService } from '../../../services/logger.service';
 import { Program, ProgramSession, ProgramPairing, ProgramParticipant } from '../../../models/program.model';
 import { Person } from '../../../models';
 import { SessionDialogComponent } from '../session-dialog/session-dialog.component';
@@ -37,7 +38,8 @@ export class SessionsManagementComponent implements OnInit {
     private programService: ProgramService,
     private memberService: MemberService,
     private dialog: MatDialog,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private logger: LoggerService
   ) {
     this.program = data.program;
   }
@@ -70,7 +72,7 @@ export class SessionsManagementComponent implements OnInit {
         this.isLoading = false;
       },
       error: (error) => {
-        console.error('Error loading data:', error);
+        this.logger.error('Error loading data', error, { component: 'SessionsManagementComponent', action: 'loadData', programId: this.program.id });
         this.snackBar.open('Error loading sessions', 'Close', { duration: 3000 });
         this.isLoading = false;
       }
@@ -188,7 +190,7 @@ export class SessionsManagementComponent implements OnInit {
             this.loadData();
           },
           error: (error) => {
-            console.error('Error deleting session:', error);
+            this.logger.error('Error deleting session', error, { component: 'SessionsManagementComponent', action: 'deleteSession', sessionId: session.id, programId: this.program.id });
             this.snackBar.open('Error deleting session', 'Close', { duration: 3000 });
           }
         });

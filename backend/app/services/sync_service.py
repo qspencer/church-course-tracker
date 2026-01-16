@@ -2,7 +2,7 @@
 Planning Center sync service
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 import httpx
@@ -80,7 +80,7 @@ class SyncService:
                 success=True,
                 records_synced=synced_count,
                 message=f"Successfully synced {synced_count} members",
-                sync_time=datetime.utcnow(),
+                sync_time=datetime.now(timezone.utc),
             )
 
         except Exception as e:
@@ -88,7 +88,7 @@ class SyncService:
                 success=False,
                 records_synced=0,
                 message=f"Sync failed: {str(e)}",
-                sync_time=datetime.utcnow(),
+                sync_time=datetime.now(timezone.utc),
             )
 
     async def _sync_person(self, person_data: dict) -> bool:
@@ -110,7 +110,7 @@ class SyncService:
                 existing_member.last_name = attributes.get("last_name", "")
                 existing_member.email = attributes.get("email", "")
                 existing_member.phone = attributes.get("phone", "")
-                existing_member.updated_at = datetime.utcnow()
+                existing_member.updated_at = datetime.now(timezone.utc)
             else:
                 # Create new member
                 new_member = MemberModel(
@@ -119,8 +119,8 @@ class SyncService:
                     last_name=attributes.get("last_name", ""),
                     email=attributes.get("email", ""),
                     phone=attributes.get("phone", ""),
-                    created_at=datetime.utcnow(),
-                    updated_at=datetime.utcnow(),
+                    created_at=datetime.now(timezone.utc),
+                    updated_at=datetime.now(timezone.utc),
                 )
                 self.db.add(new_member)
 

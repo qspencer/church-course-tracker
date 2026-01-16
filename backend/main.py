@@ -3,6 +3,7 @@ Church Course Tracker - Main FastAPI Application
 Triggering backend tests
 """
 
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
@@ -10,6 +11,7 @@ from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
+from starlette.middleware.base import BaseHTTPMiddleware
 import uvicorn
 import time
 import logging
@@ -20,10 +22,38 @@ from app.core.csv_loader import load_csv_data_on_startup
 from app.core.database import SessionLocal
 from app.models.user import User
 from app.core.security import get_password_hash
+from app.core.exceptions import ValidationError
 
 # Configure logging
 logging.basicConfig(level=getattr(logging, settings.LOG_LEVEL))
 logger = logging.getLogger(__name__)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Application lifespan context manager (replaces deprecated on_event)"""
+    # Startup
+    logger.info("Starting Church Course Tracker API...")
+    
+    # Ensure admin user exists
+    try:
+        ensure_admin_user()
+    except Exception as e:
+        logger.error(f"Error ensuring admin user: {e}")
+    
+    # Load CSV data if enabled
+    try:
+        load_csv_data_on_startup()
+    except Exception as e:
+        logger.error(f"Error loading CSV data on startup: {e}")
+    
+    logger.info("Application startup completed")
+    
+    yield
+    
+    # Shutdown
+    logger.info("Shutting down Church Course Tracker API...")
+
 
 # Create FastAPI application
 # Disable redirect_slashes to prevent redirect issues through API Gateway
@@ -35,6 +65,7 @@ app = FastAPI(
     docs_url="/docs" if settings.ENVIRONMENT == "development" else None,
     redoc_url="/redoc" if settings.ENVIRONMENT == "development" else None,
     redirect_slashes=False,  # Disable to prevent redirect issues
+    lifespan=lifespan,
 )
 
 # Add GZip compression middleware
@@ -119,13 +150,41 @@ async def log_requests(request: Request, call_next):
     # Log request
     logger.info(f"Request: {request.method} {request.url.path} from {request.client.host}")
     
-    response = await call_next(request)
-    
-    # Log response
-    process_time = time.time() - start_time
-    logger.info(f"Response: {response.status_code} in {process_time:.4f}s")
-    
-    return response
+    try:
+        response = await call_next(request)
+        
+        # Log response
+        process_time = time.time() - start_time
+        logger.info(f"Response: {response.status_code} in {process_time:.4f}s")
+        
+        # Ensure CORS headers are present on all responses (including errors)
+        origin = request.headers.get("origin")
+        if origin and origin in settings.ALLOWED_ORIGINS:
+            response.headers["Access-Control-Allow-Origin"] = origin
+            response.headers["Access-Control-Allow-Credentials"] = "true"
+        
+        return response
+    except Exception as e:
+        # Log unhandled exceptions
+        process_time = time.time() - start_time
+        error_message = str(e) if e else "Unknown error"
+        logger.error(f"Unhandled exception in {request.method} {request.url.path}: {error_message}", exc_info=True)
+        
+        # Return error response with CORS headers
+        # Ensure error_message is a string, not an exception object
+        safe_error_message = str(error_message) if error_message else "Unknown error"
+        response = JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content={
+                "detail": f"Internal server error: {safe_error_message}",
+                "status_code": 500,
+            },
+        )
+        origin = request.headers.get("origin")
+        if origin and origin in settings.ALLOWED_ORIGINS:
+            response.headers["Access-Control-Allow-Origin"] = origin
+            response.headers["Access-Control-Allow-Credentials"] = "true"
+        return response
 
 # Add rate limiting middleware (enhanced implementation)
 if settings.RATE_LIMIT_ENABLED:
@@ -197,6 +256,9 @@ if settings.RATE_LIMIT_ENABLED:
 #         allowed_hosts=settings.ALLOWED_HOSTS
 #     )
 
+# Register exception handlers BEFORE including routers to ensure they're used
+# This ensures our custom handlers take precedence over FastAPI defaults
+
 # Include API router
 app.include_router(api_router, prefix="/api/v1")
 
@@ -205,39 +267,191 @@ app.include_router(api_router, prefix="/api/v1")
 @app.exception_handler(StarletteHTTPException)
 async def http_exception_handler(request: Request, exc: StarletteHTTPException):
     """Handle HTTP exceptions with consistent JSON format"""
-    return JSONResponse(
+    response = JSONResponse(
         status_code=exc.status_code,
         content={
             "detail": exc.detail if exc.detail else "An error occurred",
             "status_code": exc.status_code,
         },
-        headers=getattr(exc, "headers", None),
+        headers=getattr(exc, "headers", None) or {},
     )
+    # Ensure CORS headers are added to error responses
+    origin = request.headers.get("origin")
+    if origin and origin in settings.ALLOWED_ORIGINS:
+        response.headers["Access-Control-Allow-Origin"] = origin
+        response.headers["Access-Control-Allow-Credentials"] = "true"
+    return response
 
 
 @app.exception_handler(404)
 async def not_found_handler(request: Request, exc):
     """Handle 404 errors with consistent JSON format"""
-    return JSONResponse(
+    response = JSONResponse(
         status_code=status.HTTP_404_NOT_FOUND,
         content={
             "detail": f"Resource not found: {request.url.path}",
             "status_code": 404,
         },
     )
+    # Ensure CORS headers are added to error responses
+    origin = request.headers.get("origin")
+    if origin and origin in settings.ALLOWED_ORIGINS:
+        response.headers["Access-Control-Allow-Origin"] = origin
+        response.headers["Access-Control-Allow-Credentials"] = "true"
+    return response
 
+
+def make_serializable(obj, _seen=None):
+    """Recursively convert non-serializable objects to strings"""
+    if _seen is None:
+        _seen = set()
+    
+    # Handle circular references
+    obj_id = id(obj)
+    if obj_id in _seen:
+        return "<circular reference>"
+    _seen.add(obj_id)
+    
+    try:
+        if isinstance(obj, dict):
+            result = {}
+            for k, v in obj.items():
+                result[k] = make_serializable(v, _seen)
+            _seen.remove(obj_id)
+            return result
+        elif isinstance(obj, list):
+            result = [make_serializable(item, _seen) for item in obj]
+            _seen.remove(obj_id)
+            return result
+        elif isinstance(obj, (str, int, float, bool, type(None))):
+            _seen.remove(obj_id)
+            return obj
+        else:
+            # For any other type, try to serialize or convert to string
+            try:
+                import json
+                json.dumps(obj)
+                _seen.remove(obj_id)
+                return obj
+            except (TypeError, ValueError, AttributeError):
+                _seen.remove(obj_id)
+                return str(obj)
+    except Exception:
+        _seen.discard(obj_id)
+        return str(obj)
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     """Handle validation errors with detailed messages"""
-    return JSONResponse(
-        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+    logger.info(f"Validation error handler called for {request.url.path}")
+    
+    # Ensure errors() returns a list that can be JSON serialized
+    serializable_errors = []
+    try:
+        errors = exc.errors()
+        logger.debug(f"Validation errors: {len(errors)} errors found")
+        # Recursively make all values serializable
+        serializable_errors = make_serializable(errors)
+        # Double-check serialization
+        import json
+        json.dumps(serializable_errors)
+        logger.debug("Validation errors successfully serialized")
+    except Exception as e:
+        # Fallback if errors() fails or serialization fails
+        error_msg = str(e) if e else "Unknown validation error"
+        logger.error(f"Error processing validation errors: {error_msg}", exc_info=True)
+        serializable_errors = [{"msg": "Validation error", "detail": error_msg}]
+    
+    # Create response with safe content
+    try:
+        response = JSONResponse(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            content={
+                "detail": serializable_errors,
+                "status_code": 422,
+                "message": "Validation error",
+            },
+        )
+        logger.debug("Validation error JSONResponse created successfully")
+    except Exception as json_error:
+        # If JSONResponse creation fails, use fallback
+        logger.error(f"Failed to create validation error JSONResponse: {json_error}", exc_info=True)
+        from fastapi.responses import Response
+        response = Response(
+            content='{"detail": "Validation error", "status_code": 422}',
+            status_code=422,
+            media_type="application/json"
+        )
+    
+    # Ensure CORS headers are added to error responses
+    origin = request.headers.get("origin")
+    if origin and origin in settings.ALLOWED_ORIGINS:
+        response.headers["Access-Control-Allow-Origin"] = origin
+        response.headers["Access-Control-Allow-Credentials"] = "true"
+    return response
+
+
+@app.exception_handler(ValidationError)
+async def custom_validation_exception_handler(request: Request, exc: ValidationError):
+    """Handle custom ValidationError with 400 Bad Request"""
+    logger.warning(f"Validation error on {request.url.path}: {str(exc)}")
+
+    response = JSONResponse(
+        status_code=status.HTTP_400_BAD_REQUEST,
         content={
-            "detail": exc.errors(),
-            "status_code": 422,
-            "message": "Validation error",
+            "detail": str(exc),
+            "status_code": 400,
+            "message": "Validation failed",
         },
     )
+
+    # Ensure CORS headers are added to error responses
+    origin = request.headers.get("origin")
+    if origin and origin in settings.ALLOWED_ORIGINS:
+        response.headers["Access-Control-Allow-Origin"] = origin
+        response.headers["Access-Control-Allow-Credentials"] = "true"
+
+    return response
+
+
+# Global exception handler for all unhandled exceptions
+async def global_exception_handler(request: Request, exc: Exception):
+    """Handle all unhandled exceptions with CORS headers"""
+    # Safely convert exception to string
+    try:
+        error_message = str(exc) if exc else "Unknown error"
+    except Exception:
+        error_message = "Unknown error (could not convert exception to string)"
+    
+    logger.error(f"Unhandled exception: {error_message}", exc_info=True)
+    
+    # Create response with safe, serializable content
+    try:
+        response = JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content={
+                "detail": f"Internal server error: {error_message}",
+                "status_code": 500,
+            },
+        )
+    except Exception as json_error:
+        # If JSONResponse creation fails, create a simple text response
+        logger.error(f"Failed to create JSONResponse: {json_error}")
+        from fastapi.responses import Response
+        response = Response(
+            content=f'{{"detail": "Internal server error: {error_message}", "status_code": 500}}',
+            status_code=500,
+            media_type="application/json"
+        )
+    
+    # Ensure CORS headers are added to error responses
+    origin = request.headers.get("origin")
+    if origin and origin in settings.ALLOWED_ORIGINS:
+        response.headers["Access-Control-Allow-Origin"] = origin
+        response.headers["Access-Control-Allow-Credentials"] = "true"
+        response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS, PATCH"
+        response.headers["Access-Control-Allow-Headers"] = "Accept, Accept-Language, Authorization, Content-Language, Content-Type, X-API-Key, X-CSRF-Token, X-Forwarded-For, X-Real-IP, X-Requested-With"
+    return response
 
 
 def ensure_admin_user():
@@ -277,30 +491,7 @@ def ensure_admin_user():
         db.close()
 
 
-@app.on_event("startup")
-async def startup_event():
-    """Application startup event handler"""
-    logger.info("Starting Church Course Tracker API...")
-    
-    # Ensure admin user exists
-    try:
-        ensure_admin_user()
-    except Exception as e:
-        logger.error(f"Error ensuring admin user: {e}")
-    
-    # Load CSV data if enabled
-    try:
-        load_csv_data_on_startup()
-    except Exception as e:
-        logger.error(f"Error loading CSV data on startup: {e}")
-    
-    logger.info("Application startup completed")
-
-
-@app.on_event("shutdown")
-async def shutdown_event():
-    """Application shutdown event handler"""
-    logger.info("Shutting down Church Course Tracker API...")
+# Startup and shutdown are now handled by lifespan context manager above
 
 @app.get("/")
 async def root():

@@ -21,6 +21,46 @@ This document provides an overview of all the features available in the Church C
 
 ---
 
+### Program Management
+
+**What it does**: Create and manage comprehensive educational programs with advanced participant tracking, mentorship relationships, session management, and progress monitoring.
+
+**Key Capabilities**:
+- Create programs with complex multi-session structures
+- Assign program administrators to oversee programs
+- Manage program participants (add, edit, remove)
+- Bulk import participants from Planning Center events and lists
+- Create and manage mentor/mentee pairings
+- Schedule and track program sessions
+- Take attendance for sessions
+- Monitor participant progress through programs
+- Organize program-specific content in modules
+- Define custom roles for program participants
+- Set delivery modes (In-person, Online, Hybrid)
+- Track program locations
+- Set program-specific prerequisites
+
+**Program Features Include**:
+- **Participants Management**: Add individual participants or bulk import from Planning Center
+- **Pairings**: Create mentor/mentee or buddy relationships between participants
+- **Sessions**: Schedule, manage, and track attendance for program meetings
+- **Progress Tracking**: Monitor how participants are progressing through the program
+- **Program Content**: Upload and organize materials specifically for the program
+- **Program Administration**: Assign dedicated administrators for each program
+
+**Who can use it**: Administrators and Staff can create and manage programs. Program administrators can manage their assigned programs. All users can participate in programs and view their progress.
+
+**Why it's useful**: Programs provide a structured framework for long-term educational initiatives that require relationship building (mentorship), regular meetings (sessions), and detailed progress tracking. Ideal for discipleship programs, leadership development, small groups, and multi-week studies where participants need to be paired together and their journey tracked over time.
+
+**Difference from Courses**: While courses are simple educational content with enrollments, programs offer advanced features like pairings, sessions, program-specific administrators, and more sophisticated participant management. Use programs when you need:
+- Mentor/mentee relationships
+- Regular scheduled meetings with attendance
+- Multi-role participants (mentors, mentees, facilitators)
+- Complex progress tracking
+- Program-specific administration
+
+---
+
 ### Enrollment Tracking
 
 **What it does**: Track which members are enrolled in which courses.

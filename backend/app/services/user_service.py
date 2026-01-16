@@ -2,7 +2,7 @@
 User service layer
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Optional
 import logging
 
@@ -83,7 +83,7 @@ class UserService:
             attrs = person_data.get("attributes", {})
             existing_user.full_name = f"{attrs.get('first_name', '')} {attrs.get('last_name', '')}".strip()
             existing_user.email = attrs.get("email") or existing_user.email
-            existing_user.updated_at = datetime.utcnow()
+            existing_user.updated_at = datetime.now(timezone.utc)
             self.db.commit()
             self.db.refresh(existing_user)
             return existing_user
@@ -106,7 +106,7 @@ class UserService:
             existing_user.planning_center_person_id = pc_person_id
             if not existing_user.full_name or existing_user.full_name == "":
                 existing_user.full_name = full_name
-            existing_user.updated_at = datetime.utcnow()
+            existing_user.updated_at = datetime.now(timezone.utc)
             self.db.commit()
             self.db.refresh(existing_user)
             return existing_user
@@ -139,14 +139,15 @@ class UserService:
             hashed_password=hashed_password,
             planning_center_person_id=pc_person_id,
             data_source="planning_center",
-            created_at=datetime.utcnow(),
-            updated_at=datetime.utcnow(),
+            created_at=datetime.now(timezone.utc),
+            updated_at=datetime.now(timezone.utc),
         )
         
         try:
             self.db.add(db_user)
-            self.db.commit()
-            self.db.refresh(db_user)
+            self.db.flush()  # Get ID without committing
+
+            # Log audit in same transaction
             AuditService(self.db).log_change(
                 table_name=UserModel.__tablename__,
                 record_id=db_user.id,
@@ -156,6 +157,9 @@ class UserService:
                     db_user, exclude={"hashed_password"}
                 ),
             )
+
+            self.db.commit()  # Commit both together
+            self.db.refresh(db_user)
             return db_user
         except IntegrityError as exc:
             self.db.rollback()
@@ -180,8 +184,8 @@ class UserService:
             role=user.role,
             is_active=user.is_active,
             hashed_password=hashed_password,
-            created_at=datetime.utcnow(),
-            updated_at=datetime.utcnow(),
+            created_at=datetime.now(timezone.utc),
+            updated_at=datetime.now(timezone.utc),
         )
 
         try:
@@ -238,7 +242,7 @@ class UserService:
         for field, value in update_data.items():
             setattr(db_user, field, value)
 
-        db_user.updated_at = datetime.utcnow()
+        db_user.updated_at = datetime.now(timezone.utc)
         try:
             self.db.commit()
             self.db.refresh(db_user)
@@ -308,7 +312,7 @@ class UserService:
         for field, value in update_data.items():
             setattr(db_user, field, value)
 
-        db_user.updated_at = datetime.utcnow()
+        db_user.updated_at = datetime.now(timezone.utc)
         try:
             self.db.commit()
             self.db.refresh(db_user)

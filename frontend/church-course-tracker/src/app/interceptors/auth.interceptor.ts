@@ -2,19 +2,23 @@ import { Injectable, isDevMode } from '@angular/core';
 import { HttpInterceptor, HttpRequest, HttpHandler, HttpEvent } from '@angular/common/http';
 import { Observable, catchError, switchMap, throwError } from 'rxjs';
 import { AuthService } from '../services/auth.service';
+import { LoggerService } from '../services/logger.service';
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
 
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private logger: LoggerService
+  ) {}
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    // Only log errors in development mode - reduce console noise
+    // Log HTTPS warnings in development mode
     if (isDevMode()) {
       // Check both base URL and full URL with params
       // Note: In local development, HTTP is expected
       if (!req.url.startsWith('https://') && !req.url.includes('localhost')) {
-        console.error('❌ AuthInterceptor - Request URL is NOT HTTPS!', req.url);
+        this.logger.warn('AuthInterceptor - Request URL is NOT HTTPS!', { url: req.url });
       }
     }
     
@@ -53,9 +57,7 @@ export class AuthInterceptor implements HttpInterceptor {
               catchError(refreshError => {
                 // Refresh failed with 401 - token is invalid/expired
                 // Logout user immediately and don't retry the original request
-                if (isDevMode()) {
-                  console.error('Token refresh failed, logging out user:', refreshError);
-                }
+                this.logger.error('Token refresh failed, logging out user', refreshError);
                 this.authService.logout();
                 // Return the original error, not the refresh error, so components see the right error
                 return throwError(() => ({

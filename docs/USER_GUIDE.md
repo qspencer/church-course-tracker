@@ -6,14 +6,15 @@ This comprehensive guide will walk you through all the features of the Church Co
 
 1. [Dashboard](#dashboard)
 2. [Courses](#courses)
-3. [Enrollments](#enrollments)
-4. [Progress Tracking](#progress-tracking)
-5. [Content Management](#content-management)
-6. [Members](#members)
-7. [Reports](#reports)
-8. [User Management](#user-management)
-9. [Profile Settings](#profile-settings)
-10. [Activity and Audit Logs](#activity-and-audit-logs)
+3. [Programs](#programs)
+4. [Enrollments](#enrollments)
+5. [Progress Tracking](#progress-tracking)
+6. [Content Management](#content-management)
+7. [Members](#members)
+8. [Reports](#reports)
+9. [User Management](#user-management)
+10. [Profile Settings](#profile-settings)
+11. [Activity and Audit Logs](#activity-and-audit-logs)
 
 ---
 
@@ -80,6 +81,250 @@ When you view a course, you'll see:
 - Enrolled members
 - Course content and materials
 - Progress statistics
+
+---
+
+## Programs
+
+Programs are comprehensive educational initiatives that provide advanced tracking capabilities for multi-session series, mentorship relationships, and participant progress. Programs are ideal for long-term educational journeys that require structured participant management.
+
+### What is a Program?
+
+A Program is different from a simple course in that it includes:
+- **Multiple Sessions** - Organized series of classes or meetings
+- **Participant Management** - Track who is enrolled in the program
+- **Pairings** - Mentor/mentee or buddy relationships between participants
+- **Program Administrators** - Dedicated administrators for the program
+- **Program-Specific Content** - Modules and materials organized for the program
+- **Progress Tracking** - Monitor participant progress through the program
+- **Delivery Options** - In-person, online, or hybrid delivery modes
+- **Locations** - Track where program sessions occur
+
+### Viewing Programs
+
+1. Click "Programs" in the main menu
+2. You'll see a list of all programs
+3. Use the search box to find specific programs
+4. Click on a program name to see full details
+
+### Creating a Program (Staff & Administrators)
+
+1. Go to the Programs page
+2. Click "Create New Program" or the "+" button
+3. Fill in the program information:
+   - **Program Name** - The title of the program
+   - **Description** - What the program is about and its objectives
+   - **Delivery Mode** - In-person, Online, or Hybrid
+   - **Location** - Where the program takes place
+   - **Prerequisites** - Any requirements for participation
+   - **Role Definitions** - Define roles (e.g., Mentor, Mentee, Leader)
+4. Click "Save" or "Create"
+
+### Editing a Program (Staff & Administrators)
+
+1. Find the program you want to edit
+2. Click on the program name or the "Edit" button
+3. Make your changes
+4. Click "Save"
+
+### Managing Program Participants
+
+Participants are the people enrolled in your program.
+
+#### Adding Participants
+
+1. Open the program
+2. Click "Participants" tab or "Manage Participants"
+3. Click "Add Participant" or the "+" button
+4. Select the person to add
+5. Optionally assign a role (if you've defined roles)
+6. Click "Save"
+
+#### Bulk Import Participants
+
+You can import participants from Planning Center:
+
+1. Open the program
+2. Go to "Participants" tab
+3. Click "Import from Planning Center"
+4. Choose an event or list from Planning Center
+5. Select which people to import
+6. Map any custom attributes
+7. Click "Import"
+
+#### Viewing Participant Details
+
+1. Go to the Participants tab
+2. Click on a participant's name
+3. View their program progress, session attendance, and pairing information
+
+#### Removing Participants
+
+1. Go to the Participants tab
+2. Find the participant you want to remove
+3. Click "Remove" or the trash icon
+4. Confirm the removal
+
+### Managing Pairings (Mentor/Mentee Relationships)
+
+Pairings allow you to create relationships between participants, such as mentor/mentee or buddy systems.
+
+#### Creating a Pairing
+
+1. Open the program
+2. Click "Pairings" tab or "Manage Pairings"
+3. Click "Create Pairing" or the "+" button
+4. Select the two participants to pair:
+   - **Primary Person** - (e.g., Mentor, Leader)
+   - **Secondary Person** - (e.g., Mentee, Learner)
+5. Optionally add notes about the pairing
+6. Click "Save"
+
+#### Viewing Pairings
+
+1. Go to the Pairings tab
+2. See all current pairings in the program
+3. View pairing history and notes
+
+#### Ending a Pairing
+
+1. Go to the Pairings tab
+2. Find the pairing you want to end
+3. Click "End Pairing" or the appropriate button
+4. Confirm the action
+
+**Note**: Ending a pairing preserves the history but marks it as inactive.
+
+### Managing Program Sessions
+
+Sessions are individual meetings or classes within your program.
+
+#### Creating a Session
+
+1. Open the program
+2. Click "Sessions" tab or "Manage Sessions"
+3. Click "Create Session" or the "+" button
+4. Fill in session details:
+   - **Session Name** - Title of the session
+   - **Date and Time** - When it occurs
+   - **Location** - Where it takes place
+   - **Description** - What will be covered
+5. Click "Save"
+
+#### Viewing Sessions
+
+1. Go to the Sessions tab
+2. See all scheduled sessions
+3. View session details, attendance, and notes
+
+#### Taking Attendance
+
+1. Go to the Sessions tab
+2. Click on a session
+3. Click "Take Attendance" or "Mark Attendance"
+4. Mark participants as Present, Absent, or Excused
+5. Click "Save"
+
+### Tracking Program Progress
+
+Track how participants are progressing through the program.
+
+#### Viewing Progress
+
+1. Open the program
+2. Click "Progress" tab
+3. See a summary of all participant progress
+4. View completion percentages and milestones
+
+#### Updating Progress
+
+1. Go to the Progress tab
+2. Click on a participant
+3. Update their progress:
+   - Mark milestones as complete
+   - Add progress notes
+   - Set completion percentage
+4. Click "Save"
+
+### Program Content Management
+
+Programs have their own content separate from courses.
+
+#### Adding Program Content
+
+1. Open the program
+2. Click "Content" tab
+3. Click "Add Module" to create a content category
+4. Within a module, click "Add Content" to add materials:
+   - Upload files (PDFs, documents)
+   - Add videos
+   - Add links
+   - Add text lessons
+5. Organize content by dragging and dropping
+
+#### Managing Program Modules
+
+1. Go to the Content tab
+2. Click on a module to expand it
+3. Edit module name and description
+4. Reorder modules by dragging
+5. Delete modules that are no longer needed
+
+### Program Administration
+
+#### Assigning Program Administrators
+
+1. Open the program
+2. Click "Administrators" or "Settings"
+3. Click "Add Administrator"
+4. Select a user to make an administrator
+5. Click "Save"
+
+**Note**: Program administrators can manage all aspects of the program, including participants, sessions, and content.
+
+#### Program Settings
+
+1. Open the program
+2. Click "Settings" (gear icon or settings tab)
+3. Update program configuration:
+   - Change delivery mode
+   - Update location
+   - Modify role definitions
+   - Adjust program dates
+4. Click "Save"
+
+### Program Details View
+
+When you view a program, you'll see:
+- Program description and objectives
+- Current participant count
+- Upcoming sessions
+- Progress summary
+- Pairings overview
+- Program administrators
+- Recent activity
+
+### Tips for Effective Program Management
+
+**For Administrators:**
+- Set clear role definitions before adding participants
+- Create pairings early to establish relationships
+- Schedule all sessions in advance for better planning
+- Monitor progress regularly to identify participants who need support
+- Use bulk import to save time when adding many participants
+
+**For Participants:**
+- Check the Sessions tab for upcoming meetings
+- Review Program Content regularly
+- Communicate with your mentor/mentee through the pairing system
+- Track your own progress to stay motivated
+
+**Best Practices:**
+- Update session attendance promptly
+- Keep program content organized in clear modules
+- Document pairing notes to track relationship development
+- Export reports regularly to share with leadership
+- Archive completed programs for historical reference
 
 ---
 

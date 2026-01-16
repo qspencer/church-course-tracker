@@ -5,6 +5,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { PlanningCenterService } from '../../../services/planning-center.service';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
+import { LoggerService } from '../../../services/logger.service';
 
 export interface AttributeMappingMatch {
   pc_attribute: string;
@@ -64,7 +65,8 @@ export class AttributeMappingDialogComponent implements OnInit {
     @Inject(MAT_DIALOG_DATA) public data: AttributeMappingDialogData,
     private http: HttpClient,
     private fb: FormBuilder,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private logger: LoggerService
   ) {}
 
   ngOnInit(): void {
@@ -87,7 +89,7 @@ export class AttributeMappingDialogComponent implements OnInit {
           this.isLoading = false;
         },
         error: (error) => {
-          console.error('Error loading attribute mappings:', error);
+          this.logger.error('Error loading attribute mappings', error, { component: 'AttributeMappingDialogComponent', action: 'loadAttributeMappings', sourceType: this.data.source_type, sourceId: this.data.source_id });
           this.snackBar.open('Failed to load attribute mappings', 'Close', { duration: 3000 });
           this.isLoading = false;
         }
@@ -200,7 +202,7 @@ export class AttributeMappingDialogComponent implements OnInit {
           this.isSaving = false;
         },
         error: (error) => {
-          console.error('Error saving attribute mappings:', error);
+          this.logger.error('Error saving attribute mappings', error, { component: 'AttributeMappingDialogComponent', action: 'saveAttributeMappings', sourceType: this.data.source_type, sourceId: this.data.source_id });
           this.snackBar.open('Failed to save attribute mappings', 'Close', { duration: 3000 });
           this.isSaving = false;
         }

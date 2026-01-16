@@ -17,6 +17,7 @@ from app.models.course import Course
 from app.models.program import Program
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 
 @router.get("/test-connection", response_model=Dict[str, Any])
@@ -141,8 +142,9 @@ async def get_events_diagnostics(
                     created_at_dt = parser.parse(created_at_str)
                     dates_created.append(created_at_dt)
                     events_with_created_at.append((event, created_at_dt))
-                except:
-                    pass
+                except (ValueError, TypeError, AttributeError) as e:
+                    event_id = event.get('id', 'unknown')
+                    logger.warning(f"Invalid created_at date format for event {event_id}: {created_at_str}. Error: {e}")
             
             # Calendar API uses starts_at, Check-Ins uses start_date
             start_date_str = attrs.get("starts_at") or attrs.get("start_date")
@@ -150,8 +152,9 @@ async def get_events_diagnostics(
                 try:
                     from dateutil import parser
                     dates_start.append(parser.parse(start_date_str))
-                except:
-                    pass
+                except (ValueError, TypeError, AttributeError) as e:
+                    event_id = event.get('id', 'unknown')
+                    logger.warning(f"Invalid start date format for event {event_id}: {start_date_str}. Error: {e}")
         
         # Determine which API is being used based on event structure
         api_used = "unknown"

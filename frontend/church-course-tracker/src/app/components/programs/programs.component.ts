@@ -6,6 +6,7 @@ import { MatTableDataSource } from '@angular/material/table';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ProgramService } from '../../services/program.service';
 import { AuthService } from '../../services/auth.service';
+import { LoggerService } from '../../services/logger.service';
 import { Program } from '../../models/program.model';
 import { ProgramDialogComponent } from './program-dialog/program-dialog.component';
 import { ParticipantsManagementComponent } from './participants-management/participants-management.component';
@@ -33,15 +34,14 @@ export class ProgramsComponent implements OnInit {
     private programService: ProgramService,
     private authService: AuthService,
     private dialog: MatDialog,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private logger: LoggerService
   ) {
-    console.log('ProgramsComponent constructor called');
-    console.log('Current route:', window.location.pathname);
+    // Removed console.log statements - use logger if needed
   }
 
   ngOnInit(): void {
-    console.log('ProgramsComponent ngOnInit called');
-    console.log('Current route:', window.location.pathname);
+    // Removed console.log statements - use logger if needed
     this.loadPrograms();
   }
 
@@ -59,7 +59,7 @@ export class ProgramsComponent implements OnInit {
         this.isLoading = false;
       },
       error: (error) => {
-        console.error('Error loading programs:', error);
+        this.logger.error('Error loading programs', error);
         this.snackBar.open('Error loading programs', 'Close', { duration: 3000 });
         this.isLoading = false;
       }
@@ -175,7 +175,7 @@ export class ProgramsComponent implements OnInit {
         this.loadPrograms();
       },
       error: (error) => {
-        console.error('Error updating program status:', error);
+        this.logger.error('Error updating program status', error);
         this.snackBar.open('Error updating program status', 'Close', { duration: 3000 });
       }
     });
@@ -200,7 +200,7 @@ export class ProgramsComponent implements OnInit {
             this.loadPrograms();
           },
           error: (error) => {
-            console.error('Error deleting program:', error);
+            this.logger.error('Error deleting program', error);
             this.snackBar.open('Error deleting program', 'Close', { duration: 3000 });
           }
         });

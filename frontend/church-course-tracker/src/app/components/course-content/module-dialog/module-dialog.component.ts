@@ -4,6 +4,7 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { CourseContentService } from '../../../services/course-content.service';
 import { CourseModule, CourseModuleCreate, CourseModuleUpdate } from '../../../models';
+import { LoggerService } from '../../../services/logger.service';
 
 export interface ModuleDialogData {
   courseId: number;
@@ -26,7 +27,8 @@ export class ModuleDialogComponent implements OnInit {
     private courseContentService: CourseContentService,
     private snackBar: MatSnackBar,
     public dialogRef: MatDialogRef<ModuleDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: ModuleDialogData
+    @Inject(MAT_DIALOG_DATA) public data: ModuleDialogData,
+    private logger: LoggerService
   ) {
     this.isEditing = !!data.module;
     
@@ -65,7 +67,7 @@ export class ModuleDialogComponent implements OnInit {
             this.dialogRef.close(module);
           },
           error: (error) => {
-            console.error('Error updating module:', error);
+            this.logger.error('Error updating module', error, { component: 'ModuleDialogComponent', action: 'updateModule', moduleId: this.data.module?.id, courseId: this.data.courseId });
             const errorMessage = error?.error?.detail || 'Error updating module';
             this.snackBar.open(errorMessage, 'Close', { duration: 5000 });
             this.isSubmitting = false;
@@ -84,7 +86,7 @@ export class ModuleDialogComponent implements OnInit {
             this.dialogRef.close(module);
           },
           error: (error) => {
-            console.error('Error creating module:', error);
+            this.logger.error('Error creating module', error, { component: 'ModuleDialogComponent', action: 'createModule', courseId: this.data.courseId });
             const errorMessage = error?.error?.detail || 'Error creating module';
             this.snackBar.open(errorMessage, 'Close', { duration: 5000 });
             this.isSubmitting = false;

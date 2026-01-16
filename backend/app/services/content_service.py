@@ -8,7 +8,7 @@ content organization, access tracking, and audit logging.
 import mimetypes
 import os
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timezone
 from typing import Any, BinaryIO, Dict, List, Optional
 
 from fastapi import HTTPException, UploadFile, status
@@ -131,7 +131,7 @@ class ContentService:
             setattr(db_module, field, value)
 
         db_module.updated_by = user_id
-        db_module.updated_at = datetime.utcnow()
+        db_module.updated_at = datetime.now(timezone.utc)
 
         self.db.commit()
         self.db.refresh(db_module)
@@ -273,7 +273,7 @@ class ContentService:
         content.mime_type = file.content_type or mimetypes.guess_type(file.filename)[0]
         content.storage_type = storage_type
         content.updated_by = user_id
-        content.updated_at = datetime.utcnow()
+        content.updated_at = datetime.now(timezone.utc)
 
         self.db.commit()
         self.db.refresh(content)

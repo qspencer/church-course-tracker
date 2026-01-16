@@ -8,6 +8,7 @@ import { UserDialogComponent } from './user-dialog/user-dialog.component';
 import { UserImportDialogComponent } from './user-import-dialog/user-import-dialog.component';
 import { ResetPasswordDialogComponent } from './reset-password-dialog/reset-password-dialog.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { LoggerService } from '../../services/logger.service';
 
 @Component({
   selector: 'app-users',
@@ -24,7 +25,8 @@ export class UsersComponent implements OnInit {
     private authService: AuthService,
     private router: Router,
     private dialog: MatDialog,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private logger: LoggerService
   ) {}
 
   ngOnInit(): void {
@@ -46,7 +48,7 @@ export class UsersComponent implements OnInit {
         this.isLoading = false;
       },
       error: (error) => {
-        console.error('Error loading users:', error);
+        this.logger.error('Error loading users', error);
         this.snackBar.open('Error loading users', 'Close', { duration: 3000 });
         this.isLoading = false;
       }
@@ -87,7 +89,7 @@ export class UsersComponent implements OnInit {
         this.loadUsers();
       },
       error: (error) => {
-        console.error('Error importing user:', error);
+        this.logger.error('Error importing user', error);
         const errorMsg = error?.error?.detail || 'Error importing user from Planning Center';
         this.snackBar.open(errorMsg, 'Close', { duration: 5000 });
       }
@@ -122,7 +124,7 @@ export class UsersComponent implements OnInit {
           this.loadUsers();
         },
         error: (error) => {
-          console.error('Error deleting user:', error);
+          this.logger.error('Error deleting user', error);
           this.snackBar.open('Error deleting user', 'Close', { duration: 3000 });
         }
       });
@@ -140,7 +142,7 @@ export class UsersComponent implements OnInit {
         this.loadUsers();
       },
       error: (error) => {
-        console.error('Error updating user:', error);
+        this.logger.error('Error updating user', error);
         this.snackBar.open('Error updating user', 'Close', { duration: 3000 });
       }
     });

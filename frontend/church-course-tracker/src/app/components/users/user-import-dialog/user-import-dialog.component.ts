@@ -4,6 +4,7 @@ import { MatDialogRef } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { PlanningCenterService, PlanningCenterPerson } from '../../../services/planning-center.service';
 import { UserService } from '../../../services/user.service';
+import { LoggerService } from '../../../services/logger.service';
 import { Observable, of } from 'rxjs';
 import { map, startWith, debounceTime, distinctUntilChanged, switchMap, catchError } from 'rxjs/operators';
 
@@ -27,6 +28,7 @@ export class UserImportDialogComponent implements OnInit {
     private fb: FormBuilder,
     private planningCenterService: PlanningCenterService,
     private userService: UserService,
+    private logger: LoggerService,
     private snackBar: MatSnackBar,
     public dialogRef: MatDialogRef<UserImportDialogComponent>
   ) {
@@ -52,7 +54,7 @@ export class UserImportDialogComponent implements OnInit {
         this.isLoading = true;
         return this.planningCenterService.searchPeople(value, 20).pipe(
           catchError(error => {
-            console.error('Error searching Planning Center:', error);
+            this.logger.error('Error searching Planning Center', error);
             this.snackBar.open('Error searching Planning Center', 'Close', { duration: 3000 });
             return of([]);
           })

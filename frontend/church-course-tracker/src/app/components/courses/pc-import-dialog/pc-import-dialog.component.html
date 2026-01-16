@@ -29,7 +29,7 @@
         <!-- Use mat-select for ≤20 items -->
         <mat-select formControlName="pc_event_id" *ngIf="useSelectForEvents">
           <mat-option *ngFor="let event of events" [value]="event.id">
-            {{ event.attributes.name }}<span *ngIf="event.attributes.start_date || event.attributes['starts_at']"> ({{ (event.attributes.start_date || event.attributes['starts_at']) | date:'shortDate' }})</span>
+            {{ event.attributes.name }}<span *ngIf="getEventDate(event)"> ({{ getEventDate(event)! | date:'shortDate' }})</span>
           </mat-option>
         </mat-select>
 
@@ -49,7 +49,7 @@
           <ng-container *ngFor="let group of filteredEvents | async">
             <mat-optgroup [label]="group.letter" [attr.data-group-letter]="group.letter">
               <mat-option *ngFor="let event of group.events" [value]="event">
-                {{ event.attributes.name }}<span *ngIf="event.attributes.start_date || event.attributes['starts_at']"> ({{ (event.attributes.start_date || event.attributes['starts_at']) | date:'shortDate' }})</span>
+                {{ event.attributes.name }}<span *ngIf="getEventDate(event)"> ({{ getEventDate(event)! | date:'shortDate' }})</span>
               </mat-option>
             </mat-optgroup>
           </ng-container>

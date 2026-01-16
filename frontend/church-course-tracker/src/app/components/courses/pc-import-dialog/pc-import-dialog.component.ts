@@ -4,10 +4,11 @@ import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { Observable } from 'rxjs';
-import { map, startWith, tap } from 'rxjs/operators';
+import { map, startWith, tap, finalize } from 'rxjs/operators';
 import { PlanningCenterService, PlanningCenterEvent, PlanningCenterList } from '../../../services/planning-center.service';
 import { CourseService } from '../../../services/course.service';
 import { ProgramService } from '../../../services/program.service';
+import { LoggerService } from '../../../services/logger.service';
 
 export interface PCImportDialogData {
   entityType: 'course' | 'program';
@@ -58,6 +59,7 @@ export class PCImportDialogComponent implements OnInit, AfterViewInit {
     @Inject(MAT_DIALOG_DATA) public data: PCImportDialogData,
     private planningCenterService: PlanningCenterService,
     private courseService: CourseService,
+    private logger: LoggerService,
     private programService: ProgramService,
     private snackBar: MatSnackBar
   ) {
@@ -277,6 +279,28 @@ export class PCImportDialogComponent implements OnInit, AfterViewInit {
   }
 
   // Display functions for autocomplete
+  getEventDate(event: PlanningCenterEvent): Date | null {
+    const attrs = event.attributes || {};
+    const startDate = attrs.start_date || attrs['starts_at'];
+    if (!startDate) return null;
+    try {
+      return new Date(String(startDate));
+    } catch {
+      return null;
+    }
+  }
+
+  getListDate(list: PlanningCenterList): Date | null {
+    const attrs = list.attributes || {};
+    const date = attrs.created_at || attrs.updated_at;
+    if (!date) return null;
+    try {
+      return new Date(String(date));
+    } catch {
+      return null;
+    }
+  }
+
   displayEventName(event: PlanningCenterEvent | string): string {
     if (typeof event === 'string') {
       return event;
@@ -451,82 +475,82 @@ export class PCImportDialogComponent implements OnInit, AfterViewInit {
 
   loadEvents(): void {
     this.isLoadingEvents = true;
-    this.planningCenterService.getEvents().subscribe({
-      next: (events) => {
-        this.events = events || [];
-        this.isLoadingEvents = false;
-        if (this.events.length === 0) {
-          this.snackBar.open('No events found in Planning Center. Please check your Planning Center configuration.', 'Close', { duration: 5000 });
+    this.planningCenterService.getEvents()
+      .pipe(finalize(() => this.isLoadingEvents = false))
+      .subscribe({
+        next: (events) => {
+          this.events = events || [];
+          if (this.events.length === 0) {
+            this.snackBar.open('No events found in Planning Center. Please check your Planning Center configuration.', 'Close', { duration: 5000 });
+          }
+          // Reset autocomplete control when events are loaded
+          if (!this.useSelectForEvents) {
+            this.eventControl.setValue('');
+          }
+        },
+        error: (error) => {
+          this.logger.error('Error loading events', error, { component: 'PCImportDialogComponent' });
+          this.events = [];
+          const errorMessage = error?.error?.detail || error?.message || 'Failed to load Planning Center events';
+          this.snackBar.open(`Error: ${errorMessage}`, 'Close', { duration: 5000 });
         }
-        // Reset autocomplete control when events are loaded
-        if (!this.useSelectForEvents) {
-          this.eventControl.setValue('');
-        }
-      },
-      error: (error) => {
-        console.error('Error loading events:', error);
-        this.events = [];
-        this.isLoadingEvents = false;
-        const errorMessage = error?.error?.detail || error?.message || 'Failed to load Planning Center events';
-        this.snackBar.open(`Error: ${errorMessage}`, 'Close', { duration: 5000 });
-      }
-    });
+      });
   }
 
   loadLists(): void {
     this.isLoadingLists = true;
-    this.planningCenterService.getLists().subscribe({
-      next: (lists) => {
-        this.lists = lists || [];
-        this.isLoadingLists = false;
-        if (this.lists.length === 0) {
-          this.snackBar.open('No lists found in Planning Center. Please check your Planning Center configuration.', 'Close', { duration: 5000 });
+    this.planningCenterService.getLists()
+      .pipe(finalize(() => this.isLoadingLists = false))
+      .subscribe({
+        next: (lists) => {
+          this.lists = lists || [];
+          if (this.lists.length === 0) {
+            this.snackBar.open('No lists found in Planning Center. Please check your Planning Center configuration.', 'Close', { duration: 5000 });
+          }
+          // Reset autocomplete control when lists are loaded
+          if (!this.useSelectForLists) {
+            this.listControl.setValue('');
+          }
+        },
+        error: (error) => {
+          this.logger.error('Error loading lists', error, { component: 'PCImportDialogComponent' });
+          this.lists = [];
+          const errorMessage = error?.error?.detail || error?.message || 'Failed to load Planning Center lists';
+          this.snackBar.open(`Error: ${errorMessage}`, 'Close', { duration: 5000 });
         }
-        // Reset autocomplete control when lists are loaded
-        if (!this.useSelectForLists) {
-          this.listControl.setValue('');
-        }
-      },
-      error: (error) => {
-        console.error('Error loading lists:', error);
-        this.lists = [];
-        this.isLoadingLists = false;
-        const errorMessage = error?.error?.detail || error?.message || 'Failed to load Planning Center lists';
-        this.snackBar.open(`Error: ${errorMessage}`, 'Close', { duration: 5000 });
-      }
-    });
+      });
   }
 
   loadEventDetails(eventId: string): void {
     this.isLoadingDetails = true;
-    this.planningCenterService.getEvent(eventId).subscribe({
-      next: (event) => {
-        this.selectedEvent = event;
-        this.previewData = this.buildPreviewFromEvent(event);
-        this.isLoadingDetails = false;
-      },
-      error: (error) => {
-        console.error('Error loading event details:', error);
-        this.snackBar.open('Failed to load event details', 'Close', { duration: 3000 });
-        this.isLoadingDetails = false;
-      }
-    });
+    this.planningCenterService.getEvent(eventId)
+      .pipe(finalize(() => this.isLoadingDetails = false))
+      .subscribe({
+        next: (event) => {
+          this.selectedEvent = event;
+          this.previewData = this.buildPreviewFromEvent(event);
+        },
+        error: (error) => {
+          this.logger.error('Error loading event details', error, { component: 'PCImportDialogComponent', eventId });
+          this.snackBar.open('Failed to load event details', 'Close', { duration: 3000 });
+        }
+      });
   }
 
   loadListDetails(listId: string): void {
     this.isLoadingDetails = true;
-    this.planningCenterService.getList(listId).subscribe({
-      next: (list) => {
-        this.selectedList = list;
-        this.previewData = this.buildPreviewFromList(list);
-        this.isLoadingDetails = false;
-      },
-      error: (error) => {
-        console.error('Error loading list details:', error);
-        this.snackBar.open('Failed to load list details', 'Close', { duration: 3000 });
-        this.isLoadingDetails = false;
-      }
-    });
+    this.planningCenterService.getList(listId)
+      .pipe(finalize(() => this.isLoadingDetails = false))
+      .subscribe({
+        next: (list) => {
+          this.selectedList = list;
+          this.previewData = this.buildPreviewFromList(list);
+        },
+        error: (error) => {
+          this.logger.error('Error loading list details', error, { component: 'PCImportDialogComponent', listId });
+          this.snackBar.open('Failed to load list details', 'Close', { duration: 3000 });
+        }
+      });
   }
 
   buildPreviewFromEvent(event: PlanningCenterEvent): any {
@@ -536,14 +560,14 @@ export class PCImportDialogComponent implements OnInit, AfterViewInit {
     const endDate = attrs.end_date || attrs['ends_at'];
     
     return {
-      title: attrs.name || '',
-      description: attrs['description'] || attrs.name || '',
+      title: String(attrs.name || ''),
+      description: String(attrs['description'] || attrs.name || ''),
       planning_center_event_id: event.id,
-      planning_center_event_name: attrs.name || '',
-      event_start_date: startDate ? new Date(startDate) : null,
-      event_end_date: endDate ? new Date(endDate) : null,
+      planning_center_event_name: String(attrs.name || ''),
+      event_start_date: startDate ? new Date(String(startDate)) : null,
+      event_end_date: endDate ? new Date(String(endDate)) : null,
       max_capacity: attrs['capacity'] || attrs['max_attendees'] || null,
-      locations: attrs['location'] || attrs['location_name'] ? [attrs['location'] || attrs['location_name']] : [],
+      locations: attrs['location'] || attrs['location_name'] ? [String(attrs['location'] || attrs['location_name'])] : [],
       delivery_modes: [],
       duration_weeks: null
     };

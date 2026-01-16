@@ -1,0 +1,94 @@
+.settings-container {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+
+  .header {
+    margin-bottom: 24px;
+
+    h1 {
+      margin: 0;
+      font-size: 28px;
+      font-weight: 500;
+    }
+  }
+
+  .content {
+    background: white;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 48px;
+
+    mat-spinner {
+      margin-bottom: 16px;
+    }
+
+    p {
+      color: rgba(0, 0, 0, 0.6);
+    }
+  }
+
+  .tab-content {
+    padding: 24px;
+  }
+
+  .settings-form {
+    .form-section {
+      margin-bottom: 32px;
+
+      h3 {
+        margin: 0 0 16px 0;
+        font-size: 18px;
+        font-weight: 500;
+        color: rgba(0, 0, 0, 0.87);
+        border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+        padding-bottom: 8px;
+      }
+
+      mat-form-field {
+        width: 100%;
+        margin-bottom: 16px;
+      }
+
+      mat-checkbox {
+        display: block;
+        margin-bottom: 16px;
+      }
+
+      .hint-text {
+        color: rgba(0, 0, 0, 0.6);
+        font-size: 12px;
+        margin-top: -8px;
+        margin-bottom: 16px;
+      }
+    }
+
+    .form-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 16px;
+      margin-top: 32px;
+      padding-top: 24px;
+      border-top: 1px solid rgba(0, 0, 0, 0.12);
+
+      button {
+        min-width: 120px;
+      }
+    }
+  }
+}
+
+::ng-deep {
+  .mat-tab-group {
+    .mat-tab-body-content {
+      overflow: visible;
+    }
+  }
+}

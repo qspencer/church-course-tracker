@@ -14,14 +14,16 @@ This guide covers all features of the Church Course Tracker:
 
 1. [Dashboard](#dashboard) - Overview and quick access
 2. [Courses](#courses) - Creating and managing courses
-3. [Enrollments](#enrollments) - Managing course enrollments
-4. [Progress Tracking](#progress-tracking) - Monitoring member progress
-5. [Content Management](#content-management) - Uploading and organizing content
-6. [Members](#members) - Managing member information
-7. [Reports](#reports) - Generating reports and analytics
-8. [User Management](#user-management) - Managing system users (Admin only)
-9. [Profile Settings](#profile-settings) - Updating your profile
-10. [Activity and Audit Logs](#activity-and-audit-logs) - Viewing system activity
+3. [Programs](#programs) - Creating and managing mentoring/discipleship programs
+4. [Enrollments](#enrollments) - Managing course enrollments
+5. [Progress Tracking](#progress-tracking) - Monitoring member progress
+6. [Content Management](#content-management) - Uploading and organizing content
+7. [Members](#members) - Managing member information
+8. [Reports](#reports) - Generating reports and analytics
+9. [User Management](#user-management) - Managing system users (Admin only)
+10. [System Settings](#system-settings) - Configuring system settings (Admin only)
+11. [Profile Settings](#profile-settings) - Updating your profile
+12. [Activity and Audit Logs](#activity-and-audit-logs) - Viewing system activity
 
 ---
 
@@ -92,6 +94,101 @@ When you view a course, you'll see:
 - Enrolled members
 - Course content and materials
 - Progress statistics
+
+---
+
+## Programs
+
+Programs are designed for managing mentoring and discipleship programs, which differ from courses in that they focus on relationship-based learning with participants, pairings (like mentor-mentee relationships), sessions, and progress tracking.
+
+### Viewing Programs
+
+1. Click "Programs" in the main menu
+2. You'll see a list of all available programs
+3. Use the search box to find specific programs
+4. Click on a program name to see details
+
+### Creating a Program (Staff & Administrators)
+
+1. Go to the Programs page
+2. Click "Add New Program" or the "+" button
+3. Fill in the program information:
+   - **Program Title** - The name of the program
+   - **Description** - What the program is about
+   - **Status** - Active or Inactive
+4. Click "Save" or "Create"
+
+### Importing Programs from Planning Center
+
+1. Go to the Programs page
+2. Click "Import Program from Planning Center"
+3. Select the Planning Center event or list
+4. Review and map attributes using the attribute mapping dialog
+5. Complete the import
+
+### Managing Program Participants
+
+1. Open a program
+2. Click "Manage Participants" or the participants icon
+3. You can:
+   - **Add Participants** - Import from Planning Center or add manually
+   - **Remove Participants** - Remove participants from the program
+   - **View Participant Details** - See participant information and custom attributes
+
+### Managing Program Pairings
+
+Program pairings allow you to create relationships between participants, such as mentor-mentee pairs.
+
+1. Open a program
+2. Click "Manage Pairings" or the pairings icon
+3. You can:
+   - **Create Pairings** - Link participants together (e.g., mentor and mentee)
+   - **View Existing Pairings** - See all current pairings in the program
+   - **Remove Pairings** - Delete pairings when relationships end
+
+### Managing Program Sessions
+
+Sessions are scheduled meetings or events within a program.
+
+1. Open a program
+2. Click "Manage Sessions" or the sessions icon
+3. You can:
+   - **Create Sessions** - Add new sessions with dates and details
+   - **Edit Sessions** - Update session information
+   - **Delete Sessions** - Remove sessions that are no longer needed
+
+### Managing Program Progress
+
+1. Open a program
+2. Click "Manage Progress" or the progress icon
+3. View and update progress for all participants
+4. Track completion status and milestones
+
+### Editing a Program (Staff & Administrators)
+
+1. Find the program you want to edit
+2. Click on the program name or the "Edit" button
+3. Make your changes
+4. Click "Save"
+
+### Deleting a Program (Administrators Only)
+
+!!! danger "Permanent Action"
+    Deleting a program will remove it and all associated data. This cannot be undone. Only administrators can delete programs.
+
+1. Find the program you want to delete
+2. Click "Delete" (this option is only available to administrators)
+3. Confirm the deletion
+
+### Program Details
+
+When you view a program, you'll see:
+- Program description and information
+- Participants list
+- Pairings information
+- Sessions schedule
+- Progress statistics
+- Program content and materials
 
 ---
 
@@ -336,6 +433,81 @@ User management is for administrators to control who can access the system and w
 3. Confirm the action
 
 **Note**: Deactivated users cannot log in but their data is preserved.
+
+---
+
+## System Settings
+
+System Settings allow administrators to configure various aspects of the system, including Planning Center integration, security policies, and backup settings.
+
+!!! warning "Administrator Only"
+    Only users with Administrator role can access and modify system settings.
+
+### Accessing System Settings
+
+1. Click "System Settings" in the main menu (Administrators only)
+2. You'll see different categories of settings organized in tabs
+
+### System Settings Categories
+
+#### System Settings
+- **Application Name** - The name of your application
+- **Application Version** - Current version information
+- **Environment** - Current environment (production, development, etc.)
+- **Debug Mode** - Enable or disable debug logging
+- **Session Timeout** - How long users can be inactive before being logged out
+- **Max Upload Size** - Maximum file size for uploads
+- **Log Level** - Level of detail in system logs
+
+#### Planning Center Integration
+- **API URL** - Planning Center API endpoint
+- **App ID** - Your Planning Center application ID
+- **Secret** - Planning Center secret key (hidden for security)
+- **Access Token** - Planning Center access token (hidden for security)
+- **Max Events** - Maximum number of events to fetch
+- **Cache TTL** - How long to cache Planning Center data
+- **Use Mock** - Enable mock mode for testing
+
+#### Security Settings
+- **Password Requirements**:
+  - Minimum length
+  - Require uppercase letters
+  - Require lowercase letters
+  - Require numbers
+  - Require special characters
+- **Account Lockout**:
+  - Lockout attempts (number of failed logins before lockout)
+  - Lockout duration (how long accounts stay locked)
+- **Session Management**:
+  - Idle timeout (automatic logout after inactivity)
+- **Rate Limiting**:
+  - Enable/disable rate limiting
+  - Requests per window
+  - Time window duration
+
+#### Backup Settings
+- **Backup Enabled** - Turn automatic backups on or off
+- **Backup Frequency** - How often backups run (in days)
+- **Backup Retention** - How long to keep backups (in days)
+- **Maintenance Window** - Time window for backup operations
+
+### Saving Settings
+
+1. Navigate to the category you want to modify
+2. Make your changes
+3. Click "Save" for that category
+4. You'll see a confirmation message when settings are saved
+
+!!! tip "Settings Validation"
+    The system validates all settings before saving. If there are errors, they will be highlighted and you'll need to fix them before saving.
+
+### Planning Center Configuration
+
+When configuring Planning Center integration:
+- Enter your API credentials carefully
+- Secret values are masked for security (click the eye icon to reveal)
+- Test the connection after saving
+- Use mock mode for testing without connecting to Planning Center
 
 ---
 

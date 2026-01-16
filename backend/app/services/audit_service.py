@@ -68,7 +68,7 @@ class AuditService:
     # ------------------------------------------------------------------
     def create_audit_log(self, audit_data: AuditLogCreate) -> AuditLog:
         """Create a new audit log entry"""
-        audit_log = AuditLog(**audit_data.dict())
+        audit_log = AuditLog(**audit_data.model_dump())
         self.db.add(audit_log)
         try:
             self.db.commit()
@@ -178,7 +178,22 @@ class AuditService:
         query = query.order_by(desc(AuditLog.changed_at))
 
         # Apply pagination
-        return query.offset(skip).limit(limit).all()
+        logs = query.offset(skip).limit(limit).all()
+
+        # Convert to schemas and add user names
+        from app.schemas.audit_log import AuditLog as AuditLogSchema
+        
+        result = []
+        for log in logs:
+            log_dict = AuditLogSchema.model_validate(log).model_dump()
+            # Get user name if changed_by exists
+            if log.changed_by:
+                user = self.db.query(User).filter(User.id == log.changed_by).first()
+                if user:
+                    log_dict['changed_by_user_name'] = user.full_name
+            result.append(AuditLogSchema(**log_dict))
+        
+        return result
 
     def get_audit_summary(
         self, start_date: Optional[date] = None, end_date: Optional[date] = None
@@ -258,13 +273,28 @@ class AuditService:
         if record_id:
             query = query.filter(AuditLog.record_id == record_id)
 
-        return query.order_by(desc(AuditLog.changed_at)).offset(skip).limit(limit).all()
+        logs = query.order_by(desc(AuditLog.changed_at)).offset(skip).limit(limit).all()
+
+        # Convert to schemas and add user names
+        from app.schemas.audit_log import AuditLog as AuditLogSchema
+        
+        result = []
+        for log in logs:
+            log_dict = AuditLogSchema.model_validate(log).model_dump()
+            # Get user name if changed_by exists
+            if log.changed_by:
+                user = self.db.query(User).filter(User.id == log.changed_by).first()
+                if user:
+                    log_dict['changed_by_user_name'] = user.full_name
+            result.append(AuditLogSchema(**log_dict))
+        
+        return result
 
     def get_user_audit_logs(
         self, user_id: int, skip: int = 0, limit: int = 100
     ) -> List[AuditLog]:
         """Get audit logs for a specific user"""
-        return (
+        logs = (
             self.db.query(AuditLog)
             .filter(AuditLog.changed_by == user_id)
             .order_by(desc(AuditLog.changed_at))
@@ -272,6 +302,21 @@ class AuditService:
             .limit(limit)
             .all()
         )
+
+        # Convert to schemas and add user names
+        from app.schemas.audit_log import AuditLog as AuditLogSchema
+        
+        result = []
+        for log in logs:
+            log_dict = AuditLogSchema.model_validate(log).model_dump()
+            # Get user name if changed_by exists
+            if log.changed_by:
+                user = self.db.query(User).filter(User.id == log.changed_by).first()
+                if user:
+                    log_dict['changed_by_user_name'] = user.full_name
+            result.append(AuditLogSchema(**log_dict))
+        
+        return result
 
     def export_audit_logs(
         self,
@@ -387,9 +432,10 @@ class AuditService:
         """Get recent audit logs within the specified number of hours"""
         from datetime import timedelta
 
-        cutoff_time = datetime.utcnow() - timedelta(hours=hours)
+        from datetime import timezone
+        cutoff_time = datetime.now(timezone.utc) - timedelta(hours=hours)
 
-        return (
+        logs = (
             self.db.query(AuditLog)
             .filter(AuditLog.changed_at >= cutoff_time)
             .order_by(desc(AuditLog.changed_at))
@@ -397,3 +443,18 @@ class AuditService:
             .limit(limit)
             .all()
         )
+
+        # Convert to schemas and add user names
+        from app.schemas.audit_log import AuditLog as AuditLogSchema
+        
+        result = []
+        for log in logs:
+            log_dict = AuditLogSchema.model_validate(log).model_dump()
+            # Get user name if changed_by exists
+            if log.changed_by:
+                user = self.db.query(User).filter(User.id == log.changed_by).first()
+                if user:
+                    log_dict['changed_by_user_name'] = user.full_name
+            result.append(AuditLogSchema(**log_dict))
+        
+        return result

@@ -40,8 +40,8 @@ export class UserService {
     return this.http.put<User>(`${this.API_URL}/${userId}`, user);
   }
 
-  deleteUser(userId: number): Observable<any> {
-    return this.http.delete(`${this.API_URL}/${userId}`);
+  deleteUser(userId: number): Observable<{ success: boolean; message: string }> {
+    return this.http.delete<{ success: boolean; message: string }>(`${this.API_URL}/${userId}`);
   }
 
   // Current user profile methods

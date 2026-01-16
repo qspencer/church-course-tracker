@@ -3,6 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { AuditLog, AuditLogFilters, AuditSummary, AuditExportOptions } from '../models';
+import { LoggerService } from './logger.service';
 
 @Injectable({
   providedIn: 'root'
@@ -10,7 +11,7 @@ import { AuditLog, AuditLogFilters, AuditSummary, AuditExportOptions } from '../
 export class AuditService {
   private readonly API_URL = `${environment.apiUrl}/audit`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private logger: LoggerService) {}
 
   /**
    * Get system-wide audit logs with filtering options
@@ -144,7 +145,7 @@ export class AuditService {
         window.URL.revokeObjectURL(url);
       },
       error: (error) => {
-        console.error('Error downloading audit logs:', error);
+        this.logger.error('Error downloading audit logs', error, { component: 'AuditService', action: 'downloadAuditLogs', format: options.format });
       }
     });
   }

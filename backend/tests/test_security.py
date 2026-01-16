@@ -59,12 +59,17 @@ class TestPasswordHashing:
         assert verify_password("wrong_password", hashed) is False
     
     def test_verify_password_legacy_sha256(self):
-        """Test password verification with legacy SHA256"""
+        """Test password verification with legacy SHA256
+        
+        Note: Legacy SHA256 support has been removed for security reasons.
+        Users with SHA256 hashes must reset their passwords.
+        """
         password = "test_password_123"
         import hashlib
         hashed = hashlib.sha256(password.encode()).hexdigest()
         
-        assert verify_password(password, hashed) is True
+        # Legacy SHA256 passwords are no longer supported - should return False
+        assert verify_password(password, hashed) is False
         assert verify_password("wrong_password", hashed) is False
     
     def test_verify_password_invalid_hash(self):

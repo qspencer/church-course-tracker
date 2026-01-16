@@ -3,10 +3,12 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { forkJoin } from 'rxjs';
+import { finalize } from 'rxjs/operators';
 import { ProgramService } from '../../../services/program.service';
 import { MemberService } from '../../../services/member.service';
 import { Program, ProgramParticipant, ProgramParticipantCreate, ProgramParticipantUpdate, RoleDefinition } from '../../../models/program.model';
 import { Person } from '../../../models';
+import { LoggerService } from '../../../services/logger.service';
 
 export interface ParticipantDialogData {
   participant: ProgramParticipant | null;
@@ -40,6 +42,7 @@ export class ParticipantDialogComponent implements OnInit {
     private programService: ProgramService,
     private memberService: MemberService,
     private snackBar: MatSnackBar,
+    private logger: LoggerService,
     public dialogRef: MatDialogRef<ParticipantDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: ParticipantDialogData
   ) {
@@ -94,23 +97,27 @@ export class ParticipantDialogComponent implements OnInit {
 
   loadMembers(): void {
     this.isLoading = true;
-    this.memberService.getMembers().subscribe({
-      next: (members) => {
-        this.members = members;
-        this.isLoading = false;
-      },
-      error: (error) => {
-        console.error('Error loading members:', error);
-        this.snackBar.open('Error loading members', 'Close', { duration: 3000 });
-        this.isLoading = false;
-      }
-    });
+    this.memberService.getMembers()
+      .pipe(finalize(() => this.isLoading = false))
+      .subscribe({
+        next: (members) => {
+          this.members = members;
+        },
+        error: (error) => {
+          this.logger.error('Error loading members', error, {
+            component: 'ParticipantDialogComponent',
+            action: 'loadMembers',
+            programId: this.program.id
+          });
+          this.snackBar.open('Error loading members', 'Close', { duration: 5000 });
+        }
+      });
   }
 
   onSubmit(): void {
     // Mark form as submitted to show validation errors
     this.isSubmitted = true;
-    
+
     if (this.participantForm.invalid || this.viewMode || this.isLoading) {
       return;
     }
@@ -125,18 +132,24 @@ export class ParticipantDialogComponent implements OnInit {
         progress_percentage: this.participantForm.value.progress_percentage
       };
 
-      this.programService.updateProgramParticipant(this.data.participant.id, updateData).subscribe({
-        next: () => {
-          this.snackBar.open('Participant updated successfully', 'Close', { duration: 3000 });
-          this.dialogRef.close(true);
-        },
-        error: (error) => {
-          console.error('Error updating participant:', error);
-          const errorMsg = error?.error?.detail || 'Error updating participant';
-          this.snackBar.open(errorMsg, 'Close', { duration: 3000 });
-          this.isLoading = false;
-        }
-      });
+      this.programService.updateProgramParticipant(this.data.participant.id, updateData)
+        .pipe(finalize(() => this.isLoading = false))
+        .subscribe({
+          next: () => {
+            this.snackBar.open('Participant updated successfully', 'Close', { duration: 3000 });
+            this.dialogRef.close(true);
+          },
+          error: (error) => {
+            this.logger.error('Error updating participant', error, {
+              component: 'ParticipantDialogComponent',
+              action: 'onSubmit-update',
+              participantId: this.data.participant?.id,
+              programId: this.program.id
+            });
+            const errorMsg = error?.error?.detail || 'Error updating participant';
+            this.snackBar.open(errorMsg, 'Close', { duration: 5000 });
+          }
+        });
     } else {
       const createData: ProgramParticipantCreate = {
         program_id: this.program.id,
@@ -147,18 +160,24 @@ export class ParticipantDialogComponent implements OnInit {
         progress_percentage: this.participantForm.value.progress_percentage
       };
 
-      this.programService.addProgramParticipant(this.program.id, createData).subscribe({
-        next: () => {
-          this.snackBar.open('Participant added successfully', 'Close', { duration: 3000 });
-          this.dialogRef.close(true);
-        },
-        error: (error) => {
-          console.error('Error adding participant:', error);
-          const errorMsg = error?.error?.detail || 'Error adding participant';
-          this.snackBar.open(errorMsg, 'Close', { duration: 3000 });
-          this.isLoading = false;
-        }
-      });
+      this.programService.addProgramParticipant(this.program.id, createData)
+        .pipe(finalize(() => this.isLoading = false))
+        .subscribe({
+          next: () => {
+            this.snackBar.open('Participant added successfully', 'Close', { duration: 3000 });
+            this.dialogRef.close(true);
+          },
+          error: (error) => {
+            this.logger.error('Error adding participant', error, {
+              component: 'ParticipantDialogComponent',
+              action: 'onSubmit-create',
+              programId: this.program.id,
+              peopleId: createData.people_id
+            });
+            const errorMsg = error?.error?.detail || 'Error adding participant';
+            this.snackBar.open(errorMsg, 'Close', { duration: 5000 });
+          }
+        });
     }
   }
 

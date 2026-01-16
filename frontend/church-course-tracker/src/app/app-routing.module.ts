@@ -77,6 +77,11 @@ const routes: Routes = [
         canActivate: [AuthGuard, AdminGuard]
       },
       {
+        path: 'settings',
+        loadChildren: () => import('./components/settings/settings.module').then(m => m.SettingsModule),
+        canActivate: [AuthGuard, AdminGuard]
+      },
+      {
         path: 'profile',
         loadChildren: () => import('./components/profile/profile.module').then(m => m.ProfileModule),
         canActivate: [AuthGuard]

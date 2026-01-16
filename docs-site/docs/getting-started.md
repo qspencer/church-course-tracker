@@ -55,7 +55,8 @@ The main menu is typically located at the top or side of the screen. Here are th
 ### For All Users:
 - **Dashboard** - Your home page with overview information
 - **Courses** - View and browse available courses
-- **My Progress** - Track your own course progress
+- **Programs** - View and browse available mentoring and discipleship programs
+- **My Progress** - Track your own course and program progress
 - **Profile** - View and update your account information
 
 ### For Staff and Administrators:
@@ -67,15 +68,17 @@ The main menu is typically located at the top or side of the screen. Here are th
 ### For Administrators Only:
 - **Users** - Manage user accounts and permissions
 - **Audit Logs** - View detailed system audit information
+- **System Settings** - Configure system settings, Planning Center integration, security, and backup settings
 
 ## 📚 Your First Steps
 
 ### As a Church Member (Viewer):
 
-1. **Browse Courses**
-   - Click on "Courses" in the menu
-   - Browse the list of available courses
-   - Click on a course to see details
+1. **Browse Courses and Programs**
+   - Click on "Courses" in the menu to view educational courses
+   - Click on "Programs" in the menu to view mentoring and discipleship programs
+   - Browse the list of available options
+   - Click on any item to see details
 
 2. **Enroll in a Course**
    - Find a course you're interested in
@@ -83,24 +86,31 @@ The main menu is typically located at the top or side of the screen. Here are th
    - Confirm your enrollment
 
 3. **Access Course Content**
-   - Go to "My Progress" to see your enrolled courses
+   - Go to "My Progress" to see your enrolled courses and programs
    - Click on a course to access its content
    - Start working through the materials
 
 ### As a Staff Member:
 
-1. **Create a Course**
-   - Click on "Courses" in the menu
-   - Click "Create New Course" or the "+" button
-   - Fill in the course information (name, description, etc.)
-   - Save the course
+1. **Create a Course or Program**
+   - Click on "Courses" in the menu to create educational courses
+   - Click on "Programs" in the menu to create mentoring/discipleship programs
+   - Click "Create New" or the "+" button
+   - Fill in the information (name, description, etc.)
+   - Save the course or program
 
-2. **Add Content to a Course**
-   - Open the course you created
+2. **Add Content**
+   - Open the course or program you created
    - Go to the "Content" section
    - Upload materials (videos, documents, etc.)
 
-3. **Enroll Members**
+3. **Manage Participants (Programs)**
+   - Open a program
+   - Click "Manage Participants" to add or remove participants
+   - Set up pairings between participants (e.g., mentor-mentee relationships)
+   - Manage program sessions and track progress
+
+4. **Enroll Members**
    - Go to "Enrollments"
    - Click "New Enrollment"
    - Select a member and a course
@@ -114,7 +124,12 @@ The main menu is typically located at the top or side of the screen. Here are th
    - Enter user information and assign a role
    - Save the user
 
-2. **Review System Activity**
+2. **Configure System Settings**
+   - Go to "System Settings" in the menu
+   - Configure system settings, Planning Center integration, security policies, and backup settings
+   - Save your changes
+
+3. **Review System Activity**
    - Check the Dashboard for system overview
    - Review Activity Logs for recent changes
    - Check Audit Logs for detailed activity history

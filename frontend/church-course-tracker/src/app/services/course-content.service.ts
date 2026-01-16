@@ -16,6 +16,7 @@ import {
   ContentAuditLog, ContentUploadResponse, ContentProgressUpdate,
   CourseContentSummary, ContentProgress
 } from '../models';
+import { LoggerService } from './logger.service';
 
 @Injectable({
   providedIn: 'root'
@@ -23,7 +24,10 @@ import {
 export class CourseContentService {
   private readonly API_URL = `${environment.apiUrl}/content`;
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private logger: LoggerService
+  ) {}
 
   // Course Module Methods
 
@@ -137,7 +141,11 @@ export class CourseContentService {
         window.URL.revokeObjectURL(url);
       },
       error: (error) => {
-        console.error('Error downloading content:', error);
+        this.logger.error('Error downloading content', error, {
+          component: 'CourseContentService',
+          action: 'downloadContentFile',
+          contentId: content.id
+        });
       }
     });
   }
@@ -154,7 +162,11 @@ export class CourseContentService {
     
     this.logContentAccess(accessData).subscribe({
       error: (error) => {
-        console.error('Error logging content view:', error);
+        this.logger.error('Error logging content view', error, {
+          component: 'CourseContentService',
+          action: 'logContentView',
+          contentId
+        });
       }
     });
   }
@@ -171,7 +183,11 @@ export class CourseContentService {
     
     this.logContentAccess(accessData).subscribe({
       error: (error) => {
-        console.error('Error logging content download:', error);
+        this.logger.error('Error logging content download', error, {
+          component: 'CourseContentService',
+          action: 'logContentDownload',
+          contentId
+        });
       }
     });
   }
@@ -188,7 +204,12 @@ export class CourseContentService {
     
     this.updateContentProgress(progressData).subscribe({
       error: (error) => {
-        console.error('Error updating content progress:', error);
+        this.logger.error('Error updating content progress', error, {
+          component: 'CourseContentService',
+          action: 'updateProgress',
+          contentId,
+          progressPercentage
+        });
       }
     });
   }

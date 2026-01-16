@@ -7,6 +7,7 @@ import { MatTableDataSource } from '@angular/material/table';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { CourseService } from '../../services/course.service';
 import { AuthService } from '../../services/auth.service';
+import { LoggerService } from '../../services/logger.service';
 import { Course } from '../../models';
 import { CourseDialogComponent } from './course-dialog/course-dialog.component';
 import { ConfirmDialogComponent } from '../../shared/confirm-dialog/confirm-dialog.component';
@@ -30,6 +31,7 @@ export class CoursesComponent implements OnInit {
     private authService: AuthService,
     private dialog: MatDialog,
     private snackBar: MatSnackBar,
+    private logger: LoggerService,
     private router: Router
   ) {}
 
@@ -50,7 +52,7 @@ export class CoursesComponent implements OnInit {
         this.isLoading = false;
       },
       error: (error) => {
-        console.error('Error loading courses:', error);
+        this.logger.error('Error loading courses', error);
         this.isLoading = false;
       }
     });
@@ -118,7 +120,7 @@ export class CoursesComponent implements OnInit {
             this.loadCourses();
           },
           error: (error) => {
-            console.error('Error deleting course:', error);
+            this.logger.error('Error deleting course', error);
           }
         });
       }
@@ -134,7 +136,7 @@ export class CoursesComponent implements OnInit {
         this.loadCourses();
       },
       error: (error) => {
-        console.error('Error updating course status:', error);
+        this.logger.error('Error updating course status', error);
       }
     });
   }

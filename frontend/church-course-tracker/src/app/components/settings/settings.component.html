@@ -1,0 +1,279 @@
+<div class="settings-container">
+  <div class="header">
+    <h1>System Settings</h1>
+  </div>
+
+  <div class="content" *ngIf="!loading">
+    <!-- Category Tabs -->
+    <mat-tab-group [selectedIndex]="activeCategoryIndexValue" (selectedIndexChange)="onCategoryChange($event)">
+      
+      <!-- System Settings Tab -->
+      <mat-tab label="System Configuration">
+        <div class="tab-content">
+          <form [formGroup]="systemForm" class="settings-form">
+            <div class="form-section">
+              <h3>Application Settings</h3>
+              
+              <mat-form-field appearance="outline" *ngIf="settings['system']">
+                <mat-label>Application Name</mat-label>
+                <input matInput formControlName="app_name" [readonly]="true">
+                <mat-hint>Read-only system setting</mat-hint>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" *ngIf="settings['system']">
+                <mat-label>Application Version</mat-label>
+                <input matInput formControlName="app_version" [readonly]="true">
+                <mat-hint>Read-only system setting</mat-hint>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Environment</mat-label>
+                <mat-select formControlName="environment">
+                  <mat-option value="development">Development</mat-option>
+                  <mat-option value="staging">Staging</mat-option>
+                  <mat-option value="production">Production</mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <mat-checkbox formControlName="debug_mode">Enable Debug Mode</mat-checkbox>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Session Timeout (minutes)</mat-label>
+                <input matInput type="number" formControlName="session_timeout_minutes" min="1" max="1440">
+                <mat-hint>Session will expire after this many minutes of inactivity</mat-hint>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Max Upload Size (MB)</mat-label>
+                <input matInput type="number" formControlName="max_upload_size_mb" min="1">
+                <mat-hint>Maximum file upload size in megabytes</mat-hint>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Log Level</mat-label>
+                <mat-select formControlName="log_level">
+                  <mat-option value="DEBUG">DEBUG</mat-option>
+                  <mat-option value="INFO">INFO</mat-option>
+                  <mat-option value="WARNING">WARNING</mat-option>
+                  <mat-option value="ERROR">ERROR</mat-option>
+                  <mat-option value="CRITICAL">CRITICAL</mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
+
+            <div class="form-actions">
+              <button mat-button (click)="cancelChanges()" [disabled]="saving">Cancel</button>
+              <button mat-raised-button color="primary" (click)="saveCategory()" [disabled]="saving || !systemForm.dirty">
+                <mat-icon *ngIf="saving">hourglass_empty</mat-icon>
+                {{ saving ? 'Saving...' : 'Save Changes' }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </mat-tab>
+
+      <!-- Planning Center Tab -->
+      <mat-tab label="Planning Center">
+        <div class="tab-content">
+          <form [formGroup]="planningCenterForm" class="settings-form">
+            <div class="form-section">
+              <h3>Planning Center Integration</h3>
+              
+              <mat-form-field appearance="outline">
+                <mat-label>API URL</mat-label>
+                <input matInput formControlName="api_url" placeholder="https://api.planningcenteronline.com">
+                <mat-hint>Base URL for Planning Center API</mat-hint>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Application ID</mat-label>
+                <input 
+                  matInput 
+                  [type]="showPlanningCenterSecrets ? 'text' : 'password'"
+                  formControlName="app_id"
+                  placeholder="Your Planning Center App ID">
+                <button mat-icon-button matSuffix (click)="togglePlanningCenterSecrets()" type="button">
+                  <mat-icon>{{ showPlanningCenterSecrets ? 'visibility_off' : 'visibility' }}</mat-icon>
+                </button>
+                <mat-hint>Sensitive - will be masked</mat-hint>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Secret</mat-label>
+                <input 
+                  matInput 
+                  [type]="showPlanningCenterSecrets ? 'text' : 'password'"
+                  formControlName="secret"
+                  placeholder="Your Planning Center Secret">
+                <button mat-icon-button matSuffix (click)="togglePlanningCenterSecrets()" type="button">
+                  <mat-icon>{{ showPlanningCenterSecrets ? 'visibility_off' : 'visibility' }}</mat-icon>
+                </button>
+                <mat-hint>Sensitive - will be masked</mat-hint>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Access Token</mat-label>
+                <input 
+                  matInput 
+                  [type]="showPlanningCenterSecrets ? 'text' : 'password'"
+                  formControlName="access_token"
+                  placeholder="Your Planning Center Access Token">
+                <button mat-icon-button matSuffix (click)="togglePlanningCenterSecrets()" type="button">
+                  <mat-icon>{{ showPlanningCenterSecrets ? 'visibility_off' : 'visibility' }}</mat-icon>
+                </button>
+                <mat-hint>Sensitive - will be masked</mat-hint>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Max Events</mat-label>
+                <input matInput type="number" formControlName="max_events" min="1" max="10000">
+                <mat-hint>Maximum number of events to fetch (1-10000)</mat-hint>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Cache TTL (minutes)</mat-label>
+                <input matInput type="number" formControlName="cache_ttl_minutes" min="0" max="1440">
+                <mat-hint>Cache time-to-live in minutes (0 = disabled)</mat-hint>
+              </mat-form-field>
+
+              <mat-checkbox formControlName="use_mock">Use Mock Planning Center API</mat-checkbox>
+              <p class="hint-text">Enable for development/testing with mock data</p>
+            </div>
+
+            <div class="form-actions">
+              <button mat-button (click)="cancelChanges()" [disabled]="saving">Cancel</button>
+              <button mat-raised-button color="primary" (click)="saveCategory()" [disabled]="saving || !planningCenterForm.dirty">
+                <mat-icon *ngIf="saving">hourglass_empty</mat-icon>
+                {{ saving ? 'Saving...' : 'Save Changes' }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </mat-tab>
+
+      <!-- Security Tab -->
+      <mat-tab label="Security">
+        <div class="tab-content">
+          <form [formGroup]="securityForm" class="settings-form">
+            <div class="form-section">
+              <h3>Password Policy</h3>
+              
+              <mat-form-field appearance="outline">
+                <mat-label>Minimum Password Length</mat-label>
+                <input matInput type="number" formControlName="password_min_length" min="4" max="128">
+                <mat-hint>Minimum number of characters required (4-128)</mat-hint>
+              </mat-form-field>
+
+              <mat-checkbox formControlName="password_require_uppercase">Require Uppercase Letters</mat-checkbox>
+              <mat-checkbox formControlName="password_require_lowercase">Require Lowercase Letters</mat-checkbox>
+              <mat-checkbox formControlName="password_require_numbers">Require Numbers</mat-checkbox>
+              <mat-checkbox formControlName="password_require_special">Require Special Characters</mat-checkbox>
+            </div>
+
+            <div class="form-section">
+              <h3>Account Security</h3>
+              
+              <mat-form-field appearance="outline">
+                <mat-label>Account Lockout Attempts</mat-label>
+                <input matInput type="number" formControlName="account_lockout_attempts" min="1" max="20">
+                <mat-hint>Number of failed login attempts before lockout</mat-hint>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Lockout Duration (minutes)</mat-label>
+                <input matInput type="number" formControlName="account_lockout_duration_minutes" min="1" max="1440">
+                <mat-hint>How long the account remains locked</mat-hint>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Session Idle Timeout (minutes)</mat-label>
+                <input matInput type="number" formControlName="session_idle_timeout_minutes" min="1" max="1440">
+                <mat-hint>Session expires after this many minutes of inactivity</mat-hint>
+              </mat-form-field>
+            </div>
+
+            <div class="form-section">
+              <h3>Rate Limiting</h3>
+              
+              <mat-checkbox formControlName="rate_limit_enabled">Enable Rate Limiting</mat-checkbox>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Max Requests</mat-label>
+                <input matInput type="number" formControlName="rate_limit_requests" min="1">
+                <mat-hint>Maximum requests per window</mat-hint>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Rate Limit Window (seconds)</mat-label>
+                <input matInput type="number" formControlName="rate_limit_window_seconds" min="1">
+                <mat-hint>Time window in seconds</mat-hint>
+              </mat-form-field>
+            </div>
+
+            <div class="form-actions">
+              <button mat-button (click)="cancelChanges()" [disabled]="saving">Cancel</button>
+              <button mat-raised-button color="primary" (click)="saveCategory()" [disabled]="saving || !securityForm.dirty">
+                <mat-icon *ngIf="saving">hourglass_empty</mat-icon>
+                {{ saving ? 'Saving...' : 'Save Changes' }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </mat-tab>
+
+      <!-- Backup Tab -->
+      <mat-tab label="Backup & Maintenance">
+        <div class="tab-content">
+          <form [formGroup]="backupForm" class="settings-form">
+            <div class="form-section">
+              <h3>Backup Configuration</h3>
+              
+              <mat-checkbox formControlName="backup_enabled">Enable Automated Backups</mat-checkbox>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Backup Frequency (days)</mat-label>
+                <input matInput type="number" formControlName="backup_frequency_days" min="1" max="365">
+                <mat-hint>How often to perform backups (1-365 days)</mat-hint>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Backup Retention (days)</mat-label>
+                <input matInput type="number" formControlName="backup_retention_days" min="1" max="3650">
+                <mat-hint>How long to keep backups (1-3650 days)</mat-hint>
+              </mat-form-field>
+            </div>
+
+            <div class="form-section">
+              <h3>Maintenance Window</h3>
+              
+              <mat-form-field appearance="outline">
+                <mat-label>Start Time</mat-label>
+                <input matInput type="time" formControlName="maintenance_window_start" placeholder="HH:MM">
+                <mat-hint>Maintenance window start time (24-hour format)</mat-hint>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>End Time</mat-label>
+                <input matInput type="time" formControlName="maintenance_window_end" placeholder="HH:MM">
+                <mat-hint>Maintenance window end time (24-hour format)</mat-hint>
+              </mat-form-field>
+            </div>
+
+            <div class="form-actions">
+              <button mat-button (click)="cancelChanges()" [disabled]="saving">Cancel</button>
+              <button mat-raised-button color="primary" (click)="saveCategory()" [disabled]="saving || !backupForm.dirty">
+                <mat-icon *ngIf="saving">hourglass_empty</mat-icon>
+                {{ saving ? 'Saving...' : 'Save Changes' }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </mat-tab>
+    </mat-tab-group>
+  </div>
+
+  <div *ngIf="loading" class="loading">
+    <mat-spinner></mat-spinner>
+    <p>Loading settings...</p>
+  </div>
+</div>

@@ -5,6 +5,7 @@ import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MemberService } from '../../services/member.service';
+import { LoggerService } from '../../services/logger.service';
 import { Person } from '../../models';
 import { MemberDialogComponent } from './member-dialog/member-dialog.component';
 import { MemberEnrollmentsDialogComponent } from './member-enrollments-dialog/member-enrollments-dialog.component';
@@ -27,7 +28,8 @@ export class MembersComponent implements OnInit {
   constructor(
     private memberService: MemberService,
     private dialog: MatDialog,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private logger: LoggerService
   ) {}
 
   ngOnInit(): void {
@@ -52,7 +54,7 @@ export class MembersComponent implements OnInit {
         this.isLoading = false;
       },
       error: (error) => {
-        console.error('Error loading members:', error);
+        this.logger.error('Error loading members', error);
         this.isLoading = false;
       }
     });
@@ -116,7 +118,7 @@ export class MembersComponent implements OnInit {
             this.loadMembers();
           },
           error: (error) => {
-            console.error('Error deleting member:', error);
+            this.logger.error('Error deleting member', error);
           }
         });
       }
@@ -138,7 +140,7 @@ export class MembersComponent implements OnInit {
         });
       },
       error: (error) => {
-        console.error('Error loading member details:', error);
+        this.logger.error('Error loading member details', error);
         this.snackBar.open('Failed to load member details', 'Close', { duration: 3000 });
       }
     });
@@ -158,7 +160,7 @@ export class MembersComponent implements OnInit {
         });
       },
       error: (error) => {
-        console.error('Error loading member enrollments:', error);
+        this.logger.error('Error loading member enrollments', error);
         this.snackBar.open('Failed to load member enrollments', 'Close', { duration: 3000 });
       }
     });

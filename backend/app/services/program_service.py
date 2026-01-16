@@ -2,11 +2,14 @@
 Program service layer for managing programs, participants, pairings, and related operations
 """
 
+import logging
 from datetime import datetime, timezone
 from typing import Dict, List, Optional
 
 from sqlalchemy import func
 from sqlalchemy.orm import Session
+
+logger = logging.getLogger(__name__)
 
 from app.models.program import (
     Program as ProgramModel,
@@ -35,6 +38,7 @@ from app.schemas.program_progress import (
 )
 from app.services.audit_service import AuditService
 from app.services.people_service import PeopleService
+from app.core.exceptions import ValidationError
 from fastapi import HTTPException, status
 
 
@@ -91,38 +95,53 @@ class ProgramService:
         self, program_data: ProgramCreate, created_by: Optional[int] = None
     ) -> ProgramModel:
         """Create a new program"""
-        program_dict = program_data.model_dump()
-        program_dict["created_by"] = created_by
-        program_dict["updated_by"] = created_by
-        
-        program = ProgramModel(**program_dict)
-        self.db.add(program)
-        self.db.commit()
-        self.db.refresh(program)
-        
-        # Eagerly load relationships for response
-        from sqlalchemy.orm import joinedload
-        program = (
-            self.db.query(ProgramModel)
-            .options(
-                joinedload(ProgramModel.created_by_user),
-                joinedload(ProgramModel.updated_by_user),
+        try:
+            program_dict = program_data.model_dump()
+            program_dict["created_by"] = created_by
+            program_dict["updated_by"] = created_by
+
+            program = ProgramModel(**program_dict)
+            self.db.add(program)
+            self.db.flush()  # Get ID without committing
+
+            # Create audit log in same transaction
+            if created_by:
+                AuditService(self.db).log_change(
+                    table_name="programs",
+                    record_id=program.id,
+                    action="insert",
+                    changed_by=created_by,
+                    new_values={"title": program.title},
+                )
+
+            self.db.commit()  # Commit both together
+            self.db.refresh(program)
+
+            # Eagerly load relationships for response
+            from sqlalchemy.orm import joinedload
+            program = (
+                self.db.query(ProgramModel)
+                .options(
+                    joinedload(ProgramModel.created_by_user),
+                    joinedload(ProgramModel.updated_by_user),
+                )
+                .filter(ProgramModel.id == program.id)
+                .first()
             )
-            .filter(ProgramModel.id == program.id)
-            .first()
-        )
-        
-        # Create audit log
-        if created_by:
-            AuditService(self.db).log_change(
-                table_name="programs",
-                record_id=program.id,
-                action="insert",
-                changed_by=created_by,
-                new_values={"title": program.title},
+
+            return program
+        except HTTPException:
+            # Re-raise HTTP exceptions as-is
+            self.db.rollback()
+            raise
+        except Exception as e:
+            self.db.rollback()
+            error_message = str(e) if e else "Unknown error"
+            logger.error(f"Error creating program: {error_message}", exc_info=True)
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Failed to create program: {error_message}"
             )
-        
-        return program
 
     def update_program(
         self, program_id: int, program_data: ProgramUpdate, updated_by: Optional[int] = None
@@ -304,16 +323,79 @@ class ProgramService:
         return True
 
     # Program Participant methods
+    def _validate_and_sanitize_search(self, search: Optional[str]) -> Optional[str]:
+        """Validate and sanitize search term to prevent SQL injection"""
+        if not search or not search.strip():
+            return None
+
+        search_term = search.strip()
+
+        if len(search_term) < 2:
+            raise ValidationError("Search term must be at least 2 characters")
+
+        if len(search_term) > 100:
+            raise ValidationError("Search term is too long (max 100 characters)")
+
+        # Sanitize: escape SQL wildcards to prevent wildcard injection
+        sanitized = search_term.replace('%', r'\%').replace('_', r'\_')
+
+        return sanitized.lower()
+
     def get_program_participants(
-        self, program_id: int, status: Optional[str] = None
+        self, program_id: int, status: Optional[str] = None, skip: int = 0, limit: int = 100, search: Optional[str] = None
     ) -> List[ProgramParticipantModel]:
-        """Get all participants for a program"""
-        query = self.db.query(ProgramParticipantModel).filter(
-            ProgramParticipantModel.program_id == program_id
+        """Get participants for a program with pagination, sorted by last name"""
+        from app.models.member import People
+
+        query = (
+            self.db.query(ProgramParticipantModel)
+            .join(People, ProgramParticipantModel.people_id == People.id)
+            .filter(ProgramParticipantModel.program_id == program_id)
         )
         if status:
             query = query.filter(ProgramParticipantModel.status == status)
-        return query.all()
+
+        # Apply search filter if provided (searches first name or last name that starts with search text)
+        sanitized_search = self._validate_and_sanitize_search(search)
+        if sanitized_search:
+            # Use concatenation to build pattern, with escape parameter for safety
+            pattern = f"{sanitized_search}%"
+            query = query.filter(
+                func.lower(People.first_name).like(pattern, escape='\\') |
+                func.lower(People.last_name).like(pattern, escape='\\')
+            )
+
+        # Sort by last name, then first name for consistent ordering
+        query = query.order_by(People.last_name.asc(), People.first_name.asc())
+
+        return query.offset(skip).limit(limit).all()
+    
+    def get_program_participants_count(
+        self, program_id: int, status: Optional[str] = None, search: Optional[str] = None
+    ) -> int:
+        """Get total count of participants for a program"""
+        from sqlalchemy import func
+        from app.models.member import People
+
+        query = (
+            self.db.query(func.count(ProgramParticipantModel.id))
+            .join(People, ProgramParticipantModel.people_id == People.id)
+            .filter(ProgramParticipantModel.program_id == program_id)
+        )
+        if status:
+            query = query.filter(ProgramParticipantModel.status == status)
+
+        # Apply search filter if provided (searches first name or last name that starts with search text)
+        sanitized_search = self._validate_and_sanitize_search(search)
+        if sanitized_search:
+            # Use concatenation to build pattern, with escape parameter for safety
+            pattern = f"{sanitized_search}%"
+            query = query.filter(
+                func.lower(People.first_name).like(pattern, escape='\\') |
+                func.lower(People.last_name).like(pattern, escape='\\')
+            )
+
+        return query.scalar() or 0
 
     def get_all_participants(
         self, status: Optional[str] = None, skip: int = 0, limit: int = 100

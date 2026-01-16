@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ProgramService } from '../../../services/program.service';
+import { LoggerService } from '../../../services/logger.service';
 import { Program, ProgramSession, ProgramSessionCreate, ProgramSessionUpdate, ProgramPairing, ProgramParticipant } from '../../../models/program.model';
 
 export interface SessionDialogData {
@@ -40,7 +41,8 @@ export class SessionDialogComponent implements OnInit {
     private programService: ProgramService,
     private snackBar: MatSnackBar,
     public dialogRef: MatDialogRef<SessionDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: SessionDialogData
+    @Inject(MAT_DIALOG_DATA) public data: SessionDialogData,
+    private logger: LoggerService
   ) {
     this.viewMode = !!data.viewMode;
     this.isEditing = !this.viewMode && !!data.session;
@@ -139,7 +141,7 @@ export class SessionDialogComponent implements OnInit {
           this.dialogRef.close(true);
         },
         error: (error) => {
-          console.error('Error updating session:', error);
+          this.logger.error('Error updating session', error, { component: 'SessionDialogComponent', action: 'updateSession', sessionId: this.data.session?.id, programId: this.program.id });
           const errorMsg = error?.error?.detail || 'Error updating session';
           this.snackBar.open(errorMsg, 'Close', { duration: 3000 });
           this.isLoading = false;
@@ -166,7 +168,7 @@ export class SessionDialogComponent implements OnInit {
           this.dialogRef.close(true);
         },
         error: (error) => {
-          console.error('Error creating session:', error);
+          this.logger.error('Error creating session', error, { component: 'SessionDialogComponent', action: 'createSession', programId: this.program.id });
           const errorMsg = error?.error?.detail || 'Error creating session';
           this.snackBar.open(errorMsg, 'Close', { duration: 3000 });
           this.isLoading = false;

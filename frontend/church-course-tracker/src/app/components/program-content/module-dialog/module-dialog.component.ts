@@ -2,7 +2,9 @@ import { Component, Inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { finalize } from 'rxjs/operators';
 import { ProgramContentService } from '../../../services/program-content.service';
+import { LoggerService } from '../../../services/logger.service';
 import { ProgramModule, ProgramModuleCreate, ProgramModuleUpdate } from '../../../models/program-content.model';
 
 export interface ModuleDialogData {
@@ -24,6 +26,7 @@ export class ModuleDialogComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private programContentService: ProgramContentService,
+    private logger: LoggerService,
     private snackBar: MatSnackBar,
     public dialogRef: MatDialogRef<ModuleDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: ModuleDialogData
@@ -51,46 +54,50 @@ export class ModuleDialogComponent implements OnInit {
   onSubmit(): void {
     // Mark form as submitted to show validation errors
     this.isSubmitted = true;
-    
-    if (this.moduleForm.valid && !this.isSubmitting) {
-      this.isSubmitting = true;
-      
-      if (this.isEditing && this.data.module) {
-        // Update existing module
-        const updateData: ProgramModuleUpdate = this.moduleForm.value;
-        
-        this.programContentService.updateModule(this.data.module.id, updateData).subscribe({
+
+    if (this.isSubmitting || !this.moduleForm.valid) {
+      return;
+    }
+
+    this.isSubmitting = true;
+
+    if (this.isEditing && this.data.module) {
+      // Update existing module
+      const updateData: ProgramModuleUpdate = this.moduleForm.value;
+
+      this.programContentService.updateModule(this.data.module.id, updateData)
+        .pipe(finalize(() => this.isSubmitting = false))
+        .subscribe({
           next: (module) => {
             this.snackBar.open('Category updated successfully', 'Close', { duration: 3000 });
             this.dialogRef.close(module);
           },
           error: (error) => {
-            console.error('Error updating module:', error);
+            this.logger.error('Error updating module', error, { component: 'ModuleDialogComponent', moduleId: this.data.module?.id });
             const errorMessage = error?.error?.detail || 'Error updating category';
             this.snackBar.open(errorMessage, 'Close', { duration: 5000 });
-            this.isSubmitting = false;
           }
         });
-      } else {
-        // Create new module
-        const createData: ProgramModuleCreate = {
-          ...this.moduleForm.value,
-          program_id: this.data.programId
-        };
-        
-        this.programContentService.createModule(createData).subscribe({
+    } else {
+      // Create new module
+      const createData: ProgramModuleCreate = {
+        ...this.moduleForm.value,
+        program_id: this.data.programId
+      };
+
+      this.programContentService.createModule(createData)
+        .pipe(finalize(() => this.isSubmitting = false))
+        .subscribe({
           next: (module) => {
             this.snackBar.open('Category created successfully', 'Close', { duration: 3000 });
             this.dialogRef.close(module);
           },
           error: (error) => {
-            console.error('Error creating module:', error);
+            this.logger.error('Error creating module', error, { component: 'ModuleDialogComponent', programId: this.data.programId });
             const errorMessage = error?.error?.detail || 'Error creating category';
             this.snackBar.open(errorMessage, 'Close', { duration: 5000 });
-            this.isSubmitting = false;
           }
         });
-      }
     }
   }
 

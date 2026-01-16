@@ -24,7 +24,7 @@ def create_admin_user():
         print("✅ Deleted existing admin user if it existed")
         
         # Create admin user with bcrypt hash (direct bcrypt, not passlib)
-        simple_password = 'Admin123!'
+        simple_password = 'Matthew778*'
         # Hash password using bcrypt directly
         hashed_password = bcrypt.hashpw(simple_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
         

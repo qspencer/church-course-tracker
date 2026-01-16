@@ -2,9 +2,11 @@ import { Component, Inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, FormArray, FormControl } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { finalize } from 'rxjs/operators';
 import { CourseService } from '../../../services/course.service';
 import { UserService } from '../../../services/user.service';
 import { AutocompleteSuggestionService } from '../../../services/autocomplete-suggestion.service';
+import { LoggerService } from '../../../services/logger.service';
 import { Course, CourseCreate, CourseUpdate, User } from '../../../models';
 import { EventRegistrationsDialogComponent } from '../event-registrations-dialog/event-registrations-dialog.component';
 
@@ -48,6 +50,7 @@ export class CourseDialogComponent implements OnInit {
     private autocompleteService: AutocompleteSuggestionService,
     private snackBar: MatSnackBar,
     private dialog: MatDialog,
+    private logger: LoggerService,
     public dialogRef: MatDialogRef<CourseDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: CourseDialogData
   ) {
@@ -125,59 +128,63 @@ export class CourseDialogComponent implements OnInit {
 
   loadAvailablePrerequisites(): void {
     if (this.viewMode) return;
-    
+
     this.loadingPrerequisites = true;
-    this.courseService.getAvailablePrerequisites().subscribe({
-      next: (courses) => {
-        // Filter out the current course if editing
-        if (this.isEditing && this.data.course) {
-          this.availablePrerequisites = courses.filter(c => c.id !== this.data.course!.id);
-        } else {
-          this.availablePrerequisites = courses;
+    this.courseService.getAvailablePrerequisites()
+      .pipe(finalize(() => this.loadingPrerequisites = false))
+      .subscribe({
+        next: (courses) => {
+          // Filter out the current course if editing
+          if (this.isEditing && this.data.course) {
+            this.availablePrerequisites = courses.filter(c => c.id !== this.data.course!.id);
+          } else {
+            this.availablePrerequisites = courses;
+          }
+        },
+        error: (error) => {
+          this.logger.error('Error loading prerequisites', error, { component: 'CourseDialogComponent' });
+          this.snackBar.open('Failed to load prerequisites', 'Close', { duration: 5000 });
         }
-        this.loadingPrerequisites = false;
-      },
-      error: (error) => {
-        console.error('Error loading prerequisites:', error);
-        this.loadingPrerequisites = false;
-      }
-    });
+      });
   }
 
   loadAvailableUsers(): void {
     this.loadingUsers = true;
     // Load only instructors for the instructors dropdown
-    this.userService.getInstructors().subscribe({
-      next: (users) => {
-        this.availableUsers = users.filter(u => u.is_active);
-        this.loadingUsers = false;
-      },
-      error: (error) => {
-        console.error('Error loading instructors:', error);
-        // Fallback to all users if instructor filter fails
-        this.userService.getUsers().subscribe({
-          next: (users) => {
-            this.availableUsers = users.filter(u => u.is_active);
-            this.loadingUsers = false;
-          },
-          error: (err) => {
-            console.error('Error loading users:', err);
-            this.loadingUsers = false;
-          }
-        });
-      }
-    });
+    this.userService.getInstructors()
+      .pipe(finalize(() => this.loadingUsers = false))
+      .subscribe({
+        next: (users) => {
+          this.availableUsers = users.filter(u => u.is_active);
+        },
+        error: (error) => {
+          this.logger.error('Error loading instructors', error, { component: 'CourseDialogComponent' });
+          // Fallback to all users if instructor filter fails
+          this.loadingUsers = true; // Reset for fallback attempt
+          this.userService.getUsers()
+            .pipe(finalize(() => this.loadingUsers = false))
+            .subscribe({
+              next: (users) => {
+                this.availableUsers = users.filter(u => u.is_active);
+              },
+              error: (err) => {
+                this.logger.error('Error loading users', err, { component: 'CourseDialogComponent' });
+                this.snackBar.open('Failed to load instructors', 'Close', { duration: 5000 });
+              }
+            });
+        }
+      });
   }
 
   onSubmit(): void {
     // Mark form as submitted to show validation errors
     this.isSubmitted = true;
-    
+
     // Prevent multiple submissions
     if (this.isLoading || !this.courseForm.valid) {
       return;
     }
-    
+
     this.isLoading = true;
     const formValue = this.courseForm.value;
 
@@ -193,35 +200,29 @@ export class CourseDialogComponent implements OnInit {
         delivery_modes: formValue.delivery_modes || []
       };
 
-      this.courseService.updateCourse(this.data.course.id, updateData).subscribe({
-        next: (course) => {
-          this.isLoading = false;
-          this.snackBar.open('Course updated successfully', 'Close', { duration: 3000 });
-          this.dialogRef.close(course);
-        },
-        error: (error) => {
-          this.isLoading = false;
-          console.error('Error updating course:', error);
-          // Extract error message
-          let errorMessage = 'Failed to update course. Please try again.';
-          if (error?.error?.detail) {
-            errorMessage = error.error.detail;
-          } else if (error?.error?.message) {
-            errorMessage = error.error.message;
-          } else if (error?.status === 403) {
-            errorMessage = 'You do not have permission to update courses.';
-          } else if (error?.status === 400) {
-            errorMessage = 'Invalid course data. Please check your input.';
+      this.courseService.updateCourse(this.data.course.id, updateData)
+        .pipe(finalize(() => this.isLoading = false))
+        .subscribe({
+          next: (course) => {
+            this.snackBar.open('Course updated successfully', 'Close', { duration: 3000 });
+            this.dialogRef.close(course);
+          },
+          error: (error) => {
+            this.logger.error('Error updating course', error, { component: 'CourseDialogComponent', courseId: this.data.course?.id });
+            // Extract error message
+            let errorMessage = 'Failed to update course. Please try again.';
+            if (error?.error?.detail) {
+              errorMessage = error.error.detail;
+            } else if (error?.error?.message) {
+              errorMessage = error.error.message;
+            } else if (error?.status === 403) {
+              errorMessage = 'You do not have permission to update courses.';
+            } else if (error?.status === 400) {
+              errorMessage = 'Invalid course data. Please check your input.';
+            }
+            this.snackBar.open(errorMessage, 'Close', { duration: 5000 });
           }
-          // Error interceptor will also show a snackbar, but we show a more specific one here
-          this.snackBar.open(errorMessage, 'Close', {
-            duration: 5000,
-            horizontalPosition: 'end',
-            verticalPosition: 'top',
-            panelClass: ['error-snackbar']
-          });
-        }
-      });
+        });
     } else {
       // Create new course
       const createData: CourseCreate = {
@@ -244,46 +245,40 @@ export class CourseDialogComponent implements OnInit {
         createData.max_capacity = pcData.max_capacity;
       }
 
-      this.courseService.createCourse(createData).subscribe({
-        next: (course) => {
-          this.isLoading = false;
-          this.snackBar.open('Course created successfully', 'Close', { duration: 3000 });
-          this.dialogRef.close(course);
-        },
-        error: (error) => {
-          this.isLoading = false;
-          console.error('Error creating course:', error);
-          
-          // If it's an auth error (401), user will be logged out by interceptor
-          // Don't show course-specific error message for auth errors
-          if (error?.status === 401) {
-            // User will be redirected to login by auth service
-            return;
+      this.courseService.createCourse(createData)
+        .pipe(finalize(() => this.isLoading = false))
+        .subscribe({
+          next: (course) => {
+            this.snackBar.open('Course created successfully', 'Close', { duration: 3000 });
+            this.dialogRef.close(course);
+          },
+          error: (error) => {
+            this.logger.error('Error creating course', error, { component: 'CourseDialogComponent' });
+
+            // If it's an auth error (401), user will be logged out by interceptor
+            // Don't show course-specific error message for auth errors
+            if (error?.status === 401) {
+              // User will be redirected to login by auth service
+              return;
+            }
+
+            // Extract error message
+            let errorMessage = 'Failed to create course. Please try again.';
+            if (error?.message && error.message.includes('session has expired')) {
+              errorMessage = error.message;
+            } else if (error?.error?.detail) {
+              errorMessage = error.error.detail;
+            } else if (error?.error?.message) {
+              errorMessage = error.error.message;
+            } else if (error?.status === 403) {
+              errorMessage = 'You do not have permission to create courses.';
+            } else if (error?.status === 400) {
+              errorMessage = 'Invalid course data. Please check your input.';
+            }
+
+            this.snackBar.open(errorMessage, 'Close', { duration: 5000 });
           }
-          
-          // Extract error message
-          let errorMessage = 'Failed to create course. Please try again.';
-          if (error?.message && error.message.includes('session has expired')) {
-            errorMessage = error.message;
-          } else if (error?.error?.detail) {
-            errorMessage = error.error.detail;
-          } else if (error?.error?.message) {
-            errorMessage = error.error.message;
-          } else if (error?.status === 403) {
-            errorMessage = 'You do not have permission to create courses.';
-          } else if (error?.status === 400) {
-            errorMessage = 'Invalid course data. Please check your input.';
-          }
-          
-          // Error interceptor will also show a snackbar, but we show a more specific one here
-          this.snackBar.open(errorMessage, 'Close', {
-            duration: 5000,
-            horizontalPosition: 'end',
-            verticalPosition: 'top',
-            panelClass: ['error-snackbar']
-          });
-        }
-      });
+        });
     }
   }
 
@@ -363,7 +358,7 @@ export class CourseDialogComponent implements OnInit {
         this.filteredLocationSuggestions = suggestions;
       },
       error: (error) => {
-        console.error('Error loading location suggestions:', error);
+        this.logger.error('Error loading location suggestions', error);
       }
     });
 
@@ -374,7 +369,7 @@ export class CourseDialogComponent implements OnInit {
         this.filteredDeliveryModeSuggestions = suggestions;
       },
       error: (error) => {
-        console.error('Error loading delivery mode suggestions:', error);
+        this.logger.error('Error loading delivery mode suggestions', error);
       }
     });
   }
@@ -411,7 +406,7 @@ export class CourseDialogComponent implements OnInit {
           this.loadAutocompleteSuggestions();
         },
         error: (error) => {
-          console.error('Error saving location suggestion:', error);
+          this.logger.error('Error saving location suggestion', error);
         }
       });
       
@@ -442,7 +437,7 @@ export class CourseDialogComponent implements OnInit {
           this.loadAutocompleteSuggestions();
         },
         error: (error) => {
-          console.error('Error saving delivery mode suggestion:', error);
+          this.logger.error('Error saving delivery mode suggestion', error);
         }
       });
       

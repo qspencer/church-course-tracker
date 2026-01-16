@@ -9,6 +9,7 @@ import { CourseContentService } from '../../services/course-content.service';
 import { AuthService } from '../../services/auth.service';
 import { CourseService } from '../../services/course.service';
 import { AuditService } from '../../services/audit.service';
+import { LoggerService } from '../../services/logger.service';
 import {
   CourseModule, CourseContent, CourseContentType, StorageType,
   CourseModuleCreate, CourseContentCreate, CourseContentSummary, Course,
@@ -56,7 +57,8 @@ export class CourseContentComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private router: Router,
     private dialog: MatDialog,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private logger: LoggerService
   ) {}
 
   ngOnInit(): void {
@@ -85,7 +87,11 @@ export class CourseContentComponent implements OnInit, OnDestroy {
         this.course = course;
       },
       error: (error) => {
-        console.error('Error loading course:', error);
+        this.logger.error('Error loading course', error, {
+          component: 'CourseContentComponent',
+          action: 'loadData',
+          courseId: this.courseId
+        });
         this.snackBar.open('Error loading course details', 'Close', { duration: 3000 });
       }
     });
@@ -98,7 +104,11 @@ export class CourseContentComponent implements OnInit, OnDestroy {
         this.modules = modules.sort((a, b) => a.order_index - b.order_index);
       },
       error: (error) => {
-        console.error('Error loading modules:', error);
+        this.logger.error('Error loading modules', error, {
+          component: 'CourseContentComponent',
+          action: 'loadModules',
+          courseId: this.courseId
+        });
         this.snackBar.open('Error loading course modules', 'Close', { duration: 3000 });
       }
     });
@@ -112,7 +122,11 @@ export class CourseContentComponent implements OnInit, OnDestroy {
         this.isLoading = false;
       },
       error: (error) => {
-        console.error('Error loading content items:', error);
+        this.logger.error('Error loading content items', error, {
+          component: 'CourseContentComponent',
+          action: 'loadContentItems',
+          courseId: this.courseId
+        });
         this.snackBar.open('Error loading course content', 'Close', { duration: 3000 });
         this.isLoading = false;
       }
@@ -126,7 +140,11 @@ export class CourseContentComponent implements OnInit, OnDestroy {
         this.contentSummary = summary;
       },
       error: (error) => {
-        console.error('Error loading content summary:', error);
+        this.logger.error('Error loading content summary', error, {
+          component: 'CourseContentComponent',
+          action: 'loadContentSummary',
+          courseId: this.courseId
+        });
       }
     });
 
@@ -153,7 +171,11 @@ export class CourseContentComponent implements OnInit, OnDestroy {
         });
       },
       error: (error) => {
-        console.error('Error loading audit logs:', error);
+        this.logger.error('Error loading audit logs', error, {
+          component: 'CourseContentComponent',
+          action: 'loadAuditLogs',
+          courseId: this.courseId
+        });
       }
     });
   }
@@ -337,7 +359,11 @@ export class CourseContentComponent implements OnInit, OnDestroy {
             this.loadData();
           },
           error: (error) => {
-            console.error('Error deleting module:', error);
+            this.logger.error('Error deleting module', error, {
+              component: 'CourseContentComponent',
+              action: 'deleteModule',
+              moduleId: module.id
+            });
             const errorMessage = error?.error?.detail || 'Error deleting module';
             this.snackBar.open(errorMessage, 'Close', { duration: 5000 });
           }
@@ -398,7 +424,11 @@ export class CourseContentComponent implements OnInit, OnDestroy {
             this.loadData();
           },
           error: error => {
-            console.error('Error deleting content:', error);
+            this.logger.error('Error deleting content', error, {
+              component: 'CourseContentComponent',
+              action: 'deleteContent',
+              contentId: content.id
+            });
             let errorMessage = 'Failed to delete content. Please try again.';
             if (error?.error?.detail) {
               errorMessage = error.error.detail;
@@ -446,7 +476,10 @@ export class CourseContentComponent implements OnInit, OnDestroy {
           this.downloadContent(refreshedContent);
         },
         error: error => {
-          console.error('Error refreshing content metadata:', error);
+          this.logger.error('Error refreshing content metadata', error, {
+            component: 'CourseContentComponent',
+            action: 'refreshContentMetadata'
+          });
           this.snackBar.open(
             'Unable to load the latest file information. Please try again.',
             'Close',
@@ -499,7 +532,10 @@ export class CourseContentComponent implements OnInit, OnDestroy {
           }
         },
         error: (error) => {
-          console.error('Error downloading content:', error);
+          this.logger.error('Error downloading content', error, {
+            component: 'CourseContentComponent',
+            action: 'downloadContent'
+          });
           let errorMessage = 'Failed to download content.';
           if (error?.error?.detail) {
             errorMessage = error.error.detail;

@@ -7,10 +7,12 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { forkJoin } from 'rxjs';
 import { ProgramService } from '../../../services/program.service';
 import { MemberService } from '../../../services/member.service';
+import { LoggerService } from '../../../services/logger.service';
 import { Program, ProgramPairing, ProgramParticipant } from '../../../models/program.model';
 import { Person } from '../../../models';
 import { PairingDialogComponent } from '../pairing-dialog/pairing-dialog.component';
 import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-dialog.component';
+import { SearchFilterService } from '../../../shared/search-filter.service';
 
 @Component({
   selector: 'app-pairings-management',
@@ -26,6 +28,7 @@ export class PairingsManagementComponent implements OnInit {
   participants: ProgramParticipant[] = [];
   members: Person[] = [];
   statusFilter: string = '';
+  searchFilter: string = '';
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
@@ -36,7 +39,9 @@ export class PairingsManagementComponent implements OnInit {
     private programService: ProgramService,
     private memberService: MemberService,
     private dialog: MatDialog,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private searchFilterService: SearchFilterService,
+    private logger: LoggerService
   ) {
     this.program = data.program;
   }
@@ -67,7 +72,7 @@ export class PairingsManagementComponent implements OnInit {
         this.isLoading = false;
       },
       error: (error) => {
-        console.error('Error loading data:', error);
+        this.logger.error('Error loading data', error, { component: 'PairingsManagementComponent', action: 'loadData', programId: this.program.id });
         this.snackBar.open('Error loading pairings', 'Close', { duration: 3000 });
         this.isLoading = false;
       }
@@ -76,28 +81,34 @@ export class PairingsManagementComponent implements OnInit {
 
   applyFilter(event: Event): void {
     const filterValue = (event.target as HTMLInputElement).value;
-    // Custom filter function to search by participant names
-    this.dataSource.filterPredicate = (data: ProgramPairing, filter: string) => {
-      const primaryName = this.getParticipantName(data.primary_participant_id).toLowerCase();
-      const secondaryName = this.getParticipantName(data.secondary_participant_id).toLowerCase();
-      const searchText = filter.toLowerCase();
-      return primaryName.includes(searchText) || secondaryName.includes(searchText);
-    };
-    this.dataSource.filter = filterValue.trim().toLowerCase();
-
-    if (this.dataSource.paginator) {
-      this.dataSource.paginator.firstPage();
-    }
+    this.searchFilter = filterValue.trim();
+    this.applyFilters();
   }
 
   applyFilters(): void {
     let filteredData = [...this.pairings];
 
+    // Apply status filter first
     if (this.statusFilter) {
       filteredData = filteredData.filter(p => p.status === this.statusFilter);
     }
 
+    // Apply search filter using centralized search service
+    if (this.searchFilter) {
+      filteredData = this.searchFilterService.filterByParticipantNames(
+        filteredData,
+        this.members,
+        this.participants,
+        this.searchFilter,
+        true // include email search
+      );
+    }
+
     this.dataSource.data = filteredData;
+
+    if (this.dataSource.paginator) {
+      this.dataSource.paginator.firstPage();
+    }
   }
 
   onStatusFilterChange(): void {
@@ -176,7 +187,7 @@ export class PairingsManagementComponent implements OnInit {
             this.loadData();
           },
           error: (error) => {
-            console.error('Error removing pairing:', error);
+            this.logger.error('Error removing pairing', error, { component: 'PairingsManagementComponent', action: 'deletePairing', pairingId: pairing.id, programId: this.program.id });
             this.snackBar.open('Error removing pairing', 'Close', { duration: 3000 });
           }
         });

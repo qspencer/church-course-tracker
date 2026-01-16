@@ -133,9 +133,22 @@ async def create_program(
     current_user: dict = Depends(get_current_active_user),
 ):
     """Create a new program"""
-    program_service = ProgramService(db)
-    program = program_service.create_program(program_data, created_by=current_user["id"])
-    return program_to_schema(program)
+    try:
+        program_service = ProgramService(db)
+        program = program_service.create_program(program_data, created_by=current_user["id"])
+        return program_to_schema(program)
+    except HTTPException:
+        # Re-raise HTTP exceptions (they already have proper status codes)
+        raise
+    except Exception as e:
+        # Log the error and return a proper HTTP exception
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error creating program: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to create program: {str(e)}"
+        )
 
 
 @router.put("/{program_id}", response_model=Program)
@@ -440,11 +453,14 @@ async def bulk_import_participants_from_pc_list(
 @router.get("/{program_id}/participants", response_model=List[ProgramParticipant])
 async def get_program_participants(
     program_id: int,
-    status: Optional[str] = None,
+    status: Optional[str] = Query(None, description="Filter by status (active, paused, completed, ended)"),
+    skip: int = Query(0, ge=0, description="Number of records to skip"),
+    limit: int = Query(100, ge=1, le=1000, description="Number of records to return"),
+    search: Optional[str] = Query(None, description="Search by first name or last name (starts with, case-insensitive)"),
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_active_user),
 ):
-    """Get all participants for a program"""
+    """Get participants for a program with pagination and search"""
     program_service = ProgramService(db)
     
     # Check if program exists
@@ -455,8 +471,33 @@ async def get_program_participants(
             detail=f"Program with ID {program_id} not found",
         )
     
-    participants = program_service.get_program_participants(program_id, status=status)
+    participants = program_service.get_program_participants(
+        program_id, status=status, skip=skip, limit=limit, search=search
+    )
     return participants
+
+
+@router.get("/{program_id}/participants/count")
+async def get_program_participants_count(
+    program_id: int,
+    status: Optional[str] = Query(None, description="Filter by status (active, paused, completed, ended)"),
+    search: Optional[str] = Query(None, description="Search by first name or last name (starts with, case-insensitive)"),
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_active_user),
+):
+    """Get total count of participants for a program"""
+    program_service = ProgramService(db)
+    
+    # Check if program exists
+    program = program_service.get_program(program_id)
+    if not program:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Program with ID {program_id} not found",
+        )
+    
+    count = program_service.get_program_participants_count(program_id, status=status, search=search)
+    return {"count": count}
 
 
 @router.post("/{program_id}/participants", response_model=ProgramParticipant, status_code=status.HTTP_201_CREATED)

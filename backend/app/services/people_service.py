@@ -2,14 +2,19 @@
 People service layer (from Planning Center)
 """
 
-from datetime import date, datetime
+import logging
+from datetime import date, datetime, timezone
 from typing import List, Optional
 
+from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.models.member import People as PeopleModel
 from app.schemas.people import PeopleCreate, PeopleUpdate
 from app.services.audit_service import AuditService
+from app.core.exceptions import ValidationError
+
+logger = logging.getLogger(__name__)
 
 
 class PeopleService:
@@ -40,13 +45,35 @@ class PeopleService:
         )
 
     def search_people(self, search_term: str, limit: int = 50) -> List[PeopleModel]:
-        """Search people by name or email"""
+        """Search people by name or email with input validation"""
+        # Validate input
+        if not search_term or not search_term.strip():
+            raise ValidationError("Search term cannot be empty")
+
+        search_term = search_term.strip()
+
+        if len(search_term) < 2:
+            raise ValidationError("Search term must be at least 2 characters")
+
+        if len(search_term) > 100:
+            raise ValidationError("Search term is too long (max 100 characters)")
+
+        # Sanitize: escape SQL wildcards to prevent wildcard injection
+        # Users should not be able to use SQL wildcards in their search
+        sanitized_term = search_term.replace('%', r'\%').replace('_', r'\_')
+
+        # Build the pattern for ILIKE
+        pattern = f"%{sanitized_term}%"
+
+        # Ensure limit is reasonable
+        limit = min(limit, 100)
+
         return (
             self.db.query(PeopleModel)
             .filter(
-                (PeopleModel.first_name.ilike(f"%{search_term}%"))
-                | (PeopleModel.last_name.ilike(f"%{search_term}%"))
-                | (PeopleModel.email.ilike(f"%{search_term}%"))
+                (PeopleModel.first_name.ilike(pattern, escape='\\'))
+                | (PeopleModel.last_name.ilike(pattern, escape='\\'))
+                | (PeopleModel.email.ilike(pattern, escape='\\'))
             )
             .limit(limit)
             .all()
@@ -56,30 +83,43 @@ class PeopleService:
         self, person: PeopleCreate, created_by: Optional[int] = None
     ) -> PeopleModel:
         """Create a new person"""
-        person_data = person.dict()
-        
-        # If planning_center_id is not provided or is empty, generate a unique placeholder
-        # This allows manual creation without Planning Center integration
-        if not person_data.get('planning_center_id'):
-            import uuid
-            person_data['planning_center_id'] = f"manual_{uuid.uuid4().hex[:12]}"
-        
-        db_person = PeopleModel(**person_data)
-        db_person.created_at = datetime.utcnow()
-        db_person.updated_at = datetime.utcnow()
-        db_person.created_by = created_by
+        try:
+            person_data = person.model_dump()
 
-        self.db.add(db_person)
-        self.db.commit()
-        self.db.refresh(db_person)
-        AuditService(self.db).log_change(
-            table_name=PeopleModel.__tablename__,
-            record_id=db_person.id,
-            action="insert",
-            changed_by=created_by,
-            new_values=AuditService.serialize_model(db_person),
-        )
-        return db_person
+            # If planning_center_id is not provided or is empty, generate a unique placeholder
+            # This allows manual creation without Planning Center integration
+            if not person_data.get('planning_center_id'):
+                import uuid
+                person_data['planning_center_id'] = f"manual_{uuid.uuid4().hex[:12]}"
+
+            db_person = PeopleModel(**person_data)
+            db_person.created_at = datetime.now(timezone.utc)
+            db_person.updated_at = datetime.now(timezone.utc)
+            db_person.created_by = created_by
+
+            self.db.add(db_person)
+            self.db.flush()  # Get ID without committing
+
+            # Log audit in same transaction
+            AuditService(self.db).log_change(
+                table_name=PeopleModel.__tablename__,
+                record_id=db_person.id,
+                action="insert",
+                changed_by=created_by,
+                new_values=AuditService.serialize_model(db_person),
+            )
+
+            self.db.commit()  # Commit both together
+            self.db.refresh(db_person)
+            return db_person
+
+        except Exception as e:
+            self.db.rollback()  # Rollback both if either fails
+            logger.error(f"Failed to create person: {e}", exc_info=True)
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to create person"
+            )
 
     def update_person(
         self,
@@ -92,11 +132,11 @@ class PeopleService:
         if not db_person:
             return None
         old_values = AuditService.serialize_model(db_person)
-        update_data = person_update.dict(exclude_unset=True)
+        update_data = person_update.model_dump(exclude_unset=True)
         for field, value in update_data.items():
             setattr(db_person, field, value)
 
-        db_person.updated_at = datetime.utcnow()
+        db_person.updated_at = datetime.now(timezone.utc)
         db_person.updated_by = updated_by
         self.db.commit()
         self.db.refresh(db_person)
@@ -176,7 +216,7 @@ class PeopleService:
         assigned_date_value = assigned_date or date_type.today()
         db_person.campus_id = campus_id
         db_person.campus_assigned_date = assigned_date_value
-        db_person.updated_at = datetime.utcnow()
+        db_person.updated_at = datetime.now(timezone.utc)
         db_person.updated_by = updated_by
         
         # Create historical record in people_campus
@@ -229,7 +269,8 @@ class PeopleService:
             if isinstance(val, str):
                 try:
                     return parser.parse(val).date()
-                except:
+                except (ValueError, TypeError, parser.ParserError) as e:
+                    logger.warning(f"Invalid date format for field '{key}': {val}. Error: {e}")
                     pass
             return None
 
@@ -262,8 +303,8 @@ class PeopleService:
             existing_person.household_name = get_val("household_name")
             existing_person.status = get_val("status") or "active"
             existing_person.join_date = get_date_val("created_at") # Approximate join date
-            existing_person.last_synced_at = datetime.utcnow()
-            existing_person.updated_at = datetime.utcnow()
+            existing_person.last_synced_at = datetime.now(timezone.utc)
+            existing_person.updated_at = datetime.now(timezone.utc)
             existing_person.updated_by = updated_by
             
             self.db.commit()

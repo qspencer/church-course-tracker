@@ -2,7 +2,8 @@
 CourseEnrollment service layer (Maps to Planning Center Registrations)
 """
 
-from datetime import datetime
+import logging
+from datetime import datetime, timezone
 from typing import List, Optional
 
 from sqlalchemy.orm import Session, selectinload, defer
@@ -14,6 +15,8 @@ from app.services.audit_service import AuditService
 from app.services.people_service import PeopleService
 from app.services.course_service import CourseService
 from fastapi import HTTPException, status
+
+logger = logging.getLogger(__name__)
 
 
 class CourseEnrollmentService:
@@ -110,29 +113,42 @@ class CourseEnrollmentService:
         self, enrollment: CourseEnrollmentCreate, created_by: Optional[int] = None
     ) -> CourseEnrollmentModel:
         """Create a new enrollment"""
-        enrollment_dict = enrollment.dict()
-        # Remove person_id if present (we use people_id in the model)
-        enrollment_dict.pop('person_id', None)
-        # Ensure people_id is set
-        if not enrollment_dict.get('people_id'):
-            raise ValueError("people_id is required")
-        
-        db_enrollment = CourseEnrollmentModel(**enrollment_dict)
-        db_enrollment.created_at = datetime.utcnow()
-        db_enrollment.updated_at = datetime.utcnow()
-        db_enrollment.created_by = created_by
+        try:
+            enrollment_dict = enrollment.model_dump()
+            # Remove person_id if present (we use people_id in the model)
+            enrollment_dict.pop('person_id', None)
+            # Ensure people_id is set
+            if not enrollment_dict.get('people_id'):
+                raise ValueError("people_id is required")
 
-        self.db.add(db_enrollment)
-        self.db.commit()
-        self.db.refresh(db_enrollment)
-        AuditService(self.db).log_change(
-            table_name=CourseEnrollmentModel.__tablename__,
-            record_id=db_enrollment.id,
-            action="insert",
-            changed_by=created_by,
-            new_values=AuditService.serialize_model(db_enrollment),
-        )
-        return db_enrollment
+            db_enrollment = CourseEnrollmentModel(**enrollment_dict)
+            db_enrollment.created_at = datetime.now(timezone.utc)
+            db_enrollment.updated_at = datetime.now(timezone.utc)
+            db_enrollment.created_by = created_by
+
+            self.db.add(db_enrollment)
+            self.db.flush()  # Get ID without committing
+
+            # Log audit in same transaction
+            AuditService(self.db).log_change(
+                table_name=CourseEnrollmentModel.__tablename__,
+                record_id=db_enrollment.id,
+                action="insert",
+                changed_by=created_by,
+                new_values=AuditService.serialize_model(db_enrollment),
+            )
+
+            self.db.commit()  # Commit both together
+            self.db.refresh(db_enrollment)
+            return db_enrollment
+
+        except Exception as e:
+            self.db.rollback()  # Rollback both if either fails
+            logger.error(f"Failed to create enrollment: {e}", exc_info=True)
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to create enrollment"
+            )
 
     def bulk_enroll(
         self, course_id: int, people_ids: List[int], created_by: Optional[int] = None
@@ -143,7 +159,7 @@ class CourseEnrollmentService:
             enrollment_data = CourseEnrollmentCreate(
                 course_id=course_id,
                 people_id=people_id,
-                enrollment_date=datetime.utcnow(),
+                enrollment_date=datetime.now(timezone.utc),
             )
             enrollment = self.create_enrollment(enrollment_data, created_by=created_by)
             enrollments.append(enrollment)
@@ -165,7 +181,7 @@ class CourseEnrollmentService:
         for field, value in update_data.items():
             setattr(db_enrollment, field, value)
 
-        db_enrollment.updated_at = datetime.utcnow()
+        db_enrollment.updated_at = datetime.now(timezone.utc)
         db_enrollment.updated_by = updated_by
         self.db.commit()
         self.db.refresh(db_enrollment)
@@ -250,11 +266,11 @@ class CourseEnrollmentService:
         db_enrollment.progress_percentage = progress_percentage
         if progress_percentage >= 100.0:
             db_enrollment.status = "completed"
-            db_enrollment.completion_date = datetime.utcnow()
+            db_enrollment.completion_date = datetime.now(timezone.utc)
         elif progress_percentage > 0.0:
             db_enrollment.status = "in_progress"
 
-        db_enrollment.updated_at = datetime.utcnow()
+        db_enrollment.updated_at = datetime.now(timezone.utc)
         db_enrollment.updated_by = updated_by
         self.db.commit()
         self.db.refresh(db_enrollment)
@@ -439,8 +455,9 @@ class CourseEnrollmentService:
                         try:
                             from dateutil.parser import parse as parse_date
                             registration_date = parse_date(registration_date)
-                        except:
-                            registration_date = datetime.utcnow()
+                        except (ValueError, TypeError) as e:
+                            logger.warning(f"Invalid registration_date format for registration {reg_id}: {registration_date}. Using current time. Error: {e}")
+                            registration_date = datetime.now(timezone.utc)
                     else:
                         registration_date = datetime.utcnow()
 
@@ -564,7 +581,7 @@ class CourseEnrollmentService:
                     enrollment_data = CourseEnrollmentCreate(
                         people_id=people_id,
                         course_id=course_id,
-                        enrollment_date=datetime.utcnow(),
+                        enrollment_date=datetime.now(timezone.utc),
                         status="enrolled",
                         planning_center_synced=True,
                     )
@@ -716,15 +733,16 @@ class CourseEnrollmentService:
                 else:
                     # Create new enrollment
                     pc_status = reg_attributes.get('status', 'registered') or 'registered'
-                    
+
                     # Parse registration date
                     registration_date = reg_attributes.get('created_at') or reg_attributes.get('registration_date')
                     if registration_date:
                         try:
                             from dateutil.parser import parse as parse_date
                             registration_date = parse_date(registration_date)
-                        except:
-                            registration_date = datetime.utcnow()
+                        except (ValueError, TypeError) as e:
+                            logger.warning(f"Invalid registration_date format during sync for registration {reg_id}: {registration_date}. Using current time. Error: {e}")
+                            registration_date = datetime.now(timezone.utc)
                     else:
                         registration_date = datetime.utcnow()
 

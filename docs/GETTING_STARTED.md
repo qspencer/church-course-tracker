@@ -39,10 +39,12 @@ The main menu is typically located at the top or side of the screen. Here are th
 ### For All Users:
 - **Dashboard** - Your home page with overview information
 - **Courses** - View and browse available courses
+- **Programs** - View and participate in educational programs
 - **My Progress** - Track your own course progress
 - **Profile** - View and update your account information
 
 ### For Staff and Administrators:
+- **Programs** - Create and manage educational programs
 - **Enrollments** - Manage who is enrolled in courses
 - **Members** - View and manage church members
 - **Reports** - Generate reports and analytics

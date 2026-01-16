@@ -7,6 +7,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { forkJoin } from 'rxjs';
 import { ProgramService } from '../../../services/program.service';
 import { MemberService } from '../../../services/member.service';
+import { LoggerService } from '../../../services/logger.service';
 import { Program, ProgramProgress, ProgramParticipant, ProgramSession } from '../../../models/program.model';
 import { Person } from '../../../models';
 import { ProgressDialogComponent } from '../progress-dialog/progress-dialog.component';
@@ -38,7 +39,8 @@ export class ProgressManagementComponent implements OnInit {
     private programService: ProgramService,
     private memberService: MemberService,
     private dialog: MatDialog,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private logger: LoggerService
   ) {
     this.program = data.program;
     if (data.participant) {
@@ -74,7 +76,7 @@ export class ProgressManagementComponent implements OnInit {
         this.isLoading = false;
       },
       error: (error) => {
-        console.error('Error loading data:', error);
+        this.logger.error('Error loading data', error, { component: 'ProgressManagementComponent', action: 'loadData', programId: this.program.id });
         this.snackBar.open('Error loading progress', 'Close', { duration: 3000 });
         this.isLoading = false;
       }
@@ -207,7 +209,7 @@ export class ProgressManagementComponent implements OnInit {
             this.loadData();
           },
           error: (error) => {
-            console.error('Error deleting progress:', error);
+            this.logger.error('Error deleting progress', error, { component: 'ProgressManagementComponent', action: 'deleteProgress', progressId: progress.id, programId: this.program.id });
             this.snackBar.open('Error deleting progress', 'Close', { duration: 3000 });
           }
         });

@@ -13,6 +13,7 @@ import { ProgramParticipant, Program } from '../../models/program.model';
 import { EnrollmentDialogComponent } from './enrollment-dialog/enrollment-dialog.component';
 import { BulkEnrollmentDialogComponent } from './bulk-enrollment-dialog/bulk-enrollment-dialog.component';
 import { ConfirmDialogComponent } from '../../shared/confirm-dialog/confirm-dialog.component';
+import { LoggerService } from '../../services/logger.service';
 
 @Component({
   selector: 'app-enrollments',
@@ -37,10 +38,13 @@ export class EnrollmentsComponent implements OnInit {
     private courseService: CourseService,
     private memberService: MemberService,
     private dialog: MatDialog,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private logger: LoggerService
   ) {
-    console.log('EnrollmentsComponent constructor called');
-    console.log('Current route:', window.location.pathname);
+    this.logger.debug('EnrollmentsComponent constructor called', {
+      component: 'EnrollmentsComponent',
+      route: window.location.pathname
+    });
   }
 
   ngOnInit(): void {
@@ -75,7 +79,11 @@ export class EnrollmentsComponent implements OnInit {
         this.isLoading = false;
       },
       error: (error) => {
-        console.error('Error loading enrollments:', error);
+        this.logger.error('Error loading enrollments', error, {
+          component: 'EnrollmentsComponent',
+          action: 'loadEnrollments'
+        });
+        this.snackBar.open('Error loading enrollments', 'Close', { duration: 3000 });
         this.isLoading = false;
       }
     });
@@ -91,7 +99,11 @@ export class EnrollmentsComponent implements OnInit {
         this.isLoading = false;
       },
       error: (error) => {
-        console.error('Error loading participants:', error);
+        this.logger.error('Error loading participants', error, {
+          component: 'EnrollmentsComponent',
+          action: 'loadParticipants'
+        });
+        this.snackBar.open('Error loading participants', 'Close', { duration: 3000 });
         this.isLoading = false;
       }
     });
@@ -103,7 +115,10 @@ export class EnrollmentsComponent implements OnInit {
         this.programs = programs;
       },
       error: (error) => {
-        console.error('Error loading programs:', error);
+        this.logger.error('Error loading programs', error, {
+          component: 'EnrollmentsComponent',
+          action: 'loadPrograms'
+        });
       }
     });
   }
@@ -177,7 +192,12 @@ export class EnrollmentsComponent implements OnInit {
             this.loadEnrollments();
           },
           error: (error) => {
-            console.error('Error deleting enrollment:', error);
+            this.logger.error('Error deleting enrollment', error, {
+              component: 'EnrollmentsComponent',
+              action: 'deleteEnrollment',
+              enrollmentId: enrollment.id
+            });
+            this.snackBar.open('Error deleting enrollment', 'Close', { duration: 3000 });
           }
         });
       }
@@ -234,7 +254,11 @@ export class EnrollmentsComponent implements OnInit {
         });
       },
       error: (error) => {
-        console.error('Error loading enrollment details:', error);
+        this.logger.error('Error loading enrollment details', error, {
+          component: 'EnrollmentsComponent',
+          action: 'viewEnrollmentDetails',
+          enrollmentId: enrollment.id
+        });
         this.snackBar.open('Failed to load enrollment details', 'Close', { duration: 3000 });
       }
     });

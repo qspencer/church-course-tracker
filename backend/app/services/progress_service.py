@@ -2,7 +2,7 @@
 Progress service layer
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Optional
 
 from sqlalchemy.exc import ProgrammingError
@@ -47,9 +47,9 @@ class ProgressService:
 
     def create_progress(self, progress: ContentCompletionCreate) -> ProgressModel:
         """Create a new progress record"""
-        db_progress = ProgressModel(**progress.dict())
-        db_progress.created_at = datetime.utcnow()
-        db_progress.updated_at = datetime.utcnow()
+        db_progress = ProgressModel(**progress.model_dump())
+        db_progress.created_at = datetime.now(timezone.utc)
+        db_progress.updated_at = datetime.now(timezone.utc)
 
         self.db.add(db_progress)
         self.db.commit()
@@ -68,7 +68,7 @@ class ProgressService:
         for field, value in update_data.items():
             setattr(db_progress, field, value)
 
-        db_progress.updated_at = datetime.utcnow()
+        db_progress.updated_at = datetime.now(timezone.utc)
         self.db.commit()
         self.db.refresh(db_progress)
         return db_progress

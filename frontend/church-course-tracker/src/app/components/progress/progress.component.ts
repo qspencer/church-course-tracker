@@ -6,6 +6,7 @@ import { EnrollmentService } from '../../services/enrollment.service';
 import { CourseService } from '../../services/course.service';
 import { MemberService } from '../../services/member.service';
 import { Progress, Enrollment, Course, Person, ProgressStatus } from '../../models';
+import { LoggerService } from '../../services/logger.service';
 
 @Component({
   selector: 'app-progress',
@@ -39,7 +40,8 @@ export class ProgressComponent implements OnInit {
     private enrollmentService: EnrollmentService,
     private courseService: CourseService,
     private memberService: MemberService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private logger: LoggerService
   ) {}
 
   ngOnInit(): void {
@@ -57,7 +59,11 @@ export class ProgressComponent implements OnInit {
         this.isLoading = false;
       },
       error: (error) => {
-        console.error('Error loading enrollments:', error);
+        this.logger.error('Error loading enrollments', error, {
+          component: 'ProgressComponent',
+          action: 'loadData'
+        });
+        this.snackBar.open('Error loading enrollments', 'Close', { duration: 3000 });
         this.isLoading = false;
       }
     });
@@ -68,7 +74,10 @@ export class ProgressComponent implements OnInit {
         this.courses = courses;
       },
       error: (error) => {
-        console.error('Error loading courses:', error);
+        this.logger.error('Error loading courses', error, {
+          component: 'ProgressComponent',
+          action: 'loadData'
+        });
       }
     });
 
@@ -77,7 +86,10 @@ export class ProgressComponent implements OnInit {
         this.members = members;
       },
       error: (error) => {
-        console.error('Error loading members:', error);
+        this.logger.error('Error loading members', error, {
+          component: 'ProgressComponent',
+          action: 'loadData'
+        });
       }
     });
   }
@@ -104,7 +116,12 @@ export class ProgressComponent implements OnInit {
         this.progressItems = progress;
       },
       error: (error) => {
-        console.error('Error loading progress details:', error);
+        this.logger.error('Error loading progress details', error, {
+          component: 'ProgressComponent',
+          action: 'loadProgressDetails',
+          enrollmentId
+        });
+        this.snackBar.open('Error loading progress details', 'Close', { duration: 3000 });
       }
     });
   }
@@ -128,7 +145,12 @@ export class ProgressComponent implements OnInit {
         this.isUpdating = false;
       },
       error: (error) => {
-        console.error('Error updating progress:', error);
+        this.logger.error('Error updating progress', error, {
+          component: 'ProgressComponent',
+          action: 'updateProgressStatus',
+          progressId
+        });
+        this.snackBar.open('Error updating progress', 'Close', { duration: 3000 });
         this.isUpdating = false;
       }
     });
@@ -143,7 +165,13 @@ export class ProgressComponent implements OnInit {
         this.isUpdating = false;
       },
       error: (error) => {
-        console.error('Error marking content complete:', error);
+        this.logger.error('Error marking content complete', error, {
+          component: 'ProgressComponent',
+          action: 'markContentComplete',
+          enrollmentId,
+          contentId
+        });
+        this.snackBar.open('Error marking content complete', 'Close', { duration: 3000 });
         this.isUpdating = false;
       }
     });

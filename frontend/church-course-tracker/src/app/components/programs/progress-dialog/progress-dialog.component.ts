@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ProgramService } from '../../../services/program.service';
+import { LoggerService } from '../../../services/logger.service';
 import { Program, ProgramProgress, ProgramProgressCreate, ProgramProgressUpdate, ProgramParticipant, ProgramSession } from '../../../models/program.model';
 
 export interface ProgressDialogData {
@@ -38,7 +39,8 @@ export class ProgressDialogComponent implements OnInit {
     private programService: ProgramService,
     private snackBar: MatSnackBar,
     public dialogRef: MatDialogRef<ProgressDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: ProgressDialogData
+    @Inject(MAT_DIALOG_DATA) public data: ProgressDialogData,
+    private logger: LoggerService
   ) {
     this.viewMode = !!data.viewMode;
     this.isEditing = !this.viewMode && !!data.progress;
@@ -172,7 +174,7 @@ export class ProgressDialogComponent implements OnInit {
           this.dialogRef.close(true);
         },
         error: (error) => {
-          console.error('Error updating progress:', error);
+          this.logger.error('Error updating progress', error, { component: 'ProgressDialogComponent', action: 'updateProgress', progressId: this.data.progress?.id, programId: this.program.id });
           const errorMsg = error?.error?.detail || 'Error updating progress';
           this.snackBar.open(errorMsg, 'Close', { duration: 3000 });
           this.isLoading = false;
@@ -198,7 +200,7 @@ export class ProgressDialogComponent implements OnInit {
           this.dialogRef.close(true);
         },
         error: (error) => {
-          console.error('Error creating progress:', error);
+          this.logger.error('Error creating progress', error, { component: 'ProgressDialogComponent', action: 'createProgress', programId: this.program.id, participantId: this.participant.id });
           const errorMsg = error?.error?.detail || 'Error creating progress';
           this.snackBar.open(errorMsg, 'Close', { duration: 3000 });
           this.isLoading = false;

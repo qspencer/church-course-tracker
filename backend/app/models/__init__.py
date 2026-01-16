@@ -32,6 +32,7 @@ from .failed_login_attempt import FailedLoginAttempt
 from .user_preference import UserPreference
 from .custom_attribute import CustomAttribute
 from .autocomplete_suggestion import AutocompleteSuggestion
+from .system_settings import SystemSettings
 
 __all__ = [
     "User",
@@ -72,4 +73,5 @@ __all__ = [
     "ProgramSession",
     "ProgramProgress",
     "SharedContent",
+    "SystemSettings",
 ]

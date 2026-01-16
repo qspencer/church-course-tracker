@@ -1,9 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { ReportService } from '../../services/report.service';
 import { CourseService } from '../../services/course.service';
 import { EnrollmentService } from '../../services/enrollment.service';
 import { ProgramService } from '../../services/program.service';
+import { LoggerService } from '../../services/logger.service';
 import { DashboardStats, ProgramStats, Course, Enrollment, Program, ProgramParticipant, ProgramPairing, ProgramSession, CompletionTrendsResponse } from '../../models';
 import { ChartConfiguration, ChartData, ChartType } from 'chart.js';
 
@@ -12,7 +15,8 @@ import { ChartConfiguration, ChartData, ChartType } from 'chart.js';
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss']
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
   viewMode: 'courses' | 'programs' = 'courses';
   stats: DashboardStats | null = null;
   programStats: ProgramStats | null = null;
@@ -141,7 +145,8 @@ export class DashboardComponent implements OnInit {
     private reportService: ReportService,
     private courseService: CourseService,
     private enrollmentService: EnrollmentService,
-    private programService: ProgramService
+    private programService: ProgramService,
+    private logger: LoggerService
   ) {}
 
   ngOnInit(): void {
@@ -166,35 +171,35 @@ export class DashboardComponent implements OnInit {
 
   loadCoursesData(): void {
     // Load dashboard stats
-    this.reportService.getDashboardStats().subscribe({
+    this.reportService.getDashboardStats().pipe(takeUntil(this.destroy$)).subscribe({
       next: (stats) => {
         this.stats = stats;
         this.updateCompletionChart(stats);
         this.isLoading = false;
       },
       error: (error) => {
-        console.error('Error loading dashboard stats:', error);
+        this.logger.error('Error loading dashboard stats', error);
         this.isLoading = false;
       }
     });
 
     // Load recent courses
-    this.courseService.getCourses({ limit: 5, sort: 'created_at', order: 'desc' }).subscribe({
+    this.courseService.getCourses({ limit: 5, sort: 'created_at', order: 'desc' }).pipe(takeUntil(this.destroy$)).subscribe({
       next: (courses) => {
         this.recentCourses = courses;
       },
       error: (error) => {
-        console.error('Error loading recent courses:', error);
+        this.logger.error('Error loading recent courses', error);
       }
     });
 
     // Load recent enrollments
-    this.enrollmentService.getEnrollments({ limit: 5, sort: 'enrolled_at', order: 'desc' }).subscribe({
+    this.enrollmentService.getEnrollments({ limit: 5 }).pipe(takeUntil(this.destroy$)).subscribe({
       next: (enrollments) => {
         this.recentEnrollments = enrollments;
       },
       error: (error) => {
-        console.error('Error loading recent enrollments:', error);
+        this.logger.error('Error loading recent enrollments', error);
       }
     });
 
@@ -213,7 +218,7 @@ export class DashboardComponent implements OnInit {
         this.isLoading = false;
       },
       error: (error) => {
-        console.error('Error loading programs:', error);
+        this.logger.error('Error loading programs', error);
         this.isLoading = false;
       }
     });
@@ -278,7 +283,7 @@ export class DashboardComponent implements OnInit {
           }
         },
         error: (error) => {
-          console.error(`Error loading participants for program ${program.id}:`, error);
+          this.logger.error('Error loading participants for program', error, { component: 'DashboardComponent', action: 'loadDetailedProgramStats', programId: program.id });
           loadedCount++;
           if (loadedCount === expectedCalls && !hasUpdated) {
             hasUpdated = true;
@@ -300,7 +305,7 @@ export class DashboardComponent implements OnInit {
           }
         },
         error: (error) => {
-          console.error(`Error loading pairings for program ${program.id}:`, error);
+          this.logger.error(`Error loading pairings for program ${program.id}`, error);
           loadedCount++;
           if (loadedCount === expectedCalls && !hasUpdated) {
             hasUpdated = true;
@@ -321,7 +326,7 @@ export class DashboardComponent implements OnInit {
           }
         },
         error: (error) => {
-          console.error(`Error loading sessions for program ${program.id}:`, error);
+          this.logger.error(`Error loading sessions for program ${program.id}`, error);
           loadedCount++;
           if (loadedCount === expectedCalls && !hasUpdated) {
             hasUpdated = true;
@@ -385,7 +390,7 @@ export class DashboardComponent implements OnInit {
               }
             },
             error: (error) => {
-              console.error(`Error loading participants for program ${program.id}:`, error);
+              this.logger.error(`Error loading participants for program ${program.id}`, error);
               loadedCount++;
               if (loadedCount === totalPrograms && !hasUpdated) {
                 hasUpdated = true;
@@ -399,7 +404,7 @@ export class DashboardComponent implements OnInit {
         });
       },
       error: (error) => {
-        console.error('Error loading programs for participants:', error);
+        this.logger.error('Error loading programs for participants', error);
         this.recentParticipants = [];
       }
     });
@@ -468,7 +473,7 @@ export class DashboardComponent implements OnInit {
         };
       },
       error: (error) => {
-        console.error('Error loading completion trends:', error);
+        this.logger.error('Error loading completion trends', error);
       }
     });
   }
@@ -525,5 +530,10 @@ export class DashboardComponent implements OnInit {
 
   navigateToPrograms(): void {
     this.router.navigate(['/churchcoursetracker/programs']);
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }

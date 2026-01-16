@@ -2,9 +2,11 @@ import { Component, Inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTableDataSource } from '@angular/material/table';
+import { finalize } from 'rxjs/operators';
 import { PlanningCenterService, PlanningCenterRegistration } from '../../../services/planning-center.service';
 import { EnrollmentService } from '../../../services/enrollment.service';
 import { MemberService } from '../../../services/member.service';
+import { LoggerService } from '../../../services/logger.service';
 
 export interface EventRegistrationsDialogData {
   eventId: string;
@@ -27,6 +29,7 @@ export class EventRegistrationsDialogComponent implements OnInit {
   constructor(
     private planningCenterService: PlanningCenterService,
     private enrollmentService: EnrollmentService,
+    private logger: LoggerService,
     private memberService: MemberService,
     private snackBar: MatSnackBar,
     public dialogRef: MatDialogRef<EventRegistrationsDialogComponent>,
@@ -39,28 +42,28 @@ export class EventRegistrationsDialogComponent implements OnInit {
 
   loadRegistrations(): void {
     this.isLoading = true;
-    this.planningCenterService.getEventRegistrations(this.data.eventId).subscribe({
-      next: (registrations) => {
-        this.registrations = registrations;
-        this.dataSource.data = registrations;
-        this.isLoading = false;
-      },
-      error: (error) => {
-        console.error('Error loading registrations:', error);
-        this.snackBar.open('Error loading registrations: ' + (error.error?.detail || error.message), 'Close', { duration: 5000 });
-        this.isLoading = false;
-      }
-    });
+    this.planningCenterService.getEventRegistrations(this.data.eventId)
+      .pipe(finalize(() => this.isLoading = false))
+      .subscribe({
+        next: (registrations) => {
+          this.registrations = registrations;
+          this.dataSource.data = registrations;
+        },
+        error: (error) => {
+          this.logger.error('Error loading registrations', error, { component: 'EventRegistrationsDialogComponent' });
+          this.snackBar.open('Error loading registrations: ' + (error.error?.detail || error.message), 'Close', { duration: 5000 });
+        }
+      });
   }
 
   getPersonName(registration: PlanningCenterRegistration): string {
     const attrs = registration.attributes || {};
     // Backend attaches person_name, first_name, last_name to registration attributes
     if (attrs['person_name']) {
-      return attrs['person_name'];
+      return String(attrs['person_name']);
     }
     if (attrs['first_name'] || attrs['last_name']) {
-      return `${attrs['first_name'] || ''} ${attrs['last_name'] || ''}`.trim();
+      return `${String(attrs['first_name'] || '')} ${String(attrs['last_name'] || '')}`.trim();
     }
     // Fallback: check relationships
     if (registration.relationships?.person?.data) {
@@ -72,7 +75,7 @@ export class EventRegistrationsDialogComponent implements OnInit {
   getPersonEmail(registration: PlanningCenterRegistration): string {
     const attrs = registration.attributes || {};
     // Backend attaches email to registration attributes
-    return attrs['email'] || '';
+    return String(attrs['email'] || '');
   }
 
   getStatusColor(status: string | undefined): 'primary' | 'accent' | 'warn' {
@@ -89,8 +92,51 @@ export class EventRegistrationsDialogComponent implements OnInit {
   }
 
   importSingle(registration: PlanningCenterRegistration): void {
-    // TODO: Implement single import
-    this.toggleSelection(registration.id);
+    if (this.isLoading) return; // Prevent double-submission
+
+    if (!this.data.courseId) {
+      this.logger.error('Cannot import: courseId missing', null, {
+        component: 'EventRegistrationsDialogComponent',
+        action: 'importSingle'
+      });
+      this.snackBar.open('Error: Course ID not found', 'Close', { duration: 3000 });
+      return;
+    }
+
+    this.isLoading = true;
+    this.enrollmentService.importRegistrations(
+      this.data.courseId,
+      this.data.eventId,
+      [registration.id]
+    ).pipe(
+      finalize(() => this.isLoading = false)
+    ).subscribe({
+      next: (enrollments) => {
+        const personName = this.getPersonName(registration);
+        this.snackBar.open(
+          `Successfully imported ${personName}`,
+          'Close',
+          { duration: 3000 }
+        );
+        // Mark as imported to update UI
+        registration.imported = true;
+        // Optionally reload the list
+        this.loadRegistrations();
+      },
+      error: (error) => {
+        this.logger.error('Failed to import registration', error, {
+          component: 'EventRegistrationsDialogComponent',
+          action: 'importSingle',
+          registrationId: registration.id
+        });
+        const errorMessage = error.error?.detail || error.message || 'Failed to import';
+        this.snackBar.open(
+          `Error: ${errorMessage}`,
+          'Close',
+          { duration: 5000 }
+        );
+      }
+    });
   }
 
   toggleSelection(registrationId: string): void {
@@ -128,6 +174,8 @@ export class EventRegistrationsDialogComponent implements OnInit {
   }
 
   onImport(): void {
+    if (this.isLoading) return; // Prevent double-submission
+
     if (!this.data.courseId) {
       this.snackBar.open('Cannot import: Course ID is missing', 'Close', { duration: 3000 });
       return;
@@ -140,28 +188,28 @@ export class EventRegistrationsDialogComponent implements OnInit {
 
     this.isLoading = true;
     const registrationIds = Array.from(this.selectedRegistrations);
-    
+
     this.enrollmentService.importRegistrations(
       this.data.courseId,
       this.data.eventId,
       registrationIds
-    ).subscribe({
-      next: (enrollments) => {
-        this.isLoading = false;
-        this.snackBar.open(
-          `Successfully imported ${enrollments.length} registration(s) as enrollments`,
-          'Close',
-          { duration: 5000 }
-        );
-        this.dialogRef.close({ imported: true, count: enrollments.length });
-      },
-      error: (error) => {
-        this.isLoading = false;
-        console.error('Error importing registrations:', error);
-        const errorMessage = error.error?.detail || error.message || 'Failed to import registrations';
-        this.snackBar.open(`Error: ${errorMessage}`, 'Close', { duration: 7000 });
-      }
-    });
+    )
+      .pipe(finalize(() => this.isLoading = false))
+      .subscribe({
+        next: (enrollments) => {
+          this.snackBar.open(
+            `Successfully imported ${enrollments.length} registration(s) as enrollments`,
+            'Close',
+            { duration: 5000 }
+          );
+          this.dialogRef.close({ imported: true, count: enrollments.length });
+        },
+        error: (error) => {
+          this.logger.error('Error importing registrations', error, { component: 'EventRegistrationsDialogComponent' });
+          const errorMessage = error.error?.detail || error.message || 'Failed to import registrations';
+          this.snackBar.open(`Error: ${errorMessage}`, 'Close', { duration: 7000 });
+        }
+      });
   }
 
   onCancel(): void {

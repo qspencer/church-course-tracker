@@ -7,7 +7,7 @@ from fastapi import APIRouter
 from app.api.v1.endpoints import (audit, auth, autocomplete_suggestions, course_content, course_instances,
                                   courses, custom_attributes, enrollments, mock_planning_center,
                                   people, planning_center_sync, program_content, programs, progress,
-                                  reports, sync, users)
+                                  reports, sync, system_settings, users)
 
 api_router = APIRouter()
 
@@ -59,6 +59,11 @@ api_router.include_router(
 # Custom attributes endpoints
 api_router.include_router(
     custom_attributes.router, prefix="/custom-attributes", tags=["custom-attributes"]
+)
+
+# System Settings endpoints
+api_router.include_router(
+    system_settings.router, prefix="/settings", tags=["system-settings"]
 )
 
 # Mock Planning Center endpoints (for development/testing)

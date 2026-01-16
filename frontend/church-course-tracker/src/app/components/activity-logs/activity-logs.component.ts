@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { AuditService } from '../../services/audit.service';
 import { AuthService } from '../../services/auth.service';
+import { LoggerService } from '../../services/logger.service';
 import { 
   AuditLog, 
   getActionDisplayName,
@@ -38,7 +39,8 @@ export class ActivityLogsComponent implements OnInit {
   constructor(
     private auditService: AuditService,
     private authService: AuthService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private logger: LoggerService
   ) {}
 
   ngOnInit(): void {
@@ -68,7 +70,7 @@ export class ActivityLogsComponent implements OnInit {
         this.isLoading = false;
       },
       error: (error) => {
-        console.error('Error loading activity logs:', error);
+        this.logger.error('Error loading activity logs', error, { component: 'ActivityLogsComponent', action: 'loadActivityLogs' });
         this.snackBar.open('Error loading activity logs', 'Close', { duration: 5000 });
         this.isLoading = false;
       }

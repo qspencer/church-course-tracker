@@ -78,7 +78,7 @@
           <ng-container matColumnDef="changed_by">
             <th mat-header-cell *matHeaderCellDef>Changed By</th>
             <td mat-cell *matCellDef="let log">
-              {{ log.changed_by || 'System' }}
+              {{ log.changed_by_user_name || (log.changed_by ? 'User #' + log.changed_by : 'System') }}
             </td>
           </ng-container>
 

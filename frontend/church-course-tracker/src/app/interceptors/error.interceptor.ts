@@ -2,17 +2,21 @@ import { Injectable, isDevMode } from '@angular/core';
 import { HttpInterceptor, HttpRequest, HttpHandler, HttpEvent, HttpErrorResponse } from '@angular/common/http';
 import { Observable, catchError, throwError } from 'rxjs';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { LoggerService } from '../services/logger.service';
 
 @Injectable()
 export class ErrorInterceptor implements HttpInterceptor {
 
-  constructor(private snackBar: MatSnackBar) {}
+  constructor(
+    private snackBar: MatSnackBar,
+    private logger: LoggerService
+  ) {}
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    // Only log errors in development mode - reduce console noise
+    // Log HTTPS warnings in development mode
     if (isDevMode()) {
       if (!req.url.startsWith('https://') && !req.url.includes('localhost')) {
-        console.error('❌ ErrorInterceptor - Request URL is NOT HTTPS!', req.url);
+        this.logger.warn('ErrorInterceptor - Request URL is NOT HTTPS!', { url: req.url });
       }
     }
     

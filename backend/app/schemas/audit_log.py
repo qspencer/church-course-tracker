@@ -32,6 +32,7 @@ class AuditLog(AuditLogBase):
 
     id: int
     changed_at: datetime
+    changed_by_user_name: Optional[str] = None  # User name for display
 
     class Config:
         from_attributes = True

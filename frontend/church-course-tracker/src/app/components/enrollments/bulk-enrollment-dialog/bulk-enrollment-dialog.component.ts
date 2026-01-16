@@ -7,6 +7,7 @@ import { CourseService } from '../../../services/course.service';
 import { ProgramService } from '../../../services/program.service';
 import { EnrollmentService } from '../../../services/enrollment.service';
 import { Course, Program } from '../../../models';
+import { LoggerService } from '../../../services/logger.service';
 
 export interface BulkImportDialogData {
   targetType?: 'course' | 'program';
@@ -39,7 +40,8 @@ export class BulkEnrollmentDialogComponent implements OnInit {
     private courseService: CourseService,
     private programService: ProgramService,
     private enrollmentService: EnrollmentService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private logger: LoggerService
   ) {
     // Set target type from data or default to 'course'
     this.targetType = data?.targetType || 'course';
@@ -135,7 +137,10 @@ export class BulkEnrollmentDialogComponent implements OnInit {
         this.isLoadingEvents = false;
       },
       error: (error) => {
-        console.error('Error loading PC events:', error);
+        this.logger.error('Error loading PC events', error, {
+          component: 'BulkEnrollmentDialogComponent',
+          action: 'loadEvents'
+        });
         this.snackBar.open('Failed to load Planning Center events', 'Close', { duration: 3000 });
         this.isLoadingEvents = false;
       }
@@ -150,7 +155,10 @@ export class BulkEnrollmentDialogComponent implements OnInit {
         this.isLoadingLists = false;
       },
       error: (error) => {
-        console.error('Error loading PC lists:', error);
+        this.logger.error('Error loading PC lists', error, {
+          component: 'BulkEnrollmentDialogComponent',
+          action: 'loadLists'
+        });
         this.snackBar.open('Failed to load Planning Center lists', 'Close', { duration: 3000 });
         this.isLoadingLists = false;
       }
@@ -165,7 +173,10 @@ export class BulkEnrollmentDialogComponent implements OnInit {
         this.isLoadingCourses = false;
       },
       error: (error) => {
-        console.error('Error loading courses:', error);
+        this.logger.error('Error loading courses', error, {
+          component: 'BulkEnrollmentDialogComponent',
+          action: 'loadCourses'
+        });
         this.snackBar.open('Failed to load courses', 'Close', { duration: 3000 });
         this.isLoadingCourses = false;
       }
@@ -180,7 +191,10 @@ export class BulkEnrollmentDialogComponent implements OnInit {
         this.isLoadingPrograms = false;
       },
       error: (error) => {
-        console.error('Error loading programs:', error);
+        this.logger.error('Error loading programs', error, {
+          component: 'BulkEnrollmentDialogComponent',
+          action: 'loadPrograms'
+        });
         this.snackBar.open('Failed to load programs', 'Close', { duration: 3000 });
         this.isLoadingPrograms = false;
       }
@@ -263,7 +277,12 @@ export class BulkEnrollmentDialogComponent implements OnInit {
   }
 
   private handleError(error: any): void {
-    console.error('Error processing bulk enrollment:', error);
+    this.logger.error('Error processing bulk enrollment', error, {
+      component: 'BulkEnrollmentDialogComponent',
+      action: 'handleError',
+      targetType: this.targetType,
+      sourceType: this.sourceType
+    });
     this.snackBar.open('Failed to process bulk enrollment', 'Close', { duration: 5000 });
     this.isSubmitting = false;
   }

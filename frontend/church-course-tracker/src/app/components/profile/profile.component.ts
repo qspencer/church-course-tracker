@@ -4,6 +4,7 @@ import { UserService } from '../../services/user.service';
 import { AuthService } from '../../services/auth.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { User, UserProfileUpdate, ChangePasswordRequest, UserPreference } from '../../models';
+import { LoggerService } from '../../services/logger.service';
 
 @Component({
   selector: 'app-profile',
@@ -33,7 +34,8 @@ export class ProfileComponent implements OnInit {
     private fb: FormBuilder,
     private userService: UserService,
     private authService: AuthService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private logger: LoggerService
   ) {
     this.profileForm = this.fb.group({
       username: ['', [Validators.required, Validators.minLength(3)]],
@@ -84,7 +86,11 @@ export class ProfileComponent implements OnInit {
         this.isLoading = false;
       },
       error: (error) => {
-        console.error('Error loading preferences:', error);
+        this.logger.error('Error loading preferences', error, {
+          component: 'ProfileComponent',
+          action: 'loadPreferences',
+          userId: this.currentUser?.id
+        });
         this.snackBar.open('Error loading preferences', 'Close', { duration: 3000 });
         this.isLoading = false;
       }
@@ -104,7 +110,11 @@ export class ProfileComponent implements OnInit {
           this.isSavingProfile = false;
         },
         error: (error) => {
-          console.error('Error updating profile:', error);
+          this.logger.error('Error updating profile', error, {
+            component: 'ProfileComponent',
+            action: 'onSaveProfile',
+            userId: this.currentUser?.id
+          });
           const errorMessage = error?.error?.detail || 'Error updating profile';
           this.snackBar.open(errorMessage, 'Close', { duration: 5000 });
           this.isSavingProfile = false;
@@ -125,7 +135,11 @@ export class ProfileComponent implements OnInit {
           this.isChangingPassword = false;
         },
         error: (error) => {
-          console.error('Error changing password:', error);
+          this.logger.error('Error changing password', error, {
+            component: 'ProfileComponent',
+            action: 'onChangePassword',
+            userId: this.currentUser?.id
+          });
           const errorMessage = error?.error?.detail || 'Error changing password';
           this.snackBar.open(errorMessage, 'Close', { duration: 5000 });
           this.isChangingPassword = false;
@@ -146,7 +160,11 @@ export class ProfileComponent implements OnInit {
           this.isSavingPreferences = false;
         },
         error: (error) => {
-          console.error('Error updating preferences:', error);
+          this.logger.error('Error updating preferences', error, {
+            component: 'ProfileComponent',
+            action: 'onSavePreferences',
+            userId: this.currentUser?.id
+          });
           const errorMessage = error?.error?.detail || 'Error updating preferences';
           this.snackBar.open(errorMessage, 'Close', { duration: 5000 });
           this.isSavingPreferences = false;

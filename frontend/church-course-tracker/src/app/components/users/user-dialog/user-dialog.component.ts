@@ -1,9 +1,11 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { finalize } from 'rxjs/operators';
 import { User, UserCreate, UserUpdate } from '../../../models';
 import { UserService } from '../../../services/user.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { LoggerService } from '../../../services/logger.service';
 
 export interface UserDialogData {
   mode: 'create' | 'edit';
@@ -26,7 +28,8 @@ export class UserDialogComponent implements OnInit {
     private userService: UserService,
     private snackBar: MatSnackBar,
     public dialogRef: MatDialogRef<UserDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: UserDialogData
+    @Inject(MAT_DIALOG_DATA) public data: UserDialogData,
+    private logger: LoggerService
   ) {
     this.userForm = this.createForm();
   }
@@ -69,58 +72,62 @@ export class UserDialogComponent implements OnInit {
   onSubmit(): void {
     // Mark form as submitted to show validation errors
     this.isSubmitted = true;
-    
-    if (this.userForm.valid) {
-      this.isSubmitting = true;
-      const formValue = this.userForm.value;
 
-      if (this.data.mode === 'create') {
-        const userCreate: UserCreate = {
-          username: formValue.username || undefined,
-          email: formValue.email,
-          full_name: formValue.full_name,
-          role: formValue.role,
-          is_active: formValue.is_active,
-          password: formValue.password
-        };
+    if (this.isSubmitting || !this.userForm.valid) {
+      return;
+    }
 
-        this.userService.createUser(userCreate).subscribe({
+    this.isSubmitting = true;
+    const formValue = this.userForm.value;
+
+    if (this.data.mode === 'create') {
+      const userCreate: UserCreate = {
+        username: formValue.username || undefined,
+        email: formValue.email,
+        full_name: formValue.full_name,
+        role: formValue.role,
+        is_active: formValue.is_active,
+        password: formValue.password
+      };
+
+      this.userService.createUser(userCreate)
+        .pipe(finalize(() => this.isSubmitting = false))
+        .subscribe({
           next: (user) => {
             this.snackBar.open('User created successfully', 'Close', { duration: 3000 });
             this.dialogRef.close(user);
           },
           error: (error) => {
-            console.error('Error creating user:', error);
-            this.snackBar.open('Error creating user', 'Close', { duration: 3000 });
-            this.isSubmitting = false;
+            this.logger.error('Error creating user', error, { component: 'UserDialogComponent', action: 'createUser' });
+            this.snackBar.open('Error creating user', 'Close', { duration: 5000 });
           }
         });
-      } else {
-        const userUpdate: UserUpdate = {
-          username: formValue.username || undefined,
-          email: formValue.email,
-          full_name: formValue.full_name,
-          role: formValue.role,
-          is_active: formValue.is_active
-        };
+    } else {
+      const userUpdate: UserUpdate = {
+        username: formValue.username || undefined,
+        email: formValue.email,
+        full_name: formValue.full_name,
+        role: formValue.role,
+        is_active: formValue.is_active
+      };
 
-        // Only include password if it's provided
-        if (formValue.password) {
-          userUpdate.password = formValue.password;
-        }
+      // Only include password if it's provided
+      if (formValue.password) {
+        userUpdate.password = formValue.password;
+      }
 
-        this.userService.updateUser(this.data.user!.id, userUpdate).subscribe({
+      this.userService.updateUser(this.data.user!.id, userUpdate)
+        .pipe(finalize(() => this.isSubmitting = false))
+        .subscribe({
           next: (user) => {
             this.snackBar.open('User updated successfully', 'Close', { duration: 3000 });
             this.dialogRef.close(user);
           },
           error: (error) => {
-            console.error('Error updating user:', error);
-            this.snackBar.open('Error updating user', 'Close', { duration: 3000 });
-            this.isSubmitting = false;
+            this.logger.error('Error updating user', error, { component: 'UserDialogComponent', action: 'updateUser', userId: this.data.user!.id });
+            this.snackBar.open('Error updating user', 'Close', { duration: 5000 });
           }
         });
-      }
     }
   }
 
