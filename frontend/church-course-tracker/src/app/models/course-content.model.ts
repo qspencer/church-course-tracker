@@ -132,8 +132,8 @@ export interface ContentAuditLogCreate {
   content_id: number;
   user_id: number;
   action: 'create' | 'update' | 'delete' | 'view';
-  old_values?: Record<string, unknown>;
-  new_values?: Record<string, unknown>;
+  old_values?: Record<string, unknown> | null;
+  new_values?: Record<string, unknown> | null;
   change_summary?: string;
 }
 
@@ -143,8 +143,8 @@ export interface ContentAuditLog {
   user_id: number;
   action: 'create' | 'update' | 'delete' | 'view';
   change_timestamp: string;
-  old_values?: Record<string, unknown>;
-  new_values?: Record<string, unknown>;
+  old_values?: Record<string, unknown> | null;
+  new_values?: Record<string, unknown> | null;
   change_summary?: string;
   ip_address?: string;
   user_agent?: string;
