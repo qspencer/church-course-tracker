@@ -47,6 +47,31 @@ class ProgramService:
 
     def __init__(self, db: Session):
         self.db = db
+        self._audit_service = None
+        self._people_service = None
+        self._pc_sync_service = None
+
+    @property
+    def audit_service(self) -> AuditService:
+        """Lazy-loaded AuditService instance"""
+        if self._audit_service is None:
+            self._audit_service = self.audit_service
+        return self._audit_service
+
+    @property
+    def people_service(self) -> PeopleService:
+        """Lazy-loaded PeopleService instance"""
+        if self._people_service is None:
+            self._people_service = self.people_service
+        return self._people_service
+
+    @property
+    def pc_sync_service(self):
+        """Lazy-loaded PlanningCenterSyncService instance"""
+        if self._pc_sync_service is None:
+            from app.services.planning_center_sync_service import PlanningCenterSyncService
+            self._pc_sync_service = self.pc_sync_service
+        return self._pc_sync_service
 
     def get_programs(
         self, skip: int = 0, limit: int = 100, is_active: Optional[bool] = None
@@ -106,7 +131,7 @@ class ProgramService:
 
             # Create audit log in same transaction
             if created_by:
-                AuditService(self.db).log_change(
+                self.audit_service.log_change(
                     table_name="programs",
                     record_id=program.id,
                     action="insert",
@@ -162,7 +187,7 @@ class ProgramService:
         
         # Create audit log
         if updated_by:
-            AuditService(self.db).log_change(
+            self.audit_service.log_change(
                 table_name="programs",
                 record_id=program.id,
                 action="update",
@@ -222,7 +247,7 @@ class ProgramService:
             if old_title:
                 audit_data["old_values"]["title"] = old_title
 
-            AuditService(self.db).log_change(
+            self.audit_service.log_change(
                 table_name=table_name,
                 record_id=model_instance.id,
                 action="delete",
@@ -771,7 +796,7 @@ class ProgramService:
 
     def _get_people_id_from_pc_person_id(self, pc_person_id: str) -> int:
         """Get local people_id from Planning Center person ID"""
-        people_service = PeopleService(self.db)
+        people_service = self.people_service
         person = people_service.get_person_by_pc_id(pc_person_id)
         if not person:
             raise HTTPException(
@@ -837,7 +862,7 @@ class ProgramService:
             if pc_person_data:
                 # Attempt sync
                 try:
-                    people_service = PeopleService(self.db)
+                    people_service = self.people_service
                     people_service.sync_from_planning_center(pc_person_data, updated_by=created_by)
                     people_id = self._get_people_id_from_pc_person_id(pc_person_id)
                     return people_id, None
@@ -1026,13 +1051,11 @@ class ProgramService:
         Returns:
             List of created/updated participants
         """
-        from app.services.planning_center_sync_service import PlanningCenterSyncService
-
         # Validate request
         self._validate_bulk_import_request(program_id, role_name)
 
         # Get registrations from Planning Center
-        pc_service = PlanningCenterSyncService(self.db)
+        pc_service = self.pc_sync_service
         try:
             registrations = pc_service.get_event_registrations(pc_event_id)
         except Exception as e:
@@ -1099,13 +1122,11 @@ class ProgramService:
         Returns:
             List of created/updated participants
         """
-        from app.services.planning_center_sync_service import PlanningCenterSyncService
-
         # Validate request
         self._validate_bulk_import_request(program_id, role_name)
 
         # Get list members from Planning Center
-        pc_service = PlanningCenterSyncService(self.db)
+        pc_service = self.pc_sync_service
         try:
             pc_people = pc_service.get_list_people(pc_list_id)
         except Exception as e:
