@@ -3384,3 +3384,90 @@ class PlanningCenterSyncService:
                 self.db.commit()
 
             return {"status": "error", "error": str(e)}
+
+    # ============================================================================
+    # Custom Tab Support Methods
+    # ============================================================================
+
+    def get_person_tabs(self, person_id: str) -> List[Dict[str, Any]]:
+        """
+        Get all custom tabs available for a person
+
+        Args:
+            person_id: Planning Center person ID
+
+        Returns:
+            List of tab dictionaries with id, name, slug
+        """
+        from app.services.planning_center_tabs_extension import get_person_tabs
+        return get_person_tabs(self, person_id)
+
+    def get_tab_field_definitions(self, tab_id: str) -> List[Dict[str, Any]]:
+        """
+        Get field definitions for a custom tab
+
+        Args:
+            tab_id: Planning Center tab ID
+
+        Returns:
+            List of field definition dictionaries
+        """
+        from app.services.planning_center_tabs_extension import get_tab_field_definitions
+        return get_tab_field_definitions(self, tab_id)
+
+    def get_person_tab_data(self, person_id: str, tab_slug: Optional[str] = None) -> List[Dict[str, Any]]:
+        """
+        Get custom tab field data for a specific person
+
+        Args:
+            person_id: Planning Center person ID
+            tab_slug: Optional tab slug to filter
+
+        Returns:
+            List of field data dictionaries with values
+        """
+        from app.services.planning_center_tabs_extension import get_person_tab_data
+        return get_person_tab_data(self, person_id, tab_slug)
+
+    def get_list_people_with_tab_data(self, list_id: str, tab_slug: str) -> List[Dict[str, Any]]:
+        """
+        Get all people from a Planning Center list WITH their custom tab data
+
+        Args:
+            list_id: Planning Center list ID
+            tab_slug: Tab slug to fetch
+
+        Returns:
+            List of person dictionaries with 'custom_tab_data' array added
+        """
+        from app.services.planning_center_tabs_extension import get_list_people_with_tab_data
+        return get_list_people_with_tab_data(self, list_id, tab_slug)
+
+    def apply_tab_field_mappings(self, person_data: Dict[str, Any], tab_config: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Apply field mappings from tab config to person data
+
+        Args:
+            person_data: Person dict with 'custom_tab_data' array
+            tab_config: Program's planning_center_tab_config
+
+        Returns:
+            Dictionary with mapped participant fields
+        """
+        from app.services.planning_center_tabs_extension import apply_tab_field_mappings
+        return apply_tab_field_mappings(self, person_data, tab_config)
+
+    def _apply_mapping_rules(self, value: Any, rules: Optional[List[Dict[str, Any]]], assign_key: str) -> Any:
+        """
+        Apply conditional mapping rules
+
+        Args:
+            value: The value from Planning Center
+            rules: List of mapping rules or None for direct mapping
+            assign_key: Key to extract from matching rule
+
+        Returns:
+            Mapped value or None if no rule matches
+        """
+        from app.services.planning_center_tabs_extension import _apply_mapping_rules
+        return _apply_mapping_rules(self, value, rules, assign_key)

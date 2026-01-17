@@ -1,6 +1,6 @@
 """add planning_center_tab_config to programs
 
-Revision ID: a1b2c3d4e5f6
+Revision ID: y7z8a9b0c1d2
 Revises: 491e9afe7b6d
 Create Date: 2026-01-17 18:00:00.000000
 
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import sqlite
 
 # revision identifiers, used by Alembic.
-revision = 'a1b2c3d4e5f6'
+revision = 'y7z8a9b0c1d2'
 down_revision = '491e9afe7b6d'
 branch_labels = None
 depends_on = None

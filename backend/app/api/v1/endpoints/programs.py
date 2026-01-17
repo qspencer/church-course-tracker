@@ -1078,3 +1078,227 @@ async def delete_program_progress(
             detail=f"Program progress with ID {progress_id} not found",
         )
 
+
+# ============================================================================
+# Planning Center Custom Tab Endpoints
+# ============================================================================
+
+@router.get("/planning-center/tabs/{person_id}", response_model=List[dict])
+def get_planning_center_tabs(
+    person_id: str,
+    current_user = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Get available Planning Center custom tabs for a person
+    (Used for configuration UI to discover available tabs)
+    """
+    from app.services.planning_center_sync_service import PlanningCenterSyncService
+    
+    pc_service = PlanningCenterSyncService(db)
+    try:
+        tabs = pc_service.get_person_tabs(person_id)
+        return tabs
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to fetch tabs: {str(e)}"
+        )
+
+
+@router.get("/planning-center/tabs/{tab_id}/fields", response_model=List[dict])
+def get_tab_field_definitions(
+    tab_id: str,
+    current_user = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Get field definitions for a custom tab
+    (Used for mapping configuration UI to discover available fields)
+    """
+    from app.services.planning_center_sync_service import PlanningCenterSyncService
+    
+    pc_service = PlanningCenterSyncService(db)
+    try:
+        fields = pc_service.get_tab_field_definitions(tab_id)
+        return fields
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to fetch field definitions: {str(e)}"
+        )
+
+
+@router.post("/{program_id}/participants/bulk-from-pc-list-with-tabs")
+def bulk_import_participants_from_pc_list_with_tabs(
+    program_id: int,
+    request: BulkImportParticipantsFromPCListRequest,
+    current_user = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Import participants from Planning Center list using custom tab field mappings
+    
+    This endpoint:
+    1. Validates program has tab configuration
+    2. Fetches people from Planning Center list
+    3. Gets custom tab data for each person
+    4. Applies field mappings to determine role, status, etc.
+    5. Creates participants in the program
+    
+    Requires program.planning_center_tab_config to be configured.
+    """
+    from app.services.planning_center_sync_service import PlanningCenterSyncService
+    from app.services.people_service import PeopleService
+    
+    program_service = ProgramService(db)
+    pc_service = PlanningCenterSyncService(db)
+    people_service = PeopleService(db)
+    
+    # Validate program exists
+    program = program_service.get_program(program_id)
+    if not program:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Program with ID {program_id} not found"
+        )
+    
+    # Check user has permission
+    is_admin = hasattr(current_user, 'role') and current_user.role == 'admin'
+    is_program_admin = program_service.is_program_admin(program_id, current_user.id)
+    
+    if not is_admin and not is_program_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only program admins or system admins can import participants"
+        )
+    
+    # Validate tab configuration exists
+    if not program.planning_center_tab_config:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Program does not have Planning Center tab configuration. Please configure tab mappings first."
+        )
+    
+    tab_config = program.planning_center_tab_config
+    if not tab_config.get("enabled"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Tab import is not enabled for this program"
+        )
+    
+    tab_slug = tab_config.get("tab_slug")
+    if not tab_slug:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Tab configuration is missing tab_slug"
+        )
+    
+    try:
+        # Get people with tab data from Planning Center
+        people_with_tabs = pc_service.get_list_people_with_tab_data(
+            request.pc_list_id,
+            tab_slug
+        )
+        
+        imported = []
+        errors = []
+        
+        for person in people_with_tabs:
+            try:
+                # Apply field mappings to get participant data
+                mapped_data = pc_service.apply_tab_field_mappings(
+                    person,
+                    tab_config
+                )
+                
+                # Validate role was mapped
+                if "role_name" not in mapped_data:
+                    errors.append({
+                        "person_id": person.get("id"),
+                        "name": f"{person.get('attributes', {}).get('first_name')} {person.get('attributes', {}).get('last_name')}",
+                        "error": "No role could be determined from tab data"
+                    })
+                    continue
+                
+                # Sync person to local database if configured
+                if tab_config.get("sync_on_import", True):
+                    local_person = people_service.sync_person_from_pc(person)
+                    people_id = local_person.id
+                else:
+                    # Try to find existing person by PC ID
+                    pc_person_id = person.get("id")
+                    local_person = people_service.get_by_pc_person_id(pc_person_id)
+                    if not local_person:
+                        errors.append({
+                            "person_id": pc_person_id,
+                            "name": f"{person.get('attributes', {}).get('first_name')} {person.get('attributes', {}).get('last_name')}",
+                            "error": "Person not found locally and sync_on_import is disabled"
+                        })
+                        continue
+                    people_id = local_person.id
+                
+                # Create participant with mapped data
+                participant_data = {
+                    "program_id": program_id,
+                    "people_id": people_id,
+                    **mapped_data
+                }
+                
+                # Check if should update existing
+                update_existing = request.update_existing if hasattr(request, 'update_existing') else tab_config.get("update_existing", False)
+                
+                participant, error = program_service.add_participant(
+                    participant_data,
+                    current_user.id
+                )
+                
+                if participant:
+                    imported.append({
+                        "participant_id": participant.id,
+                        "people_id": people_id,
+                        "name": f"{person.get('attributes', {}).get('first_name')} {person.get('attributes', {}).get('last_name')}",
+                        "role": mapped_data.get("role_name"),
+                        "status": mapped_data.get("status")
+                    })
+                else:
+                    errors.append({
+                        "person_id": person.get("id"),
+                        "name": f"{person.get('attributes', {}).get('first_name')} {person.get('attributes', {}).get('last_name')}",
+                        "error": error or "Failed to create participant"
+                    })
+            
+            except Exception as e:
+                errors.append({
+                    "person_id": person.get("id"),
+                    "name": f"{person.get('attributes', {}).get('first_name', 'Unknown')} {person.get('attributes', {}).get('last_name', '')}",
+                    "error": str(e)
+                })
+        
+        return {
+            "imported_count": len(imported),
+            "error_count": len(errors),
+            "imported": imported,
+            "errors": errors
+        }
+    
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Import failed: {str(e)}"
+        )
