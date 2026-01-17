@@ -234,6 +234,9 @@ class CourseService:
             # Query again with user relationships to ensure they're loaded
             return self.get_course(course_id)
 
+        except HTTPException:
+            self.db.rollback()
+            raise  # Re-raise HTTPException as-is to preserve status code
         except Exception as e:
             self.db.rollback()  # Rollback both if either fails
             logger.error(f"Failed to update course {course_id}: {e}", exc_info=True)

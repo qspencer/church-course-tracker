@@ -67,14 +67,14 @@ class ProgramService:
     def audit_service(self) -> AuditService:
         """Lazy-loaded AuditService instance"""
         if self._audit_service is None:
-            self._audit_service = self.audit_service
+            self._audit_service = AuditService(self.db)
         return self._audit_service
 
     @property
     def people_service(self) -> PeopleService:
         """Lazy-loaded PeopleService instance"""
         if self._people_service is None:
-            self._people_service = self.people_service
+            self._people_service = PeopleService(self.db)
         return self._people_service
 
     @property
@@ -82,7 +82,7 @@ class ProgramService:
         """Lazy-loaded PlanningCenterSyncService instance"""
         if self._pc_sync_service is None:
             from app.services.planning_center_sync_service import PlanningCenterSyncService
-            self._pc_sync_service = self.pc_sync_service
+            self._pc_sync_service = PlanningCenterSyncService(self.db)
         return self._pc_sync_service
 
     def get_programs(

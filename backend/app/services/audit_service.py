@@ -18,6 +18,16 @@ from sqlalchemy.orm import Session
 
 from app.models.audit_log import AuditLog
 from app.models.user import User
+
+
+def ensure_timezone_aware(dt: Optional[datetime]) -> Optional[datetime]:
+    """Ensure a datetime is timezone-aware (assumes UTC if naive)"""
+    if dt is None:
+        return None
+    if dt.tzinfo is None:
+        from datetime import timezone
+        return dt.replace(tzinfo=timezone.utc)
+    return dt
 from app.schemas.audit_log import AuditLogCreate
 
 
@@ -115,8 +125,8 @@ class AuditService:
         table_name: Optional[str] = None,
         action: Optional[str] = None,
         changed_by: Optional[int] = None,
-        start_date: Optional[date] = None,
-        end_date: Optional[date] = None,
+        start_date: Optional[datetime] = None,
+        end_date: Optional[datetime] = None,
     ) -> List[AuditLog]:
         """Get audit logs with filtering options"""
         query = self.db.query(AuditLog)
@@ -132,16 +142,30 @@ class AuditService:
             query = query.filter(AuditLog.changed_by == changed_by)
 
         if start_date:
-            query = query.filter(func.date(AuditLog.changed_at) >= start_date)
+            # Support both date and datetime objects
+            if isinstance(start_date, datetime):
+                query = query.filter(AuditLog.changed_at >= start_date)
+            else:
+                query = query.filter(func.date(AuditLog.changed_at) >= start_date)
 
         if end_date:
-            query = query.filter(func.date(AuditLog.changed_at) <= end_date)
+            # Support both date and datetime objects
+            if isinstance(end_date, datetime):
+                query = query.filter(AuditLog.changed_at <= end_date)
+            else:
+                query = query.filter(func.date(AuditLog.changed_at) <= end_date)
 
         # Order by most recent first
         query = query.order_by(desc(AuditLog.changed_at))
 
         # Apply pagination
-        return query.offset(skip).limit(limit).all()
+        logs = query.offset(skip).limit(limit).all()
+
+        # Ensure all changed_at values are timezone-aware
+        for log in logs:
+            log.changed_at = ensure_timezone_aware(log.changed_at)
+
+        return logs
 
     def get_staff_activity_logs(
         self,
@@ -185,6 +209,8 @@ class AuditService:
         
         result = []
         for log in logs:
+            # Ensure timezone-aware datetime
+            log.changed_at = ensure_timezone_aware(log.changed_at)
             log_dict = AuditLogSchema.model_validate(log).model_dump()
             # Get user name if changed_by exists
             if log.changed_by:
@@ -280,6 +306,8 @@ class AuditService:
         
         result = []
         for log in logs:
+            # Ensure timezone-aware datetime
+            log.changed_at = ensure_timezone_aware(log.changed_at)
             log_dict = AuditLogSchema.model_validate(log).model_dump()
             # Get user name if changed_by exists
             if log.changed_by:
@@ -308,6 +336,8 @@ class AuditService:
         
         result = []
         for log in logs:
+            # Ensure timezone-aware datetime
+            log.changed_at = ensure_timezone_aware(log.changed_at)
             log_dict = AuditLogSchema.model_validate(log).model_dump()
             # Get user name if changed_by exists
             if log.changed_by:
@@ -449,6 +479,8 @@ class AuditService:
         
         result = []
         for log in logs:
+            # Ensure timezone-aware datetime
+            log.changed_at = ensure_timezone_aware(log.changed_at)
             log_dict = AuditLogSchema.model_validate(log).model_dump()
             # Get user name if changed_by exists
             if log.changed_by:
