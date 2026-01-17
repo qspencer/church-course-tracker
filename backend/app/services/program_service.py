@@ -966,7 +966,7 @@ class ProgramService:
     ) -> List[ProgramParticipantModel]:
         """
         Bulk import participants from a Planning Center Registration event
-        
+
         Args:
             program_id: The program to add participants to
             pc_event_id: Planning Center event ID to get registrations from
@@ -974,26 +974,14 @@ class ProgramService:
             created_by: User creating the participants
             status_filter: Only import registrations with these statuses (default: ['registered', 'confirmed'])
             update_existing: Whether to update existing participants (default: True)
-        
+
         Returns:
             List of created/updated participants
         """
         from app.services.planning_center_sync_service import PlanningCenterSyncService
-        
-        # Validate program exists
-        program = self.get_program(program_id)
-        if not program:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Program with ID {program_id} not found"
-            )
 
-        # Validate role name
-        if not self.validate_role_name(program_id, role_name):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Invalid role name '{role_name}' for this program"
-            )
+        # Validate request
+        self._validate_bulk_import_request(program_id, role_name)
 
         # Get registrations from Planning Center
         pc_service = PlanningCenterSyncService(self.db)
@@ -1011,105 +999,33 @@ class ProgramService:
                 detail=f"No registrations found for Planning Center event '{pc_event_id}'"
             )
 
-        # Filter by status if specified
+        # Filter by status
         if status_filter is None:
             status_filter = ['registered', 'confirmed']
-        
-        # Filter registrations by status (handle both JSON API and flat formats)
-        filtered_registrations = []
-        for reg in registrations:
-            # Handle both JSON API format and flat format
-            if 'attributes' in reg:
-                reg_status = reg.get('attributes', {}).get('status', '')
-            else:
-                reg_status = reg.get('status', '')
-            
-            if reg_status.lower() in [s.lower() for s in status_filter]:
-                filtered_registrations.append(reg)
-        
-        registrations = filtered_registrations
 
-        if not registrations:
+        filtered_registrations = [
+            reg for reg in registrations
+            if self._get_registration_status(reg).lower() in [s.lower() for s in status_filter]
+        ]
+
+        if not filtered_registrations:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"No registrations found with status in {status_filter}"
             )
 
-        participants = []
-        errors = []
-        
-        for reg in registrations:
-            try:
-                # Extract registration data
-                # Handle both JSON API format (with attributes/relationships) and flat format
-                if 'attributes' in reg or 'relationships' in reg:
-                    # JSON API format
-                    reg_attributes = reg.get('attributes', {})
-                    # Try relationships first, then fallback to direct person_id
-                    pc_person_id = (
-                        reg.get('relationships', {}).get('person', {}).get('data', {}).get('id')
-                        or reg_attributes.get('person_id')
-                        or reg.get('person_id')
-                    )
-                else:
-                    # Flat format (after transformation)
-                    reg_attributes = reg
-                    pc_person_id = reg.get('person_id')
-                
-                if not pc_person_id:
-                    errors.append(f"Registration missing person ID: {reg}")
-                    continue
-
-                # Get local people_id
-                try:
-                    people_id = self._get_people_id_from_pc_person_id(pc_person_id)
-                except HTTPException:
-                    errors.append(f"Person {pc_person_id} not found locally")
-                    continue
-
-                # Check if participant already exists
-                existing = (
-                    self.db.query(ProgramParticipantModel)
-                    .filter(
-                        ProgramParticipantModel.program_id == program_id,
-                        ProgramParticipantModel.people_id == people_id,
-                        ProgramParticipantModel.status == "active",
-                    )
-                    .first()
-                )
-                
-                if existing:
-                    if update_existing:
-                        # Update existing participant's role if different
-                        if existing.role_name != role_name:
-                            existing.role_name = role_name
-                            existing.updated_by = created_by
-                            self.db.commit()
-                            self.db.refresh(existing)
-                        participants.append(existing)
-                    # If not updating existing, skip
-                else:
-                    # Create new participant
-                    participant_data = ProgramParticipantCreate(
-                        program_id=program_id,
-                        people_id=people_id,
-                        role_name=role_name,
-                        start_date=datetime.now(timezone.utc),
-                        status="active",
-                    )
-                    participant, error = self.add_participant(participant_data, created_by=created_by)
-                    if participant:
-                        participants.append(participant)
-                    elif error:
-                        errors.append(f"Person {pc_person_id}: {error}")
-            except Exception as e:
-                errors.append(f"Registration {reg.get('id', 'unknown')}: {str(e)}")
-                continue
+        # Bulk import
+        participants, errors = self._bulk_import_from_pc_people_list(
+            program_id=program_id,
+            pc_people=filtered_registrations,
+            role_name=role_name,
+            created_by=created_by,
+            update_existing=update_existing,
+            extract_person_id_fn=self._extract_pc_person_id,
+            allow_sync=False  # Don't auto-sync for event registrations
+        )
 
         if errors:
-            # Log errors but still return successful participants
-            import logging
-            logger = logging.getLogger(__name__)
             logger.warning(f"Bulk import from PC event had {len(errors)} errors: {errors}")
 
         return participants
