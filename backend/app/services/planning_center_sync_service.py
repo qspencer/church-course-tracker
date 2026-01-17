@@ -124,12 +124,11 @@ class PlanningCenterSyncService:
         def run_sync():
             try:
                 asyncio.run(self._sync_people_background(task_id, updated_by))
-                logger.info(f"Background sync {task_id} completed successfully")
-                self._update_sync_task(task_id, status="completed")
+                logger.info(f"Background sync {task_id} completed")
             except Exception as e:
-                logger.error(f"Background sync {task_id} failed: {e}", exc_info=True)
+                logger.error(f"Background sync {task_id} encountered fatal error: {e}", exc_info=True)
                 try:
-                    self._update_sync_task(task_id, status="failed", message=str(e))
+                    self._update_sync_task(task_id, status="failed", message=f"Fatal error: {str(e)}")
                 except Exception as db_error:
                     logger.error(f"Failed to update task status: {db_error}", exc_info=True)
 
@@ -146,12 +145,11 @@ class PlanningCenterSyncService:
         def run_sync():
             try:
                 asyncio.run(self._sync_events_background(task_id, updated_by))
-                logger.info(f"Background sync {task_id} completed successfully")
-                self._update_sync_task(task_id, status="completed")
+                logger.info(f"Background sync {task_id} completed")
             except Exception as e:
-                logger.error(f"Background sync {task_id} failed: {e}", exc_info=True)
+                logger.error(f"Background sync {task_id} encountered fatal error: {e}", exc_info=True)
                 try:
-                    self._update_sync_task(task_id, status="failed", message=str(e))
+                    self._update_sync_task(task_id, status="failed", message=f"Fatal error: {str(e)}")
                 except Exception as db_error:
                     logger.error(f"Failed to update task status: {db_error}", exc_info=True)
 
@@ -172,12 +170,11 @@ class PlanningCenterSyncService:
                 asyncio.run(
                     self._sync_registrations_background(task_id, event_id, updated_by)
                 )
-                logger.info(f"Background sync {task_id} completed successfully")
-                self._update_sync_task(task_id, status="completed")
+                logger.info(f"Background sync {task_id} completed")
             except Exception as e:
-                logger.error(f"Background sync {task_id} failed: {e}", exc_info=True)
+                logger.error(f"Background sync {task_id} encountered fatal error: {e}", exc_info=True)
                 try:
-                    self._update_sync_task(task_id, status="failed", message=str(e))
+                    self._update_sync_task(task_id, status="failed", message=f"Fatal error: {str(e)}")
                 except Exception as db_error:
                     logger.error(f"Failed to update task status: {db_error}", exc_info=True)
 
@@ -192,7 +189,15 @@ class PlanningCenterSyncService:
 
         # Start background task
         def run_sync():
-            asyncio.run(self._sync_all_background(task_id, updated_by))
+            try:
+                asyncio.run(self._sync_all_background(task_id, updated_by))
+                logger.info(f"Background sync {task_id} completed")
+            except Exception as e:
+                logger.error(f"Background sync {task_id} encountered fatal error: {e}", exc_info=True)
+                try:
+                    self._update_sync_task(task_id, status="failed", message=f"Fatal error: {str(e)}")
+                except Exception as db_error:
+                    logger.error(f"Failed to update task status: {db_error}", exc_info=True)
 
         thread = threading.Thread(target=run_sync, daemon=True)
         thread.start()
