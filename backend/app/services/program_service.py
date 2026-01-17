@@ -1,5 +1,17 @@
 """
-Program service layer for managing programs, participants, pairings, and related operations
+Program service layer for managing programs, participants, pairings, and related operations.
+
+This service provides comprehensive program management functionality including:
+- Program CRUD operations with role-based access control
+- Participant management with Planning Center integration
+- Pairing relationships between primary and secondary participants
+- Session tracking and milestone recording
+- Progress tracking for content completion
+
+The service uses helper methods for common operations:
+- Bulk import helpers: Consolidate duplicate logic for importing from PC events/lists
+- Deletion helpers: Standardize soft delete (status/active flag) vs hard delete patterns
+- Service properties: Lazy-loaded service instances for better dependency injection
 """
 
 import logging
