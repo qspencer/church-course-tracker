@@ -10,6 +10,11 @@ import { ResetPasswordDialogComponent } from './reset-password-dialog/reset-pass
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { LoggerService } from '../../services/logger.service';
 
+export interface PCUserImportData {
+  planning_center_person_id: string;
+  role: string;
+}
+
 @Component({
   selector: 'app-users',
   templateUrl: './users.component.html',
@@ -82,7 +87,7 @@ export class UsersComponent implements OnInit {
     });
   }
 
-  importUserFromPC(importData: any): void {
+  importUserFromPC(importData: PCUserImportData): void {
     this.userService.importUserFromPlanningCenter(importData.planning_center_person_id, importData.role).subscribe({
       next: (user) => {
         this.snackBar.open(`User "${user.full_name}" imported successfully. A temporary password has been generated and the user will need to reset it on first login.`, 'Close', { duration: 5000 });

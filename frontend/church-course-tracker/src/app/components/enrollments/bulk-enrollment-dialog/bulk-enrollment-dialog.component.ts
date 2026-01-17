@@ -7,6 +7,7 @@ import { CourseService } from '../../../services/course.service';
 import { ProgramService } from '../../../services/program.service';
 import { EnrollmentService } from '../../../services/enrollment.service';
 import { Course, Program } from '../../../models';
+import { RoleDefinition } from '../../../models/program.model';
 import { LoggerService } from '../../../services/logger.service';
 
 export interface BulkImportDialogData {
@@ -208,7 +209,7 @@ export class BulkEnrollmentDialogComponent implements OnInit {
     const program = this.programs.find(p => p.id === programId);
     if (!program || !program.role_definitions) return [];
     
-    return program.role_definitions.map((r: any) => r.name);
+    return program.role_definitions.map((r: RoleDefinition) => r.name);
   }
 
   onSubmit(): void {
@@ -227,8 +228,8 @@ export class BulkEnrollmentDialogComponent implements OnInit {
           pc_event_id,
           update_existing
         }).subscribe({
-          next: (result: any) => this.handleSuccess(result, 'enrollments'),
-          error: (error: any) => this.handleError(error)
+          next: (result: unknown) => this.handleSuccess(result, 'enrollments'),
+          error: (error: unknown) => this.handleError(error)
         });
       } else {
         this.enrollmentService.bulkEnrollFromPCList({
@@ -236,8 +237,8 @@ export class BulkEnrollmentDialogComponent implements OnInit {
           pc_list_id,
           update_existing
         }).subscribe({
-          next: (result: any) => this.handleSuccess(result, 'enrollments'),
-          error: (error: any) => this.handleError(error)
+          next: (result: unknown) => this.handleSuccess(result, 'enrollments'),
+          error: (error: unknown) => this.handleError(error)
         });
       }
     } else {
@@ -249,8 +250,8 @@ export class BulkEnrollmentDialogComponent implements OnInit {
           role_name,
           update_existing
         }).subscribe({
-          next: (result: any) => this.handleSuccess(result, 'participants'),
-          error: (error: any) => this.handleError(error)
+          next: (result: unknown) => this.handleSuccess(result, 'participants'),
+          error: (error: unknown) => this.handleError(error)
         });
       } else {
         this.programService.bulkImportParticipantsFromPCList({
@@ -259,15 +260,15 @@ export class BulkEnrollmentDialogComponent implements OnInit {
           role_name,
           update_existing
         }).subscribe({
-          next: (result: any) => this.handleSuccess(result, 'participants'),
-          error: (error: any) => this.handleError(error)
+          next: (result: unknown) => this.handleSuccess(result, 'participants'),
+          error: (error: unknown) => this.handleError(error)
         });
       }
     }
   }
 
-  private handleSuccess(result: any, type: 'enrollments' | 'participants'): void {
-    const count = result.length || result.count || 0;
+  private handleSuccess(result: unknown, type: 'enrollments' | 'participants'): void {
+    const count = (result as { length?: number; count?: number }).length || (result as { length?: number; count?: number }).count || 0;
     const message = type === 'enrollments' 
       ? `Successfully processed ${count} enrollments from Planning Center`
       : `Successfully processed ${count} participants from Planning Center. View them in the Programs Management page.`;
@@ -276,7 +277,7 @@ export class BulkEnrollmentDialogComponent implements OnInit {
     this.isSubmitting = false;
   }
 
-  private handleError(error: any): void {
+  private handleError(error: unknown): void {
     this.logger.error('Error processing bulk enrollment', error, {
       component: 'BulkEnrollmentDialogComponent',
       action: 'handleError',

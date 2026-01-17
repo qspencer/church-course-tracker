@@ -8,7 +8,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { CourseService } from '../../services/course.service';
 import { AuthService } from '../../services/auth.service';
 import { LoggerService } from '../../services/logger.service';
-import { Course } from '../../models';
+import { Course, PlanningCenterImportData } from '../../models';
 import { CourseDialogComponent } from './course-dialog/course-dialog.component';
 import { ConfirmDialogComponent } from '../../shared/confirm-dialog/confirm-dialog.component';
 import { PCImportDialogComponent, PCImportDialogData } from './pc-import-dialog/pc-import-dialog.component';
@@ -67,7 +67,7 @@ export class CoursesComponent implements OnInit {
     }
   }
 
-  openCourseDialog(course?: Course, importData?: any): void {
+  openCourseDialog(course?: Course, importData?: PlanningCenterImportData): void {
     const dialogRef = this.dialog.open(CourseDialogComponent, {
       width: '1000px',
       maxWidth: '95vw',

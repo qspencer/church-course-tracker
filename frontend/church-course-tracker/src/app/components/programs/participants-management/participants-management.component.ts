@@ -95,7 +95,7 @@ export class ParticipantsManagementComponent implements OnInit, AfterViewInit {
     }
   }
 
-  onPageChange(event: any): void {
+  onPageChange(event: PageEvent): void {
     // Handle paginator page changes (page navigation or page size change)
     const oldPageSize = this.pageSize;
     this.pageIndex = event.pageIndex;

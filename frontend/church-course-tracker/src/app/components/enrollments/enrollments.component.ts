@@ -264,7 +264,7 @@ export class EnrollmentsComponent implements OnInit {
     });
   }
 
-  getPersonName(item: any): string {
+  getPersonName(item: Enrollment | ProgramParticipant): string {
     if (this.viewMode === 'courses') {
       return `${item.person?.first_name || ''} ${item.person?.last_name || ''}`.trim() || 'Unknown';
     } else {
@@ -278,7 +278,7 @@ export class EnrollmentsComponent implements OnInit {
     }
   }
 
-  getPersonEmail(item: any): string {
+  getPersonEmail(item: Enrollment | ProgramParticipant): string {
     if (this.viewMode === 'courses') {
       return item.person?.email || '';
     } else {

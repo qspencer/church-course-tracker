@@ -8,6 +8,7 @@ import { ProgramService } from '../../services/program.service';
 import { AuthService } from '../../services/auth.service';
 import { LoggerService } from '../../services/logger.service';
 import { Program } from '../../models/program.model';
+import { PlanningCenterImportData } from '../../models';
 import { ProgramDialogComponent } from './program-dialog/program-dialog.component';
 import { ParticipantsManagementComponent } from './participants-management/participants-management.component';
 import { PairingsManagementComponent } from './pairings-management/pairings-management.component';
@@ -75,7 +76,7 @@ export class ProgramsComponent implements OnInit {
     }
   }
 
-  openProgramDialog(program?: Program, importData?: any): void {
+  openProgramDialog(program?: Program, importData?: PlanningCenterImportData): void {
     const dialogRef = this.dialog.open(ProgramDialogComponent, {
       width: '1000px',
       maxWidth: '95vw',
