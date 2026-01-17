@@ -172,6 +172,75 @@ class ProgramService:
         
         return program
 
+    # Deletion helper methods
+    def _soft_delete_with_status(
+        self,
+        model_instance,
+        deleted_by: Optional[int] = None
+    ) -> None:
+        """
+        Soft delete by setting status='ended' and end_date.
+        Used for participants and pairings.
+
+        Args:
+            model_instance: The model instance to soft delete
+            deleted_by: User ID performing the deletion (optional)
+        """
+        model_instance.status = "ended"
+        model_instance.end_date = datetime.now(timezone.utc)
+        if hasattr(model_instance, 'updated_by') and deleted_by:
+            model_instance.updated_by = deleted_by
+        self.db.commit()
+
+    def _soft_delete_with_active_flag(
+        self,
+        model_instance,
+        table_name: str,
+        deleted_by: Optional[int] = None
+    ) -> None:
+        """
+        Soft delete by setting is_active=False and logging audit trail.
+        Used for programs.
+
+        Args:
+            model_instance: The model instance to soft delete
+            table_name: Name of the table for audit logging
+            deleted_by: User ID performing the deletion
+        """
+        old_title = getattr(model_instance, 'title', None)
+        model_instance.is_active = False
+        if hasattr(model_instance, 'updated_by') and deleted_by:
+            model_instance.updated_by = deleted_by
+        self.db.commit()
+
+        # Create audit log
+        if deleted_by:
+            audit_data = {
+                "old_values": {"is_active": True},
+                "new_values": {"is_active": False}
+            }
+            if old_title:
+                audit_data["old_values"]["title"] = old_title
+
+            AuditService(self.db).log_change(
+                table_name=table_name,
+                record_id=model_instance.id,
+                action="delete",
+                changed_by=deleted_by,
+                **audit_data
+            )
+
+    def _hard_delete(self, model_instance) -> None:
+        """
+        Hard delete by removing from database.
+        Used for admins, sessions, and progress records.
+
+        Args:
+            model_instance: The model instance to delete
+        """
+        self.db.delete(model_instance)
+        self.db.commit()
+
     def delete_program(self, program_id: int, deleted_by: Optional[int] = None) -> bool:
         """Delete a program (soft delete by setting is_active=False)"""
         program = self.get_program(program_id)
