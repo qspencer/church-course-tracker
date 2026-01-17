@@ -61,6 +61,13 @@ export interface ProgramUpdate {
   is_active?: boolean;
 }
 
+export interface ProgramQueryParams {
+  skip?: number;
+  limit?: number;
+  search?: string;
+  is_active?: boolean;
+}
+
 export interface ProgramAdmin {
   id: number;
   program_id: number;

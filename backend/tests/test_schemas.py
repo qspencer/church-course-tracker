@@ -3,7 +3,7 @@ Tests for Pydantic schemas
 """
 
 import pytest
-from datetime import datetime, date
+from datetime import datetime, date, timezone
 from pydantic import ValidationError
 
 from app.schemas.people import People, PeopleCreate, PeopleUpdate
@@ -106,8 +106,8 @@ class TestPeopleSchemas:
             "email": "john.doe@example.com",
             "is_active": True,
             "id": 1,
-            "created_at": datetime.utcnow(),
-            "updated_at": datetime.utcnow()
+            "created_at": datetime.now(timezone.utc),
+            "updated_at": datetime.now(timezone.utc)
         }
         
         people = People(**people_data)
@@ -300,7 +300,7 @@ class TestCourseEnrollmentSchemas:
         enrollment_data = {
             "people_id": 1,
             "course_id": 1,
-            "enrollment_date": datetime.utcnow(),
+            "enrollment_date": datetime.now(timezone.utc),
             "status": "enrolled",
             "progress_percentage": 0.0,
             "planning_center_synced": False,
@@ -354,7 +354,7 @@ class TestContentCompletionSchemas:
         completion_data = {
             "course_enrollment_id": 1,
             "content_id": 1,
-            "completed_at": datetime.utcnow(),
+            "completed_at": datetime.now(timezone.utc),
             "time_spent_minutes": 15,
             "score": 95.0,
             "notes": "Great video!"
@@ -391,7 +391,7 @@ class TestPlanningCenterSyncSchemas:
             "records_processed": 100,
             "records_successful": 98,
             "records_failed": 2,
-            "started_at": datetime.utcnow()
+            "started_at": datetime.now(timezone.utc)
         }
         
         sync_log = PlanningCenterSyncLogCreate(**sync_log_data)
@@ -442,7 +442,7 @@ class TestPlanningCenterSyncSchemas:
             "planning_center_event_id": "evt_123",
             "planning_center_person_id": "pc_123",
             "registration_status": "registered",
-            "registration_date": datetime.utcnow(),
+            "registration_date": datetime.now(timezone.utc),
             "custom_field_responses": {"emergency_contact": "555-1234"}
         }
         

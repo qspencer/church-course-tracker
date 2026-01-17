@@ -3,7 +3,7 @@ Tests for API endpoints
 """
 
 import pytest
-from datetime import datetime, date
+from datetime import datetime, date, timezone
 from fastapi.testclient import TestClient
 
 from app.models.member import People
@@ -478,13 +478,13 @@ class TestEnrollmentEndpoints:
         enrollment1 = CourseEnrollment(
             people_id=people.id,
             course_id=course.id,
-            enrollment_date=datetime.utcnow(),
+            enrollment_date=datetime.now(timezone.utc),
             status="enrolled"
         )
         enrollment2 = CourseEnrollment(
             people_id=people.id,
             course_id=course.id,
-            enrollment_date=datetime.utcnow(),
+            enrollment_date=datetime.now(timezone.utc),
             status="completed"
         )
         db_session.add_all([enrollment1, enrollment2])
@@ -511,13 +511,13 @@ class TestEnrollmentEndpoints:
         enrollment1 = CourseEnrollment(
             people_id=people.id,
             course_id=course.id,
-            enrollment_date=datetime.utcnow(),
+            enrollment_date=datetime.now(timezone.utc),
             status="enrolled"
         )
         enrollment2 = CourseEnrollment(
             people_id=people.id,
             course_id=course.id,
-            enrollment_date=datetime.utcnow(),
+            enrollment_date=datetime.now(timezone.utc),
             status="completed"
         )
         db_session.add_all([enrollment1, enrollment2])
@@ -557,7 +557,7 @@ class TestEnrollmentEndpoints:
         enrollment = CourseEnrollment(
             people_id=people.id,
             course_id=course.id,
-            enrollment_date=datetime.utcnow(),
+            enrollment_date=datetime.now(timezone.utc),
             status="enrolled"
         )
         db_session.add(enrollment)
@@ -583,7 +583,7 @@ class TestEnrollmentEndpoints:
         enrollment_data = {
             "people_id": people.id,
             "course_id": course.id,
-            "enrollment_date": datetime.utcnow().isoformat(),
+            "enrollment_date": datetime.now(timezone.utc).isoformat(),
             "status": "enrolled"
         }
         
@@ -646,7 +646,7 @@ class TestEnrollmentEndpoints:
         enrollment = CourseEnrollment(
             people_id=people.id,
             course_id=course.id,
-            enrollment_date=datetime.utcnow(),
+            enrollment_date=datetime.now(timezone.utc),
             status="enrolled"
         )
         db_session.add(enrollment)
@@ -676,7 +676,7 @@ class TestEnrollmentEndpoints:
         enrollment = CourseEnrollment(
             people_id=people.id,
             course_id=course.id,
-            enrollment_date=datetime.utcnow(),
+            enrollment_date=datetime.now(timezone.utc),
             status="enrolled",
             progress_percentage=0.0
         )
@@ -702,7 +702,7 @@ class TestEnrollmentEndpoints:
         enrollment = CourseEnrollment(
             people_id=people.id,
             course_id=course.id,
-            enrollment_date=datetime.utcnow(),
+            enrollment_date=datetime.now(timezone.utc),
             status="enrolled"
         )
         db_session.add(enrollment)

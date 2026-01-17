@@ -2,7 +2,7 @@ import { Injectable, isDevMode } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { Course, CourseCreate, CourseUpdate, Content, ContentCreate } from '../models';
+import { Course, CourseCreate, CourseUpdate, CourseQueryParams, Content, ContentCreate } from '../models';
 
 @Injectable({
   providedIn: 'root'
@@ -17,7 +17,7 @@ export class CourseService {
     }
   }
 
-  getCourses(params?: any): Observable<Course[]> {
+  getCourses(params?: CourseQueryParams): Observable<Course[]> {
     let httpParams = new HttpParams();
     if (params) {
       Object.keys(params).forEach(key => {

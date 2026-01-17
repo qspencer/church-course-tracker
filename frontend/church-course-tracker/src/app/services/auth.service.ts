@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { Router } from '@angular/router';
 import { environment } from '../../environments/environment';
-import { User, LoginRequest, LoginResponse } from '../models';
+import { User, LoginRequest, LoginResponse, UserCreate } from '../models';
 import { LoggerService } from './logger.service';
 
 @Injectable({
@@ -66,7 +66,7 @@ export class AuthService {
     this.router.navigate(['/churchcoursetracker/auth']);
   }
 
-  register(userData: any): Observable<User> {
+  register(userData: UserCreate): Observable<User> {
     return this.http.post<User>(`${this.API_URL}/auth/register`, userData);
   }
 

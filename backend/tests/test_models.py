@@ -3,7 +3,7 @@ Tests for SQLAlchemy models
 """
 
 import pytest
-from datetime import datetime, date
+from datetime import datetime, date, timezone
 from sqlalchemy.exc import IntegrityError
 
 from app.models.member import People
@@ -170,7 +170,7 @@ class TestCourseModel:
         enrollment = CourseEnrollment(
             people_id=people.id,
             course_id=course.id,
-            enrollment_date=datetime.utcnow(),
+            enrollment_date=datetime.now(timezone.utc),
             status="enrolled"
         )
         db_session.add(enrollment)
@@ -262,7 +262,7 @@ class TestCourseEnrollmentModel:
         enrollment = CourseEnrollment(
             people_id=people.id,
             course_id=course.id,
-            enrollment_date=datetime.utcnow(),
+            enrollment_date=datetime.now(timezone.utc),
             status="enrolled",
             progress_percentage=0.0
         )
@@ -299,7 +299,7 @@ class TestCourseEnrollmentModel:
         enrollment = CourseEnrollment(
             people_id=people.id,
             course_id=course.id,
-            enrollment_date=datetime.utcnow(),
+            enrollment_date=datetime.now(timezone.utc),
             status="enrolled"
         )
         db_session.add(enrollment)
@@ -309,7 +309,7 @@ class TestCourseEnrollmentModel:
         completion = ContentCompletion(
             course_enrollment_id=enrollment.id,
             content_id=content.id,
-            completed_at=datetime.utcnow(),
+            completed_at=datetime.now(timezone.utc),
             time_spent_minutes=15,
             score=95.0
         )
@@ -333,8 +333,8 @@ class TestPlanningCenterModels:
             records_processed=100,
             records_successful=98,
             records_failed=2,
-            started_at=datetime.utcnow(),
-            completed_at=datetime.utcnow()
+            started_at=datetime.now(timezone.utc),
+            completed_at=datetime.now(timezone.utc)
         )
         db_session.add(sync_log)
         db_session.commit()
@@ -391,7 +391,7 @@ class TestPlanningCenterModels:
             planning_center_event_id="evt_123",
             planning_center_person_id="pc_123",
             registration_status="registered",
-            registration_date=datetime.utcnow(),
+            registration_date=datetime.now(timezone.utc),
             custom_field_responses={"emergency_contact": "555-1234"}
         )
         db_session.add(registration_cache)

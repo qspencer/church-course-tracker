@@ -3,7 +3,7 @@ Tests for audit log models
 """
 
 import pytest
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy.exc import IntegrityError
 
 from app.models.audit_log import AuditLog
@@ -386,7 +386,7 @@ class TestAuditLogQueries:
         from datetime import datetime, timedelta
         
         # Create audit logs with different timestamps
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         
         audit1 = AuditLog(
             table_name="test_table",

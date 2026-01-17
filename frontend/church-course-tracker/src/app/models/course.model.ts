@@ -3,7 +3,7 @@ export interface Course {
   title: string;
   description: string;
   duration_weeks: number;
-  prerequisites?: any;
+  prerequisites?: number[];
   instructors?: (number | string)[]; // User IDs (numbers) and/or "TBD" string
   locations?: string[];
   delivery_modes?: string[];
@@ -51,6 +51,14 @@ export interface CourseUpdate {
   instructors?: (number | string)[]; // User IDs (numbers) and/or "TBD" string
   locations?: string[];
   delivery_modes?: string[];
+}
+
+export interface CourseQueryParams {
+  skip?: number;
+  limit?: number;
+  search?: string;
+  is_active?: boolean;
+  instructor_id?: number;
 }
 
 export interface Content {

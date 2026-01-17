@@ -7,6 +7,7 @@ import {
   Program,
   ProgramCreate,
   ProgramUpdate,
+  ProgramQueryParams,
   ProgramAdmin,
   ProgramAdminCreate,
   ProgramAdminUpdate,
@@ -40,7 +41,7 @@ export class ProgramService {
   }
 
   // Program CRUD
-  getPrograms(params?: any): Observable<Program[]> {
+  getPrograms(params?: ProgramQueryParams): Observable<Program[]> {
     let httpParams = new HttpParams();
     if (params) {
       Object.keys(params).forEach(key => {

@@ -5,7 +5,7 @@ Comprehensive Planning Center Integration Tests
 import pytest
 import asyncio
 from unittest.mock import Mock, patch, AsyncMock
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from sqlalchemy.orm import Session
 
 from app.services.planning_center_sync_service import PlanningCenterSyncService, sync_tasks
@@ -643,7 +643,7 @@ class TestPlanningCenterSyncLogging:
         sync_log = PlanningCenterSyncLog(
             sync_type="people",
             sync_direction="from_pc",
-            started_at=datetime.utcnow(),
+            started_at=datetime.now(timezone.utc),
             created_by=1
         )
         
@@ -665,7 +665,7 @@ class TestPlanningCenterSyncLogging:
         sync_log = PlanningCenterSyncLog(
             sync_type="people",
             sync_direction="from_pc",
-            started_at=datetime.utcnow(),
+            started_at=datetime.now(timezone.utc),
             created_by=1
         )
         
@@ -676,7 +676,7 @@ class TestPlanningCenterSyncLogging:
         sync_log.records_processed = 100
         sync_log.records_successful = 95
         sync_log.records_failed = 5
-        sync_log.completed_at = datetime.utcnow()
+        sync_log.completed_at = datetime.now(timezone.utc)
         sync_log.error_details = {"errors": ["Error 1", "Error 2"]}
         
         db_session.commit()
@@ -699,11 +699,11 @@ class TestPlanningCenterCacheManagement:
             planning_center_event_id="evt_123",
             event_name="Test Event",
             event_description="Test Description",
-            start_date=datetime.utcnow(),
-            end_date=datetime.utcnow() + timedelta(hours=3),
+            start_date=datetime.now(timezone.utc),
+            end_date=datetime.now(timezone.utc) + timedelta(hours=3),
             max_capacity=50,
             current_registrations_count=25,
-            last_synced_at=datetime.utcnow()
+            last_synced_at=datetime.now(timezone.utc)
         )
         
         db_session.add(cache_entry)
@@ -722,9 +722,9 @@ class TestPlanningCenterCacheManagement:
             planning_center_registration_id="reg_123",
             planning_center_event_id="evt_123",
             planning_center_person_id="pc_123",
-            registration_date=datetime.utcnow(),
+            registration_date=datetime.now(timezone.utc),
             registration_status="confirmed",
-            last_synced_at=datetime.utcnow()
+            last_synced_at=datetime.now(timezone.utc)
         )
         
         db_session.add(cache_entry)

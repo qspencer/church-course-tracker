@@ -8,7 +8,7 @@ Create Date: 2025-11-23 03:30:00.000000
 from alembic import op
 import sqlalchemy as sa
 from sqlalchemy import text
-from datetime import datetime
+from datetime import datetime, timezone
 
 # revision identifiers, used by Alembic.
 revision = 'v2w3x4y5z6a7'
@@ -58,9 +58,9 @@ def upgrade() -> None:
                 admin_password.encode('utf-8'),
                 bcrypt.gensalt()
             ).decode('utf-8')
-        
+
         # Get current timestamp
-        now = datetime.utcnow().isoformat()
+        now = datetime.now(timezone.utc).isoformat()
         
         # Insert admin user
         # Note: We use raw SQL to avoid model dependencies in migrations

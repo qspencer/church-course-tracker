@@ -231,7 +231,7 @@ class CourseEnrollmentService:
             # Update existing enrollment
             existing_enrollment.registration_status = pc_registration_data.get("status")
             existing_enrollment.registration_notes = pc_registration_data.get("notes")
-            existing_enrollment.updated_at = datetime.utcnow()
+            existing_enrollment.updated_at = datetime.now(timezone.utc)
             existing_enrollment.updated_by = updated_by
             self.db.commit()
             self.db.refresh(existing_enrollment)
@@ -246,7 +246,7 @@ class CourseEnrollmentService:
                 registration_status=pc_registration_data.get("status"),
                 registration_notes=pc_registration_data.get("notes"),
                 enrollment_date=pc_registration_data.get(
-                    "created_at", datetime.utcnow()
+                    "created_at", datetime.now(timezone.utc)
                 ),
             )
             return self.create_enrollment(enrollment_data, created_by=updated_by)
@@ -459,7 +459,7 @@ class CourseEnrollmentService:
                             logger.warning(f"Invalid registration_date format for registration {reg_id}: {registration_date}. Using current time. Error: {e}")
                             registration_date = datetime.now(timezone.utc)
                     else:
-                        registration_date = datetime.utcnow()
+                        registration_date = datetime.now(timezone.utc)
 
                     enrollment_data = CourseEnrollmentCreate(
                         people_id=people_id,
@@ -744,7 +744,7 @@ class CourseEnrollmentService:
                             logger.warning(f"Invalid registration_date format during sync for registration {reg_id}: {registration_date}. Using current time. Error: {e}")
                             registration_date = datetime.now(timezone.utc)
                     else:
-                        registration_date = datetime.utcnow()
+                        registration_date = datetime.now(timezone.utc)
 
                     enrollment_data = CourseEnrollmentCreate(
                         people_id=people_id,

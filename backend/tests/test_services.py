@@ -4,7 +4,7 @@ Tests for service layer
 
 import pytest
 import asyncio
-from datetime import datetime, date
+from datetime import datetime, date, timezone
 from unittest.mock import Mock, patch
 
 from app.services.people_service import PeopleService
@@ -446,13 +446,13 @@ class TestCourseEnrollmentService:
         enrollment1 = CourseEnrollment(
             people_id=people.id,
             course_id=course.id,
-            enrollment_date=datetime.utcnow(),
+            enrollment_date=datetime.now(timezone.utc),
             status="enrolled"
         )
         enrollment2 = CourseEnrollment(
             people_id=people.id,
             course_id=course.id,
-            enrollment_date=datetime.utcnow(),
+            enrollment_date=datetime.now(timezone.utc),
             status="completed"
         )
         db_session.add_all([enrollment1, enrollment2])
@@ -478,13 +478,13 @@ class TestCourseEnrollmentService:
         enrollment1 = CourseEnrollment(
             people_id=people.id,
             course_id=course.id,
-            enrollment_date=datetime.utcnow(),
+            enrollment_date=datetime.now(timezone.utc),
             status="enrolled"
         )
         enrollment2 = CourseEnrollment(
             people_id=people.id,
             course_id=course.id,
-            enrollment_date=datetime.utcnow(),
+            enrollment_date=datetime.now(timezone.utc),
             status="completed"
         )
         db_session.add_all([enrollment1, enrollment2])
@@ -521,7 +521,7 @@ class TestCourseEnrollmentService:
         enrollment = CourseEnrollment(
             people_id=people.id,
             course_id=course.id,
-            enrollment_date=datetime.utcnow(),
+            enrollment_date=datetime.now(timezone.utc),
             status="enrolled"
         )
         db_session.add(enrollment)
@@ -546,7 +546,7 @@ class TestCourseEnrollmentService:
         enrollment_data = CourseEnrollmentCreate(
             people_id=people.id,
             course_id=course.id,
-            enrollment_date=datetime.utcnow(),
+            enrollment_date=datetime.now(timezone.utc),
             status="enrolled"
         )
         
@@ -582,7 +582,7 @@ class TestCourseEnrollmentService:
         enrollment = CourseEnrollment(
             people_id=people.id,
             course_id=course.id,
-            enrollment_date=datetime.utcnow(),
+            enrollment_date=datetime.now(timezone.utc),
             status="enrolled"
         )
         db_session.add(enrollment)
@@ -622,7 +622,7 @@ class TestCourseEnrollmentService:
         enrollment = CourseEnrollment(
             people_id=people.id,
             course_id=course.id,
-            enrollment_date=datetime.utcnow(),
+            enrollment_date=datetime.now(timezone.utc),
             status="enrolled",
             progress_percentage=0.0
         )
@@ -707,7 +707,7 @@ class TestCourseEnrollmentService:
         enrollment = CourseEnrollment(
             people_id=people.id,
             course_id=course.id,
-            enrollment_date=datetime.utcnow(),
+            enrollment_date=datetime.now(timezone.utc),
             status="enrolled"
         )
         db_session.add(enrollment)

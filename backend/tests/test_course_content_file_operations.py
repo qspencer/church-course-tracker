@@ -6,6 +6,7 @@ import pytest
 from fastapi.testclient import TestClient
 from unittest.mock import patch, Mock
 from io import BytesIO
+from datetime import datetime, timezone
 
 from main import app
 from app.models.course_content import ContentType, StorageType
@@ -255,7 +256,7 @@ class TestCourseContentProgressTracking:
                 access_type="view",
                 progress_percentage=75,
                 time_spent=300,
-                access_timestamp=datetime.utcnow()
+                access_timestamp=datetime.now(timezone.utc)
             )
             
             mock_service_instance = MockContentService.return_value
@@ -341,7 +342,7 @@ class TestCourseContentAccessLogs:
                 access_type="view",
                 progress_percentage=0,
                 time_spent=0,
-                access_timestamp=datetime.utcnow()
+                access_timestamp=datetime.now(timezone.utc)
             )
             
             mock_service_instance = MockContentService.return_value
@@ -414,7 +415,7 @@ class TestCourseContentAccessLogs:
                 access_type="view",
                 progress_percentage=50,
                 time_spent=300,
-                access_timestamp=datetime.utcnow()
+                access_timestamp=datetime.now(timezone.utc)
             )
             
             mock_service_instance = MockContentService.return_value

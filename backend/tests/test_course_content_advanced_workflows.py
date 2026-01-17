@@ -6,6 +6,7 @@ import pytest
 from fastapi.testclient import TestClient
 from unittest.mock import patch, Mock
 from io import BytesIO
+from datetime import datetime, timezone
 
 from main import app
 from app.models.course_content import ContentType, StorageType
@@ -177,7 +178,7 @@ class TestCourseContentProgressWorkflows:
                 access_type="view",
                 progress_percentage=0,
                 time_spent=0,
-                access_timestamp=datetime.utcnow()
+                access_timestamp=datetime.now(timezone.utc)
             )
             mock_service_instance.log_content_access.return_value = mock_access_log
             
@@ -208,7 +209,7 @@ class TestCourseContentProgressWorkflows:
                 access_type="view",
                 progress_percentage=50,
                 time_spent=300,
-                access_timestamp=datetime.utcnow()
+                access_timestamp=datetime.now(timezone.utc)
             )
             mock_service_instance.log_content_access.return_value = mock_access_log
             
@@ -238,7 +239,7 @@ class TestCourseContentProgressWorkflows:
                 access_type="complete",
                 progress_percentage=100,
                 time_spent=600,
-                access_timestamp=datetime.utcnow()
+                access_timestamp=datetime.now(timezone.utc)
             )
             mock_service_instance.log_content_access.return_value = mock_access_log
             
@@ -412,30 +413,30 @@ class TestCourseContentAuditWorkflows:
         
         module1 = CourseModule(
             id=1, course_id=course.id, title="Module 1", order_index=1, 
-            is_active=True, created_at=datetime.utcnow()
+            is_active=True, created_at=datetime.now(timezone.utc)
         )
         module2 = CourseModule(
             id=2, course_id=course.id, title="Module 2", order_index=2, 
-            is_active=True, created_at=datetime.utcnow()
+            is_active=True, created_at=datetime.now(timezone.utc)
         )
         
         content1 = CourseContent(
             id=1, course_id=course.id, module_id=1, title="Document 1",
             content_type=ContentType.DOCUMENT, storage_type=StorageType.DATABASE,
-            order_index=1, file_size=1024, created_at=datetime.utcnow(),
-            is_active=True, download_count=0, view_count=0, updated_at=datetime.utcnow()
+            order_index=1, file_size=1024, created_at=datetime.now(timezone.utc),
+            is_active=True, download_count=0, view_count=0, updated_at=datetime.now(timezone.utc)
         )
         content2 = CourseContent(
             id=2, course_id=course.id, module_id=1, title="Video 1",
             content_type=ContentType.VIDEO, storage_type=StorageType.S3,
-            order_index=2, file_size=2048, created_at=datetime.utcnow(),
-            is_active=True, download_count=0, view_count=0, updated_at=datetime.utcnow()
+            order_index=2, file_size=2048, created_at=datetime.now(timezone.utc),
+            is_active=True, download_count=0, view_count=0, updated_at=datetime.now(timezone.utc)
         )
         content3 = CourseContent(
             id=3, course_id=course.id, module_id=2, title="Audio 1",
             content_type=ContentType.AUDIO, storage_type=StorageType.DATABASE,
-            order_index=3, file_size=512, created_at=datetime.utcnow(),
-            is_active=True, download_count=0, view_count=0, updated_at=datetime.utcnow()
+            order_index=3, file_size=512, created_at=datetime.now(timezone.utc),
+            is_active=True, download_count=0, view_count=0, updated_at=datetime.now(timezone.utc)
         )
         
         # Mock content summary service at endpoint level

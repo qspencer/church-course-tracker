@@ -3,7 +3,7 @@ Tests for AuditService
 """
 
 import pytest
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from fastapi import HTTPException
 
 from app.services.audit_service import AuditService
@@ -116,7 +116,7 @@ class TestAuditService:
         db_session.commit()
         
         # Create audit logs with different timestamps
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         
         audit1 = AuditLog(
             table_name="test_table",
@@ -407,7 +407,7 @@ class TestAuditService:
         db_session.commit()
         
         # Create audit logs with different timestamps
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         
         audit1 = AuditLog(
             table_name="test_table",
@@ -558,7 +558,7 @@ class TestAuditServiceComplexQueries:
         db_session.commit()
         
         # Create audit logs with different timestamps
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         
         audit1 = AuditLog(
             table_name="test_table",
