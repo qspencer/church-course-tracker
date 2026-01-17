@@ -87,5 +87,13 @@ export enum ProgressStatus {
   COMPLETED = 'completed'
 }
 
+export interface ProgressQueryParams {
+  enrollment_id?: number;
+  content_id?: number;
+  status?: ProgressStatus;
+  skip?: number;
+  limit?: number;
+}
+
 import { Course } from './course.model';
 import { Content } from './course.model';

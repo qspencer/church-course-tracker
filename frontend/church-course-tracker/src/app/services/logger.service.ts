@@ -9,7 +9,7 @@ export interface LogContext {
   component?: string;
   action?: string;
   userId?: number;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 /**
@@ -67,7 +67,7 @@ export class LoggerService {
   /**
    * Error message - sent to Sentry in production
    */
-  error(message: string, error?: any, context?: LogContext): void {
+  error(message: string, error?: unknown, context?: LogContext): void {
     if (!environment.production) {
       console.error(`[ERROR] ${message}`, error, context || '');
     }
@@ -123,7 +123,7 @@ export class LoggerService {
    * Add breadcrumb for tracking user actions
    * Useful for debugging context around errors
    */
-  addBreadcrumb(message: string, category: string, data?: any): void {
+  addBreadcrumb(message: string, category: string, data?: Record<string, unknown>): void {
     if (environment.production && environment.enableErrorReporting) {
       Sentry.addBreadcrumb({
         message,
