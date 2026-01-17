@@ -8,13 +8,13 @@ Comprehensive testing was performed across backend, frontend, and e2e test suite
 
 | Test Suite | Total Tests | Passed | Failed | Pass Rate | Notes |
 |------------|-------------|---------|--------|-----------|-------|
-| **Backend** | 533 | 529 | 4 | 99.2% | 4 pre-existing PC sync issues |
+| **Backend** | 533 | 533 | 0 | 100% | All tests passing |
 | **Frontend** | 829 | 829 | 0 | 100% | All tests passing |
 | **E2E** | 1281 | Running | - | - | In progress at time of report |
 
 ---
 
-## Backend Tests (529/533 Passed - 99.2%)
+## Backend Tests (533/533 Passed - 100%)
 
 ### Critical Bugs Fixed
 
@@ -63,35 +63,35 @@ Comprehensive testing was performed across backend, frontend, and e2e test suite
 - **Impact**: 2 audit service tests failed
 - **Fix Commit**: `f40276f`
 
-### Remaining Failures (4 tests - Pre-existing Issues)
+#### 4. Planning Center Sync Status Overwriting (PRE-EXISTING BUG - NOW FIXED)
+**Issue**: Background sync tasks showing "completed" when they should show "failed"
+- **Location**: `backend/app/services/planning_center_sync_service.py` (lines 128, 150, 173)
+- **Root Cause**: Background methods properly caught exceptions and set status to "failed", but wrapper functions saw `asyncio.run()` complete successfully and overwrote status with "completed"
+- **Solution**: Removed redundant status updates in wrapper functions
+  ```python
+  # BEFORE (overwrote failed status)
+  try:
+      asyncio.run(self._sync_people_background(task_id, updated_by))
+      logger.info(f"Background sync {task_id} completed successfully")
+      self._update_sync_task(task_id, status="completed")  # This overwrites "failed"!
+  except Exception as e:
+      # Handle fatal errors
 
-All remaining failures are in Planning Center integration error handling tests. These are **NOT** related to Phase 4 refactoring and existed before the changes.
-
-#### Test: `test_start_sync_people_api_error`
-- **File**: `tests/test_planning_center_integration.py:236`
-- **Expected**: Task status = "failed"
-- **Actual**: Task status = "completed"
-- **Issue**: PC sync service not updating task status to "failed" when API errors occur
-
-#### Test: `test_start_sync_events_api_error`
-- **File**: `tests/test_planning_center_integration.py` (line ~400)
-- **Expected**: Task status = "failed"
-- **Actual**: Task status = "completed"
-- **Issue**: Same as above for events sync
-
-#### Test: `test_sync_with_network_timeout`
-- **File**: `tests/test_planning_center_integration.py` (line ~837)
-- **Expected**: Task status = "failed"
-- **Actual**: Task status = "completed"
-- **Issue**: Network timeout not marking sync as failed
-
-#### Test: `test_sync_with_invalid_json_response`
-- **File**: `tests/test_planning_center_integration.py` (line ~870)
-- **Expected**: Task status = "failed"
-- **Actual**: Task status = "completed"
-- **Issue**: Invalid JSON not marking sync as failed
-
-**Recommendation**: These tests reveal a gap in error handling within the Planning Center sync service. Background sync tasks should properly update their status to "failed" when exceptions occur.
+  # AFTER (preserves failed status)
+  try:
+      asyncio.run(self._sync_people_background(task_id, updated_by))
+      logger.info(f"Background sync {task_id} completed")
+      # Let background method handle status - don't overwrite
+  except Exception as e:
+      # Handle fatal errors that escape background method
+  ```
+- **Impact**: 4 Planning Center sync error handling tests failed
+- **Tests Fixed**:
+  - `TestPlanningCenterPeopleSync::test_start_sync_people_api_error`
+  - `TestPlanningCenterEventsSync::test_start_sync_events_api_error`
+  - `TestPlanningCenterErrorHandling::test_sync_with_network_timeout`
+  - `TestPlanningCenterErrorHandling::test_sync_with_invalid_json_response`
+- **Fix Commit**: `9e899a1`
 
 ### No Skipped Tests
 
@@ -193,12 +193,17 @@ E2E tests were initiated and running at time of report (test 214 of 1281).
 3. **a20cc0b**: ContentAuditLog type fix
    - Updated types to accept null values matching backend
 
+4. **9e899a1**: Planning Center sync status preservation
+   - Fixed status overwriting in background sync tasks
+   - All 4 PC sync error handling tests now pass
+
 ### Files Modified
 
 **Backend:**
 - `backend/app/services/program_service.py` - Fixed service property recursion
 - `backend/app/services/course_service.py` - Fixed exception handling
 - `backend/app/services/audit_service.py` - Added timezone awareness
+- `backend/app/services/planning_center_sync_service.py` - Fixed status preservation in sync tasks
 
 **Frontend:**
 - `frontend/church-course-tracker/src/app/components/courses/course-dialog/course-dialog.component.spec.ts` - Type fix
@@ -212,11 +217,12 @@ E2E tests were initiated and running at time of report (test 214 of 1281).
 The Phase 4 refactoring successfully improved code quality without introducing regressions:
 
 ### Verified Safe
-- ✅ All 529 backend tests passing (excluding pre-existing PC issues)
-- ✅ All 829 frontend tests passing
+- ✅ All 533 backend tests passing (100%)
+- ✅ All 829 frontend tests passing (100%)
 - ✅ E2E tests showing no failures in first 214/1281 tests
 - ✅ Critical recursion bug caught and fixed immediately
 - ✅ All refactored code maintains identical behavior
+- ✅ Pre-existing Planning Center sync bug identified and fixed
 
 ### Code Quality Improvements
 - ✅ Reduced code duplication by ~248 lines
@@ -228,13 +234,13 @@ The Phase 4 refactoring successfully improved code quality without introducing r
 
 ## Recommendations
 
-### Immediate Actions
-1. **Planning Center Sync Error Handling**: Update PC sync service to properly set task status to "failed" when exceptions occur in background sync operations.
+### Completed Actions ✅
+1. ~~**Planning Center Sync Error Handling**~~: ✅ Fixed - PC sync service now properly preserves "failed" status when exceptions occur in background sync operations.
 
 ### Future Improvements
-1. **Add Integration Tests**: Cover the specific error scenarios in PC sync that currently fail
-2. **E2E Test Completion**: Monitor E2E test completion and address any failures
-3. **Performance Monitoring**: Track E2E test execution time trends
+1. **E2E Test Completion**: Monitor E2E test completion and address any failures
+2. **Performance Monitoring**: Track E2E test execution time trends
+3. **Code Modernization**: Update deprecated Pydantic methods (`.dict()` → `.model_dump()`)
 
 ---
 
@@ -252,11 +258,12 @@ The Phase 4 refactoring successfully improved code quality without introducing r
 
 ## Conclusion
 
-Testing revealed 3 critical bugs introduced during Phase 4 refactoring, all of which were immediately identified and fixed. The test suites successfully validated that:
+Testing revealed 3 critical bugs introduced during Phase 4 refactoring and 1 pre-existing bug in Planning Center sync. All were immediately identified and fixed. The test suites successfully validated that:
 
 1. ✅ Phase 4 refactoring maintains all existing functionality
 2. ✅ Code quality improvements did not introduce regressions
 3. ✅ All new helper methods work correctly
 4. ✅ Service property dependency injection functions as designed
+5. ✅ Pre-existing Planning Center sync error handling now works correctly
 
-With 99.2% backend tests passing, 100% frontend tests passing, and no observed E2E failures, the codebase is in excellent health and ready for deployment.
+With **100% backend tests passing (533/533)**, **100% frontend tests passing (829/829)**, and no observed E2E failures, the codebase is in excellent health and ready for deployment.
