@@ -20,7 +20,7 @@ export interface AttributeMappingReview {
   source_id: string;
   target_type: 'course' | 'program';
   target_id: number;
-  pc_attributes: { [key: string]: any };
+  pc_attributes: Record<string, unknown>;
   local_attributes: string[];
   matches: AttributeMappingMatch[];
 }
@@ -144,11 +144,11 @@ export class AttributeMappingDialogComponent implements OnInit {
     return this.review?.local_attributes || [];
   }
 
-  getAttributeValue(pcAttribute: string): any {
+  getAttributeValue(pcAttribute: string): unknown {
     return this.review?.pc_attributes[pcAttribute];
   }
 
-  getAttributeType(value: any): string {
+  getAttributeType(value: unknown): string {
     if (value === null || value === undefined) return 'null';
     if (typeof value === 'boolean') return 'boolean';
     if (typeof value === 'number') return 'number';
@@ -156,7 +156,7 @@ export class AttributeMappingDialogComponent implements OnInit {
     return 'string';
   }
 
-  formatAttributeValue(value: any): string {
+  formatAttributeValue(value: unknown): string {
     if (value === null || value === undefined) return '(empty)';
     if (typeof value === 'boolean') return value ? 'Yes' : 'No';
     if (value instanceof Date) return value.toLocaleDateString();

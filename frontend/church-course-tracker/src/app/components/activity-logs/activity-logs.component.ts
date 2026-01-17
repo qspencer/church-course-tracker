@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { PageEvent } from '@angular/material/paginator';
 import { AuditService } from '../../services/audit.service';
 import { AuthService } from '../../services/auth.service';
 import { LoggerService } from '../../services/logger.service';
@@ -77,7 +78,7 @@ export class ActivityLogsComponent implements OnInit {
     });
   }
 
-  onPageChange(event: any): void {
+  onPageChange(event: PageEvent): void {
     this.currentPage = event.pageIndex;
     this.pageSize = event.pageSize;
     this.loadActivityLogs();

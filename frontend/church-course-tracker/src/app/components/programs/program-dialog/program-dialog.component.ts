@@ -9,7 +9,7 @@ import { CourseService } from '../../../services/course.service';
 import { AutocompleteSuggestionService } from '../../../services/autocomplete-suggestion.service';
 import { LoggerService } from '../../../services/logger.service';
 import { Program, ProgramCreate, ProgramUpdate, RoleDefinition, RelationshipConfig } from '../../../models/program.model';
-import { Course } from '../../../models';
+import { Course, PlanningCenterImportData } from '../../../models';
 import { MatDialog } from '@angular/material/dialog';
 import { ParticipantsManagementComponent } from '../participants-management/participants-management.component';
 import { PairingsManagementComponent } from '../pairings-management/pairings-management.component';
@@ -46,7 +46,7 @@ export class ProgramDialogComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private dialogRef: MatDialogRef<ProgramDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: { program: Program | null; viewMode?: boolean; importData?: any },
+    @Inject(MAT_DIALOG_DATA) public data: { program: Program | null; viewMode?: boolean; importData?: PlanningCenterImportData },
     private programService: ProgramService,
     private courseService: CourseService,
     private autocompleteService: AutocompleteSuggestionService,

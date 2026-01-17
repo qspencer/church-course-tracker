@@ -7,13 +7,13 @@ import { CourseService } from '../../../services/course.service';
 import { UserService } from '../../../services/user.service';
 import { AutocompleteSuggestionService } from '../../../services/autocomplete-suggestion.service';
 import { LoggerService } from '../../../services/logger.service';
-import { Course, CourseCreate, CourseUpdate, User } from '../../../models';
+import { Course, CourseCreate, CourseUpdate, User, PlanningCenterImportData } from '../../../models';
 import { EventRegistrationsDialogComponent } from '../event-registrations-dialog/event-registrations-dialog.component';
 
 export interface CourseDialogData {
   course: Course | null;
   viewMode?: boolean; // If true, show read-only view
-  importData?: any; // Data from Planning Center import
+  importData?: PlanningCenterImportData; // Data from Planning Center import
 }
 
 @Component({

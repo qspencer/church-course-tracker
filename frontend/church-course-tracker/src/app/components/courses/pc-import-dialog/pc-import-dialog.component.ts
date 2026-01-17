@@ -14,6 +14,21 @@ export interface PCImportDialogData {
   entityType: 'course' | 'program';
 }
 
+export interface PCImportPreviewData {
+  title: string;
+  description: string;
+  planning_center_event_id?: string;
+  planning_center_event_name?: string;
+  planning_center_list_id?: string;
+  planning_center_list_name?: string;
+  event_start_date?: Date | null;
+  event_end_date?: Date | null;
+  max_capacity?: number | null;
+  locations?: string[];
+  delivery_modes?: string[];
+  duration_weeks?: number | null;
+}
+
 export interface GroupedEvent {
   letter: string;
   events: PlanningCenterEvent[];
@@ -39,7 +54,7 @@ export class PCImportDialogComponent implements OnInit, AfterViewInit {
   isLoadingDetails = false;
   selectedEvent: PlanningCenterEvent | null = null;
   selectedList: PlanningCenterList | null = null;
-  previewData: any = null;
+  previewData: PCImportPreviewData | null = null;
 
   // For autocomplete mode (when >20 items)
   eventControl = new FormControl('');
@@ -553,12 +568,12 @@ export class PCImportDialogComponent implements OnInit, AfterViewInit {
       });
   }
 
-  buildPreviewFromEvent(event: PlanningCenterEvent): any {
+  buildPreviewFromEvent(event: PlanningCenterEvent): PCImportPreviewData {
     const attrs = event.attributes || {};
     // Calendar API uses 'starts_at' and 'ends_at', Check-Ins uses 'start_date' and 'end_date'
     const startDate = attrs.start_date || attrs['starts_at'];
     const endDate = attrs.end_date || attrs['ends_at'];
-    
+
     return {
       title: String(attrs.name || ''),
       description: String(attrs['description'] || attrs.name || ''),
@@ -573,7 +588,7 @@ export class PCImportDialogComponent implements OnInit, AfterViewInit {
     };
   }
 
-  buildPreviewFromList(list: PlanningCenterList): any {
+  buildPreviewFromList(list: PlanningCenterList): PCImportPreviewData {
     const attrs = list.attributes || {};
     return {
       title: attrs.name || '',

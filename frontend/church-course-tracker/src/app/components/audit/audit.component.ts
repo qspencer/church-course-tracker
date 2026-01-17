@@ -1,16 +1,18 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { PageEvent } from '@angular/material/paginator';
 import { Subject, takeUntil } from 'rxjs';
 
 import { AuditService } from '../../services/audit.service';
 import { AuthService } from '../../services/auth.service';
 import { UserService } from '../../services/user.service';
 import { LoggerService } from '../../services/logger.service';
-import { 
-  AuditLog, 
-  AuditLogFilters, 
-  AuditSummary, 
+import {
+  User,
+  AuditLog,
+  AuditLogFilters,
+  AuditSummary,
   AuditExportOptions,
   getActionDisplayName,
   getActionIcon,
@@ -43,7 +45,7 @@ export class AuditComponent implements OnInit, OnDestroy {
   // Available filter options
   availableTables: string[] = [];
   availableActions: string[] = ['insert', 'update', 'delete'];
-  availableUsers: any[] = [];
+  availableUsers: User[] = [];
   
   // Utility functions for template
   getActionDisplayName = getActionDisplayName;
@@ -131,7 +133,7 @@ export class AuditComponent implements OnInit, OnDestroy {
     this.loadSummary();
   }
 
-  onPageChange(event: any): void {
+  onPageChange(event: PageEvent): void {
     this.currentPage = event.pageIndex;
     this.filters.skip = event.pageIndex * event.pageSize;
     this.filters.limit = event.pageSize;
