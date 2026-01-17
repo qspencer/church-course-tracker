@@ -59,6 +59,9 @@ export interface CourseQueryParams {
   search?: string;
   is_active?: boolean;
   instructor_id?: number;
+  sort?: string;
+  order?: string;
+  [key: string]: string | number | boolean | undefined;
 }
 
 export interface Content {

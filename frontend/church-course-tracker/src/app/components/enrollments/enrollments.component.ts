@@ -266,23 +266,29 @@ export class EnrollmentsComponent implements OnInit {
 
   getPersonName(item: Enrollment | ProgramParticipant): string {
     if (this.viewMode === 'courses') {
-      return `${item.person?.first_name || ''} ${item.person?.last_name || ''}`.trim() || 'Unknown';
+      const enrollment = item as Enrollment;
+      return `${enrollment.person?.first_name || ''} ${enrollment.person?.last_name || ''}`.trim() || 'Unknown';
     } else {
       // For participants, check if person data is included
-      if (item.person) {
-        return `${item.person?.first_name || ''} ${item.person?.last_name || ''}`.trim() || 'Unknown';
-      } else if (item.people) {
-        return `${item.people?.first_name || ''} ${item.people?.last_name || ''}`.trim() || 'Unknown';
+      const participant = item as ProgramParticipant;
+      if ((participant as unknown as Enrollment).person) {
+        const enrollment = participant as unknown as Enrollment;
+        return `${enrollment.person?.first_name || ''} ${enrollment.person?.last_name || ''}`.trim() || 'Unknown';
+      } else if ((participant as unknown as Enrollment).people) {
+        const enrollment = participant as unknown as Enrollment;
+        return `${enrollment.people?.first_name || ''} ${enrollment.people?.last_name || ''}`.trim() || 'Unknown';
       }
-      return `Participant ${item.id}`;
+      return `Participant ${participant.id}`;
     }
   }
 
   getPersonEmail(item: Enrollment | ProgramParticipant): string {
     if (this.viewMode === 'courses') {
-      return item.person?.email || '';
+      const enrollment = item as Enrollment;
+      return enrollment.person?.email || '';
     } else {
-      return item.person?.email || item.people?.email || '';
+      const enrollment = item as unknown as Enrollment;
+      return enrollment.person?.email || enrollment.people?.email || '';
     }
   }
 

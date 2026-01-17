@@ -66,6 +66,7 @@ export interface ProgramQueryParams {
   limit?: number;
   search?: string;
   is_active?: boolean;
+  [key: string]: string | number | boolean | undefined;
 }
 
 export interface ProgramAdmin {

@@ -93,6 +93,7 @@ export interface ProgressQueryParams {
   status?: ProgressStatus;
   skip?: number;
   limit?: number;
+  [key: string]: string | number | ProgressStatus | undefined;
 }
 
 import { Course } from './course.model';

@@ -207,7 +207,7 @@ describe('Course Content Models', () => {
         ip_address: '192.168.1.1',
         user_agent: 'Mozilla/5.0...',
         change_summary: 'Content created',
-        old_values: null,
+        old_values: undefined,
         new_values: { title: 'Test Content' }
       };
 

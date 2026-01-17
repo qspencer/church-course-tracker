@@ -39,15 +39,22 @@ export interface PlanningCenterPreview {
 }
 
 export interface PlanningCenterImportData {
-  eventId?: string;
-  listId?: string;
-  name: string;
-  description?: string;
-  startDate?: string;
-  endDate?: string;
-  location?: string;
-  selectedAttributes?: string[];
-  mappings?: Record<string, string>;
+  sourceType: 'event' | 'list';
+  sourceId: string;
+  previewData: {
+    title: string;
+    description?: string;
+    planning_center_event_id?: string;
+    planning_center_event_name?: string;
+    planning_center_list_id?: string;
+    planning_center_list_name?: string;
+    event_start_date?: Date | string | null;
+    event_end_date?: Date | string | null;
+    max_capacity?: number | null;
+    locations?: string[];
+    delivery_modes?: string[];
+    duration_weeks?: number | null;
+  };
 }
 
 export interface PlanningCenterRegistration {

@@ -306,8 +306,8 @@ describe('Audit Models', () => {
 
       expect(auditLog.old_values).toEqual(complexOldValues);
       expect(auditLog.new_values).toEqual(complexNewValues);
-      expect(auditLog.old_values?.['nested']?.['array']).toEqual([1, 2, 3]);
-      expect(auditLog.new_values?.['metadata']?.['version']).toBe('2.0');
+      expect((auditLog.old_values?.['nested'] as Record<string, unknown>)?.['array']).toEqual([1, 2, 3]);
+      expect((auditLog.new_values?.['metadata'] as Record<string, unknown>)?.['version']).toBe('2.0');
     });
   });
 

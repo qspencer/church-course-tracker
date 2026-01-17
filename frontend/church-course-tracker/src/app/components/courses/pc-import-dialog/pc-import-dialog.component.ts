@@ -581,7 +581,7 @@ export class PCImportDialogComponent implements OnInit, AfterViewInit {
       planning_center_event_name: String(attrs.name || ''),
       event_start_date: startDate ? new Date(String(startDate)) : null,
       event_end_date: endDate ? new Date(String(endDate)) : null,
-      max_capacity: attrs['capacity'] || attrs['max_attendees'] || null,
+      max_capacity: typeof attrs['capacity'] === 'number' ? attrs['capacity'] : (typeof attrs['max_attendees'] === 'number' ? attrs['max_attendees'] : null),
       locations: attrs['location'] || attrs['location_name'] ? [String(attrs['location'] || attrs['location_name'])] : [],
       delivery_modes: [],
       duration_weeks: null
@@ -592,7 +592,7 @@ export class PCImportDialogComponent implements OnInit, AfterViewInit {
     const attrs = list.attributes || {};
     return {
       title: attrs.name || '',
-      description: attrs['description'] || attrs.name || '',
+      description: String(attrs['description'] || attrs.name || ''),
       planning_center_list_id: list.id,
       planning_center_list_name: attrs.name || '',
       locations: [],
