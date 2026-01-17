@@ -56,7 +56,29 @@ class Program(Base):
     planning_center_event_template_id = Column(String(50), nullable=True, index=True)
     planning_center_event_id = Column(String(50), nullable=True, index=True)
     planning_center_event_name = Column(String(200), nullable=True)
-    
+
+    # Planning Center Custom Tab configuration for flexible field mapping
+    # Example: {
+    #   "enabled": true,
+    #   "tab_slug": "life_on_life_discipleship",
+    #   "tab_name": "Life On Life Discipleship",
+    #   "field_mappings": [
+    #     {
+    #       "pc_field_name": "Role",
+    #       "pc_field_slug": "role",
+    #       "pc_field_type": "select",
+    #       "target_type": "participant_role",
+    #       "mapping_rules": [
+    #         {"when": "Mentor", "assign_role": "Mentor"},
+    #         {"when": "Mentee", "assign_role": "Mentee"}
+    #       ]
+    #     }
+    #   ],
+    #   "default_status": "active",
+    #   "update_existing": false
+    # }
+    planning_center_tab_config = Column(JSON, nullable=True)
+
     is_active = Column(Boolean, default=True, nullable=False)
     
     # CSV source tracking

@@ -44,7 +44,13 @@ class ProgramBase(BaseModel):
     planning_center_event_template_id: Optional[str] = Field(None, max_length=50)
     planning_center_event_id: Optional[str] = Field(None, max_length=50)
     planning_center_event_name: Optional[str] = Field(None, max_length=200)
-    
+
+    # Planning Center Custom Tab configuration for flexible field mapping
+    planning_center_tab_config: Optional[Dict[str, Any]] = Field(
+        None,
+        description="Configuration for importing from Planning Center custom tabs with field mappings"
+    )
+
     is_active: bool = True
     
     @field_validator('role_definitions')
@@ -117,6 +123,7 @@ class ProgramUpdate(BaseModel):
     planning_center_event_template_id: Optional[str] = Field(None, max_length=50)
     planning_center_event_id: Optional[str] = Field(None, max_length=50)
     planning_center_event_name: Optional[str] = Field(None, max_length=200)
+    planning_center_tab_config: Optional[Dict[str, Any]] = None
     is_active: Optional[bool] = None
     
     @field_validator('role_definitions')
