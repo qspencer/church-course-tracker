@@ -246,22 +246,8 @@ class ProgramService:
         program = self.get_program(program_id)
         if not program:
             return False
-        
-        program.is_active = False
-        program.updated_by = deleted_by
-        self.db.commit()
-        
-        # Create audit log
-        if deleted_by:
-            AuditService(self.db).log_change(
-                table_name="programs",
-                record_id=program.id,
-                action="delete",
-                changed_by=deleted_by,
-                old_values={"title": program.title, "is_active": True},
-                new_values={"is_active": False},
-            )
-        
+
+        self._soft_delete_with_active_flag(program, "programs", deleted_by)
         return True
 
     def validate_role_name(self, program_id: int, role_name: str) -> bool:
@@ -386,9 +372,8 @@ class ProgramService:
         )
         if not admin:
             return False
-        
-        self.db.delete(admin)
-        self.db.commit()
+
+        self._hard_delete(admin)
         return True
 
     # Program Participant methods
@@ -549,10 +534,8 @@ class ProgramService:
         participant = self.get_participant(participant_id)
         if not participant:
             return False
-        
-        participant.status = "ended"
-        participant.end_date = datetime.now(timezone.utc)
-        self.db.commit()
+
+        self._soft_delete_with_status(participant)
         return True
 
     # Program Pairing methods
@@ -647,10 +630,8 @@ class ProgramService:
         pairing = self.get_pairing(pairing_id)
         if not pairing:
             return False
-        
-        pairing.status = "ended"
-        pairing.end_date = datetime.now(timezone.utc)
-        self.db.commit()
+
+        self._soft_delete_with_status(pairing)
         return True
 
     # Program Session methods
@@ -711,9 +692,8 @@ class ProgramService:
         session = self.get_session(session_id)
         if not session:
             return False
-        
-        self.db.delete(session)
-        self.db.commit()
+
+        self._hard_delete(session)
         return True
 
     # Program Progress methods
@@ -785,9 +765,8 @@ class ProgramService:
         progress = self.get_progress(progress_id)
         if not progress:
             return False
-        
-        self.db.delete(progress)
-        self.db.commit()
+
+        self._hard_delete(progress)
         return True
 
     def _get_people_id_from_pc_person_id(self, pc_person_id: str) -> int:
