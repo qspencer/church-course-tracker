@@ -732,6 +732,229 @@ class ProgramService:
             )
         return person.id
 
+    # ===== Bulk Import Helper Methods =====
+
+    def _validate_bulk_import_request(
+        self, program_id: int, role_name: str
+    ) -> ProgramModel:
+        """
+        Validate bulk import request (program exists, role is valid).
+
+        Args:
+            program_id: ID of the program
+            role_name: Role name to validate
+
+        Returns:
+            Program model if valid
+
+        Raises:
+            HTTPException: If program not found or role invalid
+        """
+        program = self.get_program(program_id)
+        if not program:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Program with ID {program_id} not found"
+            )
+
+        if not self.validate_role_name(program_id, role_name):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid role name '{role_name}' for this program"
+            )
+
+        return program
+
+    def _get_or_sync_people_id(
+        self,
+        pc_person_id: str,
+        pc_person_data: Optional[Dict] = None,
+        created_by: Optional[int] = None
+    ) -> tuple[Optional[int], Optional[str]]:
+        """
+        Get local people_id from PC person ID, optionally syncing if not found.
+
+        Args:
+            pc_person_id: Planning Center person ID
+            pc_person_data: Optional PC person data for syncing if not found
+            created_by: User ID for sync operation
+
+        Returns:
+            Tuple of (people_id, error_message). If successful, error_message is None.
+        """
+        try:
+            people_id = self._get_people_id_from_pc_person_id(pc_person_id)
+            return people_id, None
+        except HTTPException:
+            if pc_person_data:
+                # Attempt sync
+                try:
+                    people_service = PeopleService(self.db)
+                    people_service.sync_from_planning_center(pc_person_data, updated_by=created_by)
+                    people_id = self._get_people_id_from_pc_person_id(pc_person_id)
+                    return people_id, None
+                except Exception as e:
+                    return None, f"Failed to sync person {pc_person_id}: {str(e)}"
+            return None, f"Person {pc_person_id} not found locally"
+
+    def _create_or_update_participant(
+        self,
+        program_id: int,
+        people_id: int,
+        role_name: str,
+        created_by: Optional[int] = None,
+        update_existing: bool = True
+    ) -> tuple[Optional[ProgramParticipantModel], Optional[str]]:
+        """
+        Create new participant or update existing one.
+
+        Args:
+            program_id: ID of the program
+            people_id: Local people ID
+            role_name: Role name for participant
+            created_by: User ID creating/updating
+            update_existing: Whether to update existing participants
+
+        Returns:
+            Tuple of (participant, error_message). If successful, error_message is None.
+        """
+        # Check if participant already exists
+        existing = (
+            self.db.query(ProgramParticipantModel)
+            .filter(
+                ProgramParticipantModel.program_id == program_id,
+                ProgramParticipantModel.people_id == people_id,
+                ProgramParticipantModel.status == "active",
+            )
+            .first()
+        )
+
+        if existing:
+            if update_existing and existing.role_name != role_name:
+                existing.role_name = role_name
+                existing.updated_by = created_by
+                self.db.commit()
+                self.db.refresh(existing)
+            return existing, None
+
+        # Create new participant
+        participant_data = ProgramParticipantCreate(
+            program_id=program_id,
+            people_id=people_id,
+            role_name=role_name,
+            start_date=datetime.now(timezone.utc),
+            status="active",
+        )
+        participant, error = self.add_participant(participant_data, created_by=created_by)
+        return participant, error
+
+    def _extract_pc_person_id(self, registration: Dict) -> Optional[str]:
+        """
+        Extract person ID from PC registration data (handles JSON API and flat formats).
+
+        Args:
+            registration: Registration dict from Planning Center
+
+        Returns:
+            Person ID string or None if not found
+        """
+        if 'attributes' in registration or 'relationships' in registration:
+            # JSON API format
+            reg_attributes = registration.get('attributes', {})
+            return (
+                registration.get('relationships', {}).get('person', {}).get('data', {}).get('id')
+                or reg_attributes.get('person_id')
+                or registration.get('person_id')
+            )
+        else:
+            # Flat format
+            return registration.get('person_id')
+
+    def _get_registration_status(self, registration: Dict) -> str:
+        """
+        Extract status from registration (handles both JSON API and flat formats).
+
+        Args:
+            registration: Registration dict from Planning Center
+
+        Returns:
+            Status string (empty if not found)
+        """
+        if 'attributes' in registration:
+            return registration.get('attributes', {}).get('status', '')
+        return registration.get('status', '')
+
+    def _bulk_import_from_pc_people_list(
+        self,
+        program_id: int,
+        pc_people: List[Dict],
+        role_name: str,
+        created_by: Optional[int] = None,
+        update_existing: bool = True,
+        extract_person_id_fn=None,
+        allow_sync: bool = False
+    ) -> tuple[List[ProgramParticipantModel], List[str]]:
+        """
+        Core bulk import logic that works with any list of PC people/registrations.
+
+        Args:
+            program_id: Program to import to
+            pc_people: List of PC person/registration dicts
+            role_name: Role name for participants
+            created_by: User creating the participants
+            update_existing: Whether to update existing participants
+            extract_person_id_fn: Optional function to extract person_id from dict
+            allow_sync: Whether to sync missing people from PC
+
+        Returns:
+            Tuple of (participants, errors)
+        """
+        participants = []
+        errors = []
+
+        for item in pc_people:
+            try:
+                # Extract person ID using custom function or default
+                if extract_person_id_fn:
+                    pc_person_id = extract_person_id_fn(item)
+                else:
+                    pc_person_id = item.get('id') or self._extract_pc_person_id(item)
+
+                if not pc_person_id:
+                    errors.append(f"Missing person ID in item: {item.get('id', 'unknown')}")
+                    continue
+
+                # Get or sync people_id
+                pc_person_data = item if allow_sync else None
+                people_id, error = self._get_or_sync_people_id(
+                    pc_person_id,
+                    pc_person_data,
+                    created_by
+                )
+                if error:
+                    errors.append(error)
+                    continue
+
+                # Create or update participant
+                participant, error = self._create_or_update_participant(
+                    program_id,
+                    people_id,
+                    role_name,
+                    created_by,
+                    update_existing
+                )
+
+                if participant:
+                    participants.append(participant)
+                elif error:
+                    errors.append(f"Person {pc_person_id}: {error}")
+
+            except Exception as e:
+                errors.append(f"Item {item.get('id', 'unknown')}: {str(e)}")
+                continue
+
+        return participants, errors
+
     def bulk_import_participants_from_pc_event(
         self,
         program_id: int,
