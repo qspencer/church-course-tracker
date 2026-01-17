@@ -133,18 +133,36 @@
                   <mat-icon>event</mat-icon>
                 </button>
                 
-                <button 
-                  mat-icon-button 
-                  color="accent" 
+                <button
+                  mat-icon-button
+                  color="accent"
                   (click)="manageProgress(program)"
                   matTooltip="Manage Progress">
                   <mat-icon>trending_up</mat-icon>
                 </button>
-                
-                <button 
+
+                <button
                   *ngIf="canEditProgram()"
-                  mat-icon-button 
-                  color="accent" 
+                  mat-icon-button
+                  color="primary"
+                  (click)="configureCustomTab(program)"
+                  matTooltip="Configure Custom Tab Import">
+                  <mat-icon>tab</mat-icon>
+                </button>
+
+                <button
+                  *ngIf="program.planning_center_tab_config?.enabled"
+                  mat-icon-button
+                  color="accent"
+                  (click)="importFromCustomTab(program)"
+                  matTooltip="Import from Custom Tab">
+                  <mat-icon>cloud_download</mat-icon>
+                </button>
+
+                <button
+                  *ngIf="canEditProgram()"
+                  mat-icon-button
+                  color="accent"
                   (click)="editProgram(program)"
                   matTooltip="Edit Program">
                   <mat-icon>edit</mat-icon>

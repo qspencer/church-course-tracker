@@ -17,6 +17,8 @@ import { ProgressManagementComponent } from './progress-management/progress-mana
 import { ConfirmDialogComponent } from '../../shared/confirm-dialog/confirm-dialog.component';
 import { BulkEnrollmentDialogComponent } from '../enrollments/bulk-enrollment-dialog/bulk-enrollment-dialog.component';
 import { PCImportDialogComponent, PCImportDialogData } from '../courses/pc-import-dialog/pc-import-dialog.component';
+import { CustomTabConfigDialogComponent } from './custom-tab-config-dialog/custom-tab-config-dialog.component';
+import { CustomTabImportDialogComponent } from './custom-tab-import-dialog/custom-tab-import-dialog.component';
 
 @Component({
   selector: 'app-programs',
@@ -205,6 +207,49 @@ export class ProgramsComponent implements OnInit {
             this.snackBar.open('Error deleting program', 'Close', { duration: 3000 });
           }
         });
+      }
+    });
+  }
+
+  configureCustomTab(program: Program): void {
+    const dialogRef = this.dialog.open(CustomTabConfigDialogComponent, {
+      width: '900px',
+      maxWidth: '95vw',
+      maxHeight: '90vh',
+      data: {
+        programId: program.id,
+        currentConfig: program.planning_center_tab_config
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(config => {
+      if (config) {
+        this.programService.updateProgram(program.id, {
+          planning_center_tab_config: config
+        }).subscribe({
+          next: () => {
+            this.snackBar.open('Custom tab configuration saved successfully', 'Close', { duration: 3000 });
+            this.loadPrograms();
+          },
+          error: (error) => {
+            this.logger.error('Error saving custom tab configuration', error);
+            this.snackBar.open('Error saving configuration', 'Close', { duration: 3000 });
+          }
+        });
+      }
+    });
+  }
+
+  importFromCustomTab(program: Program): void {
+    const dialogRef = this.dialog.open(CustomTabImportDialogComponent, {
+      width: '700px',
+      maxWidth: '95vw',
+      data: { program }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.loadPrograms();
       }
     });
   }

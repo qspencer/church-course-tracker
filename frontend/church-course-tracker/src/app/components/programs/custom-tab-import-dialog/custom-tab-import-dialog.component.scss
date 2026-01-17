@@ -1,0 +1,120 @@
+.info-card {
+  margin-bottom: 24px;
+  background-color: #e3f2fd;
+
+  .info-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 0;
+
+    mat-icon {
+      margin-right: 12px;
+    }
+
+    .info-text {
+      flex: 1;
+
+      strong {
+        margin-right: 8px;
+      }
+    }
+
+    &:not(:last-child) {
+      border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+    }
+  }
+}
+
+.import-form {
+  margin-top: 24px;
+
+  .description {
+    margin-bottom: 20px;
+    color: rgba(0, 0, 0, 0.6);
+  }
+
+  .full-width {
+    width: 100%;
+    margin-bottom: 16px;
+  }
+}
+
+.import-results {
+  h3 {
+    margin-top: 0;
+    margin-bottom: 16px;
+  }
+
+  .results-summary {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 24px;
+
+    mat-card {
+      flex: 1;
+
+      .result-stat {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+
+        mat-icon {
+          font-size: 48px;
+          width: 48px;
+          height: 48px;
+        }
+
+        .stat-value {
+          font-size: 32px;
+          font-weight: 500;
+          line-height: 1;
+          margin-bottom: 4px;
+        }
+
+        .stat-label {
+          font-size: 14px;
+          color: rgba(0, 0, 0, 0.6);
+        }
+      }
+    }
+
+    .success-card {
+      border-left: 4px solid #4caf50;
+    }
+
+    .error-card {
+      border-left: 4px solid #ff9800;
+    }
+  }
+
+  .details-section {
+    margin-top: 24px;
+
+    h4 {
+      margin-top: 0;
+      margin-bottom: 12px;
+    }
+
+    mat-list {
+      border: 1px solid #e0e0e0;
+      border-radius: 4px;
+    }
+
+    .more-items {
+      margin-top: 12px;
+      color: rgba(0, 0, 0, 0.6);
+      font-style: italic;
+    }
+  }
+
+  .error-details {
+    mat-list {
+      border-color: #ffccbc;
+      background-color: #fff3e0;
+    }
+  }
+}
+
+.full-width {
+  width: 100%;
+}

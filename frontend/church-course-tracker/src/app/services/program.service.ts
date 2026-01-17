@@ -209,13 +209,32 @@ export class ProgramService {
     return this.http.post<ProgramParticipant[]>(`${this.API_URL}/participants/bulk-from-pc-event`, data);
   }
 
-  bulkImportParticipantsFromPCList(data: { 
-    program_id: number, 
-    pc_list_id: string, 
+  bulkImportParticipantsFromPCList(data: {
+    program_id: number,
+    pc_list_id: string,
     role_name: string,
-    update_existing?: boolean 
+    update_existing?: boolean
   }): Observable<ProgramParticipant[]> {
     return this.http.post<ProgramParticipant[]>(`${this.API_URL}/participants/bulk-from-pc-list`, data);
+  }
+
+  // Planning Center Custom Tab methods
+  getPlanningCenterTabs(personId: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.API_URL}/planning-center/tabs/${personId}`);
+  }
+
+  getTabFieldDefinitions(tabId: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.API_URL}/planning-center/tabs/${tabId}/fields`);
+  }
+
+  bulkImportParticipantsFromPCListWithTabs(
+    programId: number,
+    data: { list_id: string; role_name?: string }
+  ): Observable<any> {
+    return this.http.post<any>(
+      `${this.API_URL}/${programId}/participants/bulk-from-pc-list-with-tabs`,
+      data
+    );
   }
 }
 

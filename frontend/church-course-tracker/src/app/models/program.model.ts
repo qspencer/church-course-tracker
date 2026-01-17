@@ -10,6 +10,7 @@ export interface Program {
   planning_center_event_template_id?: string;
   planning_center_event_id?: string;
   planning_center_event_name?: string;
+  planning_center_tab_config?: PlanningCenterTabConfig;
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -44,6 +45,7 @@ export interface ProgramCreate {
   planning_center_event_template_id?: string;
   planning_center_event_id?: string;
   planning_center_event_name?: string;
+  planning_center_tab_config?: PlanningCenterTabConfig;
   is_active?: boolean;
 }
 
@@ -58,6 +60,7 @@ export interface ProgramUpdate {
   planning_center_event_template_id?: string;
   planning_center_event_id?: string;
   planning_center_event_name?: string;
+  planning_center_tab_config?: PlanningCenterTabConfig;
   is_active?: boolean;
 }
 
@@ -246,5 +249,82 @@ export interface ProgramProgressUpdate {
   milestone_name?: string;
   milestone_description?: string;
   notes?: string;
+}
+
+// Planning Center Custom Tab Configuration
+export interface PlanningCenterTabConfig {
+  enabled: boolean;
+  tab_slug: string;
+  tab_name: string;
+  field_mappings: TabFieldMapping[];
+  default_status?: string;
+  update_existing?: boolean;
+  sync_on_import?: boolean;
+}
+
+export interface TabFieldMapping {
+  pc_field_name: string;
+  pc_field_slug: string;
+  pc_field_type: string;
+  target_type: TabFieldTargetType;
+  mapping_rules?: MappingRule[] | null;
+}
+
+export type TabFieldTargetType =
+  | 'participant_role'
+  | 'participant_status'
+  | 'participant_start_date'
+  | 'participant_end_date'
+  | 'participant_notes'
+  | 'participant_progress'
+  | 'ignore';
+
+export interface MappingRule {
+  when: string | boolean;
+  assign_role?: string;
+  assign_status?: string;
+}
+
+// Planning Center Custom Tab Discovery
+export interface PlanningCenterTab {
+  id: string;
+  type: string;
+  attributes: {
+    name: string;
+    slug: string;
+    tab_id: number;
+  };
+}
+
+export interface PlanningCenterFieldDefinition {
+  id: string;
+  type: string;
+  attributes: {
+    name: string;
+    slug: string;
+    data_type: string;
+    options?: string[];
+    required?: boolean;
+  };
+}
+
+// Bulk Import with Custom Tabs
+export interface BulkImportFromPCListWithTabsRequest {
+  list_id: string;
+  role_name?: string;
+}
+
+export interface BulkImportFromPCListWithTabsResponse {
+  imported: Array<{
+    person_name: string;
+    pc_person_id: string;
+    role_name?: string;
+    status: string;
+  }>;
+  errors: Array<{
+    person_name: string;
+    pc_person_id: string;
+    error: string;
+  }>;
 }
 

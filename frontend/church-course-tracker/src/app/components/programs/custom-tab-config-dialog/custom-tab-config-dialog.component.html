@@ -1,0 +1,196 @@
+<h2 mat-dialog-title>
+  Configure Planning Center Custom Tab Import
+</h2>
+
+<mat-dialog-content>
+  <mat-progress-bar mode="indeterminate" *ngIf="loading"></mat-progress-bar>
+
+  <!-- Step 1: Discover Tabs -->
+  <div *ngIf="step === 'discover'" class="step-content">
+    <p class="step-description">
+      To configure custom tab import, we first need to discover which tabs are available.
+      Enter a Planning Center Person ID from someone in your list who has the custom tab data.
+    </p>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Sample Person ID</mat-label>
+      <input matInput [(ngModel)]="samplePersonId" placeholder="12345678" [disabled]="loading">
+      <mat-hint>Enter any person ID from your Planning Center list</mat-hint>
+    </mat-form-field>
+
+    <div class="actions">
+      <button mat-raised-button color="primary" (click)="discoverTabs()" [disabled]="loading || !samplePersonId.trim()">
+        Discover Tabs
+      </button>
+    </div>
+  </div>
+
+  <!-- Step 2: Select Tab -->
+  <div *ngIf="step === 'select-tab'" class="step-content">
+    <p class="step-description">
+      Found {{ availableTabs.length }} custom tab(s). Select the tab you want to use for participant import.
+    </p>
+
+    <mat-list>
+      <mat-list-item *ngFor="let tab of availableTabs" (click)="selectTab(tab)" class="tab-item">
+        <h3 matListItemTitle>{{ tab.attributes.name }}</h3>
+        <p matListItemLine>Slug: {{ tab.attributes.slug }}</p>
+        <button mat-icon-button matListItemMeta>
+          <mat-icon>chevron_right</mat-icon>
+        </button>
+      </mat-list-item>
+    </mat-list>
+  </div>
+
+  <!-- Step 3: Configure Mappings -->
+  <div *ngIf="step === 'configure-mappings'" class="step-content">
+    <p class="step-description">
+      Configure how fields from the "{{ config.tab_name }}" tab should map to participant data.
+    </p>
+
+    <h3>Active Field Mappings</h3>
+    <div *ngFor="let mapping of getActiveFieldMappings()" class="mapping-item">
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>{{ mapping.pc_field_name }}</mat-card-title>
+          <mat-card-subtitle>Type: {{ mapping.pc_field_type }} | Slug: {{ mapping.pc_field_slug }}</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Map To</mat-label>
+            <mat-select [(ngModel)]="mapping.target_type" (selectionChange)="onTargetTypeChange(mapping)">
+              <mat-option *ngFor="let type of targetTypes" [value]="type.value">
+                {{ type.label }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <!-- Mapping Rules for Role/Status -->
+          <div *ngIf="mapping.mapping_rules && mapping.mapping_rules.length > 0" class="mapping-rules">
+            <h4>Value Mappings:</h4>
+            <div *ngFor="let rule of mapping.mapping_rules; let i = index" class="mapping-rule">
+              <mat-form-field appearance="outline">
+                <mat-label>When value is</mat-label>
+                <input matInput [(ngModel)]="rule.when" [disabled]="true">
+              </mat-form-field>
+
+              <mat-icon>arrow_forward</mat-icon>
+
+              <mat-form-field appearance="outline" *ngIf="mapping.target_type === 'participant_role'">
+                <mat-label>Assign role</mat-label>
+                <input matInput [(ngModel)]="rule.assign_role">
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" *ngIf="mapping.target_type === 'participant_status'">
+                <mat-label>Assign status</mat-label>
+                <input matInput [(ngModel)]="rule.assign_status">
+              </mat-form-field>
+
+              <button mat-icon-button color="warn" (click)="removeMappingRule(mapping, i)">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+
+            <button mat-stroked-button (click)="addMappingRule(mapping)">
+              <mat-icon>add</mat-icon> Add Rule
+            </button>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <mat-divider *ngIf="getIgnoredFieldMappings().length > 0"></mat-divider>
+
+    <div *ngIf="getIgnoredFieldMappings().length > 0">
+      <h3>Ignored Fields</h3>
+      <mat-chip-set>
+        <mat-chip *ngFor="let mapping of getIgnoredFieldMappings()">
+          {{ mapping.pc_field_name }}
+        </mat-chip>
+      </mat-chip-set>
+    </div>
+
+    <div class="config-options">
+      <h3>Import Options</h3>
+      <mat-checkbox [(ngModel)]="config.sync_on_import">
+        Automatically sync people from Planning Center if not found locally
+      </mat-checkbox>
+      <mat-checkbox [(ngModel)]="config.update_existing">
+        Update existing participants if they already exist
+      </mat-checkbox>
+      <mat-form-field appearance="outline">
+        <mat-label>Default Status</mat-label>
+        <mat-select [(ngModel)]="config.default_status">
+          <mat-option value="active">Active</mat-option>
+          <mat-option value="paused">Paused</mat-option>
+          <mat-option value="completed">Completed</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+  </div>
+
+  <!-- Step 4: Review -->
+  <div *ngIf="step === 'review'" class="step-content">
+    <h3>Review Configuration</h3>
+    <p class="step-description">
+      Review your custom tab import configuration before saving.
+    </p>
+
+    <mat-card>
+      <mat-card-content>
+        <div class="config-summary">
+          <div class="summary-item">
+            <strong>Tab:</strong> {{ config.tab_name }}
+          </div>
+          <div class="summary-item">
+            <strong>Tab Slug:</strong> {{ config.tab_slug }}
+          </div>
+          <div class="summary-item">
+            <strong>Field Mappings:</strong> {{ config.field_mappings.length }} fields configured
+          </div>
+          <div class="summary-item">
+            <strong>Active Mappings:</strong>
+            {{ getActiveConfigMappings().length }}
+          </div>
+          <div class="summary-item">
+            <strong>Default Status:</strong> {{ config.default_status }}
+          </div>
+          <div class="summary-item">
+            <strong>Sync on Import:</strong> {{ config.sync_on_import ? 'Yes' : 'No' }}
+          </div>
+          <div class="summary-item">
+            <strong>Update Existing:</strong> {{ config.update_existing ? 'Yes' : 'No' }}
+          </div>
+        </div>
+
+        <mat-divider></mat-divider>
+
+        <h4>Field Mappings:</h4>
+        <mat-list>
+          <mat-list-item *ngFor="let mapping of getActiveConfigMappings()">
+            <span matListItemTitle>{{ mapping.pc_field_name }}</span>
+            <span matListItemLine>
+              Maps to: {{ getTargetTypeLabel(mapping.target_type) }}
+              <span *ngIf="mapping.mapping_rules">
+                ({{ mapping.mapping_rules.length }} rules)
+              </span>
+            </span>
+          </mat-list-item>
+        </mat-list>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cancel()">Cancel</button>
+  <button mat-button (click)="goBack()" *ngIf="step !== 'discover'">Back</button>
+  <button mat-raised-button color="primary" (click)="reviewConfiguration()"
+    *ngIf="step === 'configure-mappings'" [disabled]="loading">
+    Review
+  </button>
+  <button mat-raised-button color="primary" (click)="saveConfiguration()"
+    *ngIf="step === 'review'" [disabled]="loading">
+    Save Configuration
+  </button>
+</mat-dialog-actions>

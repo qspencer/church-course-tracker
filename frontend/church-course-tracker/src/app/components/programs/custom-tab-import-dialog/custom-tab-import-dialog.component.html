@@ -1,0 +1,129 @@
+<h2 mat-dialog-title>
+  Import Participants from Planning Center Custom Tab
+</h2>
+
+<mat-dialog-content>
+  <mat-progress-bar mode="indeterminate" *ngIf="importing"></mat-progress-bar>
+
+  <div *ngIf="!importComplete">
+    <!-- Configuration Info -->
+    <mat-card class="info-card">
+      <mat-card-content>
+        <div class="info-item">
+          <mat-icon>info</mat-icon>
+          <div class="info-text">
+            <strong>Program:</strong> {{ data.program.title }}
+          </div>
+        </div>
+        <div class="info-item">
+          <mat-icon>tab</mat-icon>
+          <div class="info-text">
+            <strong>Custom Tab:</strong> {{ configTabName }}
+          </div>
+        </div>
+        <div class="info-item" *ngIf="!hasConfig">
+          <mat-icon color="warn">warning</mat-icon>
+          <div class="info-text">
+            <strong>Warning:</strong> Custom tab import is not configured for this program.
+            Please configure it first.
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Import Form -->
+    <div class="import-form">
+      <p class="description">
+        Enter the Planning Center List ID to import participants. The system will automatically
+        map custom tab fields to participant data based on your configuration.
+      </p>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Planning Center List ID</mat-label>
+        <input matInput [(ngModel)]="listId" placeholder="12345" [disabled]="importing">
+        <mat-hint>Find this in the Planning Center URL when viewing the list</mat-hint>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Default Role (Optional)</mat-label>
+        <input matInput [(ngModel)]="defaultRole" [disabled]="importing"
+          placeholder="Leave empty to use mapped role from custom tab">
+        <mat-hint>Only used if no role is mapped from custom tab</mat-hint>
+      </mat-form-field>
+    </div>
+  </div>
+
+  <!-- Import Results -->
+  <div *ngIf="importComplete && importResults" class="import-results">
+    <h3>Import Results</h3>
+
+    <div class="results-summary">
+      <mat-card class="success-card">
+        <mat-card-content>
+          <div class="result-stat">
+            <mat-icon color="primary">check_circle</mat-icon>
+            <div>
+              <div class="stat-value">{{ importResults.imported.length }}</div>
+              <div class="stat-label">Successfully Imported</div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="error-card" *ngIf="importResults.errors.length > 0">
+        <mat-card-content>
+          <div class="result-stat">
+            <mat-icon color="warn">error</mat-icon>
+            <div>
+              <div class="stat-value">{{ importResults.errors.length }}</div>
+              <div class="stat-label">Errors</div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Success Details -->
+    <div *ngIf="importResults.imported.length > 0" class="details-section">
+      <h4>Successfully Imported Participants:</h4>
+      <mat-list>
+        <mat-list-item *ngFor="let item of importResults.imported.slice(0, 10)">
+          <mat-icon matListItemIcon>person</mat-icon>
+          <span matListItemTitle>{{ item.person_name }}</span>
+          <span matListItemLine>
+            Role: {{ item.role_name || 'N/A' }} | Status: {{ item.status }}
+          </span>
+        </mat-list-item>
+      </mat-list>
+      <p *ngIf="importResults.imported.length > 10" class="more-items">
+        ... and {{ importResults.imported.length - 10 }} more
+      </p>
+    </div>
+
+    <!-- Error Details -->
+    <div *ngIf="importResults.errors.length > 0" class="details-section error-details">
+      <h4>Errors:</h4>
+      <mat-list>
+        <mat-list-item *ngFor="let item of importResults.errors.slice(0, 5)">
+          <mat-icon matListItemIcon color="warn">error_outline</mat-icon>
+          <span matListItemTitle>{{ item.person_name }}</span>
+          <span matListItemLine>{{ item.error }}</span>
+        </mat-list-item>
+      </mat-list>
+      <p *ngIf="importResults.errors.length > 5" class="more-items">
+        ... and {{ importResults.errors.length - 5 }} more errors
+      </p>
+    </div>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="close()">Close</button>
+  <button mat-button (click)="reset()" *ngIf="importComplete" color="primary">
+    Import Another List
+  </button>
+  <button mat-raised-button color="primary" (click)="startImport()"
+    *ngIf="!importComplete" [disabled]="importing || !listId.trim() || !hasConfig">
+    {{ importing ? 'Importing...' : 'Start Import' }}
+  </button>
+</mat-dialog-actions>

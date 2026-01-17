@@ -23,6 +23,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatListModule } from '@angular/material/list';
 
 import { ProgramsComponent } from './programs.component';
 import { ProgramDialogComponent } from './program-dialog/program-dialog.component';
@@ -34,6 +35,8 @@ import { SessionDialogComponent } from './session-dialog/session-dialog.componen
 import { SessionsManagementComponent } from './sessions-management/sessions-management.component';
 import { ProgressDialogComponent } from './progress-dialog/progress-dialog.component';
 import { ProgressManagementComponent } from './progress-management/progress-management.component';
+import { CustomTabConfigDialogComponent } from './custom-tab-config-dialog/custom-tab-config-dialog.component';
+import { CustomTabImportDialogComponent } from './custom-tab-import-dialog/custom-tab-import-dialog.component';
 import { SharedModule } from '../../shared/shared.module';
 import { PCImportDialogModule } from '../courses/pc-import-dialog/pc-import-dialog.module';
 
@@ -52,7 +55,9 @@ const routes: Routes = [
     SessionDialogComponent,
     SessionsManagementComponent,
     ProgressDialogComponent,
-    ProgressManagementComponent
+    ProgressManagementComponent,
+    CustomTabConfigDialogComponent,
+    CustomTabImportDialogComponent
   ],
   imports: [
     CommonModule,
@@ -79,6 +84,7 @@ const routes: Routes = [
     MatDatepickerModule,
     MatNativeDateModule,
     MatAutocompleteModule,
+    MatListModule,
     SharedModule,
     PCImportDialogModule
   ]
