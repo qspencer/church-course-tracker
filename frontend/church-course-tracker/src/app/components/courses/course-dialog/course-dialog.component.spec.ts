@@ -500,7 +500,7 @@ describe('CourseDialogComponent', () => {
 
     beforeEach(() => {
       const importData = {
-        sourceType: 'event',
+        sourceType: 'event' as const,
         sourceId: 'pc_event_123',
         previewData: {
           title: 'Imported Course',
