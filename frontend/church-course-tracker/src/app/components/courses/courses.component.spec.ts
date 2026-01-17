@@ -123,7 +123,7 @@ describe('CoursesComponent', () => {
 
       component.loadCourses();
 
-      expect(console.error).toHaveBeenCalledWith('Error loading courses:', jasmine.any(Error));
+      expect(console.error).toHaveBeenCalledWith('[ERROR] Error loading courses', jasmine.any(Error), '');
       expect(component.isLoading).toBe(false);
     });
   });
@@ -214,7 +214,7 @@ describe('CoursesComponent', () => {
 
       component.deleteCourse(mockCourses[0]);
 
-      expect(console.error).toHaveBeenCalledWith('Error deleting course:', jasmine.any(Error));
+      expect(console.error).toHaveBeenCalledWith('[ERROR] Error deleting course', jasmine.any(Error), '');
     });
   });
 
@@ -236,7 +236,7 @@ describe('CoursesComponent', () => {
 
       component.toggleCourseStatus(mockCourses[0]);
 
-      expect(console.error).toHaveBeenCalledWith('Error updating course status:', jasmine.any(Error));
+      expect(console.error).toHaveBeenCalledWith('[ERROR] Error updating course status', jasmine.any(Error), '');
     });
   });
 

@@ -117,7 +117,7 @@ describe('MembersComponent', () => {
 
       component.loadMembers();
 
-      expect(console.error).toHaveBeenCalledWith('Error loading members:', jasmine.any(Error));
+      expect(console.error).toHaveBeenCalledWith('[ERROR] Error loading members', jasmine.any(Error), '');
       expect(component.isLoading).toBe(false);
     });
   });
@@ -202,7 +202,7 @@ describe('MembersComponent', () => {
 
       component.deleteMember(mockMembers[0]);
 
-      expect(console.error).toHaveBeenCalledWith('Error deleting member:', jasmine.any(Error));
+      expect(console.error).toHaveBeenCalledWith('[ERROR] Error deleting member', jasmine.any(Error), '');
     });
   });
 
@@ -273,7 +273,7 @@ describe('MembersComponent', () => {
 
       component.viewMemberEnrollments(mockMembers[0]);
 
-      expect(console.error).toHaveBeenCalledWith('Error loading member enrollments:', jasmine.any(Error));
+      expect(console.error).toHaveBeenCalledWith('[ERROR] Error loading member enrollments', jasmine.any(Error), '');
     });
   });
 

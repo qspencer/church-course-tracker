@@ -190,7 +190,7 @@ describe('DashboardComponent', () => {
 
       component.loadDashboardData();
 
-      expect(console.error).toHaveBeenCalledWith('Error loading dashboard stats:', jasmine.any(Error));
+      expect(console.error).toHaveBeenCalledWith('[ERROR] Error loading dashboard stats', jasmine.any(Error), '');
       expect(component.isLoading).toBe(false);
     });
 
@@ -200,7 +200,7 @@ describe('DashboardComponent', () => {
 
       component.loadDashboardData();
 
-      expect(console.error).toHaveBeenCalledWith('Error loading recent courses:', jasmine.any(Error));
+      expect(console.error).toHaveBeenCalledWith('[ERROR] Error loading recent courses', jasmine.any(Error), '');
     });
 
     it('should handle enrollments loading error', () => {
@@ -209,7 +209,7 @@ describe('DashboardComponent', () => {
 
       component.loadDashboardData();
 
-      expect(console.error).toHaveBeenCalledWith('Error loading recent enrollments:', jasmine.any(Error));
+      expect(console.error).toHaveBeenCalledWith('[ERROR] Error loading recent enrollments', jasmine.any(Error), '');
     });
   });
 
@@ -238,7 +238,7 @@ describe('DashboardComponent', () => {
 
       component['loadCompletionTrends']();
 
-      expect(console.error).toHaveBeenCalledWith('Error loading completion trends:', jasmine.any(Error));
+      expect(console.error).toHaveBeenCalledWith('[ERROR] Error loading completion trends', jasmine.any(Error), '');
     });
   });
 
@@ -347,7 +347,7 @@ describe('DashboardComponent', () => {
       component.viewMode = 'programs';
       component['loadProgramsData']();
 
-      expect(console.error).toHaveBeenCalledWith('Error loading programs:', jasmine.any(Error));
+      expect(console.error).toHaveBeenCalledWith('[ERROR] Error loading programs', jasmine.any(Error), '');
     });
   });
 

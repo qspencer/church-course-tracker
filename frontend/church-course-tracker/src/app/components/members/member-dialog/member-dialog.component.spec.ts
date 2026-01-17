@@ -185,7 +185,7 @@ describe('MemberDialogComponent', () => {
 
       component.onSubmit();
 
-      expect(consoleErrorSpy).toHaveBeenCalledWith('Error updating member:', jasmine.any(Error));
+      expect(consoleErrorSpy).toHaveBeenCalledWith('[ERROR] Error updating member', jasmine.any(Error), '');
       expect(component.isLoading).toBe(false);
     });
   });
@@ -226,7 +226,7 @@ describe('MemberDialogComponent', () => {
 
       component.onSubmit();
 
-      expect(console.error).toHaveBeenCalledWith('Error creating member:', jasmine.any(Error));
+      expect(console.error).toHaveBeenCalledWith('[ERROR] Error creating member', jasmine.any(Error), '');
       expect(component.isLoading).toBe(false);
     });
   });

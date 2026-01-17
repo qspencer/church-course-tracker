@@ -189,7 +189,7 @@ describe('UserDialogComponent', () => {
       expect(snackBar.open).toHaveBeenCalledWith(
         'Error creating user',
         'Close',
-        { duration: 3000 }
+        { duration: 5000 }
       );
       expect(dialogRef.close).not.toHaveBeenCalled();
     });
@@ -204,7 +204,7 @@ describe('UserDialogComponent', () => {
       expect(snackBar.open).toHaveBeenCalledWith(
         'Error updating user',
         'Close',
-        { duration: 3000 }
+        { duration: 5000 }
       );
       expect(dialogRef.close).not.toHaveBeenCalled();
     });

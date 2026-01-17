@@ -321,7 +321,7 @@ describe('ParticipantDialogComponent', () => {
       component.loadMembers();
 
       expect(component.isLoading).toBe(false);
-      expect(snackBarSpy.open).toHaveBeenCalledWith('Error loading members', 'Close', { duration: 3000 });
+      expect(snackBarSpy.open).toHaveBeenCalledWith('Error loading members', 'Close', { duration: 5000 });
     });
   });
 
@@ -447,7 +447,7 @@ describe('ParticipantDialogComponent', () => {
       component.onSubmit();
 
       expect(component.isLoading).toBe(false);
-      expect(snackBarSpy.open).toHaveBeenCalledWith('Error adding participant', 'Close', { duration: 3000 });
+      expect(snackBarSpy.open).toHaveBeenCalledWith('Error adding participant', 'Close', { duration: 5000 });
     });
 
     it('should handle update error', () => {
@@ -495,7 +495,7 @@ describe('ParticipantDialogComponent', () => {
       newComponent.onSubmit();
 
       expect(newComponent.isLoading).toBe(false);
-      expect(matSnackBarSpy.open).toHaveBeenCalledWith('Error updating participant', 'Close', { duration: 3000 });
+      expect(matSnackBarSpy.open).toHaveBeenCalledWith('Error updating participant', 'Close', { duration: 5000 });
     });
   });
 
