@@ -94,7 +94,17 @@ export class ErrorInterceptor implements HttpInterceptor {
           });
         }
 
-        return throwError(() => error);
+        // Create a proper Error object for better error tracking in Sentry
+        // Instead of throwing the raw HttpErrorResponse object
+        const httpError = new Error(errorMessage);
+        httpError.name = `HttpError_${error.status}`;
+        (httpError as any).status = error.status;
+        (httpError as any).statusText = error.statusText;
+        (httpError as any).url = error.url;
+        (httpError as any).error = error.error; // Preserve response body for component error handling
+        (httpError as any).originalError = error;
+
+        return throwError(() => httpError);
       })
     );
   }
