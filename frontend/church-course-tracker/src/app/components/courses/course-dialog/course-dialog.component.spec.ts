@@ -230,7 +230,7 @@ describe('CourseDialogComponent', () => {
 
       component.onSubmit();
 
-      expect(console.error).toHaveBeenCalledWith('[ERROR] Error updating course', jasmine.any(Error), '');
+      expect(console.error).toHaveBeenCalledWith('[ERROR] Error updating course', jasmine.any(Error), jasmine.any(Object));
       expect(component.isLoading).toBe(false);
     });
   });
@@ -267,7 +267,7 @@ describe('CourseDialogComponent', () => {
 
       component.onSubmit();
 
-      expect(console.error).toHaveBeenCalledWith('[ERROR] Error creating course', jasmine.any(Error), '');
+      expect(console.error).toHaveBeenCalledWith('[ERROR] Error creating course', jasmine.any(Error), jasmine.any(Object));
       expect(component.isLoading).toBe(false);
     });
   });
