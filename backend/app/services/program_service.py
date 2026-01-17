@@ -1040,33 +1040,21 @@ class ProgramService:
     ) -> List[ProgramParticipantModel]:
         """
         Bulk import participants from a Planning Center List
-        
+
         Args:
             program_id: The program to add participants to
             pc_list_id: Planning Center list ID to get people from
             role_name: The role name for imported participants
             created_by: User creating the participants
             update_existing: Whether to update existing participants (default: True)
-        
+
         Returns:
             List of created/updated participants
         """
         from app.services.planning_center_sync_service import PlanningCenterSyncService
-        
-        # Validate program exists
-        program = self.get_program(program_id)
-        if not program:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Program with ID {program_id} not found"
-            )
 
-        # Validate role name
-        if not self.validate_role_name(program_id, role_name):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Invalid role name '{role_name}' for this program"
-            )
+        # Validate request
+        self._validate_bulk_import_request(program_id, role_name)
 
         # Get list members from Planning Center
         pc_service = PlanningCenterSyncService(self.db)
@@ -1084,71 +1072,18 @@ class ProgramService:
                 detail=f"No people found in Planning Center list '{pc_list_id}'"
             )
 
-        participants = []
-        errors = []
-        
-        for pc_person in pc_people:
-            try:
-                pc_person_id = pc_person.get('id')
-                if not pc_person_id:
-                    continue
-
-                # Get local people_id
-                try:
-                    people_id = self._get_people_id_from_pc_person_id(pc_person_id)
-                except HTTPException:
-                    # If person not found locally, sync them first
-                    try:
-                        people_service = PeopleService(self.db)
-                        people_service.sync_from_planning_center(pc_person, updated_by=created_by)
-                        people_id = self._get_people_id_from_pc_person_id(pc_person_id)
-                    except Exception as sync_error:
-                        errors.append(f"Person {pc_person_id}: Failed to sync - {str(sync_error)}")
-                        continue
-
-                # Check if participant already exists
-                existing = (
-                    self.db.query(ProgramParticipantModel)
-                    .filter(
-                        ProgramParticipantModel.program_id == program_id,
-                        ProgramParticipantModel.people_id == people_id,
-                        ProgramParticipantModel.status == "active",
-                    )
-                    .first()
-                )
-                
-                if existing:
-                    if update_existing:
-                        # Update existing participant's role if different
-                        if existing.role_name != role_name:
-                            existing.role_name = role_name
-                            existing.updated_by = created_by
-                            self.db.commit()
-                            self.db.refresh(existing)
-                        participants.append(existing)
-                    # If not updating existing, skip
-                else:
-                    # Create new participant
-                    participant_data = ProgramParticipantCreate(
-                        program_id=program_id,
-                        people_id=people_id,
-                        role_name=role_name,
-                        start_date=datetime.now(timezone.utc),
-                        status="active",
-                    )
-                    participant, error = self.add_participant(participant_data, created_by=created_by)
-                    if participant:
-                        participants.append(participant)
-                    elif error:
-                        errors.append(f"Person {pc_person_id}: {error}")
-            except Exception as e:
-                errors.append(f"Person {pc_person.get('id', 'unknown')}: {str(e)}")
-                continue
+        # Bulk import
+        participants, errors = self._bulk_import_from_pc_people_list(
+            program_id=program_id,
+            pc_people=pc_people,
+            role_name=role_name,
+            created_by=created_by,
+            update_existing=update_existing,
+            extract_person_id_fn=None,  # Use default extraction
+            allow_sync=True  # Auto-sync people not found locally
+        )
 
         if errors:
-            # Log errors but still return successful participants
-            import logging
-            logger = logging.getLogger(__name__)
             logger.warning(f"Bulk import from PC list had {len(errors)} errors: {errors}")
 
         return participants
