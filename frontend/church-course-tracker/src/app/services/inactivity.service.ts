@@ -2,7 +2,7 @@ import { Injectable, OnDestroy } from '@angular/core';
 import { Subject, Observable, fromEvent, merge } from 'rxjs';
 import { debounceTime, takeUntil } from 'rxjs/operators';
 import { AuthService } from './auth.service';
-import { MatDialog } from '@angular/material/dialog';
+import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { InactivityWarningDialogComponent } from '../components/inactivity-warning-dialog/inactivity-warning-dialog.component';
 import { LoggerService } from './logger.service';
 
@@ -14,9 +14,9 @@ export class InactivityService implements OnDestroy {
   private readonly WARNING_TIME = 2 * 60 * 1000; // Show warning 2 minutes before logout
   private readonly ACTIVITY_DEBOUNCE = 1000; // Debounce activity events by 1 second
 
-  private inactivityTimer: any;
-  private warningTimer: any;
-  private warningDialogRef: any;
+  private inactivityTimer: ReturnType<typeof setTimeout> | null = null;
+  private warningTimer: ReturnType<typeof setTimeout> | null = null;
+  private warningDialogRef: MatDialogRef<InactivityWarningDialogComponent> | null = null;
   private destroy$ = new Subject<void>();
   private lastActivityTime: number = Date.now();
 
@@ -139,7 +139,7 @@ export class InactivityService implements OnDestroy {
       }
     });
 
-    this.warningDialogRef.afterClosed().subscribe((result: any) => {
+    this.warningDialogRef.afterClosed().subscribe((result: string | undefined) => {
       this.warningDialogRef = null;
       if (result === 'stay') {
         // User clicked "Stay Logged In", reset timer

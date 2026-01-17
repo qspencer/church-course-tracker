@@ -2,8 +2,8 @@ export interface AuditLogBase {
   table_name: string;
   record_id: number;
   action: 'insert' | 'update' | 'delete';
-  old_values?: { [key: string]: any };
-  new_values?: { [key: string]: any };
+  old_values?: Record<string, unknown>;
+  new_values?: Record<string, unknown>;
   changed_by?: number;
   ip_address?: string;
   user_agent?: string;
@@ -92,12 +92,12 @@ export function getTableDisplayName(tableName: string): string {
     .join(' ');
 }
 
-export function formatAuditValues(values: { [key: string]: any } | undefined): string {
+export function formatAuditValues(values: Record<string, unknown> | undefined): string {
   if (!values) return '';
-  
+
   const formatted = Object.entries(values)
     .map(([key, value]) => `${key}: ${JSON.stringify(value)}`)
     .join(', ');
-  
+
   return formatted.length > 100 ? formatted.substring(0, 100) + '...' : formatted;
 }
