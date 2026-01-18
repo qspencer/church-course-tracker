@@ -435,15 +435,43 @@ resource "aws_instance" "nat" {
   
   user_data = <<-EOF
               #!/bin/bash
-              # Enable IP forwarding
+              # Enable IP forwarding immediately
               echo 1 > /proc/sys/net/ipv4/ip_forward
-              # Make it persistent
-              echo 'net.ipv4.ip_forward = 1' >> /etc/sysctl.conf
-              sysctl -p
+
+              # Make IP forwarding persistent across reboots
+              cat >> /etc/sysctl.d/99-nat.conf << 'SYSCTL'
+              net.ipv4.ip_forward = 1
+              SYSCTL
+              sysctl -p /etc/sysctl.d/99-nat.conf
+
               # Configure iptables for NAT
               iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+
+              # Install iptables-services for persistence (Amazon Linux 2)
+              yum install -y iptables-services
+              systemctl enable iptables
+              systemctl start iptables
+
               # Save iptables rules
-              service iptables save || true
+              iptables-save > /etc/sysconfig/iptables
+
+              # Create a systemd service to restore NAT on boot (backup method)
+              cat > /etc/systemd/system/nat-setup.service << 'SERVICE'
+              [Unit]
+              Description=NAT Instance Setup
+              After=network.target
+
+              [Service]
+              Type=oneshot
+              ExecStart=/bin/bash -c 'echo 1 > /proc/sys/net/ipv4/ip_forward && iptables -t nat -C POSTROUTING -o eth0 -j MASQUERADE 2>/dev/null || iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE'
+              RemainAfterExit=yes
+
+              [Install]
+              WantedBy=multi-user.target
+              SERVICE
+
+              systemctl daemon-reload
+              systemctl enable nat-setup.service
               EOF
   
   tags = {
@@ -596,6 +624,106 @@ resource "aws_route53_record" "api_quentinspencer_com" {
     name                   = aws_apigatewayv2_domain_name.main.domain_name_configuration[0].target_domain_name
     zone_id                = aws_apigatewayv2_domain_name.main.domain_name_configuration[0].hosted_zone_id
     evaluate_target_health = false
+  }
+}
+
+# VPC Endpoints for AWS Services (reduces NAT dependency and improves reliability)
+# Security Group for VPC Endpoints
+resource "aws_security_group" "vpc_endpoints" {
+  name_prefix = "${var.app_name}-vpc-endpoints-"
+  vpc_id      = module.vpc.vpc_id
+  description = "Security group for VPC endpoints"
+
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = [module.vpc.vpc_cidr_block]
+    description = "Allow HTTPS from VPC"
+  }
+
+  tags = {
+    Name        = "${var.app_name}-vpc-endpoints-sg"
+    Environment = var.environment
+    Application = var.app_name
+  }
+}
+
+# Secrets Manager VPC Endpoint
+resource "aws_vpc_endpoint" "secretsmanager" {
+  vpc_id              = module.vpc.vpc_id
+  service_name        = "com.amazonaws.${var.aws_region}.secretsmanager"
+  vpc_endpoint_type   = "Interface"
+  subnet_ids          = module.vpc.private_subnets
+  security_group_ids  = [aws_security_group.vpc_endpoints.id]
+  private_dns_enabled = true
+
+  tags = {
+    Name        = "${var.app_name}-secretsmanager-endpoint"
+    Environment = var.environment
+    Application = var.app_name
+  }
+}
+
+# ECR API VPC Endpoint
+resource "aws_vpc_endpoint" "ecr_api" {
+  vpc_id              = module.vpc.vpc_id
+  service_name        = "com.amazonaws.${var.aws_region}.ecr.api"
+  vpc_endpoint_type   = "Interface"
+  subnet_ids          = module.vpc.private_subnets
+  security_group_ids  = [aws_security_group.vpc_endpoints.id]
+  private_dns_enabled = true
+
+  tags = {
+    Name        = "${var.app_name}-ecr-api-endpoint"
+    Environment = var.environment
+    Application = var.app_name
+  }
+}
+
+# ECR DKR VPC Endpoint (for docker pull)
+resource "aws_vpc_endpoint" "ecr_dkr" {
+  vpc_id              = module.vpc.vpc_id
+  service_name        = "com.amazonaws.${var.aws_region}.ecr.dkr"
+  vpc_endpoint_type   = "Interface"
+  subnet_ids          = module.vpc.private_subnets
+  security_group_ids  = [aws_security_group.vpc_endpoints.id]
+  private_dns_enabled = true
+
+  tags = {
+    Name        = "${var.app_name}-ecr-dkr-endpoint"
+    Environment = var.environment
+    Application = var.app_name
+  }
+}
+
+# S3 VPC Endpoint (Gateway type, required for ECR image layers)
+resource "aws_vpc_endpoint" "s3" {
+  vpc_id            = module.vpc.vpc_id
+  service_name      = "com.amazonaws.${var.aws_region}.s3"
+  vpc_endpoint_type = "Gateway"
+  route_table_ids   = module.vpc.private_route_table_ids
+
+  tags = {
+    Name        = "${var.app_name}-s3-endpoint"
+    Environment = var.environment
+    Application = var.app_name
+  }
+}
+
+# CloudWatch Logs VPC Endpoint (for container logs)
+resource "aws_vpc_endpoint" "logs" {
+  vpc_id              = module.vpc.vpc_id
+  service_name        = "com.amazonaws.${var.aws_region}.logs"
+  vpc_endpoint_type   = "Interface"
+  subnet_ids          = module.vpc.private_subnets
+  security_group_ids  = [aws_security_group.vpc_endpoints.id]
+  private_dns_enabled = true
+
+  tags = {
+    Name        = "${var.app_name}-logs-endpoint"
+    Environment = var.environment
+    Application = var.app_name
   }
 }
 
