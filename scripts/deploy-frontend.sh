@@ -60,13 +60,13 @@ echo -e "${GREEN}📦 Deploying frontend to S3: ${S3_BUCKET}${NC}"
 # Build frontend (always rebuild to ensure version is included)
 echo -e "${GREEN}🔨 Building frontend with version ${NEW_VERSION}...${NC}"
 cd "$PROJECT_ROOT/frontend/church-course-tracker"
-npm run build -- --configuration=production
+npm run build -- --configuration=production --base-href=/churchcoursetracker/
 
 FRONTEND_DIST="$PROJECT_ROOT/frontend/church-course-tracker/dist/church-course-tracker"
 
 # Deploy index.html with no-cache (always fetch fresh)
 echo -e "${GREEN}📄 Deploying index.html (no-cache)...${NC}"
-aws s3 cp "$FRONTEND_DIST/index.html" "s3://$S3_BUCKET/index.html" \
+aws s3 cp "$FRONTEND_DIST/index.html" "s3://$S3_BUCKET/churchcoursetracker/index.html" \
     --cache-control "no-cache, no-store, must-revalidate" \
     --content-type "text/html" \
     --metadata-directive REPLACE
@@ -74,7 +74,7 @@ aws s3 cp "$FRONTEND_DIST/index.html" "s3://$S3_BUCKET/index.html" \
 # Deploy all other files (hashed JS/CSS) with long-term cache
 # Hashed files can be cached indefinitely since the hash changes when content changes
 echo -e "${GREEN}📦 Deploying assets (long-term cache)...${NC}"
-aws s3 sync "$FRONTEND_DIST/" "s3://$S3_BUCKET/" \
+aws s3 sync "$FRONTEND_DIST/" "s3://$S3_BUCKET/churchcoursetracker/" \
     --exclude "index.html" \
     --cache-control "public, max-age=31536000, immutable" \
     --delete
@@ -88,7 +88,7 @@ if [ -n "$CLOUDFRONT_ID" ]; then
     echo -e "${GREEN}🔄 Invalidating CloudFront cache...${NC}"
     INVALIDATION_ID=$(aws cloudfront create-invalidation \
         --distribution-id "$CLOUDFRONT_ID" \
-        --paths "/*" \
+        --paths "/churchcoursetracker/*" \
         --query 'Invalidation.Id' \
         --output text)
     
