@@ -87,7 +87,9 @@ app.add_middleware(
         "X-CSRF-Token",
         "X-API-Key",
         "X-Forwarded-For",
-        "X-Real-IP"
+        "X-Real-IP",
+        "sentry-trace",
+        "baggage",
     ],
     expose_headers=[
         "X-Total-Count",

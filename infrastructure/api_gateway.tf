@@ -20,10 +20,22 @@ resource "aws_apigatewayv2_api" "main" {
   description   = "API Gateway for Church Course Tracker Backend"
 
   cors_configuration {
-    allow_origins = ["https://apps.quentinspencer.com", "http://localhost:4200"]
-    allow_methods = ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"]
-    allow_headers = ["*"]
-    max_age       = 3600
+    allow_origins     = ["https://apps.quentinspencer.com", "http://localhost:4200"]
+    allow_methods     = ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"]
+    allow_headers     = [
+      "Content-Type",
+      "Authorization",
+      "Accept",
+      "Accept-Language",
+      "Content-Language",
+      "X-Requested-With",
+      "X-CSRF-Token",
+      "X-API-Key",
+      "sentry-trace",
+      "baggage"
+    ]
+    allow_credentials = true
+    max_age           = 3600
   }
 
   tags = {
