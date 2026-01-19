@@ -62,7 +62,7 @@
       </mat-form-field>
 
       <!-- Content Completion Fields -->
-      <div *ngIf="progressForm.get('progress_type')?.value === 'content_completion'" class="progress-type-fields">
+      <div [hidden]="progressForm.get('progress_type')?.value !== 'content_completion'" class="progress-type-fields">
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Content ID</mat-label>
           <input matInput type="number" formControlName="content_id" min="1">
@@ -85,7 +85,7 @@
       </div>
 
       <!-- Session Completion Fields -->
-      <div *ngIf="progressForm.get('progress_type')?.value === 'session_completion'" class="progress-type-fields">
+      <div [hidden]="progressForm.get('progress_type')?.value !== 'session_completion'" class="progress-type-fields">
         <mat-form-field appearance="outline" class="full-width" floatLabel="always">
           <mat-label>Session</mat-label>
           <mat-select formControlName="session_id">
@@ -100,7 +100,7 @@
       </div>
 
       <!-- Milestone Fields -->
-      <div *ngIf="progressForm.get('progress_type')?.value === 'milestone'" class="progress-type-fields">
+      <div [hidden]="progressForm.get('progress_type')?.value !== 'milestone'" class="progress-type-fields">
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Milestone Name</mat-label>
           <input matInput formControlName="milestone_name">

@@ -30,7 +30,7 @@
       </mat-error>
     </mat-form-field>
 
-    <mat-form-field appearance="outline" class="full-width" *ngIf="data.modules.length > 0" floatLabel="always">
+    <mat-form-field appearance="outline" class="full-width" [hidden]="data.modules.length === 0" floatLabel="always">
       <mat-label>Module (Optional)</mat-label>
       <mat-select formControlName="module_id">
         <mat-option [value]="null">None</mat-option>
@@ -40,8 +40,8 @@
       </mat-select>
     </mat-form-field>
 
-    <mat-form-field appearance="outline" class="full-width" 
-                    *ngIf="contentForm.get('content_type')?.value === ContentType.EXTERNAL_LINK">
+    <mat-form-field appearance="outline" class="full-width"
+                    [hidden]="contentForm.get('content_type')?.value !== ContentType.EXTERNAL_LINK">
       <mat-label>External URL</mat-label>
       <input matInput formControlName="external_url" type="url">
       <mat-error *ngIf="shouldShowError('external_url')">
@@ -49,8 +49,8 @@
       </mat-error>
     </mat-form-field>
 
-    <mat-form-field appearance="outline" class="full-width" 
-                    *ngIf="contentForm.get('content_type')?.value === ContentType.EMBEDDED" floatLabel="always">
+    <mat-form-field appearance="outline" class="full-width"
+                    [hidden]="contentForm.get('content_type')?.value !== ContentType.EMBEDDED" floatLabel="always">
       <mat-label>Embedded Content</mat-label>
       <textarea matInput formControlName="embedded_content" rows="5"></textarea>
       <mat-error *ngIf="shouldShowError('embedded_content')">
@@ -58,8 +58,8 @@
       </mat-error>
     </mat-form-field>
 
-    <div class="file-upload-section" 
-         *ngIf="requiresFile(contentForm.get('content_type')?.value)">
+    <div class="file-upload-section"
+         [hidden]="!requiresFile(contentForm.get('content_type')?.value)">
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>{{ isEditing ? 'Replace File' : 'File Upload' }}</mat-label>
         <div class="file-upload-container" *ngIf="isEditing && data.content?.file_name">

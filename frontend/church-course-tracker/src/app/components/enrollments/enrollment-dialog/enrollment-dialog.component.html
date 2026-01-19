@@ -83,7 +83,7 @@
     </div>
 
     <form *ngIf="!viewMode && !isLoading" [formGroup]="enrollmentForm" class="enrollment-form">
-      <mat-form-field appearance="outline" class="full-width" *ngIf="!isEditing">
+      <mat-form-field appearance="outline" class="full-width" [hidden]="isEditing">
         <mat-label>Student</mat-label>
         <mat-select formControlName="person_id">
           <mat-option *ngFor="let member of members" [value]="member.id">
@@ -95,7 +95,7 @@
         <mat-error>{{ getErrorMessage('person_id') }}</mat-error>
       </mat-form-field>
 
-      <mat-form-field appearance="outline" class="full-width" *ngIf="!isEditing">
+      <mat-form-field appearance="outline" class="full-width" [hidden]="isEditing">
         <mat-label>Course</mat-label>
         <mat-select formControlName="course_id">
           <mat-option *ngFor="let course of courses" [value]="course.id">

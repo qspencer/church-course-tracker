@@ -27,7 +27,7 @@
       </mat-select>
     </mat-form-field>
 
-    <mat-form-field appearance="outline" class="full-width" *ngIf="data.modules.length > 0" floatLabel="always">
+    <mat-form-field appearance="outline" class="full-width" [hidden]="data.modules.length === 0" floatLabel="always">
       <mat-label>Category (Optional)</mat-label>
       <mat-select formControlName="module_id">
         <mat-option [value]="null">None</mat-option>
@@ -37,8 +37,8 @@
       </mat-select>
     </mat-form-field>
 
-    <mat-form-field appearance="outline" class="full-width" 
-                    *ngIf="contentForm.get('content_type')?.value === ContentType.EXTERNAL_LINK">
+    <mat-form-field appearance="outline" class="full-width"
+                    [hidden]="contentForm.get('content_type')?.value !== ContentType.EXTERNAL_LINK">
       <mat-label>External URL</mat-label>
       <input matInput formControlName="external_url" type="url">
       <mat-error *ngIf="shouldShowError('external_url')">
@@ -46,8 +46,8 @@
       </mat-error>
     </mat-form-field>
 
-    <mat-form-field appearance="outline" class="full-width" 
-                    *ngIf="contentForm.get('content_type')?.value === ContentType.EMBEDDED" floatLabel="always">
+    <mat-form-field appearance="outline" class="full-width"
+                    [hidden]="contentForm.get('content_type')?.value !== ContentType.EMBEDDED" floatLabel="always">
       <mat-label>Embedded Content</mat-label>
       <textarea matInput formControlName="embedded_content" rows="5"></textarea>
       <mat-error *ngIf="shouldShowError('embedded_content')">
