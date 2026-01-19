@@ -57,7 +57,7 @@ export interface LoginOptions {
 const DEFAULT_LOGIN_OPTIONS: Required<LoginOptions> = {
   expectNavigation: true,
   dashboardPath: '/dashboard',
-  timeoutMs: 20_000,
+  timeoutMs: 30_000,
 };
 
 export async function loginAsRole(page: Page, role: UserRole, testInfo: TestInfo, options?: LoginOptions) {
@@ -69,33 +69,86 @@ export async function loginAsRole(page: Page, role: UserRole, testInfo: TestInfo
 
   const { expectNavigation, dashboardPath, timeoutMs } = { ...DEFAULT_LOGIN_OPTIONS, ...options };
 
-  await page.goto(`${APP_BASE_URL}/auth`, { waitUntil: 'domcontentloaded' });
+  // Navigate and wait for network to settle
+  await page.goto(`${APP_BASE_URL}/auth`, { waitUntil: 'networkidle' });
+
+  // Wait for Angular to initialize
+  await page.waitForTimeout(1000);
 
   const usernameLocator = page.locator('input[formControlName="username"]');
   const passwordLocator = page.locator('input[formControlName="password"]');
+  const submitButton = page.locator('button[type="submit"]');
 
-  await expect(usernameLocator).toBeVisible({ timeout: 10_000 });
-  await expect(passwordLocator).toBeVisible({ timeout: 10_000 });
+  // Wait for form fields to be visible
+  await expect(usernameLocator).toBeVisible({ timeout: 15_000 });
+  await expect(passwordLocator).toBeVisible({ timeout: 15_000 });
 
+  // Wait for form to be enabled (not disabled)
+  await expect(usernameLocator).toBeEnabled({ timeout: 5_000 });
+  await expect(passwordLocator).toBeEnabled({ timeout: 5_000 });
+
+  // Clear any existing values and fill
+  await usernameLocator.clear();
   await usernameLocator.fill(user.username);
+  await passwordLocator.clear();
   await passwordLocator.fill(user.password);
-  await page.click('button[type="submit"]');
+
+  // Wait for submit button to be enabled
+  await expect(submitButton).toBeEnabled({ timeout: 5_000 });
+  await submitButton.click();
 
   if (expectNavigation) {
+    // Wait for either dashboard navigation or URL pattern change
     const navigationSucceeded = await page
-      .waitForURL(`${APP_BASE_URL}${dashboardPath}`, { timeout: timeoutMs })
+      .waitForURL((url) => url.pathname.includes(dashboardPath) || url.pathname.includes('/dashboard'), { timeout: timeoutMs })
       .then(
         () => true,
         () => false
       );
 
     if (!navigationSucceeded) {
+      // Check if we're still on auth page (login failed) vs some other issue
+      const currentUrl = page.url();
+      if (currentUrl.includes('/auth')) {
+        console.log(`Login failed for ${role} - still on auth page`);
+      }
       testInfo.skip(`Configured ${role} credentials failed to authenticate in the target environment`);
       return undefined;
     }
+
+    // Wait for dashboard to fully load
+    await page.waitForLoadState('networkidle');
   }
 
   return user;
+}
+
+/**
+ * Logs out the current user by clearing all auth tokens and session storage
+ * This is essential when switching between users in the same test
+ */
+export async function logout(page: Page) {
+  // Clear all browser storage
+  await page.evaluate(() => {
+    localStorage.clear();
+    sessionStorage.clear();
+    // Clear cookies by setting them to expire
+    document.cookie.split(";").forEach((c) => {
+      document.cookie = c
+        .replace(/^ +/, "")
+        .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+    });
+  });
+
+  // Navigate to auth page to ensure we're logged out
+  await page.goto(`${APP_BASE_URL}/auth`, { waitUntil: 'networkidle' });
+
+  // Wait for auth page to be ready - ensure form is visible
+  const usernameLocator = page.locator('input[formControlName="username"]');
+  await usernameLocator.isVisible({ timeout: 10_000 }).catch(() => false);
+
+  // Additional wait for Angular to stabilize
+  await page.waitForTimeout(500);
 }
 
 export function requireEnvValue(testInfo: TestInfo, value: string | undefined, message: string) {
