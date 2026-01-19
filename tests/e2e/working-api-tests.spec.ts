@@ -81,8 +81,8 @@ test.describe('Working API Tests', () => {
       status = retryResponse.status();
     }
     
-    // Should reject invalid credentials (401) or be rate limited (429)
-    expect([401, 429]).toContain(status);
+    // Should reject invalid credentials (401), be rate limited (429), or account locked (423)
+    expect([401, 423, 429]).toContain(status);
     console.log(`✓ Invalid credentials properly rejected (status: ${status})`);
   });
 

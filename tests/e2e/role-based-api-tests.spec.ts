@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { API_BASE_URL } from './utils/auth';
 
 // Test data for different roles
 // Note: Using actual admin credentials that exist in production
@@ -11,7 +12,7 @@ const testUsers = {
 
 // Helper function to get auth token with rate limit handling
 async function getAuthToken(request: any, user: typeof testUsers.admin): Promise<string | null> {
-  const response = await request.post('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/auth/login', {
+  const response = await request.post(`${API_BASE_URL}/api/v1/auth/login`, {
     data: user
   });
   
@@ -21,7 +22,7 @@ async function getAuthToken(request: any, user: typeof testUsers.admin): Promise
     const waitTime = status === 503 ? 5000 : 2000;
     console.log(`⚠️ ${status === 503 ? 'Service unavailable' : 'Rate limit'} detected for ${user.username}, waiting ${waitTime}ms before retry...`);
     await new Promise(resolve => setTimeout(resolve, waitTime));
-    const retryResponse = await request.post('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/auth/login', {
+    const retryResponse = await request.post(`${API_BASE_URL}/api/v1/auth/login`, {
       data: user
     });
     if (retryResponse.status() === 200) {
@@ -32,7 +33,7 @@ async function getAuthToken(request: any, user: typeof testUsers.admin): Promise
     if (retryResponse.status() === 429 || retryResponse.status() === 503) {
       console.log(`⚠️ Still ${retryResponse.status() === 503 ? 'service unavailable' : 'rate limited'}, waiting 5 more seconds...`);
       await new Promise(resolve => setTimeout(resolve, 5000));
-      const secondRetryResponse = await request.post('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/auth/login', {
+      const secondRetryResponse = await request.post(`${API_BASE_URL}/api/v1/auth/login`, {
         data: user
       });
       if (secondRetryResponse.status() === 200) {
@@ -65,28 +66,28 @@ test.describe('Role-Based API Tests', () => {
       }
       
       // Test courses endpoint with rate limit handling
-      let coursesResponse = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/', {
+      let coursesResponse = await request.get(`${API_BASE_URL}/api/v1/courses/`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       
       // Handle rate limiting
       if (coursesResponse.status() === 429) {
         await new Promise(resolve => setTimeout(resolve, 2000));
-        coursesResponse = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/', {
+        coursesResponse = await request.get(`${API_BASE_URL}/api/v1/courses/`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
       }
       expect(coursesResponse.status()).toBe(200);
       
       // Test users endpoint with rate limit handling
-      let usersResponse = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/users/', {
+      let usersResponse = await request.get(`${API_BASE_URL}/api/v1/users/`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       
       // Handle rate limiting
       if (usersResponse.status() === 429) {
         await new Promise(resolve => setTimeout(resolve, 2000));
-        usersResponse = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/users/', {
+        usersResponse = await request.get(`${API_BASE_URL}/api/v1/users/`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
       }
@@ -99,7 +100,7 @@ test.describe('Role-Based API Tests', () => {
       const token = await getAuthToken(request, testUsers.admin);
       
       // Test user creation (if endpoint exists)
-      const createUserResponse = await request.post('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/users/', {
+      const createUserResponse = await request.post(`${API_BASE_URL}/api/v1/users/`, {
         headers: { 'Authorization': `Bearer ${token}` },
         data: {
           username: 'testuser',
@@ -117,7 +118,7 @@ test.describe('Role-Based API Tests', () => {
       const token = await getAuthToken(request, testUsers.admin);
       
       // Test audit endpoint
-      const auditResponse = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/audit/', {
+      const auditResponse = await request.get(`${API_BASE_URL}/api/v1/audit/`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       
@@ -138,7 +139,7 @@ test.describe('Role-Based API Tests', () => {
       }
       
       // Test courses endpoint
-      const coursesResponse = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/', {
+      const coursesResponse = await request.get(`${API_BASE_URL}/api/v1/courses/`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       expect(coursesResponse.status()).toBe(200);
@@ -157,7 +158,7 @@ test.describe('Role-Based API Tests', () => {
       }
       
       // Test audit endpoint (should be denied)
-      const auditResponse = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/audit/', {
+      const auditResponse = await request.get(`${API_BASE_URL}/api/v1/audit/`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       
@@ -184,7 +185,7 @@ test.describe('Role-Based API Tests', () => {
       }
       
       // Test courses endpoint (should work)
-      const coursesResponse = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/', {
+      const coursesResponse = await request.get(`${API_BASE_URL}/api/v1/courses/`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       // Allow for rate limiting (429)
@@ -204,7 +205,7 @@ test.describe('Role-Based API Tests', () => {
       }
       
       // Test users endpoint (should be denied)
-      const usersResponse = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/users/', {
+      const usersResponse = await request.get(`${API_BASE_URL}/api/v1/users/`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       
@@ -221,7 +222,7 @@ test.describe('Role-Based API Tests', () => {
 
   test.describe('Authentication and Authorization Tests', () => {
     test('Valid authentication returns token', async ({ request }) => {
-      const response = await request.post('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/auth/login', {
+      const response = await request.post(`${API_BASE_URL}/api/v1/auth/login`, {
         data: testUsers.admin
       });
       
@@ -236,7 +237,7 @@ test.describe('Role-Based API Tests', () => {
     });
 
     test('Invalid authentication is rejected', async ({ request }) => {
-      const response = await request.post('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/auth/login', {
+      const response = await request.post(`${API_BASE_URL}/api/v1/auth/login`, {
         data: { username: 'invalid', password: 'invalid' }
       });
       
@@ -245,14 +246,14 @@ test.describe('Role-Based API Tests', () => {
       if (status === 429) {
         // Wait a bit and retry
         await new Promise(resolve => setTimeout(resolve, 2000));
-        const retryResponse = await request.post('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/auth/login', {
+        const retryResponse = await request.post(`${API_BASE_URL}/api/v1/auth/login`, {
           data: { username: 'invalid', password: 'invalid' }
         });
         status = retryResponse.status();
       }
       
-      // Should reject invalid credentials (401) or be rate limited (429)
-      expect([401, 429]).toContain(status);
+      // Should reject invalid credentials (401), be rate limited (429), or account locked (423)
+      expect([401, 423, 429]).toContain(status);
       console.log(`✓ Invalid authentication properly rejected (status: ${status})`);
     });
 
@@ -263,7 +264,7 @@ test.describe('Role-Based API Tests', () => {
         throw new Error('Failed to get authentication token for admin user');
       }
       
-      let response = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/', {
+      let response = await request.get(`${API_BASE_URL}/api/v1/courses/`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       
@@ -274,7 +275,7 @@ test.describe('Role-Based API Tests', () => {
         console.log('Rate limited - waiting and retrying...');
         // Wait 2 seconds and retry
         await new Promise(resolve => setTimeout(resolve, 2000));
-        response = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/', {
+        response = await request.get(`${API_BASE_URL}/api/v1/courses/`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         expect(response.status()).toBe(200);
@@ -286,7 +287,7 @@ test.describe('Role-Based API Tests', () => {
     });
 
     test('Invalid token is rejected', async ({ request }) => {
-      const response = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/', {
+      const response = await request.get(`${API_BASE_URL}/api/v1/courses/`, {
         headers: { 'Authorization': 'Bearer invalid-token' }
       });
       
@@ -303,7 +304,7 @@ test.describe('Role-Based API Tests', () => {
 
   test.describe('API Security Tests', () => {
     test('API handles missing authentication', async ({ request }) => {
-      const response = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/');
+      const response = await request.get(`${API_BASE_URL}/api/v1/courses/`);
       
       // Should either require authentication (401) or allow public access (200)
       expect([200, 401]).toContain(response.status());
@@ -311,14 +312,14 @@ test.describe('Role-Based API Tests', () => {
     });
 
     test('API handles malformed requests', async ({ request }) => {
-      let response = await request.post('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/auth/login', {
+      let response = await request.post(`${API_BASE_URL}/api/v1/auth/login`, {
         data: { invalid: 'data' }
       });
       
       // Handle rate limiting - wait and retry
       if (response.status() === 429) {
         await new Promise(resolve => setTimeout(resolve, 2000));
-        response = await request.post('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/auth/login', {
+        response = await request.post(`${API_BASE_URL}/api/v1/auth/login`, {
           data: { invalid: 'data' }
         });
       }
@@ -329,9 +330,12 @@ test.describe('Role-Based API Tests', () => {
     });
 
     test('API rate limiting works', async ({ request }) => {
+      // This test makes 20 parallel requests - needs longer timeout
+      test.setTimeout(75000); // 75 seconds
+
       const requests = [];
       for (let i = 0; i < 20; i++) {
-        requests.push(request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/'));
+        requests.push(request.get(`${API_BASE_URL}/api/v1/courses/`));
       }
       
       const responses = await Promise.all(requests);
@@ -353,14 +357,14 @@ test.describe('Role-Based API Tests', () => {
         throw new Error('Failed to get authentication token for admin user');
       }
       
-      let response = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/', {
+      let response = await request.get(`${API_BASE_URL}/api/v1/courses/`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       
       // Handle rate limiting - wait and retry
       if (response.status() === 429) {
         await new Promise(resolve => setTimeout(resolve, 2000));
-        response = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/', {
+        response = await request.get(`${API_BASE_URL}/api/v1/courses/`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
       }
@@ -374,12 +378,12 @@ test.describe('Role-Based API Tests', () => {
     });
 
     test('API handles pagination parameters', async ({ request }) => {
-      const response = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/?limit=5&offset=0');
+      const response = await request.get(`${API_BASE_URL}/api/v1/courses/?limit=5&offset=0`);
       // Allow for rate limiting (429) - retry once if rate limited
       let status = response.status();
       if (status === 429) {
         await new Promise(resolve => setTimeout(resolve, 2000));
-        const retryResponse = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/?limit=5&offset=0');
+        const retryResponse = await request.get(`${API_BASE_URL}/api/v1/courses/?limit=5&offset=0`);
         status = retryResponse.status();
       }
       expect([200, 429]).toContain(status);
@@ -393,12 +397,12 @@ test.describe('Role-Based API Tests', () => {
     });
 
     test('API handles filtering parameters', async ({ request }) => {
-      const response = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/?active=true');
+      const response = await request.get(`${API_BASE_URL}/api/v1/courses/?active=true`);
       // Allow for rate limiting (429) - retry once if rate limited
       let status = response.status();
       if (status === 429) {
         await new Promise(resolve => setTimeout(resolve, 2000));
-        const retryResponse = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/?active=true');
+        const retryResponse = await request.get(`${API_BASE_URL}/api/v1/courses/?active=true`);
         status = retryResponse.status();
       }
       expect([200, 429]).toContain(status);
@@ -421,14 +425,14 @@ test.describe('Role-Based API Tests', () => {
       }
       
       const startTime = Date.now();
-      let response = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/', {
+      let response = await request.get(`${API_BASE_URL}/api/v1/courses/`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       
       // Handle rate limiting - wait and retry
       if (response.status() === 429) {
         await new Promise(resolve => setTimeout(resolve, 2000));
-        response = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/', {
+        response = await request.get(`${API_BASE_URL}/api/v1/courses/`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
       }
@@ -455,7 +459,7 @@ test.describe('Role-Based API Tests', () => {
         if (i > 0) {
           await new Promise(resolve => setTimeout(resolve, 100));
         }
-        requests.push(request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/', {
+        requests.push(request.get(`${API_BASE_URL}/api/v1/courses/`, {
           headers: { 'Authorization': `Bearer ${token}` }
         }));
       }
