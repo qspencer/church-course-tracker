@@ -134,19 +134,34 @@ class Settings(BaseSettings):
     # Logging
     LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")
 
-    # Admin User Configuration
-    # These can be overridden via environment variables:
-    #   ADMIN_USERNAME - Username for the default admin user (default: "Admin")
-    #   ADMIN_EMAIL - Email for the default admin user (default: "admin@example.com")
-    #   ADMIN_PASSWORD - Password for the default admin user (default: "Matthew778*")
-    #   ADMIN_FULL_NAME - Full name for the default admin user (default: "System Admin")
-    # 
+    # Default User Configuration
+    # These can be overridden via environment variables.
     # To change these, set the environment variables before running migrations or starting the server.
     # Example: export ADMIN_USERNAME="MyAdmin" ADMIN_PASSWORD="SecurePass123!"
+
+    # Admin User
     ADMIN_USERNAME: str = os.getenv("ADMIN_USERNAME", "Admin")
     ADMIN_EMAIL: str = os.getenv("ADMIN_EMAIL", "admin@example.com")
     ADMIN_PASSWORD: str = os.getenv("ADMIN_PASSWORD", "Matthew778*")
     ADMIN_FULL_NAME: str = os.getenv("ADMIN_FULL_NAME", "System Admin")
+
+    # Staff User
+    STAFF_USERNAME: str = os.getenv("STAFF_USERNAME", "Staff")
+    STAFF_EMAIL: str = os.getenv("STAFF_EMAIL", "staff@example.com")
+    STAFF_PASSWORD: str = os.getenv("STAFF_PASSWORD", "Staff123!")
+    STAFF_FULL_NAME: str = os.getenv("STAFF_FULL_NAME", "Default Staff")
+
+    # Instructor User
+    INSTRUCTOR_USERNAME: str = os.getenv("INSTRUCTOR_USERNAME", "Instructor")
+    INSTRUCTOR_EMAIL: str = os.getenv("INSTRUCTOR_EMAIL", "instructor@example.com")
+    INSTRUCTOR_PASSWORD: str = os.getenv("INSTRUCTOR_PASSWORD", "Instructor123!")
+    INSTRUCTOR_FULL_NAME: str = os.getenv("INSTRUCTOR_FULL_NAME", "Default Instructor")
+
+    # Viewer User
+    VIEWER_USERNAME: str = os.getenv("VIEWER_USERNAME", "Viewer")
+    VIEWER_EMAIL: str = os.getenv("VIEWER_EMAIL", "viewer@example.com")
+    VIEWER_PASSWORD: str = os.getenv("VIEWER_PASSWORD", "Viewer123!")
+    VIEWER_FULL_NAME: str = os.getenv("VIEWER_FULL_NAME", "Default Viewer")
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

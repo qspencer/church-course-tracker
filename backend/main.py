@@ -456,41 +456,73 @@ async def global_exception_handler(request: Request, exc: Exception):
     return response
 
 
-def ensure_admin_user():
-    """Ensure admin user exists in the database (idempotent)"""
+def ensure_default_users():
+    """Ensure all default users exist in the database (idempotent)"""
     db = SessionLocal()
     try:
-        # Get admin credentials from config
-        admin_username = settings.ADMIN_USERNAME
-        admin_email = settings.ADMIN_EMAIL
-        admin_password = settings.ADMIN_PASSWORD
-        admin_full_name = settings.ADMIN_FULL_NAME
-        
-        # Check if admin user exists
-        admin_user = db.query(User).filter(
-            (User.username == admin_username) | (User.email == admin_email)
-        ).first()
-        
-        if not admin_user:
-            logger.info(f"Admin user not found, creating '{admin_username}'...")
-            admin_user = User(
-                username=admin_username,
-                email=admin_email,
-                full_name=admin_full_name,
-                hashed_password=get_password_hash(admin_password),
-                role="admin",
-                is_active=True
-            )
-            db.add(admin_user)
-            db.commit()
-            logger.info(f"✅ Admin user created successfully ({admin_username})")
-        else:
-            logger.info(f"✅ Admin user verified (username: {admin_user.username})")
+        # Define all default users from settings
+        default_users = [
+            {
+                "username": settings.ADMIN_USERNAME,
+                "email": settings.ADMIN_EMAIL,
+                "password": settings.ADMIN_PASSWORD,
+                "full_name": settings.ADMIN_FULL_NAME,
+                "role": "admin"
+            },
+            {
+                "username": settings.STAFF_USERNAME,
+                "email": settings.STAFF_EMAIL,
+                "password": settings.STAFF_PASSWORD,
+                "full_name": settings.STAFF_FULL_NAME,
+                "role": "staff"
+            },
+            {
+                "username": settings.INSTRUCTOR_USERNAME,
+                "email": settings.INSTRUCTOR_EMAIL,
+                "password": settings.INSTRUCTOR_PASSWORD,
+                "full_name": settings.INSTRUCTOR_FULL_NAME,
+                "role": "instructor"
+            },
+            {
+                "username": settings.VIEWER_USERNAME,
+                "email": settings.VIEWER_EMAIL,
+                "password": settings.VIEWER_PASSWORD,
+                "full_name": settings.VIEWER_FULL_NAME,
+                "role": "viewer"
+            }
+        ]
+
+        for user_data in default_users:
+            # Check if user exists
+            existing_user = db.query(User).filter(
+                (User.username == user_data["username"]) | (User.email == user_data["email"])
+            ).first()
+
+            if not existing_user:
+                logger.info(f"{user_data['role'].capitalize()} user not found, creating '{user_data['username']}'...")
+                new_user = User(
+                    username=user_data["username"],
+                    email=user_data["email"],
+                    full_name=user_data["full_name"],
+                    hashed_password=get_password_hash(user_data["password"]),
+                    role=user_data["role"],
+                    is_active=True
+                )
+                db.add(new_user)
+                db.commit()
+                logger.info(f"✅ {user_data['role'].capitalize()} user created successfully ({user_data['username']})")
+            else:
+                logger.info(f"✅ {user_data['role'].capitalize()} user verified (username: {existing_user.username})")
     except Exception as e:
-        logger.error(f"Error ensuring admin user exists: {e}")
+        logger.error(f"Error ensuring default users exist: {e}")
         db.rollback()
     finally:
         db.close()
+
+
+def ensure_admin_user():
+    """Backward compatibility wrapper - calls ensure_default_users()"""
+    ensure_default_users()
 
 
 # Startup and shutdown are now handled by lifespan context manager above
