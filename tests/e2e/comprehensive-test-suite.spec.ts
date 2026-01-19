@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { API_BASE_URL } from './utils/auth';
 
 // Test data for different roles
 // Note: Using actual admin credentials that exist in production
@@ -11,7 +12,7 @@ const testUsers = {
 
 // Helper function to get auth token
 async function getAuthToken(request: any, user: typeof testUsers.admin): Promise<string> {
-  const response = await request.post('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/auth/login', {
+  const response = await request.post(`${API_BASE_URL}/api/v1/auth/login`, {
     headers: {
       'Content-Type': 'application/json'
     },
@@ -40,7 +41,7 @@ async function getAuthToken(request: any, user: typeof testUsers.admin): Promise
     const waitTime = isServiceUnavailable ? 5000 : 3000;
     console.log(`${isServiceUnavailable ? 'Service unavailable' : 'Rate limit'} detected, waiting ${waitTime}ms before retry...`);
     await new Promise(resolve => setTimeout(resolve, waitTime));
-    const retryResponse = await request.post('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/auth/login', {
+    const retryResponse = await request.post(`${API_BASE_URL}/api/v1/auth/login`, {
       headers: {
         'Content-Type': 'application/json'
       },
@@ -55,7 +56,7 @@ async function getAuthToken(request: any, user: typeof testUsers.admin): Promise
       // Still rate limited or unavailable after retry - wait longer and try once more
       console.log(`Still ${retryResponse.status() === 503 ? 'service unavailable' : 'rate limited'}, waiting 5 more seconds...`);
       await new Promise(resolve => setTimeout(resolve, 5000));
-      const secondRetryResponse = await request.post('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/auth/login', {
+      const secondRetryResponse = await request.post(`${API_BASE_URL}/api/v1/auth/login`, {
         headers: {
           'Content-Type': 'application/json'
         },
@@ -96,13 +97,13 @@ async function getAuthToken(request: any, user: typeof testUsers.admin): Promise
 test.describe('Church Course Tracker - Comprehensive Test Suite', () => {
   test.describe('API Health and Connectivity', () => {
     test('API is accessible and responding', async ({ request }) => {
-      let response = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/');
+      let response = await request.get(`${API_BASE_URL}/api/v1/courses/`);
       let status = response.status();
       
       // Handle rate limiting - retry once if needed
       if (status === 429) {
         await new Promise(resolve => setTimeout(resolve, 2000));
-        response = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/');
+        response = await request.get(`${API_BASE_URL}/api/v1/courses/`);
         status = response.status();
       }
       
@@ -119,7 +120,7 @@ test.describe('Church Course Tracker - Comprehensive Test Suite', () => {
 
     test('API response times are acceptable', async ({ request }) => {
       const startTime = Date.now();
-      const response = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/');
+      const response = await request.get(`${API_BASE_URL}/api/v1/courses/`);
       const responseTime = Date.now() - startTime;
       
       // Allow for rate limiting (429) - retry once if rate limited
@@ -127,7 +128,7 @@ test.describe('Church Course Tracker - Comprehensive Test Suite', () => {
       if (status === 429) {
         // Wait a bit and retry
         await new Promise(resolve => setTimeout(resolve, 2000));
-        const retryResponse = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/');
+        const retryResponse = await request.get(`${API_BASE_URL}/api/v1/courses/`);
         status = retryResponse.status();
       }
       
@@ -140,7 +141,7 @@ test.describe('Church Course Tracker - Comprehensive Test Suite', () => {
     test('API handles concurrent requests', async ({ request }) => {
       const requests = [];
       for (let i = 0; i < 5; i++) {
-        requests.push(request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/'));
+        requests.push(request.get(`${API_BASE_URL}/api/v1/courses/`));
       }
       
       const responses = await Promise.all(requests);
@@ -166,7 +167,7 @@ test.describe('Church Course Tracker - Comprehensive Test Suite', () => {
 
   test.describe('Authentication System', () => {
     test('Admin authentication works', async ({ request }, testInfo) => {
-      const response = await request.post('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/auth/login', {
+      const response = await request.post(`${API_BASE_URL}/api/v1/auth/login`, {
         headers: {
           'Content-Type': 'application/json'
         },
@@ -195,7 +196,7 @@ test.describe('Church Course Tracker - Comprehensive Test Suite', () => {
     });
 
     test('Invalid credentials are rejected', async ({ request }) => {
-      const response = await request.post('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/auth/login', {
+      const response = await request.post(`${API_BASE_URL}/api/v1/auth/login`, {
         headers: {
           'Content-Type': 'application/json'
         },
@@ -207,7 +208,7 @@ test.describe('Church Course Tracker - Comprehensive Test Suite', () => {
       if (status === 429) {
         // Wait a bit and retry
         await new Promise(resolve => setTimeout(resolve, 2000));
-        const retryResponse = await request.post('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/auth/login', {
+        const retryResponse = await request.post(`${API_BASE_URL}/api/v1/auth/login`, {
           headers: {
             'Content-Type': 'application/json'
           },
@@ -216,8 +217,8 @@ test.describe('Church Course Tracker - Comprehensive Test Suite', () => {
         status = retryResponse.status();
       }
       
-      // Should reject invalid credentials (401) or be rate limited (429)
-      expect([401, 429]).toContain(status);
+      // Should reject invalid credentials (401), be rate limited (429), or account locked (423)
+      expect([401, 423, 429]).toContain(status);
       console.log(`✓ Invalid credentials properly rejected (status: ${status})`);
     });
 
@@ -254,7 +255,7 @@ test.describe('Church Course Tracker - Comprehensive Test Suite', () => {
         return;
       }
       
-      const response = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/', {
+      const response = await request.get(`${API_BASE_URL}/api/v1/courses/`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       
@@ -299,12 +300,12 @@ test.describe('Church Course Tracker - Comprehensive Test Suite', () => {
       }
       
       // Test courses endpoint - handle rate limiting and service unavailable
-      let coursesResponse = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/', {
+      let coursesResponse = await request.get(`${API_BASE_URL}/api/v1/courses/`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (coursesResponse.status() === 429 || coursesResponse.status() === 503) {
         await new Promise(resolve => setTimeout(resolve, 3000));
-        coursesResponse = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/', {
+        coursesResponse = await request.get(`${API_BASE_URL}/api/v1/courses/`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
       }
@@ -312,12 +313,12 @@ test.describe('Church Course Tracker - Comprehensive Test Suite', () => {
       expect([200, 429, 503]).toContain(coursesResponse.status());
       
       // Test users endpoint - handle rate limiting and service unavailable
-      let usersResponse = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/users/', {
+      let usersResponse = await request.get(`${API_BASE_URL}/api/v1/users/`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (usersResponse.status() === 429 || usersResponse.status() === 503) {
         await new Promise(resolve => setTimeout(resolve, 3000));
-        usersResponse = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/users/', {
+        usersResponse = await request.get(`${API_BASE_URL}/api/v1/users/`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
       }
@@ -329,7 +330,7 @@ test.describe('Church Course Tracker - Comprehensive Test Suite', () => {
 
     test('Non-admin users cannot authenticate', async ({ request }) => {
       // Test staff authentication - may succeed if user exists, or fail if not
-      const staffResponse = await request.post('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/auth/login', {
+      const staffResponse = await request.post(`${API_BASE_URL}/api/v1/auth/login`, {
         headers: {
           'Content-Type': 'application/json'
         },
@@ -337,7 +338,7 @@ test.describe('Church Course Tracker - Comprehensive Test Suite', () => {
       });
       
       // Test viewer authentication - may succeed if user exists, or fail if not
-      const viewerResponse = await request.post('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/auth/login', {
+      const viewerResponse = await request.post(`${API_BASE_URL}/api/v1/auth/login`, {
         headers: {
           'Content-Type': 'application/json'
         },
@@ -352,7 +353,7 @@ test.describe('Church Course Tracker - Comprehensive Test Suite', () => {
       
       if (staffStatus === 429) {
         await new Promise(resolve => setTimeout(resolve, 2000));
-        const retryStaff = await request.post('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/auth/login', {
+        const retryStaff = await request.post(`${API_BASE_URL}/api/v1/auth/login`, {
           data: testUsers.staff
         });
         staffStatus = retryStaff.status();
@@ -360,7 +361,7 @@ test.describe('Church Course Tracker - Comprehensive Test Suite', () => {
       
       if (viewerStatus === 429) {
         await new Promise(resolve => setTimeout(resolve, 2000));
-        const retryViewer = await request.post('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/auth/login', {
+        const retryViewer = await request.post(`${API_BASE_URL}/api/v1/auth/login`, {
           data: testUsers.viewer
         });
         viewerStatus = retryViewer.status();
@@ -380,7 +381,7 @@ test.describe('Church Course Tracker - Comprehensive Test Suite', () => {
 
   test.describe('Data Management', () => {
     test('Courses endpoint returns proper data structure', async ({ request }) => {
-      const response = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/');
+      const response = await request.get(`${API_BASE_URL}/api/v1/courses/`);
       expect(response.status()).toBe(200);
       
       const data = await response.json();
@@ -390,7 +391,7 @@ test.describe('Church Course Tracker - Comprehensive Test Suite', () => {
     });
 
     test('Users endpoint returns proper data structure', async ({ request }) => {
-      const response = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/users/');
+      const response = await request.get(`${API_BASE_URL}/api/v1/users/`);
       expect(response.status()).toBe(200);
       
       const data = await response.json();
@@ -400,12 +401,12 @@ test.describe('Church Course Tracker - Comprehensive Test Suite', () => {
     });
 
     test('API handles query parameters', async ({ request }) => {
-      const response = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/?limit=5&offset=0');
+      const response = await request.get(`${API_BASE_URL}/api/v1/courses/?limit=5&offset=0`);
       // Allow for rate limiting (429) - retry once if rate limited
       let status = response.status();
       if (status === 429) {
         await new Promise(resolve => setTimeout(resolve, 2000));
-        const retryResponse = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/?limit=5&offset=0');
+        const retryResponse = await request.get(`${API_BASE_URL}/api/v1/courses/?limit=5&offset=0`);
         status = retryResponse.status();
       }
       expect([200, 429]).toContain(status);
@@ -421,7 +422,7 @@ test.describe('Church Course Tracker - Comprehensive Test Suite', () => {
 
   test.describe('Security Features', () => {
     test('API handles malformed requests', async ({ request }) => {
-      const response = await request.post('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/auth/login', {
+      const response = await request.post(`${API_BASE_URL}/api/v1/auth/login`, {
         data: { invalid: 'data' }
       });
       
@@ -429,7 +430,7 @@ test.describe('Church Course Tracker - Comprehensive Test Suite', () => {
       let status = response.status();
       if (status === 429) {
         await new Promise(resolve => setTimeout(resolve, 2000));
-        const retryResponse = await request.post('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/auth/login', {
+        const retryResponse = await request.post(`${API_BASE_URL}/api/v1/auth/login`, {
           data: { invalid: 'data' }
         });
         status = retryResponse.status();
@@ -439,7 +440,7 @@ test.describe('Church Course Tracker - Comprehensive Test Suite', () => {
     });
 
     test('API handles missing authentication gracefully', async ({ request }) => {
-      const response = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/');
+      const response = await request.get(`${API_BASE_URL}/api/v1/courses/`);
       
       // Should either require authentication (401), allow public access (200), or be rate limited (429)
       expect([200, 401, 429]).toContain(response.status());
@@ -447,12 +448,12 @@ test.describe('Church Course Tracker - Comprehensive Test Suite', () => {
     });
 
     test('API error handling works', async ({ request }) => {
-      const response = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/nonexistent/');
+      const response = await request.get(`${API_BASE_URL}/api/v1/nonexistent/`);
       // Allow for rate limiting (429) - retry once if rate limited
       let status = response.status();
       if (status === 429) {
         await new Promise(resolve => setTimeout(resolve, 2000));
-        const retryResponse = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/nonexistent/');
+        const retryResponse = await request.get(`${API_BASE_URL}/api/v1/nonexistent/`);
         status = retryResponse.status();
       }
       expect([404, 429]).toContain(status);
@@ -466,7 +467,7 @@ test.describe('Church Course Tracker - Comprehensive Test Suite', () => {
       const requests = [];
       
       for (let i = 0; i < 10; i++) {
-        requests.push(request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/'));
+        requests.push(request.get(`${API_BASE_URL}/api/v1/courses/`));
       }
       
       const responses = await Promise.all(requests);
@@ -493,12 +494,12 @@ test.describe('Church Course Tracker - Comprehensive Test Suite', () => {
 
     test('API handles different HTTP methods', async ({ request }, testInfo) => {
       // Test GET
-      const getResponse = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/');
+      const getResponse = await request.get(`${API_BASE_URL}/api/v1/courses/`);
       // Allow for rate limiting (429) and service unavailable (503)
       expect([200, 429, 503]).toContain(getResponse.status());
       
       // Test POST (login)
-      const postResponse = await request.post('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/auth/login', {
+      const postResponse = await request.post(`${API_BASE_URL}/api/v1/auth/login`, {
         headers: {
           'Content-Type': 'application/json'
         },
@@ -542,7 +543,7 @@ test.describe('Church Course Tracker - Comprehensive Test Suite', () => {
         return;
       }
       
-      const response = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/audit/', {
+      const response = await request.get(`${API_BASE_URL}/api/v1/audit/`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       
@@ -579,7 +580,7 @@ test.describe('Church Course Tracker - Comprehensive Test Suite', () => {
         return;
       }
       
-      const response = await request.post('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/users/', {
+      const response = await request.post(`${API_BASE_URL}/api/v1/users/`, {
         headers: { 
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -596,12 +597,12 @@ test.describe('Church Course Tracker - Comprehensive Test Suite', () => {
 
   test.describe('Integration Readiness', () => {
     test('API is ready for frontend integration', async ({ request }) => {
-      let response = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/');
+      let response = await request.get(`${API_BASE_URL}/api/v1/courses/`);
       // Allow for rate limiting (429) - retry once if rate limited
       let status = response.status();
       if (status === 429) {
         await new Promise(resolve => setTimeout(resolve, 2000));
-        response = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/');
+        response = await request.get(`${API_BASE_URL}/api/v1/courses/`);
         status = response.status();
       }
       expect([200, 429]).toContain(status);
@@ -617,7 +618,7 @@ test.describe('Church Course Tracker - Comprehensive Test Suite', () => {
     });
 
     test('API supports CORS for frontend access', async ({ request }) => {
-      const response = await request.get('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/courses/');
+      const response = await request.get(`${API_BASE_URL}/api/v1/courses/`);
       const headers = response.headers();
       
       // Check for CORS headers (may not be present yet)
