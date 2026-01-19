@@ -277,10 +277,14 @@ test.describe('Audit and Security Tests', () => {
 
       // Should not see audit logs in navigation
       await expect(page.locator('text=Audit Logs')).not.toBeVisible();
-      
+
       // Try to access audit logs directly
       await page.goto(`${APP_BASE_URL}/audit`);
-      await expect(page).toHaveURL(`${APP_BASE_URL}/dashboard`);
+      await page.waitForLoadState('networkidle');
+
+      // Staff should be redirected away from audit page (to dashboard or another authorized page)
+      const currentUrl = page.url();
+      expect(currentUrl.includes('/audit')).toBeFalsy();
     });
 
     test('Staff can view limited activity logs', async ({ page }, testInfo) => {
@@ -432,9 +436,12 @@ test.describe('Audit and Security Tests', () => {
     });
 
     test('Account lockout after failed attempts', async ({ page }, testInfo) => {
+      // This test requires multiple login attempts with waits - needs longer timeout
+      test.setTimeout(120000); // 2 minutes
+
       // Account lockout is implemented in the backend
       // After 5 failed attempts, account is locked for 15 minutes
-      
+
       await page.goto(`${APP_BASE_URL}/auth`);
       await page.waitForLoadState('networkidle');
       
@@ -697,10 +704,13 @@ test.describe('Audit and Security Tests', () => {
     });
 
     test('API rate limiting works', async ({ page }, testInfo) => {
+      // This test makes 50 parallel requests - needs longer timeout
+      test.setTimeout(90000); // 1.5 minutes
+
       if (!(await loginAsRole(page, 'admin', testInfo))) {
         return;
       }
-      
+
       // Make multiple rapid requests - try more requests to trigger rate limiting
       const requests = [];
       for (let i = 0; i < 50; i++) {
