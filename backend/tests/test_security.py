@@ -25,28 +25,27 @@ from main import app
 
 class TestPasswordHashing:
     """Test password hashing functionality"""
-    
-    @patch('app.core.security.pwd_context')
-    def test_get_password_hash(self, mock_pwd_context):
+
+    def test_get_password_hash(self):
         """Test password hashing"""
         password = "test123"
-        mock_pwd_context.hash.return_value = "$2b$12$test_hash_here"
         hashed = get_password_hash(password)
-        
-        assert hashed == "$2b$12$test_hash_here"
-        mock_pwd_context.hash.assert_called_once_with(password)
-    
-    @patch('app.core.security.pwd_context')
-    def test_verify_password_bcrypt(self, mock_pwd_context):
+
+        # Verify it's a valid bcrypt hash
+        assert hashed.startswith("$2b$")
+        # Verify the password can be verified against the hash
+        assert verify_password(password, hashed) is True
+        assert verify_password("wrong_password", hashed) is False
+
+    def test_verify_password_bcrypt(self):
         """Test password verification with bcrypt"""
         import bcrypt
         password = "test123"
         # Generate valid bcrypt hash
         hashed = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
-        mock_pwd_context.verify.return_value = True
-        
+
         assert verify_password(password, hashed) is True
-        # Note: We don't assert mock_pwd_context.verify call because logic might bypass it for bcrypt
+        assert verify_password("wrong_password", hashed) is False
     
     def test_verify_password_legacy_bcrypt(self):
         """Test password verification with legacy bcrypt"""

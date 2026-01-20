@@ -2,18 +2,13 @@
 Security utilities for JWT tokens and password hashing
 """
 
+import bcrypt
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 from jose import JWTError, jwt
-from passlib.context import CryptContext
 
 from app.core.config import settings
-
-# Password hashing with configurable rounds
-pwd_context = CryptContext(
-    schemes=["bcrypt"], deprecated="auto", bcrypt__rounds=settings.BCRYPT_ROUNDS
-)
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
@@ -54,42 +49,42 @@ def verify_token(token: str) -> Optional[int]:
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verify a password against its hash
-    
+
     Only supports bcrypt hashes. SHA256 fallback has been removed for security.
     Users with SHA256 hashes must reset their password.
     """
     import logging
     logger = logging.getLogger(__name__)
-    
+
     # Only accept bcrypt hashes - reject SHA256 and other formats
-    if not (hashed_password.startswith("$2b$") or 
-            hashed_password.startswith("$2a$") or 
+    if not (hashed_password.startswith("$2b$") or
+            hashed_password.startswith("$2a$") or
             hashed_password.startswith("$2y$")):
         # Not a bcrypt hash - log warning and require password reset
         logger.warning("Password hash is not bcrypt format - user must reset password")
         return False
-    
+
     try:
-        import bcrypt
         # Ensure hashed_password is bytes for bcrypt
         if isinstance(hashed_password, str):
             hashed_password_bytes = hashed_password.encode('utf-8')
         else:
             hashed_password_bytes = hashed_password
-        
-        return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password_bytes)
+
+        # Truncate password to 72 bytes (bcrypt limitation)
+        password_bytes = plain_password.encode('utf-8')[:72]
+        return bcrypt.checkpw(password_bytes, hashed_password_bytes)
     except (ValueError, AttributeError, Exception) as e:
-        # Try passlib context as fallback for bcrypt variants
-        try:
-            return pwd_context.verify(plain_password, hashed_password)
-        except Exception:
-            logger.warning(f"Password verification failed: {type(e).__name__}: {str(e)}")
-            return False
+        logger.warning(f"Password verification failed: {type(e).__name__}: {str(e)}")
+        return False
 
 
 def get_password_hash(password: str) -> str:
-    """Hash a password"""
-    return pwd_context.hash(password)
+    """Hash a password using bcrypt"""
+    # Truncate password to 72 bytes (bcrypt limitation)
+    password_bytes = password.encode('utf-8')[:72]
+    salt = bcrypt.gensalt(rounds=settings.BCRYPT_ROUNDS)
+    return bcrypt.hashpw(password_bytes, salt).decode('utf-8')
 
 
 def validate_password_strength(password: str) -> tuple[bool, str]:
