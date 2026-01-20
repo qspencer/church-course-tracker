@@ -438,6 +438,7 @@ class TestPlanningCenterTabsEndpoints:
         """Test bulk import without authentication"""
         program = Program(
             title="Test Program",
+            description="Test Description",
             is_active=True
         )
         db_session.add(program)

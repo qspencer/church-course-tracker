@@ -10,7 +10,13 @@ from sqlalchemy.orm import Session
 from app.api.v1.endpoints.auth import (get_current_active_user,
                                        get_current_admin_user)
 from app.core.database import get_db
-from app.schemas.course import Course, CourseCreate, CourseUpdate
+from app.schemas.course import (
+    Course,
+    CourseCreate,
+    CourseUpdate,
+    BulkDeleteCoursesRequest,
+    BulkDeleteCoursesResponse,
+)
 from app.services.course_service import CourseService
 
 router = APIRouter()
@@ -82,6 +88,27 @@ async def get_courses(
     return [
         course_to_schema(course, registration_counts.get(course.id)) for course in courses
     ]
+
+
+@router.post("/bulk-delete", response_model=BulkDeleteCoursesResponse)
+async def bulk_delete_courses(
+    request: BulkDeleteCoursesRequest,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_active_user),
+):
+    """Bulk delete courses - Admin only"""
+    # Check if user has permission to delete courses
+    if current_user["role"] != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only admin users can delete courses",
+        )
+
+    course_service = CourseService(db)
+    result = course_service.bulk_delete_courses(
+        request.course_ids, deleted_by=current_user["id"]
+    )
+    return BulkDeleteCoursesResponse(**result)
 
 
 @router.get("/{course_id}", response_model=Course)

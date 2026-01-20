@@ -4,6 +4,13 @@ import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { Course, CourseCreate, CourseUpdate, CourseQueryParams, Content, ContentCreate } from '../models';
 
+export interface BulkDeleteResponse {
+  deleted_count: number;
+  deleted_ids: number[];
+  failed_ids: number[];
+  errors: { course_id: number; error: string }[];
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -55,6 +62,10 @@ export class CourseService {
 
   deleteCourse(id: number): Observable<void> {
     return this.http.delete<void>(`${this.API_URL}/${id}`);
+  }
+
+  bulkDeleteCourses(courseIds: number[]): Observable<BulkDeleteResponse> {
+    return this.http.post<BulkDeleteResponse>(`${this.API_URL}/bulk-delete`, { course_ids: courseIds });
   }
 
   getCourseContent(courseId: number): Observable<Content[]> {

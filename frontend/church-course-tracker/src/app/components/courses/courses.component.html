@@ -35,6 +35,29 @@
         <mat-icon matSuffix>search</mat-icon>
       </mat-form-field>
 
+      <!-- Bulk Actions Bar -->
+      <div *ngIf="getSelectedCount() > 0" class="bulk-actions-bar">
+        <span class="selection-count">{{ getSelectedCount() }} course(s) selected</span>
+        <div class="bulk-actions">
+          <button mat-stroked-button (click)="selectAllFiltered()">
+            <mat-icon>select_all</mat-icon>
+            Select All ({{ dataSource.filteredData.length }})
+          </button>
+          <button mat-stroked-button (click)="clearSelection()">
+            <mat-icon>clear</mat-icon>
+            Clear Selection
+          </button>
+          <button
+            mat-raised-button
+            color="warn"
+            (click)="bulkDeleteCourses()"
+            [disabled]="isDeleting">
+            <mat-icon>delete</mat-icon>
+            Delete Selected
+          </button>
+        </div>
+      </div>
+
       <!-- Loading Spinner -->
       <div *ngIf="isLoading" class="loading-container">
         <mat-spinner></mat-spinner>
@@ -44,6 +67,24 @@
       <!-- Courses Table -->
       <div *ngIf="!isLoading" class="table-container">
         <table mat-table [dataSource]="dataSource" matSort class="courses-table">
+          <!-- Select Column -->
+          <ng-container matColumnDef="select">
+            <th mat-header-cell *matHeaderCellDef>
+              <mat-checkbox
+                [checked]="isAllSelected()"
+                [indeterminate]="isIndeterminate()"
+                (change)="toggleSelectAll()">
+              </mat-checkbox>
+            </th>
+            <td mat-cell *matCellDef="let course">
+              <mat-checkbox
+                [checked]="isSelected(course.id)"
+                (change)="toggleSelection(course.id)"
+                (click)="$event.stopPropagation()">
+              </mat-checkbox>
+            </td>
+          </ng-container>
+
           <!-- Title Column -->
           <ng-container matColumnDef="title">
             <th mat-header-cell *matHeaderCellDef mat-sort-header>Title</th>
@@ -150,8 +191,8 @@
             </td>
           </ng-container>
 
-          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+          <tr mat-header-row *matHeaderRowDef="actualDisplayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: actualDisplayedColumns;"></tr>
         </table>
 
         <!-- No Data Message -->

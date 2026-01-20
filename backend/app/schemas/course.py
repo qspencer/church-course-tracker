@@ -107,3 +107,16 @@ class Course(CourseBase):
 
     class Config:
         from_attributes = True
+
+
+class BulkDeleteCoursesRequest(BaseModel):
+    """Schema for bulk deleting courses"""
+    course_ids: List[int] = Field(..., min_length=1)
+
+
+class BulkDeleteCoursesResponse(BaseModel):
+    """Schema for bulk delete response"""
+    deleted_count: int
+    deleted_ids: List[int]
+    failed_ids: List[int] = []
+    errors: List[dict] = []

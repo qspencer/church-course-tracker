@@ -264,6 +264,60 @@ class CourseService:
         )
         return True
 
+    def bulk_delete_courses(
+        self, course_ids: List[int], deleted_by: Optional[int] = None
+    ) -> Dict[str, any]:
+        """
+        Delete multiple courses at once.
+        Returns a summary of deleted/failed IDs.
+        """
+        deleted_ids: List[int] = []
+        failed_ids: List[int] = []
+        errors: List[Dict] = []
+
+        for course_id in course_ids:
+            try:
+                db_course = self.get_course(course_id)
+                if not db_course:
+                    failed_ids.append(course_id)
+                    errors.append({
+                        "course_id": course_id,
+                        "error": "Course not found"
+                    })
+                    continue
+
+                old_values = AuditService.serialize_model(db_course)
+                record_id = db_course.id
+
+                self.db.delete(db_course)
+                self.db.commit()
+
+                # Log audit after successful deletion
+                AuditService(self.db).log_change(
+                    table_name=CourseModel.__tablename__,
+                    record_id=record_id,
+                    action="delete",
+                    changed_by=deleted_by,
+                    old_values=old_values,
+                )
+                deleted_ids.append(course_id)
+
+            except Exception as e:
+                self.db.rollback()
+                failed_ids.append(course_id)
+                errors.append({
+                    "course_id": course_id,
+                    "error": str(e)
+                })
+                logger.error(f"Failed to delete course {course_id}: {e}")
+
+        return {
+            "deleted_count": len(deleted_ids),
+            "deleted_ids": deleted_ids,
+            "failed_ids": failed_ids,
+            "errors": errors
+        }
+
     def sync_from_planning_center(
         self, pc_event_data: dict, updated_by: Optional[int] = None
     ) -> CourseModel:

@@ -28,6 +28,34 @@
   margin-bottom: 20px;
 }
 
+.bulk-actions-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  background-color: #e3f2fd;
+  border-radius: 4px;
+  border: 1px solid #90caf9;
+
+  .selection-count {
+    font-weight: 500;
+    color: #1565c0;
+  }
+
+  .bulk-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+
+    button {
+      mat-icon {
+        margin-right: 4px;
+      }
+    }
+  }
+}
+
 .loading-container {
   display: flex;
   flex-direction: column;
@@ -53,27 +81,33 @@
 .courses-table {
   width: 100%;
   background: white;
-  
+
+  .mat-column-select {
+    width: 48px;
+    max-width: 48px;
+    padding-right: 8px;
+  }
+
   .mat-column-title {
     width: 20%;
   }
-  
+
   .mat-column-description {
     width: 30%;
   }
-  
+
   .mat-column-duration_weeks {
     width: 15%;
   }
-  
+
   .mat-column-is_active {
     width: 10%;
   }
-  
+
   .mat-column-created_at {
     width: 15%;
   }
-  
+
   .mat-column-actions {
     width: 10%;
   }
@@ -172,42 +206,53 @@ mat-paginator {
   .courses-container {
     padding: 16px;
   }
-  
+
   .courses-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 16px;
-    
+
     h1 {
       font-size: 24px;
     }
   }
-  
+
   .search-field {
     max-width: 100%;
   }
-  
+
+  .bulk-actions-bar {
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+
+    .bulk-actions {
+      flex-wrap: wrap;
+      width: 100%;
+    }
+  }
+
   .courses-table {
     font-size: 14px;
-    
+
     .mat-column-description {
       display: none;
     }
-    
+
     .mat-column-created_at {
       display: none;
     }
   }
-  
+
   .actions-container {
     flex-direction: column;
     gap: 2px;
-    
+
     button {
       width: 28px;
       height: 28px;
       line-height: 28px;
-      
+
       mat-icon {
         font-size: 16px;
         width: 16px;

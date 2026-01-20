@@ -23,6 +23,10 @@ export class CoursesComponent implements OnInit {
   dataSource = new MatTableDataSource<Course>();
   isLoading = true;
 
+  // Bulk selection properties
+  selectedCourses = new Set<number>();
+  isDeleting = false;
+
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
@@ -183,5 +187,112 @@ export class CoursesComponent implements OnInit {
 
   canToggleCourseStatus(): boolean {
     return this.authService.hasAnyRole(['admin', 'staff']);
+  }
+
+  // Bulk selection methods
+  get actualDisplayedColumns(): string[] {
+    if (this.canDeleteCourse()) {
+      return ['select', ...this.displayedColumns];
+    }
+    return this.displayedColumns;
+  }
+
+  toggleSelection(courseId: number): void {
+    if (this.selectedCourses.has(courseId)) {
+      this.selectedCourses.delete(courseId);
+    } else {
+      this.selectedCourses.add(courseId);
+    }
+  }
+
+  isSelected(courseId: number): boolean {
+    return this.selectedCourses.has(courseId);
+  }
+
+  getCurrentPageData(): Course[] {
+    if (!this.paginator) {
+      return this.dataSource.filteredData;
+    }
+    const startIndex = this.paginator.pageIndex * this.paginator.pageSize;
+    const endIndex = startIndex + this.paginator.pageSize;
+    return this.dataSource.filteredData.slice(startIndex, endIndex);
+  }
+
+  isAllSelected(): boolean {
+    const currentPageData = this.getCurrentPageData();
+    return currentPageData.length > 0 && currentPageData.every(course => this.selectedCourses.has(course.id));
+  }
+
+  isIndeterminate(): boolean {
+    const currentPageData = this.getCurrentPageData();
+    const selectedOnPage = currentPageData.filter(course => this.selectedCourses.has(course.id)).length;
+    return selectedOnPage > 0 && selectedOnPage < currentPageData.length;
+  }
+
+  toggleSelectAll(): void {
+    const currentPageData = this.getCurrentPageData();
+    if (this.isAllSelected()) {
+      // Deselect all on current page
+      currentPageData.forEach(course => this.selectedCourses.delete(course.id));
+    } else {
+      // Select all on current page
+      currentPageData.forEach(course => this.selectedCourses.add(course.id));
+    }
+  }
+
+  selectAllFiltered(): void {
+    this.dataSource.filteredData.forEach(course => this.selectedCourses.add(course.id));
+  }
+
+  clearSelection(): void {
+    this.selectedCourses.clear();
+  }
+
+  getSelectedCount(): number {
+    return this.selectedCourses.size;
+  }
+
+  bulkDeleteCourses(): void {
+    const selectedIds = Array.from(this.selectedCourses);
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      data: {
+        title: 'Delete Courses',
+        message: `Are you sure you want to delete ${selectedIds.length} course(s)? This action cannot be undone.`,
+        confirmText: 'Delete',
+        cancelText: 'Cancel'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.isDeleting = true;
+        this.courseService.bulkDeleteCourses(selectedIds).subscribe({
+          next: (response) => {
+            this.isDeleting = false;
+            if (response.failed_ids.length > 0) {
+              this.snackBar.open(
+                `Deleted ${response.deleted_count} course(s). ${response.failed_ids.length} failed.`,
+                'Close',
+                { duration: 5000 }
+              );
+            } else {
+              this.snackBar.open(
+                `Successfully deleted ${response.deleted_count} course(s)`,
+                'Close',
+                { duration: 3000 }
+              );
+            }
+            this.clearSelection();
+            this.loadCourses();
+          },
+          error: (error) => {
+            this.isDeleting = false;
+            this.logger.error('Error bulk deleting courses', error);
+            this.snackBar.open('Error deleting courses', 'Close', { duration: 3000 });
+          }
+        });
+      }
+    });
   }
 }
