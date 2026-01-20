@@ -52,7 +52,7 @@ describe('CoursesComponent', () => {
   ];
 
   beforeEach(async () => {
-    const courseSpy = jasmine.createSpyObj('CourseService', ['getCourses', 'deleteCourse', 'updateCourse']);
+    const courseSpy = jasmine.createSpyObj('CourseService', ['getCourses', 'deleteCourse', 'updateCourse', 'bulkDeleteCourses']);
     const authSpy = jasmine.createSpyObj('AuthService', ['hasRole', 'hasAnyRole']);
     const matDialogSpy = jasmine.createSpyObj('MatDialog', ['open']);
     const matSnackBarSpy = jasmine.createSpyObj('MatSnackBar', ['open']);
@@ -409,9 +409,196 @@ describe('CoursesComponent', () => {
 
     it('should not allow viewer to toggle course status', () => {
       authServiceSpy.hasAnyRole.and.returnValue(false);
-      
+
       expect(component.canToggleCourseStatus()).toBe(false);
       expect(authServiceSpy.hasAnyRole).toHaveBeenCalledWith(['admin', 'staff']);
+    });
+  });
+
+  describe('Bulk Selection', () => {
+    beforeEach(() => {
+      component.dataSource.data = mockCourses;
+      component.isLoading = false;
+    });
+
+    it('should initialize with empty selection', () => {
+      expect(component.selectedCourses.size).toBe(0);
+    });
+
+    it('should toggle selection for a course', () => {
+      component.toggleSelection(1);
+      expect(component.isSelected(1)).toBe(true);
+
+      component.toggleSelection(1);
+      expect(component.isSelected(1)).toBe(false);
+    });
+
+    it('should return correct selected count', () => {
+      component.toggleSelection(1);
+      component.toggleSelection(2);
+      expect(component.getSelectedCount()).toBe(2);
+    });
+
+    it('should clear all selections', () => {
+      component.toggleSelection(1);
+      component.toggleSelection(2);
+      component.clearSelection();
+      expect(component.getSelectedCount()).toBe(0);
+    });
+
+    it('should select all filtered courses', () => {
+      component.selectAllFiltered();
+      expect(component.getSelectedCount()).toBe(2);
+      expect(component.isSelected(1)).toBe(true);
+      expect(component.isSelected(2)).toBe(true);
+    });
+
+    it('should check if all on current page are selected', () => {
+      expect(component.isAllSelected()).toBe(false);
+
+      component.selectAllFiltered();
+      expect(component.isAllSelected()).toBe(true);
+    });
+
+    it('should check indeterminate state', () => {
+      expect(component.isIndeterminate()).toBe(false);
+
+      component.toggleSelection(1);
+      expect(component.isIndeterminate()).toBe(true);
+
+      component.toggleSelection(2);
+      expect(component.isIndeterminate()).toBe(false);
+    });
+
+    it('should toggle select all on current page', () => {
+      component.toggleSelectAll();
+      expect(component.isAllSelected()).toBe(true);
+
+      component.toggleSelectAll();
+      expect(component.isAllSelected()).toBe(false);
+    });
+  });
+
+  describe('actualDisplayedColumns', () => {
+    it('should include select column for admin users', () => {
+      authServiceSpy.hasRole.and.returnValue(true);
+
+      const columns = component.actualDisplayedColumns;
+      expect(columns[0]).toBe('select');
+      expect(columns.length).toBe(component.displayedColumns.length + 1);
+    });
+
+    it('should not include select column for non-admin users', () => {
+      authServiceSpy.hasRole.and.returnValue(false);
+
+      const columns = component.actualDisplayedColumns;
+      expect(columns[0]).not.toBe('select');
+      expect(columns.length).toBe(component.displayedColumns.length);
+    });
+  });
+
+  describe('bulkDeleteCourses', () => {
+    beforeEach(() => {
+      component.dataSource.data = mockCourses;
+      component.isLoading = false;
+    });
+
+    it('should bulk delete selected courses after confirmation', () => {
+      const dialogRefSpy = jasmine.createSpyObj('MatDialogRef', ['afterClosed']);
+      dialogRefSpy.afterClosed.and.returnValue(of(true));
+      dialogSpy.open.and.returnValue(dialogRefSpy);
+      courseServiceSpy.bulkDeleteCourses.and.returnValue(of({
+        deleted_count: 2,
+        deleted_ids: [1, 2],
+        failed_ids: [],
+        errors: []
+      }));
+      spyOn(component, 'loadCourses');
+      spyOn(component, 'clearSelection');
+
+      component.toggleSelection(1);
+      component.toggleSelection(2);
+      component.bulkDeleteCourses();
+
+      expect(dialogSpy.open).toHaveBeenCalled();
+      expect(courseServiceSpy.bulkDeleteCourses).toHaveBeenCalledWith([1, 2]);
+      expect(snackBarSpy.open).toHaveBeenCalledWith(
+        'Successfully deleted 2 course(s)',
+        'Close',
+        { duration: 3000 }
+      );
+      expect(component.clearSelection).toHaveBeenCalled();
+      expect(component.loadCourses).toHaveBeenCalled();
+    });
+
+    it('should not bulk delete if not confirmed', () => {
+      const dialogRefSpy = jasmine.createSpyObj('MatDialogRef', ['afterClosed']);
+      dialogRefSpy.afterClosed.and.returnValue(of(false));
+      dialogSpy.open.and.returnValue(dialogRefSpy);
+
+      component.toggleSelection(1);
+      component.bulkDeleteCourses();
+
+      expect(courseServiceSpy.bulkDeleteCourses).not.toHaveBeenCalled();
+    });
+
+    it('should handle partial failure in bulk delete', () => {
+      const dialogRefSpy = jasmine.createSpyObj('MatDialogRef', ['afterClosed']);
+      dialogRefSpy.afterClosed.and.returnValue(of(true));
+      dialogSpy.open.and.returnValue(dialogRefSpy);
+      courseServiceSpy.bulkDeleteCourses.and.returnValue(of({
+        deleted_count: 1,
+        deleted_ids: [1],
+        failed_ids: [2],
+        errors: [{ course_id: 2, error: 'Not found' }]
+      }));
+      spyOn(component, 'loadCourses');
+      spyOn(component, 'clearSelection');
+
+      component.toggleSelection(1);
+      component.toggleSelection(2);
+      component.bulkDeleteCourses();
+
+      expect(snackBarSpy.open).toHaveBeenCalledWith(
+        'Deleted 1 course(s). 1 failed.',
+        'Close',
+        { duration: 5000 }
+      );
+    });
+
+    it('should handle bulk delete error', () => {
+      const dialogRefSpy = jasmine.createSpyObj('MatDialogRef', ['afterClosed']);
+      dialogRefSpy.afterClosed.and.returnValue(of(true));
+      dialogSpy.open.and.returnValue(dialogRefSpy);
+      courseServiceSpy.bulkDeleteCourses.and.returnValue(throwError(() => new Error('Delete error')));
+      spyOn(console, 'error');
+
+      component.toggleSelection(1);
+      component.bulkDeleteCourses();
+
+      expect(console.error).toHaveBeenCalledWith('[ERROR] Error bulk deleting courses', jasmine.any(Error), '');
+      expect(snackBarSpy.open).toHaveBeenCalledWith('Error deleting courses', 'Close', { duration: 3000 });
+      expect(component.isDeleting).toBe(false);
+    });
+
+    it('should set isDeleting flag during bulk delete', () => {
+      const dialogRefSpy = jasmine.createSpyObj('MatDialogRef', ['afterClosed']);
+      dialogRefSpy.afterClosed.and.returnValue(of(true));
+      dialogSpy.open.and.returnValue(dialogRefSpy);
+      courseServiceSpy.bulkDeleteCourses.and.returnValue(of({
+        deleted_count: 1,
+        deleted_ids: [1],
+        failed_ids: [],
+        errors: []
+      }));
+
+      component.toggleSelection(1);
+      expect(component.isDeleting).toBe(false);
+
+      component.bulkDeleteCourses();
+
+      // After completion, isDeleting should be false
+      expect(component.isDeleting).toBe(false);
     });
   });
 });

@@ -462,6 +462,109 @@ class TestCourseEndpoints:
         data = response.json()
         assert "Only admin users can delete courses" in data["detail"]
 
+    def test_bulk_delete_courses_unauthorized(self, client, db_session, sample_course_data):
+        """Test POST /courses/bulk-delete endpoint without authentication"""
+        course = Course(**sample_course_data)
+        db_session.add(course)
+        db_session.commit()
+
+        response = client.post(
+            "/api/v1/courses/bulk-delete",
+            json={"course_ids": [course.id]}
+        )
+        assert response.status_code == 401
+
+    def test_bulk_delete_courses_as_admin(self, client, admin_token, db_session, sample_course_data):
+        """Test POST /courses/bulk-delete endpoint as admin user"""
+        # Create multiple courses
+        course1 = Course(**sample_course_data)
+        course2_data = sample_course_data.copy()
+        course2_data["title"] = "Second Course"
+        course2_data["planning_center_event_id"] = "evt_456"
+        course2 = Course(**course2_data)
+        db_session.add_all([course1, course2])
+        db_session.commit()
+
+        headers = {"Authorization": f"Bearer {admin_token}"}
+        response = client.post(
+            "/api/v1/courses/bulk-delete",
+            json={"course_ids": [course1.id, course2.id]},
+            headers=headers
+        )
+        assert response.status_code == 200
+
+        data = response.json()
+        assert data["deleted_count"] == 2
+        assert set(data["deleted_ids"]) == {course1.id, course2.id}
+        assert data["failed_ids"] == []
+
+        # Verify courses are deleted
+        response = client.get(f"/api/v1/courses/{course1.id}")
+        assert response.status_code == 404
+
+    def test_bulk_delete_courses_as_staff_forbidden(self, client, staff_token, db_session, sample_course_data):
+        """Test POST /courses/bulk-delete endpoint as staff user (should be forbidden)"""
+        course = Course(**sample_course_data)
+        db_session.add(course)
+        db_session.commit()
+
+        headers = {"Authorization": f"Bearer {staff_token}"}
+        response = client.post(
+            "/api/v1/courses/bulk-delete",
+            json={"course_ids": [course.id]},
+            headers=headers
+        )
+        assert response.status_code == 403
+
+        data = response.json()
+        assert "Only admin users can delete courses" in data["detail"]
+
+    def test_bulk_delete_courses_as_viewer_forbidden(self, client, viewer_token, db_session, sample_course_data):
+        """Test POST /courses/bulk-delete endpoint as viewer user (should be forbidden)"""
+        course = Course(**sample_course_data)
+        db_session.add(course)
+        db_session.commit()
+
+        headers = {"Authorization": f"Bearer {viewer_token}"}
+        response = client.post(
+            "/api/v1/courses/bulk-delete",
+            json={"course_ids": [course.id]},
+            headers=headers
+        )
+        assert response.status_code == 403
+
+        data = response.json()
+        assert "Only admin users can delete courses" in data["detail"]
+
+    def test_bulk_delete_courses_partial_failure(self, client, admin_token, db_session, sample_course_data):
+        """Test POST /courses/bulk-delete with some non-existent courses"""
+        course = Course(**sample_course_data)
+        db_session.add(course)
+        db_session.commit()
+
+        headers = {"Authorization": f"Bearer {admin_token}"}
+        response = client.post(
+            "/api/v1/courses/bulk-delete",
+            json={"course_ids": [course.id, 99999]},  # 99999 doesn't exist
+            headers=headers
+        )
+        assert response.status_code == 200
+
+        data = response.json()
+        assert data["deleted_count"] == 1
+        assert data["deleted_ids"] == [course.id]
+        assert data["failed_ids"] == [99999]
+
+    def test_bulk_delete_courses_empty_list(self, client, admin_token):
+        """Test POST /courses/bulk-delete with empty course_ids list"""
+        headers = {"Authorization": f"Bearer {admin_token}"}
+        response = client.post(
+            "/api/v1/courses/bulk-delete",
+            json={"course_ids": []},
+            headers=headers
+        )
+        assert response.status_code == 422  # Validation error
+
 
 class TestEnrollmentEndpoints:
     """Test CourseEnrollment API endpoints"""
