@@ -216,6 +216,58 @@ class CourseEnrollmentService:
         )
         return True
 
+    def bulk_delete_enrollments(
+        self, enrollment_ids: List[int], deleted_by: Optional[int] = None
+    ) -> dict:
+        """
+        Delete multiple enrollments at once.
+        Returns a summary of deleted/failed IDs.
+        """
+        deleted_ids: List[int] = []
+        failed_ids: List[int] = []
+        errors: List[dict] = []
+
+        for enrollment_id in enrollment_ids:
+            try:
+                db_enrollment = self.get_enrollment(enrollment_id)
+                if not db_enrollment:
+                    failed_ids.append(enrollment_id)
+                    errors.append({
+                        "enrollment_id": enrollment_id,
+                        "error": "Enrollment not found"
+                    })
+                    continue
+
+                old_values = AuditService.serialize_model(db_enrollment)
+                record_id = db_enrollment.id
+
+                self.db.delete(db_enrollment)
+                self.db.commit()
+
+                AuditService(self.db).log_change(
+                    table_name=CourseEnrollmentModel.__tablename__,
+                    record_id=record_id,
+                    action="delete",
+                    changed_by=deleted_by,
+                    old_values=old_values,
+                )
+                deleted_ids.append(enrollment_id)
+
+            except Exception as e:
+                self.db.rollback()
+                failed_ids.append(enrollment_id)
+                errors.append({
+                    "enrollment_id": enrollment_id,
+                    "error": str(e)
+                })
+
+        return {
+            "deleted_count": len(deleted_ids),
+            "deleted_ids": deleted_ids,
+            "failed_ids": failed_ids,
+            "errors": errors
+        }
+
     def sync_from_planning_center(
         self, pc_registration_data: dict, updated_by: Optional[int] = None
     ) -> CourseEnrollmentModel:

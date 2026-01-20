@@ -12,7 +12,14 @@ from sqlalchemy.orm import Session
 
 from app.api.v1.endpoints.auth import get_current_active_user
 from app.core.database import get_db
-from app.schemas.user import User, UserCreate, UserUpdate, UserProfileUpdate
+from app.schemas.user import (
+    User,
+    UserCreate,
+    UserUpdate,
+    UserProfileUpdate,
+    BulkDeleteUsersRequest,
+    BulkDeleteUsersResponse,
+)
 from app.schemas.password import ChangePasswordRequest
 from app.schemas.user_preference import UserPreference, UserPreferenceUpdate
 from app.services.user_service import UserService
@@ -151,6 +158,26 @@ async def get_users(
     """Get all users, optionally filtered by role"""
     user_service = UserService(db)
     return user_service.get_users(skip=skip, limit=limit, role=role)
+
+
+@router.post("/bulk-delete", response_model=BulkDeleteUsersResponse)
+async def bulk_delete_users(
+    request: BulkDeleteUsersRequest,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_active_user),
+):
+    """Bulk delete users - Admin only"""
+    if current_user["role"] != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only admin users can delete users",
+        )
+
+    user_service = UserService(db)
+    result = user_service.bulk_delete_users(
+        request.user_ids, deleted_by=current_user["id"]
+    )
+    return BulkDeleteUsersResponse(**result)
 
 
 @router.get("/{user_id}", response_model=User)

@@ -15,7 +15,9 @@ from app.schemas.enrollment import (
     ImportRegistrationsRequest,
     CourseEnrollment,
     CourseEnrollmentCreate,
-    CourseEnrollmentUpdate
+    CourseEnrollmentUpdate,
+    BulkDeleteEnrollmentsRequest,
+    BulkDeleteEnrollmentsResponse,
 )
 from app.services.enrollment_service import CourseEnrollmentService
 
@@ -40,6 +42,26 @@ async def get_enrollments(
         skip=skip, limit=limit, course_id=course_id, people_id=people_id, status=status,
         sort=sort, order=order
     )
+
+
+@router.post("/bulk-delete", response_model=BulkDeleteEnrollmentsResponse)
+async def bulk_delete_enrollments(
+    request: BulkDeleteEnrollmentsRequest,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_active_user),
+):
+    """Bulk delete enrollments - Admin only"""
+    if current_user["role"] != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only admin users can bulk delete enrollments",
+        )
+
+    enrollment_service = CourseEnrollmentService(db)
+    result = enrollment_service.bulk_delete_enrollments(
+        request.enrollment_ids, deleted_by=current_user["id"]
+    )
+    return BulkDeleteEnrollmentsResponse(**result)
 
 
 @router.get("/{enrollment_id}", response_model=CourseEnrollment)

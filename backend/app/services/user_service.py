@@ -285,6 +285,68 @@ class UserService:
         )
         return True
 
+    def bulk_delete_users(
+        self, user_ids: List[int], deleted_by: Optional[int] = None
+    ) -> dict:
+        """
+        Delete multiple users at once.
+        Returns a summary of deleted/failed IDs.
+        """
+        deleted_ids: List[int] = []
+        failed_ids: List[int] = []
+        errors: List[dict] = []
+
+        for user_id in user_ids:
+            try:
+                db_user = self.get_user(user_id)
+                if not db_user:
+                    failed_ids.append(user_id)
+                    errors.append({
+                        "user_id": user_id,
+                        "error": "User not found"
+                    })
+                    continue
+
+                # Don't allow deleting yourself
+                if deleted_by and user_id == deleted_by:
+                    failed_ids.append(user_id)
+                    errors.append({
+                        "user_id": user_id,
+                        "error": "Cannot delete yourself"
+                    })
+                    continue
+
+                old_values = AuditService.serialize_model(db_user, exclude={"hashed_password"})
+                record_id = db_user.id
+
+                self.db.delete(db_user)
+                self.db.commit()
+
+                AuditService(self.db).log_change(
+                    table_name=UserModel.__tablename__,
+                    record_id=record_id,
+                    action="delete",
+                    changed_by=deleted_by,
+                    old_values=old_values,
+                )
+                deleted_ids.append(user_id)
+
+            except Exception as e:
+                self.db.rollback()
+                failed_ids.append(user_id)
+                errors.append({
+                    "user_id": user_id,
+                    "error": str(e)
+                })
+                logger.error(f"Failed to delete user {user_id}: {e}")
+
+        return {
+            "deleted_count": len(deleted_ids),
+            "deleted_ids": deleted_ids,
+            "failed_ids": failed_ids,
+            "errors": errors
+        }
+
     def verify_password(self, plain_password: str, hashed_password: str) -> bool:
         """Verify a password"""
         from app.core.security import verify_password

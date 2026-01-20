@@ -287,6 +287,46 @@ class ProgramService:
         self._soft_delete_with_active_flag(program, "programs", deleted_by)
         return True
 
+    def bulk_delete_programs(
+        self, program_ids: List[int], deleted_by: Optional[int] = None
+    ) -> dict:
+        """
+        Delete multiple programs at once (soft delete).
+        Returns a summary of deleted/failed IDs.
+        """
+        deleted_ids: List[int] = []
+        failed_ids: List[int] = []
+        errors: List[dict] = []
+
+        for program_id in program_ids:
+            try:
+                program = self.get_program(program_id)
+                if not program:
+                    failed_ids.append(program_id)
+                    errors.append({
+                        "program_id": program_id,
+                        "error": "Program not found"
+                    })
+                    continue
+
+                self._soft_delete_with_active_flag(program, "programs", deleted_by)
+                deleted_ids.append(program_id)
+
+            except Exception as e:
+                self.db.rollback()
+                failed_ids.append(program_id)
+                errors.append({
+                    "program_id": program_id,
+                    "error": str(e)
+                })
+
+        return {
+            "deleted_count": len(deleted_ids),
+            "deleted_ids": deleted_ids,
+            "failed_ids": failed_ids,
+            "errors": errors
+        }
+
     def validate_role_name(self, program_id: int, role_name: str) -> bool:
         """Validate that a role name exists in the program's role definitions"""
         program = self.get_program(program_id)

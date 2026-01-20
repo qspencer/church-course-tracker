@@ -10,11 +10,13 @@ from sqlalchemy.orm import Session
 from app.api.v1.endpoints.auth import get_current_active_user, get_current_admin_user
 from app.core.database import get_db
 from app.schemas.program import (
-    Program, 
-    ProgramCreate, 
+    Program,
+    ProgramCreate,
     ProgramUpdate,
     BulkImportParticipantsFromPCEventRequest,
-    BulkImportParticipantsFromPCListRequest
+    BulkImportParticipantsFromPCListRequest,
+    BulkDeleteProgramsRequest,
+    BulkDeleteProgramsResponse,
 )
 from app.schemas.program_admin import ProgramAdmin, ProgramAdminCreate, ProgramAdminUpdate
 from app.schemas.program_participant import (
@@ -106,6 +108,26 @@ async def get_programs(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error processing programs: {str(e)}"
         )
+
+
+@router.post("/bulk-delete", response_model=BulkDeleteProgramsResponse)
+async def bulk_delete_programs(
+    request: BulkDeleteProgramsRequest,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_active_user),
+):
+    """Bulk delete programs (soft delete) - Admin only"""
+    if current_user["role"] != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only admin users can bulk delete programs",
+        )
+
+    program_service = ProgramService(db)
+    result = program_service.bulk_delete_programs(
+        request.program_ids, deleted_by=current_user["id"]
+    )
+    return BulkDeleteProgramsResponse(**result)
 
 
 @router.get("/{program_id}", response_model=Program)

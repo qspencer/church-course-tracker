@@ -3,7 +3,7 @@ User Pydantic schemas
 """
 
 from datetime import datetime
-from typing import Optional
+from typing import List, Optional
 
 from pydantic import BaseModel, EmailStr, Field
 
@@ -54,3 +54,16 @@ class User(UserBase):
 
     class Config:
         from_attributes = True
+
+
+class BulkDeleteUsersRequest(BaseModel):
+    """Schema for bulk deleting users"""
+    user_ids: List[int] = Field(..., min_length=1)
+
+
+class BulkDeleteUsersResponse(BaseModel):
+    """Schema for bulk delete response"""
+    deleted_count: int
+    deleted_ids: List[int]
+    failed_ids: List[int] = []
+    errors: List[dict] = []

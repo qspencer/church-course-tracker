@@ -140,7 +140,7 @@ class BulkEnrollFromPCListRequest(BaseModel):
 
 class ImportRegistrationsRequest(BaseModel):
     """Schema for importing selected registrations from Planning Center event"""
-    
+
     course_id: int = Field(..., description="Course ID to enroll people in")
     event_id: str = Field(..., description="Planning Center event ID")
     registration_ids: List[str] = Field(..., description="List of Planning Center registration IDs to import")
@@ -148,3 +148,16 @@ class ImportRegistrationsRequest(BaseModel):
         default=True,
         description="Whether to update existing enrollments"
     )
+
+
+class BulkDeleteEnrollmentsRequest(BaseModel):
+    """Schema for bulk deleting enrollments"""
+    enrollment_ids: List[int] = Field(..., min_length=1)
+
+
+class BulkDeleteEnrollmentsResponse(BaseModel):
+    """Schema for bulk delete response"""
+    deleted_count: int
+    deleted_ids: List[int]
+    failed_ids: List[int] = []
+    errors: List[dict] = []

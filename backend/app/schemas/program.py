@@ -176,7 +176,7 @@ class BulkImportParticipantsFromPCEventRequest(BaseModel):
 
 class BulkImportParticipantsFromPCListRequest(BaseModel):
     """Schema for bulk import participants from Planning Center list"""
-    
+
     program_id: int = Field(..., description="Program ID to add participants to")
     pc_list_id: str = Field(..., description="Planning Center list ID")
     role_name: str = Field(..., description="Role name for imported participants")
@@ -184,4 +184,17 @@ class BulkImportParticipantsFromPCListRequest(BaseModel):
         default=True,
         description="Whether to update existing participants"
     )
+
+
+class BulkDeleteProgramsRequest(BaseModel):
+    """Schema for bulk deleting programs"""
+    program_ids: List[int] = Field(..., min_length=1)
+
+
+class BulkDeleteProgramsResponse(BaseModel):
+    """Schema for bulk delete response"""
+    deleted_count: int
+    deleted_ids: List[int]
+    failed_ids: List[int] = []
+    errors: List[dict] = []
 
