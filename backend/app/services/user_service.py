@@ -223,7 +223,7 @@ class UserService:
             return None
 
         old_values = AuditService.serialize_model(db_user, exclude={"hashed_password"})
-        update_data = user_update.dict(exclude_unset=True)
+        update_data = user_update.model_dump(exclude_unset=True)
 
         # Hash password if provided
         if "password" in update_data:
@@ -303,7 +303,7 @@ class UserService:
             return None
 
         old_values = AuditService.serialize_model(db_user, exclude={"hashed_password"})
-        update_data = user_update.dict(exclude_unset=True)
+        update_data = user_update.model_dump(exclude_unset=True)
 
         # Ensure user can't update role or is_active through this method
         update_data.pop("role", None)

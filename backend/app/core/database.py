@@ -5,8 +5,7 @@ Database configuration and session management with connection pooling
 import logging
 
 from sqlalchemy import create_engine, event
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import declarative_base, sessionmaker
 from sqlalchemy.pool import QueuePool
 
 from app.core.config import settings

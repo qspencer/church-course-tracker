@@ -48,7 +48,7 @@ class UserPreferenceService:
         """Update user preferences"""
         preferences = self.get_user_preferences(user_id)
         
-        update_data = preferences_update.dict(exclude_unset=True)
+        update_data = preferences_update.model_dump(exclude_unset=True)
         for field, value in update_data.items():
             setattr(preferences, field, value)
         

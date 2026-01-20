@@ -64,7 +64,7 @@ class ProgressService:
         if not db_progress:
             return None
 
-        update_data = progress_update.dict(exclude_unset=True)
+        update_data = progress_update.model_dump(exclude_unset=True)
         for field, value in update_data.items():
             setattr(db_progress, field, value)
 

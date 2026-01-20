@@ -177,7 +177,7 @@ class CourseEnrollmentService:
             return None
 
         old_values = AuditService.serialize_model(db_enrollment)
-        update_data = enrollment_update.dict(exclude_unset=True)
+        update_data = enrollment_update.model_dump(exclude_unset=True)
         for field, value in update_data.items():
             setattr(db_enrollment, field, value)
 
