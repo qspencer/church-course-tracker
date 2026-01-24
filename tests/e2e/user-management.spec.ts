@@ -94,35 +94,35 @@ test.describe('User Management Tests', () => {
       await page.click('text=Users');
       await page.waitForURL('**/users', { timeout: 10000 }).catch(() => {});
       await page.waitForTimeout(1000); // Wait for table to load
-      
+
       // User actions are in a dropdown menu - click the more_vert button first
       const menuButton = page.locator('button:has(mat-icon:has-text("more_vert"))').first();
       const menuVisible = await menuButton.isVisible({ timeout: 5000 }).catch(() => false);
-      
+
       if (!menuVisible) {
         // If User actions menu not found, at least verify admin can access users page
         const currentUrl = page.url();
         expect(currentUrl.includes('/users')).toBeTruthy();
         return;
       }
-      
+
       await menuButton.click();
       await page.waitForTimeout(500); // Wait for menu to open
-      
+
       // Click Edit from the menu
       const editMenuItem = page.locator('button[mat-menu-item]:has-text("Edit")').first();
       const editVisible = await editMenuItem.isVisible({ timeout: 3000 }).catch(() => false);
-      
+
       if (!editVisible) {
         // If Edit menu item not found, at least verify admin can access users page
         const currentUrl = page.url();
         expect(currentUrl.includes('/users')).toBeTruthy();
         return;
       }
-      
+
       await editMenuItem.click();
       await page.waitForTimeout(1000); // Wait for dialog
-      
+
       // Wait for dialog to appear
       const dialog = page.locator('mat-dialog-container').first();
       const dialogVisible = await dialog.isVisible({ timeout: 5000 }).catch(() => false);
@@ -132,11 +132,17 @@ test.describe('User Management Tests', () => {
         expect(currentUrl.includes('/users')).toBeTruthy();
         return;
       }
-      
-      // Change role using mat-select
+
+      // Store the original role before changing it
       const roleSelect = page.locator('mat-select[formControlName="role"]').first();
       const roleVisible = await roleSelect.isVisible({ timeout: 3000 }).catch(() => false);
+      let originalRole: string | null = null;
+
       if (roleVisible) {
+        // Get the current role text
+        originalRole = await roleSelect.locator('.mat-mdc-select-value-text').textContent().catch(() => null);
+
+        // Change role using mat-select
         await roleSelect.click();
         await page.waitForTimeout(500);
         const staffOption = page.locator('mat-option:has-text("Staff")').first();
@@ -146,19 +152,77 @@ test.describe('User Management Tests', () => {
           await page.waitForTimeout(500);
         }
       }
-      
+
       // Click Save/Update button
       const saveButton = page.locator('mat-dialog-container button:has-text("Save"), mat-dialog-container button:has-text("Update")').first();
       const saveVisible = await saveButton.isVisible({ timeout: 3000 }).catch(() => false);
       if (saveVisible) {
         await saveButton.click();
         await page.waitForTimeout(1000);
-        
+
         // Check for success message
         const successMsg = page.locator('.mat-snack-bar-container').first();
         const successVisible = await successMsg.isVisible({ timeout: 5000 }).catch(() => false);
         if (successVisible) {
           await expect(successMsg).toBeVisible();
+        }
+      }
+
+      // IMPORTANT: Restore the original role to avoid breaking other tests
+      if (originalRole && originalRole.toLowerCase() !== 'staff') {
+        await page.waitForTimeout(2000); // Wait for any snackbar to disappear
+
+        // Re-open the edit dialog for the same user
+        const menuButton2 = page.locator('button:has(mat-icon:has-text("more_vert"))').first();
+        const menuVisible2 = await menuButton2.isVisible({ timeout: 5000 }).catch(() => false);
+
+        if (menuVisible2) {
+          await menuButton2.click();
+          await page.waitForTimeout(500);
+
+          const editMenuItem2 = page.locator('button[mat-menu-item]:has-text("Edit")').first();
+          const editVisible2 = await editMenuItem2.isVisible({ timeout: 3000 }).catch(() => false);
+
+          if (editVisible2) {
+            await editMenuItem2.click();
+            await page.waitForTimeout(1000);
+
+            const dialog2 = page.locator('mat-dialog-container').first();
+            const dialogVisible2 = await dialog2.isVisible({ timeout: 5000 }).catch(() => false);
+
+            if (dialogVisible2) {
+              const roleSelect2 = page.locator('mat-select[formControlName="role"]').first();
+              const roleVisible2 = await roleSelect2.isVisible({ timeout: 3000 }).catch(() => false);
+
+              if (roleVisible2) {
+                await roleSelect2.click();
+                await page.waitForTimeout(500);
+
+                // Select the original role
+                const originalOption = page.locator(`mat-option:has-text("${originalRole}")`).first();
+                const originalOptionVisible = await originalOption.isVisible({ timeout: 3000 }).catch(() => false);
+
+                if (originalOptionVisible) {
+                  await originalOption.click();
+                  await page.waitForTimeout(500);
+
+                  // Save the restored role
+                  const saveButton2 = page.locator('mat-dialog-container button:has-text("Save"), mat-dialog-container button:has-text("Update")').first();
+                  const saveVisible2 = await saveButton2.isVisible({ timeout: 3000 }).catch(() => false);
+
+                  if (saveVisible2) {
+                    await saveButton2.click();
+                    await page.waitForTimeout(1000);
+                    console.log(`✓ User role restored to ${originalRole} after test`);
+                  }
+                } else {
+                  // Close dialog if can't find original role
+                  await page.keyboard.press('Escape');
+                  console.log(`⚠ Could not find original role option: ${originalRole}`);
+                }
+              }
+            }
+          }
         }
       }
     });
@@ -222,12 +286,46 @@ test.describe('User Management Tests', () => {
       
       await deactivateMenuItem.click();
       await page.waitForTimeout(1000);
-      
+
       // Check for success message
       const successMsg = page.locator('.mat-snack-bar-container').first();
       const successVisible = await successMsg.isVisible({ timeout: 5000 }).catch(() => false);
       if (successVisible) {
         await expect(successMsg).toBeVisible();
+      }
+
+      // IMPORTANT: Re-activate the user to avoid breaking other tests
+      // Wait for any snackbar to disappear
+      await page.waitForTimeout(2000);
+
+      // Find the now-inactive user and re-activate them
+      const inactiveMenuButton = page.locator('tr:has(mat-chip:has-text("Inactive")) button:has(mat-icon:has-text("more_vert"))').first();
+      const inactiveMenuVisible = await inactiveMenuButton.isVisible({ timeout: 5000 }).catch(() => false);
+
+      if (inactiveMenuVisible) {
+        await inactiveMenuButton.click();
+        await page.waitForTimeout(500);
+
+        // Click Activate from the menu
+        const activateMenuItem = page.locator('button[mat-menu-item]:has-text("Activate")').first();
+        const activateVisible = await activateMenuItem.isVisible({ timeout: 3000 }).catch(() => false);
+
+        if (activateVisible) {
+          await activateMenuItem.click();
+          await page.waitForTimeout(1000);
+
+          // Verify re-activation success
+          const reactivateMsg = page.locator('.mat-snack-bar-container').first();
+          const reactivateVisible = await reactivateMsg.isVisible({ timeout: 5000 }).catch(() => false);
+          if (reactivateVisible) {
+            console.log('✓ User successfully re-activated after test');
+          }
+        } else {
+          await page.keyboard.press('Escape');
+          console.log('⚠ Could not find Activate menu item to re-activate user');
+        }
+      } else {
+        console.log('⚠ Could not find inactive user to re-activate');
       }
     });
 
