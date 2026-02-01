@@ -3,7 +3,11 @@
   "version": "1.0.0",
   "description": "End-to-end tests for Church Course Tracker application",
   "scripts": {
+    "setup": "python3 ./scripts/setup-test-users.py",
+    "setup:local": "./scripts/setup-local-e2e.sh",
+    "setup:production": "./scripts/setup-production-users.sh",
     "test": "playwright test",
+    "test:local": "./scripts/run-local-e2e.sh",
     "test:headed": "playwright test --headed",
     "test:ui": "playwright test --ui",
     "test:debug": "playwright test --debug",
