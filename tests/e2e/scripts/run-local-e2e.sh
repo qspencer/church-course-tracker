@@ -73,7 +73,7 @@ if [ "$BACKEND_RUNNING" = false ]; then
         cp .env.development .env 2>/dev/null || true
     fi
 
-    uvicorn app.main:app --host 0.0.0.0 --port 8000 &
+    uvicorn main:app --host 0.0.0.0 --port 8000 &
     BACKEND_PID=$!
 
     # Wait for backend to be ready

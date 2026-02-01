@@ -107,11 +107,13 @@ const config = {
 };
 
 // Only use webServer when testing locally (not against remote URLs)
+// When running against localhost, assume the server is already running
 if (!isRemoteURL) {
   config.webServer = {
-    command: 'echo "Tests will run against production environment"',
+    command: 'sleep infinity', // Dummy command - expects server to be running
     url: baseURL,
-    reuseExistingServer: !env.CI,
+    reuseExistingServer: true, // Always reuse existing server for local dev
+    timeout: 5000, // Short timeout since server should already be running
   };
 }
 

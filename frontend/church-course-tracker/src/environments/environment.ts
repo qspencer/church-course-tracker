@@ -11,6 +11,8 @@ export const environment = {
   logLevel: 'debug', // 'debug', 'info', 'warn', 'error'
   sentry: {
     dsn: '',  // Empty in dev - errors not sent to Sentry
-    environment: 'development'
+    environment: 'development',
+    tracePropagationTargets: ['localhost'],
+    tracesSampleRate: 0.0  // No tracing in dev
   }
 };
