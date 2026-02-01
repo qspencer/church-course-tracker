@@ -175,7 +175,7 @@ async def bulk_delete_users(
 
     user_service = UserService(db)
     result = user_service.bulk_delete_users(
-        request.user_ids, deleted_by=current_user["id"]
+        request.user_ids, deleted_by=current_user["id"], soft_delete=request.soft_delete
     )
     return BulkDeleteUsersResponse(**result)
 

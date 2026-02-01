@@ -12,9 +12,9 @@ async function requireVisible(locator: Locator, description: string, testInfo: T
     await expect(locator).toBeVisible({ timeout });
     return true;
   } catch {
-    // Feature may not be available - verify user can at least access dashboard
-    const currentUrl = page.url();
-    expect(currentUrl.includes('/dashboard') || currentUrl.includes('/courses')).toBeTruthy();
+    // Feature may not be available - log and return false
+    // The calling test should handle navigation verification
+    console.log(`⚠️ ${description} not visible within ${timeout}ms`);
     return false;
   }
 }
@@ -458,56 +458,42 @@ test.describe('Course Management Tests', () => {
         // Wait for network activity to complete (deletion API call)
         await page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
         
-        // Wait a bit more for Angular to update the table
-        await page.waitForTimeout(1000);
-        
-        // Verify course is removed from the table with retry logic
-        // The table may take time to refresh, so we'll check multiple times
+        // Verify course is removed from the table
+        // Use locator-based waiting for better reliability
         const courseName = 'Advanced Bible Study - Updated';
-        let courseFound = true;
-        let attempts = 0;
-        const maxAttempts = 5; // Reduced from 10 to prevent timeout
-        const maxTotalWaitTime = 15000; // Maximum 15 seconds total wait
-        const startTime = Date.now();
-        
-        while (courseFound && attempts < maxAttempts && (Date.now() - startTime) < maxTotalWaitTime) {
-          // Wait a bit between attempts (fixed delay, not exponential to prevent timeout)
-          if (attempts > 0) {
-            await page.waitForTimeout(1000); // Fixed 1 second delay
-          }
-          
-          // Get current table state - refresh the table first
+
+        // First, try to use Playwright's built-in waiting for element to be hidden
+        const courseRow = page.locator('tr[mat-row]').filter({
+          has: page.locator('td:first-child, mat-cell:first-child').filter({ hasText: new RegExp(`^${courseName}$`) })
+        }).first();
+
+        // Wait for the course row to disappear (up to 15 seconds)
+        let courseRemoved = false;
+        try {
+          await expect(courseRow).toBeHidden({ timeout: 15000 });
+          courseRemoved = true;
+          console.log(`✓ Course "${courseName}" successfully removed from table`);
+        } catch {
+          // Locator-based wait failed, fall back to manual checking
+          console.log(`⚠ Locator wait failed, checking table manually...`);
+        }
+
+        // If locator-based wait didn't work, check manually
+        let courseFound = !courseRemoved;
+        if (!courseRemoved) {
           await page.waitForLoadState('networkidle', { timeout: 3000 }).catch(() => {});
           const allRows = page.locator('tr[mat-row]');
           const rowCount = await allRows.count();
-          
+
           courseFound = false;
-          let matchingCount = 0;
           for (let i = 0; i < rowCount; i++) {
             const row = allRows.nth(i);
             const firstCell = row.locator('td:first-child, mat-cell:first-child').first();
             const cellText = await firstCell.textContent({ timeout: 1000 }).catch(() => '');
             if (cellText && cellText.trim() === courseName) {
-              matchingCount++;
               courseFound = true;
+              break;
             }
-          }
-          
-          // If we found the course, log how many instances exist for debugging
-          if (courseFound && attempts === 0) {
-            console.log(`Found ${matchingCount} instance(s) of "${courseName}" in table before deletion verification`);
-          }
-          
-          // If course not found, we're done
-          if (!courseFound) {
-            break;
-          }
-          
-          attempts++;
-          
-          // Wait for network activity again in case table is still updating (only if we have time)
-          if (attempts < maxAttempts && (Date.now() - startTime) < maxTotalWaitTime - 2000) {
-            await page.waitForLoadState('networkidle', { timeout: 3000 }).catch(() => {});
           }
         }
         

@@ -140,7 +140,7 @@ describe('SettingsComponent', () => {
   it('should redirect non-admin users', () => {
     authService.isAdmin.and.returnValue(false);
     fixture.detectChanges();
-    expect(router.navigate).toHaveBeenCalledWith(['/churchcoursetracker/dashboard']);
+    expect(router.navigate).toHaveBeenCalledWith(['/dashboard']);
     expect(snackBar.open).toHaveBeenCalledWith('Access denied. Admin privileges required.', 'Close', { duration: 3000 });
   });
 

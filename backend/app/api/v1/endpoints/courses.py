@@ -106,7 +106,7 @@ async def bulk_delete_courses(
 
     course_service = CourseService(db)
     result = course_service.bulk_delete_courses(
-        request.course_ids, deleted_by=current_user["id"]
+        request.course_ids, deleted_by=current_user["id"], soft_delete=request.soft_delete
     )
     return BulkDeleteCoursesResponse(**result)
 

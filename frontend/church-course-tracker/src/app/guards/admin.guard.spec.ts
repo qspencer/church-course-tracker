@@ -5,7 +5,7 @@ import { AuthService } from '../services/auth.service';
 import { User } from '../models';
 import { of } from 'rxjs';
 
-const ROUTE_PREFIX = '/churchcoursetracker';
+const ROUTE_PREFIX = '';
 
 describe('AdminGuard', () => {
   let guard: AdminGuard;

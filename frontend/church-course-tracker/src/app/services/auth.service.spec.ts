@@ -7,7 +7,7 @@ import { LoggerService } from './logger.service';
 import { LoginRequest, LoginResponse, User } from '../models';
 import { environment } from '../../environments/environment';
 
-const ROUTE_PREFIX = '/churchcoursetracker';
+const ROUTE_PREFIX = '';
 
 describe('AuthService', () => {
   let service: AuthService;

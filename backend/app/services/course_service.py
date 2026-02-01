@@ -265,10 +265,12 @@ class CourseService:
         return True
 
     def bulk_delete_courses(
-        self, course_ids: List[int], deleted_by: Optional[int] = None
+        self, course_ids: List[int], deleted_by: Optional[int] = None,
+        soft_delete: bool = False
     ) -> Dict[str, any]:
         """
         Delete multiple courses at once.
+        If soft_delete is True, deactivates courses instead of deleting.
         Returns a summary of deleted/failed IDs.
         """
         deleted_ids: List[int] = []
@@ -289,14 +291,21 @@ class CourseService:
                 old_values = AuditService.serialize_model(db_course)
                 record_id = db_course.id
 
-                self.db.delete(db_course)
-                self.db.commit()
+                if soft_delete:
+                    # Soft delete - deactivate instead of delete
+                    db_course.is_active = False
+                    self.db.commit()
+                    action = "soft_delete"
+                else:
+                    # Hard delete
+                    self.db.delete(db_course)
+                    self.db.commit()
+                    action = "delete"
 
-                # Log audit after successful deletion
                 AuditService(self.db).log_change(
                     table_name=CourseModel.__tablename__,
                     record_id=record_id,
-                    action="delete",
+                    action=action,
                     changed_by=deleted_by,
                     old_values=old_values,
                 )

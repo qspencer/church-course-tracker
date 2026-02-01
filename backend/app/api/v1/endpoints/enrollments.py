@@ -59,7 +59,7 @@ async def bulk_delete_enrollments(
 
     enrollment_service = CourseEnrollmentService(db)
     result = enrollment_service.bulk_delete_enrollments(
-        request.enrollment_ids, deleted_by=current_user["id"]
+        request.enrollment_ids, deleted_by=current_user["id"], soft_delete=request.soft_delete
     )
     return BulkDeleteEnrollmentsResponse(**result)
 

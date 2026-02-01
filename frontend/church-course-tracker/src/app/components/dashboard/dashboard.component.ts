@@ -517,19 +517,19 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   navigateToCourses(): void {
-    this.router.navigate(['/churchcoursetracker/courses']);
+    this.router.navigate(['/courses']);
   }
 
   navigateToEnrollments(): void {
-    this.router.navigate(['/churchcoursetracker/enrollments']);
+    this.router.navigate(['/enrollments']);
   }
 
   navigateToMembers(): void {
-    this.router.navigate(['/churchcoursetracker/members']);
+    this.router.navigate(['/members']);
   }
 
   navigateToPrograms(): void {
-    this.router.navigate(['/churchcoursetracker/programs']);
+    this.router.navigate(['/programs']);
   }
 
   ngOnDestroy(): void {

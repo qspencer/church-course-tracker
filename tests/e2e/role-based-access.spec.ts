@@ -30,8 +30,8 @@ test.describe('Role-Based Access Control', () => {
         return;
       }
 
-      // Check dashboard access
-      await expect(page).toHaveURL(`${APP_BASE_URL}/dashboard`);
+      // Check dashboard access - use regex to handle frontend routing variations
+      await expect(page).toHaveURL(/\/dashboard$/);
       
       // Admin should see all navigation items (check what actually exists)
       // Use navigation-specific selectors to avoid strict mode violations
@@ -291,8 +291,8 @@ test.describe('Role-Based Access Control', () => {
         return;
       }
 
-      // Check dashboard access
-      await expect(page).toHaveURL(`${APP_BASE_URL}/dashboard`);
+      // Check dashboard access - use regex to handle frontend routing variations
+      await expect(page).toHaveURL(/\/dashboard$/);
       
       // Staff should see operational navigation items (check what actually exists)
       // Use navigation-specific selectors to avoid strict mode violations
@@ -466,8 +466,8 @@ test.describe('Role-Based Access Control', () => {
         return;
       }
 
-      // Check dashboard access
-      await expect(page).toHaveURL(`${APP_BASE_URL}/dashboard`);
+      // Check dashboard access - use regex to handle frontend routing variations
+      await expect(page).toHaveURL(/\/dashboard$/);
       
       // Viewer should see limited navigation items (check what actually exists)
       // Note: Navigation shows "Courses" not "My Courses", and "My Profile" not "Profile"

@@ -217,10 +217,12 @@ class CourseEnrollmentService:
         return True
 
     def bulk_delete_enrollments(
-        self, enrollment_ids: List[int], deleted_by: Optional[int] = None
+        self, enrollment_ids: List[int], deleted_by: Optional[int] = None,
+        soft_delete: bool = False
     ) -> dict:
         """
         Delete multiple enrollments at once.
+        If soft_delete is True, sets status to 'dropped' instead of deleting.
         Returns a summary of deleted/failed IDs.
         """
         deleted_ids: List[int] = []
@@ -241,13 +243,21 @@ class CourseEnrollmentService:
                 old_values = AuditService.serialize_model(db_enrollment)
                 record_id = db_enrollment.id
 
-                self.db.delete(db_enrollment)
-                self.db.commit()
+                if soft_delete:
+                    # Soft delete - set status to 'dropped'
+                    db_enrollment.status = "dropped"
+                    self.db.commit()
+                    action = "soft_delete"
+                else:
+                    # Hard delete
+                    self.db.delete(db_enrollment)
+                    self.db.commit()
+                    action = "delete"
 
                 AuditService(self.db).log_change(
                     table_name=CourseEnrollmentModel.__tablename__,
                     record_id=record_id,
-                    action="delete",
+                    action=action,
                     changed_by=deleted_by,
                     old_values=old_values,
                 )

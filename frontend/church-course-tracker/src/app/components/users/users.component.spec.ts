@@ -15,7 +15,7 @@ import { UserService } from '../../services/user.service';
 import { AuthService } from '../../services/auth.service';
 import { User } from '../../models';
 
-const ROUTE_PREFIX = '/churchcoursetracker';
+const ROUTE_PREFIX = '';
 
 describe('UsersComponent', () => {
   let component: UsersComponent;

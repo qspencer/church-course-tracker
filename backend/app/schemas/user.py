@@ -59,6 +59,10 @@ class User(UserBase):
 class BulkDeleteUsersRequest(BaseModel):
     """Schema for bulk deleting users"""
     user_ids: List[int] = Field(..., min_length=1)
+    soft_delete: bool = Field(
+        default=False,
+        description="If true, deactivates users instead of deleting them"
+    )
 
 
 class BulkDeleteUsersResponse(BaseModel):

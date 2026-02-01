@@ -63,7 +63,7 @@ export class AuthService {
     // Clear user context from error tracking
     this.logger.clearUser();
 
-    this.router.navigate(['/churchcoursetracker/auth']);
+    this.router.navigate(['/auth']);
   }
 
   register(userData: UserCreate): Observable<User> {

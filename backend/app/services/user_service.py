@@ -286,10 +286,12 @@ class UserService:
         return True
 
     def bulk_delete_users(
-        self, user_ids: List[int], deleted_by: Optional[int] = None
+        self, user_ids: List[int], deleted_by: Optional[int] = None,
+        soft_delete: bool = False
     ) -> dict:
         """
         Delete multiple users at once.
+        If soft_delete is True, deactivates users instead of deleting.
         Returns a summary of deleted/failed IDs.
         """
         deleted_ids: List[int] = []
@@ -319,13 +321,21 @@ class UserService:
                 old_values = AuditService.serialize_model(db_user, exclude={"hashed_password"})
                 record_id = db_user.id
 
-                self.db.delete(db_user)
-                self.db.commit()
+                if soft_delete:
+                    # Soft delete - deactivate instead of delete
+                    db_user.is_active = False
+                    self.db.commit()
+                    action = "soft_delete"
+                else:
+                    # Hard delete
+                    self.db.delete(db_user)
+                    self.db.commit()
+                    action = "delete"
 
                 AuditService(self.db).log_change(
                     table_name=UserModel.__tablename__,
                     record_id=record_id,
-                    action="delete",
+                    action=action,
                     changed_by=deleted_by,
                     old_values=old_values,
                 )

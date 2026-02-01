@@ -112,6 +112,10 @@ class Course(CourseBase):
 class BulkDeleteCoursesRequest(BaseModel):
     """Schema for bulk deleting courses"""
     course_ids: List[int] = Field(..., min_length=1)
+    soft_delete: bool = Field(
+        default=False,
+        description="If true, deactivates courses instead of deleting them"
+    )
 
 
 class BulkDeleteCoursesResponse(BaseModel):

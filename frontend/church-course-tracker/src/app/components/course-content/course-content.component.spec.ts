@@ -20,7 +20,7 @@ import {
   CourseContentSummary, AuditLog
 } from '../../models';
 
-const ROUTE_PREFIX = '/churchcoursetracker';
+const ROUTE_PREFIX = '';
 
 describe('CourseContentComponent', () => {
   let component: CourseContentComponent;

@@ -284,22 +284,22 @@ describe('DashboardComponent', () => {
   describe('navigation methods', () => {
     it('should navigate to courses page', () => {
       component.navigateToCourses();
-      expect(routerSpy.navigate).toHaveBeenCalledWith(['/churchcoursetracker/courses']);
+      expect(routerSpy.navigate).toHaveBeenCalledWith(['/courses']);
     });
 
     it('should navigate to enrollments page', () => {
       component.navigateToEnrollments();
-      expect(routerSpy.navigate).toHaveBeenCalledWith(['/churchcoursetracker/enrollments']);
+      expect(routerSpy.navigate).toHaveBeenCalledWith(['/enrollments']);
     });
 
     it('should navigate to members page', () => {
       component.navigateToMembers();
-      expect(routerSpy.navigate).toHaveBeenCalledWith(['/churchcoursetracker/members']);
+      expect(routerSpy.navigate).toHaveBeenCalledWith(['/members']);
     });
 
     it('should navigate to programs page', () => {
       component.navigateToPrograms();
-      expect(routerSpy.navigate).toHaveBeenCalledWith(['/churchcoursetracker/programs']);
+      expect(routerSpy.navigate).toHaveBeenCalledWith(['/programs']);
     });
   });
 

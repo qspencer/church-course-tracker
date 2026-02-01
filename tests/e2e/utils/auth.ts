@@ -11,22 +11,23 @@ const env =
 const DEFAULT_APP_BASE_URL = 'https://apps.quentinspencer.com/churchcoursetracker';
 const DEFAULT_API_BASE_URL = 'https://tinev5iszf.execute-api.us-east-1.amazonaws.com';
 
-const DEFAULT_CREDENTIALS: Record<UserRole, Credentials> = {
-  admin: { username: 'Admin', password: 'Matthew778*' },
-  staff: { username: 'staff', password: 'staff123' },
-  viewer: { username: 'viewer', password: 'viewer123' },
+// IMPORTANT: Credentials must be provided via environment variables
+// Set E2E_ADMIN_USERNAME, E2E_ADMIN_PASSWORD, etc. in your environment or .env file
+// DO NOT hardcode production passwords in source code
+const DEFAULT_CREDENTIALS: Record<UserRole, Credentials | undefined> = {
+  admin: undefined,
+  staff: undefined,
+  viewer: undefined,
 };
 
 function readEnvCredentials(role: UserRole): Credentials | undefined {
   const prefix = role.toUpperCase();
   const username =
     env[`E2E_${prefix}_USERNAME`] ??
-    env[`${prefix}_USERNAME`] ??
-    DEFAULT_CREDENTIALS[role]?.username;
+    env[`${prefix}_USERNAME`];
   const password =
     env[`E2E_${prefix}_PASSWORD`] ??
-    env[`${prefix}_PASSWORD`] ??
-    DEFAULT_CREDENTIALS[role]?.password;
+    env[`${prefix}_PASSWORD`];
 
   if (!username || !password) {
     return undefined;
@@ -34,6 +35,13 @@ function readEnvCredentials(role: UserRole): Credentials | undefined {
 
   return { username, password };
 }
+
+// Export testUsers for API tests - these are read from environment variables
+export const testUsers: Record<UserRole, Credentials | undefined> = {
+  admin: readEnvCredentials('admin'),
+  staff: readEnvCredentials('staff'),
+  viewer: readEnvCredentials('viewer'),
+};
 
 export const APP_BASE_URL = (env.APP_BASE_URL ?? env.PLAYWRIGHT_BASE_URL ?? DEFAULT_APP_BASE_URL).replace(
   /\/+$/,

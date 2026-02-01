@@ -1,21 +1,20 @@
 import { test, expect } from '@playwright/test';
-import { API_BASE_URL } from './utils/auth';
+import { API_BASE_URL, testUsers } from './utils/auth';
 
-// Test data for different roles
-// Note: Using actual admin credentials that exist in production
-// Staff and viewer users may need to be created in the database first
-const testUsers = {
-  admin: { username: "Admin", password: "Matthew778*" },  // Using actual production admin
-  staff: { username: 'staff', password: 'staff123' },
-  viewer: { username: 'viewer', password: 'viewer123' }
-};
+// Credentials are loaded from environment variables via utils/auth.ts
+// Set E2E_ADMIN_USERNAME, E2E_ADMIN_PASSWORD, etc. in your environment
 
 // Helper function to get auth token with rate limit handling
-async function getAuthToken(request: any, user: typeof testUsers.admin): Promise<string | null> {
+async function getAuthToken(request: any, user: { username: string; password: string } | undefined): Promise<string | null> {
+  if (!user) {
+    console.log('⚠️ User credentials not configured in environment variables');
+    return null;
+  }
+
   const response = await request.post(`${API_BASE_URL}/api/v1/auth/login`, {
     data: user
   });
-  
+
   // Handle rate limiting and service unavailable - wait and retry
   const status = response.status();
   if (status === 429 || status === 503) {
@@ -44,14 +43,14 @@ async function getAuthToken(request: any, user: typeof testUsers.admin): Promise
     console.log(`⚠️ Authentication failed for ${user.username} after retry (status: ${retryResponse.status()})`);
     return null;
   }
-  
+
   if (response.status() !== 200) {
     // If user doesn't exist, return null instead of throwing
     // Tests should handle this gracefully
     console.log(`⚠️ Authentication failed for ${user.username} (status: ${response.status()})`);
     return null;
   }
-  
+
   const data = await response.json();
   return data.access_token || data.token;
 }

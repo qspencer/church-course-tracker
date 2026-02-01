@@ -153,6 +153,10 @@ class ImportRegistrationsRequest(BaseModel):
 class BulkDeleteEnrollmentsRequest(BaseModel):
     """Schema for bulk deleting enrollments"""
     enrollment_ids: List[int] = Field(..., min_length=1)
+    soft_delete: bool = Field(
+        default=False,
+        description="If true, sets status to 'dropped' instead of deleting"
+    )
 
 
 class BulkDeleteEnrollmentsResponse(BaseModel):

@@ -10,7 +10,7 @@ export class NotFoundComponent {
   constructor(private router: Router) {}
 
   goHome(): void {
-    this.router.navigate(['/churchcoursetracker/dashboard']);
+    this.router.navigate(['/dashboard']);
   }
 
   goBack(): void {

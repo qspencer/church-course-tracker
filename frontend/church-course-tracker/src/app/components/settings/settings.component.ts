@@ -45,7 +45,7 @@ export class SettingsComponent implements OnInit {
     // Double-check admin access
     if (!this.authService.isAdmin()) {
       this.snackBar.open('Access denied. Admin privileges required.', 'Close', { duration: 3000 });
-      this.router.navigate(['/churchcoursetracker/dashboard']);
+      this.router.navigate(['/dashboard']);
       return;
     }
 

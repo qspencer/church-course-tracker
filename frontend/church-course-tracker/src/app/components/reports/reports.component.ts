@@ -240,10 +240,10 @@ export class ReportsComponent implements OnInit {
   }
 
   navigateToCourses(): void {
-    this.router.navigate(['/churchcoursetracker/courses']);
+    this.router.navigate(['/courses']);
   }
 
   navigateToEnrollments(): void {
-    this.router.navigate(['/churchcoursetracker/enrollments']);
+    this.router.navigate(['/enrollments']);
   }
 }

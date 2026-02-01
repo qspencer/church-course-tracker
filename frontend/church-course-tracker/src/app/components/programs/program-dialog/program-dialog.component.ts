@@ -477,7 +477,7 @@ export class ProgramDialogComponent implements OnInit {
     
     // Close the dialog and navigate to program content page
     this.dialogRef.close();
-    this.router.navigate(['/churchcoursetracker/programs', this.program.id, 'content']);
+    this.router.navigate(['/programs', this.program.id, 'content']);
   }
 
   shouldShowError(fieldName: string): boolean {

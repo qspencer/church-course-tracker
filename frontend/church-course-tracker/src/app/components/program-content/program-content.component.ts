@@ -68,7 +68,7 @@ export class ProgramContentComponent implements OnInit, OnDestroy {
     }
     if (isNaN(this.programId)) {
       this.snackBar.open('Invalid program ID', 'Close', { duration: 3000 });
-      this.router.navigate(['/churchcoursetracker/programs']);
+      this.router.navigate(['/programs']);
       return;
     }
     this.loadData();
