@@ -8,6 +8,8 @@ export const environment = {
   logLevel: 'debug',
   sentry: {
     dsn: '',  // Empty in dev - errors not sent to Sentry
-    environment: 'development'
+    environment: 'development',
+    tracePropagationTargets: ['localhost'],
+    tracesSampleRate: 0.0  // No tracing in dev
   }
 };
