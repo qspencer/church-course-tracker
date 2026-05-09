@@ -110,10 +110,21 @@ resource "aws_ecs_service" "backend" {
     assign_public_ip = false
   }
 
-  # Service Discovery registration removed - using EventBridge + Lambda instead
-  # This prevents ECS from managing Service Discovery instance lifecycle,
-  # which was causing health status to be overwritten
-  # Registration/deregistration now handled by Lambda functions triggered by ECS events
+  # ECS-native Service Discovery registration. Restored 2026-05-09 after the
+  # Lambda-based register path silently broke (last invocation Feb 12, 2026),
+  # leaving running tasks unregistered and the site routable only by stale
+  # entries that aged out. ECS handles register/deregister on task lifecycle
+  # transitions; the EventBridge-triggered Lambdas (church-course-tracker-
+  # service-discovery-register / -deregister) are now redundant and should be
+  # retired in a follow-up. The earlier concern about "health status being
+  # overwritten" (see prior comment in git history) is mitigated because the
+  # backend SD service has no HealthCheckCustomConfig, so AWS sets the default
+  # health status only on register and ECS does not subsequently overwrite it.
+  service_registries {
+    registry_arn   = aws_service_discovery_service.backend.arn
+    container_name = "backend"
+    container_port = 8000
+  }
 
   tags = {
     Environment = var.environment
