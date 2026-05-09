@@ -628,8 +628,6 @@ resource "aws_route53_record" "api_quentinspencer_com" {
 }
 
 # S3 VPC Endpoint (Gateway type - FREE, improves S3 access performance)
-# Note: Interface VPC Endpoints for ECR, Logs, and Secrets Manager removed for cost savings.
-# NAT instances provide internet access for these services.
 resource "aws_vpc_endpoint" "s3" {
   vpc_id            = module.vpc.vpc_id
   service_name      = "com.amazonaws.${var.aws_region}.s3"
@@ -640,6 +638,101 @@ resource "aws_vpc_endpoint" "s3" {
     Name        = "${var.app_name}-s3-endpoint"
     Environment = var.environment
     Application = var.app_name
+  }
+}
+
+# Interface VPC Endpoints for AWS services. These were removed in May 2026 as
+# a cost optimization on the assumption that the NAT instances provided egress
+# to AWS endpoints. That assumption was wrong - the NAT instances' OS-level
+# routing is broken, so the endpoints are needed for ECS tasks to reach
+# Secrets Manager, ECR, and CloudWatch Logs. They were re-created manually
+# during the 2026-05-09 outage triage and re-added to code in this commit.
+# Cost: ~$8/mo per endpoint per AZ (~$32/mo total).
+# Future: fix NAT routing, then revisit.
+resource "aws_security_group" "vpc_endpoints" {
+  # Concrete name (not name_prefix) to match the SG that was created by aws cli
+  # during the 2026-05-09 outage triage. Switching to name_prefix would force
+  # SG replacement, which would briefly detach all 4 VPC endpoints.
+  name        = "church-course-tracker-vpc-endpoints-restored-1778351192"
+  vpc_id      = module.vpc.vpc_id
+  description = "Restored VPC endpoint SG (outage fix 2026-05-09)"
+
+  # Note: description is intentionally absent on the ingress/egress rules to
+  # match the SG that was created by aws cli during the outage triage.
+  # Rule descriptions are immutable in AWS, so adding one here would force
+  # SG replacement.
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = [module.vpc.vpc_cidr_block]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+# Secrets Manager VPC Endpoint
+resource "aws_vpc_endpoint" "secretsmanager" {
+  vpc_id              = module.vpc.vpc_id
+  service_name        = "com.amazonaws.${var.aws_region}.secretsmanager"
+  vpc_endpoint_type   = "Interface"
+  subnet_ids          = module.vpc.private_subnets
+  security_group_ids  = [aws_security_group.vpc_endpoints.id]
+  private_dns_enabled = true
+
+  tags = {
+    Name      = "${var.app_name}-secretsmanager-endpoint"
+    ManagedBy = "outage-fix-2026-05-09"
+  }
+}
+
+# ECR API VPC Endpoint (for GetAuthorizationToken)
+resource "aws_vpc_endpoint" "ecr_api" {
+  vpc_id              = module.vpc.vpc_id
+  service_name        = "com.amazonaws.${var.aws_region}.ecr.api"
+  vpc_endpoint_type   = "Interface"
+  subnet_ids          = module.vpc.private_subnets
+  security_group_ids  = [aws_security_group.vpc_endpoints.id]
+  private_dns_enabled = true
+
+  tags = {
+    Name      = "${var.app_name}-ecr-api-endpoint"
+    ManagedBy = "outage-fix-2026-05-09"
+  }
+}
+
+# ECR DKR VPC Endpoint (for docker image pull)
+resource "aws_vpc_endpoint" "ecr_dkr" {
+  vpc_id              = module.vpc.vpc_id
+  service_name        = "com.amazonaws.${var.aws_region}.ecr.dkr"
+  vpc_endpoint_type   = "Interface"
+  subnet_ids          = module.vpc.private_subnets
+  security_group_ids  = [aws_security_group.vpc_endpoints.id]
+  private_dns_enabled = true
+
+  tags = {
+    Name      = "${var.app_name}-ecr-dkr-endpoint"
+    ManagedBy = "outage-fix-2026-05-09"
+  }
+}
+
+# CloudWatch Logs VPC Endpoint (for container log shipping)
+resource "aws_vpc_endpoint" "logs" {
+  vpc_id              = module.vpc.vpc_id
+  service_name        = "com.amazonaws.${var.aws_region}.logs"
+  vpc_endpoint_type   = "Interface"
+  subnet_ids          = module.vpc.private_subnets
+  security_group_ids  = [aws_security_group.vpc_endpoints.id]
+  private_dns_enabled = true
+
+  tags = {
+    Name      = "${var.app_name}-logs-endpoint"
+    ManagedBy = "outage-fix-2026-05-09"
   }
 }
 
