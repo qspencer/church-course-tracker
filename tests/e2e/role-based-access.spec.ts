@@ -1,6 +1,9 @@
 import { test, expect, type Page, type TestInfo } from '@playwright/test';
 import { loginAsRole, logout, APP_BASE_URL, API_BASE_URL, credentials } from './utils/auth';
 
+// Configure all tests in this file to run serially to avoid database conflicts
+test.describe.configure({ mode: 'serial' });
+
 type UserRole = 'admin' | 'staff' | 'viewer';
 
 // Helper function to login with specific role
@@ -16,6 +19,27 @@ async function isVisible(page: Page, selector: string): Promise<boolean> {
   } catch {
     return false;
   }
+}
+
+// Helper function to wait for admin navigation section to be visible
+async function waitForAdminNav(page: Page): Promise<boolean> {
+  // Wait for the mat-sidenav to be visible first
+  await page.waitForSelector('mat-sidenav', { state: 'visible', timeout: 10000 }).catch(() => {});
+
+  // Give Angular time to evaluate isAdmin() and render the admin section
+  await page.waitForTimeout(1000);
+
+  // Wait for the "Administration" section header to appear
+  const adminHeader = page.locator('.nav-section-header:has-text("Administration"), div.nav-section-header:text("Administration")').first();
+  const headerVisible = await adminHeader.isVisible({ timeout: 10000 }).catch(() => false);
+
+  if (headerVisible) {
+    // Additional wait for the admin nav items to render
+    await page.waitForTimeout(500);
+    return true;
+  }
+
+  return false;
 }
 
 test.describe('Role-Based Access Control', () => {
@@ -60,9 +84,19 @@ test.describe('Role-Based Access Control', () => {
         return;
       }
 
-      // Navigate to users page
-      await page.click('text=Users');
-      await page.waitForURL('**/users');
+      // Wait for admin navigation section to be visible
+      const adminNavVisible = await waitForAdminNav(page);
+
+      if (!adminNavVisible) {
+        // Fallback to direct URL navigation if admin nav not visible
+        await page.goto(`${APP_BASE_URL}/users`, { waitUntil: 'domcontentloaded' });
+      } else {
+        // Navigate to users page via nav link
+        const usersLink = page.locator('a[routerLink="/users"], mat-nav-list a:has-text("Users")').first();
+        await usersLink.click();
+      }
+      await page.waitForURL('**/users', { timeout: 15000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded').catch(() => {});
 
       // Should be able to see user management interface
       // Check for Users page title or heading
@@ -90,9 +124,18 @@ test.describe('Role-Based Access Control', () => {
         return;
       }
 
-      // Navigate to audit logs
-      await page.click('text=Audit Logs');
-      await page.waitForURL('**/audit');
+      // Wait for admin navigation section to be visible
+      const adminNavVisible = await waitForAdminNav(page);
+
+      if (!adminNavVisible) {
+        // Fallback to direct URL navigation if admin nav not visible
+        await page.goto(`${APP_BASE_URL}/audit`, { waitUntil: 'domcontentloaded' });
+      } else {
+        // Navigate to audit logs via nav link
+        const auditLink = page.locator('a[routerLink="/audit"], mat-nav-list a:has-text("Audit Logs")').first();
+        await auditLink.click();
+      }
+      await page.waitForURL('**/audit', { timeout: 15000 }).catch(() => {});
 
       // Should see audit log interface
       // Check for audit log page - may have different titles
@@ -235,23 +278,20 @@ test.describe('Role-Based Access Control', () => {
         return;
       }
 
-      // Navigate to settings page via navigation link first
-      try {
-        const settingsNav = page.locator('text=System Settings, a[href*="settings"]').first();
-        const navVisible = await settingsNav.isVisible({ timeout: 3000 }).catch(() => false);
-        if (navVisible) {
-          await settingsNav.click();
-          await page.waitForURL('**/settings**', { timeout: 5000 }).catch(() => {});
-        } else {
-          // If nav link not found, try direct navigation
-          await page.goto(`${APP_BASE_URL}/settings`);
-        }
-      } catch (e) {
-        // Fallback to direct navigation
-        await page.goto(`${APP_BASE_URL}/settings`);
+      // Wait for admin navigation section to be visible
+      const adminNavVisible = await waitForAdminNav(page);
+
+      if (!adminNavVisible) {
+        // Fallback to direct URL navigation if admin nav not visible
+        await page.goto(`${APP_BASE_URL}/settings`, { waitUntil: 'domcontentloaded' });
+      } else {
+        // Navigate to settings page via navigation link
+        const settingsLink = page.locator('a[routerLink="/settings"], mat-nav-list a:has-text("System Settings")').first();
+        await settingsLink.click();
+        await page.waitForURL('**/settings**', { timeout: 5000 }).catch(() => {});
       }
 
-      await page.waitForLoadState('networkidle').catch(() => {});
+      await page.waitForLoadState('domcontentloaded').catch(() => {});
       await page.waitForTimeout(3000); // Give page time to render
 
       // Verify admin can access settings or is on an authorized admin page
@@ -396,7 +436,7 @@ test.describe('Role-Based Access Control', () => {
       
       if (!reportsVisible) {
         // If Reports nav not found, try direct navigation
-        await page.goto(`${APP_BASE_URL}/reports`, { waitUntil: 'networkidle' }).catch(() => {});
+        await page.goto(`${APP_BASE_URL}/reports`, { waitUntil: 'domcontentloaded' }).catch(() => {});
         await page.waitForTimeout(2000);
         const currentUrl = page.url();
         expect(currentUrl.includes('/reports') || currentUrl.includes('/dashboard')).toBeTruthy();
@@ -424,7 +464,7 @@ test.describe('Role-Based Access Control', () => {
       }
 
       // Try to access admin URLs directly
-      await page.goto(`${APP_BASE_URL}/admin`, { waitUntil: 'networkidle' });
+      await page.goto(`${APP_BASE_URL}/admin`, { waitUntil: 'domcontentloaded' });
       await page.waitForTimeout(2000); // Wait for potential redirect
       const adminUrl = page.url();
       // Should be redirected to dashboard, or if not redirected, should show error/access denied
@@ -441,7 +481,7 @@ test.describe('Role-Based Access Control', () => {
         expect(adminUrl).toMatch(/\/dashboard|\/auth/);
       }
 
-      await page.goto(`${APP_BASE_URL}/audit`, { waitUntil: 'networkidle' });
+      await page.goto(`${APP_BASE_URL}/audit`, { waitUntil: 'domcontentloaded' });
       await page.waitForTimeout(2000); // Wait for potential redirect
       const auditUrl = page.url();
       // Should be redirected to dashboard, or if not redirected, should show error/access denied
@@ -564,7 +604,7 @@ test.describe('Role-Based Access Control', () => {
       
       if (!linkExists) {
         // If Profile nav not found, try direct navigation
-        await page.goto(`${APP_BASE_URL}/profile`, { waitUntil: 'networkidle' }).catch(() => {});
+        await page.goto(`${APP_BASE_URL}/profile`, { waitUntil: 'domcontentloaded' }).catch(() => {});
         await page.waitForTimeout(2000);
         const currentUrl = page.url();
         expect(currentUrl.includes('/profile') || currentUrl.includes('/dashboard')).toBeTruthy();
@@ -596,13 +636,13 @@ test.describe('Role-Based Access Control', () => {
       }
 
       // Try to access management URLs directly
-      await page.goto(`${APP_BASE_URL}/users`, { waitUntil: 'networkidle' });
+      await page.goto(`${APP_BASE_URL}/users`, { waitUntil: 'domcontentloaded' });
       await page.waitForTimeout(2000); // Wait for potential redirect
       const usersUrl = page.url();
       // Should be redirected to dashboard or auth
       expect(usersUrl).toMatch(/\/dashboard|\/auth/);
 
-      await page.goto(`${APP_BASE_URL}/content`, { waitUntil: 'networkidle' });
+      await page.goto(`${APP_BASE_URL}/content`, { waitUntil: 'domcontentloaded' });
       await page.waitForTimeout(2000); // Wait for potential redirect
       const contentUrl = page.url();
       // Content page might be accessible to viewers (for viewing course content), so check for error or redirect
@@ -634,14 +674,14 @@ test.describe('Role-Based Access Control', () => {
 
       // Test viewer cannot access staff features
       // Navigate to auth page first to login as viewer
-      await page.goto(`${APP_BASE_URL}/auth`, { waitUntil: 'networkidle' });
+      await page.goto(`${APP_BASE_URL}/auth`, { waitUntil: 'domcontentloaded' });
       await page.waitForTimeout(3000);
       
       // Verify we're on the auth page
       const currentUrl = page.url();
       if (!currentUrl.includes('/auth')) {
         // If not on auth page, try navigating again
-        await page.goto(`${APP_BASE_URL}/auth`, { waitUntil: 'networkidle' });
+        await page.goto(`${APP_BASE_URL}/auth`, { waitUntil: 'domcontentloaded' });
         await page.waitForTimeout(3000);
       }
       
@@ -675,7 +715,7 @@ test.describe('Role-Based Access Control', () => {
     test('API endpoints respect role permissions', async ({ page }, testInfo) => {
       // Test admin API access
       // Use a fresh login to ensure we have proper authentication
-      await page.goto(`${APP_BASE_URL}/auth`, { waitUntil: 'networkidle' });
+      await page.goto(`${APP_BASE_URL}/auth`, { waitUntil: 'domcontentloaded' });
       await page.waitForTimeout(2000);
       
       const usernameInput = page.locator('input[formControlName="username"]').first();
@@ -791,11 +831,11 @@ test.describe('Role-Based Access Control', () => {
 
       if (coursesNavVisible) {
         await coursesNav.click();
-        await page.waitForLoadState('networkidle').catch(() => {});
+        await page.waitForLoadState('domcontentloaded').catch(() => {});
       } else {
         // Direct navigation as fallback
         await page.goto(`${APP_BASE_URL}/courses`);
-        await page.waitForLoadState('networkidle').catch(() => {});
+        await page.waitForLoadState('domcontentloaded').catch(() => {});
       }
 
       await page.waitForTimeout(2000);
@@ -870,7 +910,7 @@ test.describe('Role-Based Access Control', () => {
       await page.waitForTimeout(300);
       
       // Ensure button is stable before clicking - wait for it to be enabled and not animating
-      await page.waitForLoadState('networkidle', { timeout: 3000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded', { timeout: 3000 }).catch(() => {});
       
       // Wait for button to be stable (not animating, enabled)
       let stableAttempts = 0;
@@ -920,7 +960,7 @@ test.describe('Role-Based Access Control', () => {
       ]);
       
       // Wait for network to settle after dialog closes
-      await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded', { timeout: 10000 }).catch(() => {});
       await page.waitForTimeout(3000); // Give Angular more time to render the new row
       
       // Verify dialog actually closed and operation completed
@@ -957,7 +997,7 @@ test.describe('Role-Based Access Control', () => {
       
       // Wait for table to refresh after dialog closes
       // Give more time for the table to update with the new course
-      await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded', { timeout: 10000 }).catch(() => {});
       await page.waitForTimeout(3000); // Increased from 2000ms to give Angular more time to render the new row
       
       // Wait for table to be populated with retry logic
@@ -982,7 +1022,7 @@ test.describe('Role-Based Access Control', () => {
         if (remainingTime < 3000) {
           break; // Not enough time left for networkidle
         }
-        await page.waitForLoadState('networkidle', { timeout: Math.min(3000, remainingTime - 1000) }).catch(() => {});
+        await page.waitForLoadState('domcontentloaded', { timeout: Math.min(3000, remainingTime - 1000) }).catch(() => {});
         await page.waitForTimeout(1000); // Reduced from 1500ms - Give Angular time to render
         
         // Try multiple approaches to find the course
@@ -1196,7 +1236,7 @@ test.describe('Role-Based Access Control', () => {
       await confirmDialog.waitFor({ state: 'hidden', timeout: 15000 });
       
       // Wait for network activity to complete (deletion API call)
-      await page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded', { timeout: 15000 }).catch(() => {});
       
       // Wait a bit more for Angular to update the table
       await page.waitForTimeout(1000);
@@ -1239,7 +1279,7 @@ test.describe('Role-Based Access Control', () => {
         
         // Wait for network activity again in case table is still updating (only if we have time)
         if (deletionAttempts < maxDeletionAttempts && (Date.now() - deletionStartTime) < maxTotalWaitTime - 2000) {
-          await page.waitForLoadState('networkidle', { timeout: 3000 }).catch(() => {});
+          await page.waitForLoadState('domcontentloaded', { timeout: 3000 }).catch(() => {});
         }
       }
       
@@ -1267,7 +1307,7 @@ test.describe('Role-Based Access Control', () => {
         
         if (successVisible) {
           // Success message exists, so deletion likely succeeded - wait more for table refresh
-          await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
+          await page.waitForLoadState('domcontentloaded', { timeout: 5000 }).catch(() => {});
           await page.waitForTimeout(2000);
           
           // Check one more time
@@ -1369,7 +1409,7 @@ test.describe('Role-Based Access Control', () => {
       const coursesNavVisible = await coursesNav.isVisible({ timeout: 10000 }).catch(() => false);
       if (!coursesNavVisible) {
         // If Courses nav not found, try direct navigation
-        await page.goto(`${APP_BASE_URL}/courses`, { waitUntil: 'networkidle' }).catch(() => {});
+        await page.goto(`${APP_BASE_URL}/courses`, { waitUntil: 'domcontentloaded' }).catch(() => {});
         await page.waitForTimeout(2000);
         const currentUrl = page.url();
         expect(currentUrl.includes('/courses') || currentUrl.includes('/dashboard')).toBeTruthy();
@@ -1378,7 +1418,7 @@ test.describe('Role-Based Access Control', () => {
       await coursesNav.click();
       
       // Wait for page to load
-      await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded', { timeout: 10000 }).catch(() => {});
       await page.waitForTimeout(1000); // Give page time to render
       
       const coursesTitle = page.locator('h1:has-text("Course"), h2:has-text("Course"), h1:has-text("Courses")').first();
@@ -1405,7 +1445,7 @@ test.describe('Role-Based Access Control', () => {
         await enrollButton.click();
         
         // Wait for enrollment to process
-        await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
+        await page.waitForLoadState('domcontentloaded', { timeout: 10000 }).catch(() => {});
         await page.waitForTimeout(1000); // Give UI time to update
         
         // Check for success message (may have different text)
@@ -1423,7 +1463,7 @@ test.describe('Role-Based Access Control', () => {
       const progressNavVisible = await progressNav.isVisible({ timeout: 10000 }).catch(() => false);
       if (!progressNavVisible) {
         // If Progress nav not found, try direct navigation
-        await page.goto(`${APP_BASE_URL}/progress`, { waitUntil: 'networkidle' }).catch(() => {});
+        await page.goto(`${APP_BASE_URL}/progress`, { waitUntil: 'domcontentloaded' }).catch(() => {});
         await page.waitForTimeout(2000);
         const currentUrl = page.url();
         expect(currentUrl.includes('/progress') || currentUrl.includes('/dashboard')).toBeTruthy();
@@ -1432,7 +1472,7 @@ test.describe('Role-Based Access Control', () => {
       await progressNav.click();
       
       // Wait for progress page to load
-      await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded', { timeout: 10000 }).catch(() => {});
       await page.waitForTimeout(1000); // Give page time to render
       
       const progressTitle = page.locator('h1:has-text("Progress"), h2:has-text("Progress"), .progress-header h1').first();
@@ -1503,7 +1543,7 @@ test.describe('Role-Based Access Control', () => {
       await page.waitForTimeout(500);
       
       // Try to access protected page
-      await page.goto('https://apps.quentinspencer.com/churchcoursetracker/dashboard', { waitUntil: 'networkidle' });
+      await page.goto(`${APP_BASE_URL}/dashboard`, { waitUntil: 'domcontentloaded' });
       
       // Wait for potential redirect
       await page.waitForTimeout(2000);

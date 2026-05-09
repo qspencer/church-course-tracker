@@ -1,11 +1,12 @@
 import { test, expect } from '@playwright/test';
+import { APP_BASE_URL } from './utils/auth';
 
 test('Test auth route specifically', async ({ page }) => {
   // Navigate directly to the auth route
-  await page.goto('https://apps.quentinspencer.com/churchcoursetracker/auth');
+  await page.goto(`${APP_BASE_URL}/auth`);
   
   // Wait for the page to load
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('domcontentloaded');
   
   // Wait longer for Angular to initialize
   await page.waitForTimeout(5000);

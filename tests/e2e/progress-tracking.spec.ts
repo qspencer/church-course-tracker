@@ -1,6 +1,9 @@
 import { test, expect, type Page, type TestInfo } from '@playwright/test';
 import { loginAsRole } from './utils/auth';
 
+// Configure all tests in this file to run serially to avoid database conflicts
+test.describe.configure({ mode: 'serial' });
+
 type UserRole = 'admin' | 'staff' | 'viewer';
 
 async function loginAs(page: Page, role: UserRole, testInfo: TestInfo) {
@@ -20,7 +23,7 @@ test.describe('Progress Tracking Tests', () => {
       
       if (!reportsVisible) {
         // If Reports nav not found, try direct navigation
-        await page.goto(`${APP_BASE_URL}/reports`, { waitUntil: 'networkidle' }).catch(() => {});
+        await page.goto(`${APP_BASE_URL}/reports`, { waitUntil: 'domcontentloaded' }).catch(() => {});
         await page.waitForTimeout(2000);
         const currentUrl = page.url();
         expect(currentUrl.includes('/reports') || currentUrl.includes('/dashboard')).toBeTruthy();
@@ -52,7 +55,7 @@ test.describe('Progress Tracking Tests', () => {
       
       if (!reportsVisible) {
         // If Reports nav not found, try direct navigation
-        await page.goto(`${APP_BASE_URL}/reports`, { waitUntil: 'networkidle' }).catch(() => {});
+        await page.goto(`${APP_BASE_URL}/reports`, { waitUntil: 'domcontentloaded' }).catch(() => {});
         await page.waitForTimeout(2000);
         const currentUrl = page.url();
         expect(currentUrl.includes('/reports') || currentUrl.includes('/dashboard')).toBeTruthy();
@@ -98,7 +101,7 @@ test.describe('Progress Tracking Tests', () => {
       
       if (!reportsVisible) {
         // If Reports nav not found, try direct navigation
-        await page.goto(`${APP_BASE_URL}/reports`, { waitUntil: 'networkidle' }).catch(() => {});
+        await page.goto(`${APP_BASE_URL}/reports`, { waitUntil: 'domcontentloaded' }).catch(() => {});
         await page.waitForTimeout(2000);
         const currentUrl = page.url();
         expect(currentUrl.includes('/reports') || currentUrl.includes('/dashboard')).toBeTruthy();
@@ -144,7 +147,7 @@ test.describe('Progress Tracking Tests', () => {
       
       if (!reportsVisible) {
         // If Reports nav not found, try direct navigation
-        await page.goto(`${APP_BASE_URL}/reports`, { waitUntil: 'networkidle' }).catch(() => {});
+        await page.goto(`${APP_BASE_URL}/reports`, { waitUntil: 'domcontentloaded' }).catch(() => {});
         await page.waitForTimeout(2000);
         const currentUrl = page.url();
         expect(currentUrl.includes('/reports') || currentUrl.includes('/dashboard')).toBeTruthy();
@@ -177,7 +180,7 @@ test.describe('Progress Tracking Tests', () => {
       
       if (!progressVisible) {
         // If Progress nav not found, try direct navigation
-        await page.goto(`${APP_BASE_URL}/progress`, { waitUntil: 'networkidle' }).catch(() => {});
+        await page.goto(`${APP_BASE_URL}/progress`, { waitUntil: 'domcontentloaded' }).catch(() => {});
         await page.waitForTimeout(2000);
         const currentUrl = page.url();
         expect(currentUrl.includes('/progress') || currentUrl.includes('/dashboard')).toBeTruthy();
@@ -220,7 +223,7 @@ test.describe('Progress Tracking Tests', () => {
       
       if (!progressVisible) {
         // If Progress nav not found, try direct navigation
-        await page.goto(`${APP_BASE_URL}/progress`, { waitUntil: 'networkidle' }).catch(() => {});
+        await page.goto(`${APP_BASE_URL}/progress`, { waitUntil: 'domcontentloaded' }).catch(() => {});
         await page.waitForTimeout(2000);
         const currentUrl = page.url();
         expect(currentUrl.includes('/progress') || currentUrl.includes('/dashboard')).toBeTruthy();
@@ -262,7 +265,7 @@ test.describe('Progress Tracking Tests', () => {
       
       if (!progressVisible) {
         // If Progress nav not found, try direct navigation
-        await page.goto(`${APP_BASE_URL}/progress`, { waitUntil: 'networkidle' }).catch(() => {});
+        await page.goto(`${APP_BASE_URL}/progress`, { waitUntil: 'domcontentloaded' }).catch(() => {});
         await page.waitForTimeout(2000);
         const currentUrl = page.url();
         expect(currentUrl.includes('/progress') || currentUrl.includes('/dashboard')).toBeTruthy();
@@ -313,7 +316,7 @@ test.describe('Progress Tracking Tests', () => {
       
       if (!progressVisible) {
         // If Progress nav not found, try direct navigation
-        await page.goto(`${APP_BASE_URL}/progress`, { waitUntil: 'networkidle' }).catch(() => {});
+        await page.goto(`${APP_BASE_URL}/progress`, { waitUntil: 'domcontentloaded' }).catch(() => {});
         await page.waitForTimeout(2000);
         const currentUrl = page.url();
         expect(currentUrl.includes('/progress') || currentUrl.includes('/dashboard')).toBeTruthy();
@@ -356,7 +359,7 @@ test.describe('Progress Tracking Tests', () => {
       
       if (!progressVisible) {
         // If Progress nav not found, try direct navigation
-        await page.goto(`${APP_BASE_URL}/progress`, { waitUntil: 'networkidle' }).catch(() => {});
+        await page.goto(`${APP_BASE_URL}/progress`, { waitUntil: 'domcontentloaded' }).catch(() => {});
         await page.waitForTimeout(2000);
         const currentUrl = page.url();
         expect(currentUrl.includes('/progress') || currentUrl.includes('/dashboard')).toBeTruthy();
@@ -392,7 +395,7 @@ test.describe('Progress Tracking Tests', () => {
       
       if (!progressVisible) {
         // If Progress nav not found, try direct navigation
-        await page.goto(`${APP_BASE_URL}/progress`, { waitUntil: 'networkidle' }).catch(() => {});
+        await page.goto(`${APP_BASE_URL}/progress`, { waitUntil: 'domcontentloaded' }).catch(() => {});
         await page.waitForTimeout(2000);
         const currentUrl = page.url();
         expect(currentUrl.includes('/progress') || currentUrl.includes('/dashboard')).toBeTruthy();
@@ -435,7 +438,7 @@ test.describe('Progress Tracking Tests', () => {
       
       if (!progressVisible) {
         // If Progress nav not found, try direct navigation
-        await page.goto(`${APP_BASE_URL}/progress`, { waitUntil: 'networkidle' }).catch(() => {});
+        await page.goto(`${APP_BASE_URL}/progress`, { waitUntil: 'domcontentloaded' }).catch(() => {});
         await page.waitForTimeout(2000);
         const currentUrl = page.url();
         expect(currentUrl.includes('/progress') || currentUrl.includes('/dashboard')).toBeTruthy();
@@ -506,7 +509,7 @@ test.describe('Progress Tracking Tests', () => {
       
       if (!reportsVisible) {
         // If Reports nav not found, try direct navigation
-        await page.goto(`${APP_BASE_URL}/reports`, { waitUntil: 'networkidle' }).catch(() => {});
+        await page.goto(`${APP_BASE_URL}/reports`, { waitUntil: 'domcontentloaded' }).catch(() => {});
         await page.waitForTimeout(2000);
         const currentUrl = page.url();
         expect(currentUrl.includes('/reports') || currentUrl.includes('/dashboard')).toBeTruthy();
@@ -515,7 +518,7 @@ test.describe('Progress Tracking Tests', () => {
       
       await reportsNav.click();
       await page.waitForURL('**/reports', { timeout: 10000 }).catch(() => {});
-      await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded', { timeout: 10000 }).catch(() => {});
       await page.waitForTimeout(2000); // Wait for charts to render
       
       // Check for chart canvas elements (reports page uses ng2-charts with canvas)
@@ -553,7 +556,7 @@ test.describe('Progress Tracking Tests', () => {
         const progressVisible = await progressNav.isVisible({ timeout: 5000 }).catch(() => false);
         if (!progressVisible) {
           // If Reports or Progress nav not found, try direct navigation
-          await page.goto(`${APP_BASE_URL}/reports`, { waitUntil: 'networkidle' }).catch(() => {});
+          await page.goto(`${APP_BASE_URL}/reports`, { waitUntil: 'domcontentloaded' }).catch(() => {});
           await page.waitForTimeout(2000);
           const currentUrl = page.url();
           expect(currentUrl.includes('/reports') || currentUrl.includes('/progress') || currentUrl.includes('/dashboard')).toBeTruthy();
@@ -591,7 +594,7 @@ test.describe('Progress Tracking Tests', () => {
       
       if (!progressVisible) {
         // If Progress nav not found, try direct navigation
-        await page.goto(`${APP_BASE_URL}/progress`, { waitUntil: 'networkidle' }).catch(() => {});
+        await page.goto(`${APP_BASE_URL}/progress`, { waitUntil: 'domcontentloaded' }).catch(() => {});
         await page.waitForTimeout(2000);
         const currentUrl = page.url();
         expect(currentUrl.includes('/progress') || currentUrl.includes('/dashboard')).toBeTruthy();
@@ -643,7 +646,7 @@ test.describe('Progress Tracking Tests', () => {
       
       if (!coursesVisible) {
         // If Courses nav not found, try direct navigation
-        await page.goto(`${APP_BASE_URL}/courses`, { waitUntil: 'networkidle' }).catch(() => {});
+        await page.goto(`${APP_BASE_URL}/courses`, { waitUntil: 'domcontentloaded' }).catch(() => {});
         await page.waitForTimeout(2000);
         const currentUrl = page.url();
         expect(currentUrl.includes('/courses') || currentUrl.includes('/dashboard')).toBeTruthy();
@@ -690,7 +693,7 @@ test.describe('Progress Tracking Tests', () => {
       
       if (!coursesVisible) {
         // If Courses nav not found, try direct navigation
-        await page.goto(`${APP_BASE_URL}/courses`, { waitUntil: 'networkidle' }).catch(() => {});
+        await page.goto(`${APP_BASE_URL}/courses`, { waitUntil: 'domcontentloaded' }).catch(() => {});
         await page.waitForTimeout(2000);
         const currentUrl = page.url();
         expect(currentUrl.includes('/courses') || currentUrl.includes('/dashboard')).toBeTruthy();

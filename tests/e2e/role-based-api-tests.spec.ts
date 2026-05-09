@@ -336,22 +336,44 @@ test.describe('Role-Based API Tests', () => {
     });
 
     test('API rate limiting works', async ({ request }) => {
-      // This test makes 20 parallel requests - needs longer timeout
-      test.setTimeout(75000); // 75 seconds
+      // Test rate limiting by checking headers rather than overwhelming the server
+      test.setTimeout(60000); // 60 seconds
 
-      const requests = [];
-      for (let i = 0; i < 20; i++) {
-        requests.push(request.get(`${API_BASE_URL}/api/v1/courses/`));
+      // Make a single request to check for rate limit headers
+      const response = await request.get(`${API_BASE_URL}/api/v1/courses/`);
+      const headers = response.headers();
+
+      // Check for rate limit headers
+      const rateLimitHeaders = [
+        'x-rate-limit-limit', 'x-ratelimit-limit',
+        'x-rate-limit-remaining', 'x-ratelimit-remaining',
+        'x-rate-limit-reset', 'x-ratelimit-reset'
+      ];
+
+      let foundHeaders = 0;
+      for (const header of rateLimitHeaders) {
+        if (headers[header]) {
+          foundHeaders++;
+          console.log(`✓ Rate limit header ${header}: ${headers[header]}`);
+        }
       }
-      
-      const responses = await Promise.all(requests);
-      const rateLimitedResponses = responses.filter(r => r.status() === 429);
-      
-      if (rateLimitedResponses.length > 0) {
-        console.log(`✓ API rate limiting active (${rateLimitedResponses.length} requests rate limited)`);
+
+      if (foundHeaders > 0) {
+        console.log(`✓ API rate limiting is configured (${foundHeaders} headers found)`);
       } else {
-        console.log('✓ API rate limiting not triggered (may not be configured)');
+        // Try a few sequential requests to check for 429
+        for (let i = 0; i < 5; i++) {
+          const testResp = await request.get(`${API_BASE_URL}/api/v1/courses/`).catch(() => null);
+          if (testResp?.status() === 429) {
+            console.log('✓ API rate limiting triggered (429 response)');
+            return;
+          }
+        }
+        console.log('✓ API rate limiting not triggered (may not be configured or limit not reached)');
       }
+
+      // Test passes - rate limiting is optional
+      expect(response.status()).toBeLessThan(500);
     });
   });
 

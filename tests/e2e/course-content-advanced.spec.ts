@@ -1,12 +1,15 @@
 /**
  * Advanced Course Content Management E2E Tests
- * 
+ *
  * Tests for file upload, progress tracking, audit logs, and content management
  * functionality in the course content system.
  */
 
 import { test, expect, type Locator, type Page, type TestInfo } from '@playwright/test';
 import { APP_BASE_URL, loginAsRole } from './utils/auth';
+
+// Configure all tests in this file to run serially to avoid database conflicts
+test.describe.configure({ mode: 'serial' });
 
 type UserRole = 'admin' | 'staff' | 'viewer';
 
@@ -19,7 +22,7 @@ async function loginAs(page: Page, role: UserRole, testInfo: TestInfo) {
 async function navigateToCourseContent(page: Page, testInfo?: TestInfo): Promise<boolean> {
   try {
     // Always navigate directly to courses page to ensure we're there
-    await page.goto(`${APP_BASE_URL}/courses`, { waitUntil: 'networkidle', timeout: 30000 });
+    await page.goto(`${APP_BASE_URL}/courses`, { waitUntil: 'domcontentloaded', timeout: 30000 });
     
     // Wait for courses table to be visible
     await page.waitForSelector('table[mat-table], table.courses-table', { state: 'visible', timeout: 15000 }).catch(() => {});
@@ -28,7 +31,7 @@ async function navigateToCourseContent(page: Page, testInfo?: TestInfo): Promise
     await page.waitForSelector('tr[mat-row]', { state: 'visible', timeout: 15000 }).catch(() => {});
 
     // Wait for page to be fully loaded
-    await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
+    await page.waitForLoadState('domcontentloaded', { timeout: 10000 }).catch(() => {});
     await page.waitForTimeout(1000);
 
     // Check if courses table exists and has rows
@@ -133,7 +136,7 @@ async function navigateToCourseContent(page: Page, testInfo?: TestInfo): Promise
     ]).catch(() => {});
     
     // Additional wait for page to stabilize
-    await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
+    await page.waitForLoadState('domcontentloaded', { timeout: 10000 }).catch(() => {});
     await page.waitForTimeout(1000);
     
     // Verify we're on the content page by checking URL and content container
@@ -141,7 +144,7 @@ async function navigateToCourseContent(page: Page, testInfo?: TestInfo): Promise
     if (!url.includes('/content')) {
       // Check if we're still on courses page - might need to wait longer
       await page.waitForTimeout(3000);
-      await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded', { timeout: 10000 }).catch(() => {});
       const currentUrl = page.url();
       if (!currentUrl.includes('/content')) {
         // Check if content container is visible even if URL doesn't match
@@ -194,7 +197,7 @@ async function switchToTab(page: Page, tabName: 'Content' | 'Modules' | 'Summary
     // These tabs depend on async data loading (contentSummary, auditLogs)
     if (tabName === 'Summary' || tabName === 'Audit Logs') {
       // Wait for network requests to complete (API calls for summary/audit data)
-      await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded', { timeout: 10000 }).catch(() => {});
       // Wait for Angular to render conditional tabs after data loads
       await page.waitForTimeout(2000);
       
@@ -240,7 +243,7 @@ async function switchToTab(page: Page, tabName: 'Content' | 'Modules' | 'Summary
           await page.waitForTimeout(300);
           await tab.click({ timeout: 5000 });
           // Wait for tab content to load
-          await page.waitForLoadState('networkidle').catch(() => {});
+          await page.waitForLoadState('domcontentloaded').catch(() => {});
           await page.waitForTimeout(500);
           return true;
         }
@@ -308,11 +311,11 @@ async function switchToTab(page: Page, tabName: 'Content' | 'Modules' | 'Summary
 async function ensureCourseExists(page: Page, testInfo?: TestInfo): Promise<number | null> {
   try {
     // Navigate to courses page
-    await page.goto(`${APP_BASE_URL}/courses`, { waitUntil: 'networkidle', timeout: 30000 });
+    await page.goto(`${APP_BASE_URL}/courses`, { waitUntil: 'domcontentloaded', timeout: 30000 });
     await page.waitForSelector('table.courses-table, table[mat-table]', { state: 'visible', timeout: 15000 }).catch(() => {});
     
     // Wait for page to fully load
-    await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
+    await page.waitForLoadState('domcontentloaded', { timeout: 10000 }).catch(() => {});
     await page.waitForTimeout(1000);
     
     // Check if any courses exist
@@ -388,7 +391,7 @@ async function ensureCourseExists(page: Page, testInfo?: TestInfo): Promise<numb
     
     // Wait for dialog to close and course to appear
     await page.waitForSelector('mat-dialog-container', { state: 'hidden', timeout: 15000 });
-    await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
+    await page.waitForLoadState('domcontentloaded', { timeout: 10000 }).catch(() => {});
     await page.waitForTimeout(2000);
     
     // Wait for the course to appear in the table
@@ -742,7 +745,7 @@ test.describe('Course Content File Operations', () => {
     
     // Wait for dialog to fully close and page to update
     await page.waitForSelector('mat-dialog-container', { state: 'hidden', timeout: 5000 }).catch(() => {});
-    await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
+    await page.waitForLoadState('domcontentloaded', { timeout: 10000 }).catch(() => {});
     await page.waitForTimeout(2000); // Give Angular time to render the new content
     
     // Verify content appears in the list - this is the actual verification
@@ -780,7 +783,7 @@ test.describe('Course Content File Operations', () => {
     while (!contentFound && verificationAttempts < maxVerificationAttempts) {
       if (verificationAttempts > 0) {
         await page.waitForTimeout(1000);
-        await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
+        await page.waitForLoadState('domcontentloaded', { timeout: 5000 }).catch(() => {});
       }
       
       // Try multiple selectors for content items
@@ -1086,7 +1089,7 @@ test.describe('Course Content File Operations', () => {
     
     // Staff cannot access audit logs - verify Audit Logs tab is not visible
     // Wait for page to stabilize and conditional rendering to complete
-    await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
+    await page.waitForLoadState('domcontentloaded', { timeout: 10000 }).catch(() => {});
     await page.waitForTimeout(2000); // Give Angular time to evaluate *ngIf conditions
     
     const auditLogsTab = page.locator('mat-tab:has-text("Audit Logs"), button[role="tab"]:has-text("Audit Logs")').first();
@@ -1433,7 +1436,7 @@ test.describe('Course Content Audit Logs', () => {
     }
     
     // Wait for audit logs tab content to load after switching
-    await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
+    await page.waitForLoadState('domcontentloaded', { timeout: 10000 }).catch(() => {});
     await page.waitForTimeout(1000);
     
     // Verify audit logs content is visible - try multiple selectors
@@ -1537,7 +1540,7 @@ test.describe('Course Content Audit Logs', () => {
     }
     
     // Wait for audit logs content to load
-    await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
+    await page.waitForLoadState('domcontentloaded', { timeout: 10000 }).catch(() => {});
     await page.waitForTimeout(1000);
     
     // Verify audit log entries exist
@@ -1595,7 +1598,7 @@ test.describe('Course Content Audit Logs', () => {
     
     // Staff should NOT see Audit Logs tab
     // Wait for conditional rendering to complete
-    await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
+    await page.waitForLoadState('domcontentloaded', { timeout: 10000 }).catch(() => {});
     await page.waitForTimeout(2000);
     
     const auditLogsTab = page.locator('mat-tab:has-text("Audit Logs"), button[role="tab"]:has-text("Audit Logs")').first();
@@ -1697,7 +1700,7 @@ test.describe('Course Content Summary and Reports', () => {
     }
     
     // Wait for summary tab content to load after switching
-    await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
+    await page.waitForLoadState('domcontentloaded', { timeout: 10000 }).catch(() => {});
     await page.waitForTimeout(1000);
     
     // Verify summary content is visible - try multiple selectors
@@ -1939,7 +1942,7 @@ test.describe('Course Content Summary and Reports', () => {
       await switchToTab(page, 'Summary');
       
       // Wait for summary content to load
-      await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded', { timeout: 10000 }).catch(() => {});
       await page.waitForTimeout(1000);
       
       // Verify summary content is visible - try multiple selectors
@@ -1975,7 +1978,7 @@ test.describe('Course Content Summary and Reports', () => {
     
     // Staff should NOT see Audit Logs tab
     // Wait for conditional rendering to complete
-    await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
+    await page.waitForLoadState('domcontentloaded', { timeout: 10000 }).catch(() => {});
     await page.waitForTimeout(2000);
     
     const auditLogsTab = page.locator('mat-tab:has-text("Audit Logs"), button[role="tab"]:has-text("Audit Logs")').first();
@@ -2084,7 +2087,7 @@ test.describe('Course Content Role-Based Access', () => {
     
     // Staff should NOT see Audit Logs tab (admin-only)
     // Wait for conditional rendering to complete
-    await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
+    await page.waitForLoadState('domcontentloaded', { timeout: 10000 }).catch(() => {});
     await page.waitForTimeout(2000);
     
     const auditLogsTab = page.locator('mat-tab:has-text("Audit Logs"), button[role="tab"]:has-text("Audit Logs")').first();
@@ -2134,7 +2137,7 @@ test.describe('Course Content Role-Based Access', () => {
     
     // Navigate back to content
     // Check if courses exist first - viewer can't create them
-    await page.goto(`${APP_BASE_URL}/courses`, { waitUntil: 'networkidle', timeout: 30000 });
+    await page.goto(`${APP_BASE_URL}/courses`, { waitUntil: 'domcontentloaded', timeout: 30000 });
     await page.waitForSelector('table.courses-table, table[mat-table]', { state: 'visible', timeout: 10000 }).catch(() => {});
     const rowCount = await page.locator('tr[mat-row]').count();
     
@@ -2517,7 +2520,7 @@ test.describe('Course Content Error Handling', () => {
     await page.goto(`${APP_BASE_URL}/courses/1/content`, { waitUntil: 'domcontentloaded' });
     
     // Wait for navigation to complete (redirect might happen)
-    await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
+    await page.waitForLoadState('domcontentloaded', { timeout: 10000 }).catch(() => {});
     await page.waitForTimeout(2000); // Give extra time for Angular routing to complete
     
     // Check current URL - should be redirected to auth page

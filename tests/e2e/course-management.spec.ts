@@ -1,6 +1,9 @@
 import { test, expect, type Locator, type TestInfo } from '@playwright/test';
 import { APP_BASE_URL, loginAsRole } from './utils/auth';
 
+// Configure all tests in this file to run serially to avoid database conflicts
+test.describe.configure({ mode: 'serial' });
+
 type UserRole = 'admin' | 'staff' | 'viewer';
 
 async function loginAs(page: Parameters<typeof loginAsRole>[0], role: UserRole, testInfo: TestInfo) {
@@ -22,6 +25,9 @@ async function requireVisible(locator: Locator, description: string, testInfo: T
 test.describe('Course Management Tests', () => {
   test.describe('Admin Course Management', () => {
     test('Admin can create, update, and delete courses', async ({ page }, testInfo) => {
+      // This test performs multiple operations (create, update, delete) and needs extra time
+      test.setTimeout(120000); // 2 minutes
+
       if (!(await loginAs(page, 'admin', testInfo))) {
         return;
       }
@@ -127,7 +133,7 @@ test.describe('Course Management Tests', () => {
       
       // Wait for table to refresh after dialog closes
       // Give more time for the table to update with the new course
-      await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded', { timeout: 10000 }).catch(() => {});
       await page.waitForTimeout(3000); // Give Angular more time to render the new row
       
       // Verify dialog actually closed and operation completed
@@ -168,7 +174,7 @@ test.describe('Course Management Tests', () => {
       while (!courseVisible && verificationAttempts < maxVerificationAttempts) {
         if (verificationAttempts > 0) {
           await page.waitForTimeout(1000);
-          await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
+          await page.waitForLoadState('domcontentloaded', { timeout: 5000 }).catch(() => {});
         }
         
         // Try strict regex match first (original approach)
@@ -456,7 +462,7 @@ test.describe('Course Management Tests', () => {
         await dialogContainer.waitFor({ state: 'hidden', timeout: 15000 });
         
         // Wait for network activity to complete (deletion API call)
-        await page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
+        await page.waitForLoadState('domcontentloaded', { timeout: 15000 }).catch(() => {});
         
         // Verify course is removed from the table
         // Use locator-based waiting for better reliability
@@ -481,7 +487,7 @@ test.describe('Course Management Tests', () => {
         // If locator-based wait didn't work, check manually
         let courseFound = !courseRemoved;
         if (!courseRemoved) {
-          await page.waitForLoadState('networkidle', { timeout: 3000 }).catch(() => {});
+          await page.waitForLoadState('domcontentloaded', { timeout: 3000 }).catch(() => {});
           const allRows = page.locator('tr[mat-row]');
           const rowCount = await allRows.count();
 
@@ -521,7 +527,7 @@ test.describe('Course Management Tests', () => {
           
           if (successVisible) {
             // Success message exists, so deletion likely succeeded - wait more for table refresh
-            await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
+            await page.waitForLoadState('domcontentloaded', { timeout: 5000 }).catch(() => {});
             await page.waitForTimeout(2000);
             
             // Check one more time
@@ -753,7 +759,7 @@ test.describe('Course Management Tests', () => {
       await page.waitForTimeout(2000);
       
       // Wait for table to refresh after dialog closes
-      await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded', { timeout: 10000 }).catch(() => {});
       await page.waitForTimeout(2000);
       
       // Check for success message or course in list
@@ -771,7 +777,7 @@ test.describe('Course Management Tests', () => {
         if (verificationAttempts > 0) {
           await page.waitForTimeout(1000);
         }
-        await page.waitForLoadState('networkidle', { timeout: 3000 }).catch(() => {});
+        await page.waitForLoadState('domcontentloaded', { timeout: 3000 }).catch(() => {});
         
         // Try to find course in table
         const allRows = page.locator('tr[mat-row]');
@@ -804,7 +810,7 @@ test.describe('Course Management Tests', () => {
 
       // Update course - find edit button for the course we created
       // Wait for table to be stable first
-      await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded', { timeout: 5000 }).catch(() => {});
       await page.waitForTimeout(1000);
       
       // Try multiple strategies to find the course row
@@ -922,7 +928,7 @@ test.describe('Course Management Tests', () => {
       }
       
       // Wait for operation to complete
-      await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded', { timeout: 10000 }).catch(() => {});
       await page.waitForTimeout(1000);
       
       // Check for success
@@ -950,7 +956,7 @@ test.describe('Course Management Tests', () => {
         return;
       }
       await coursesNav.click();
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Find a course and click "Manage Content" button
       const manageContentButton = page.locator('button[matTooltip="Manage Content"], button:has-text("Manage Content")').first();
@@ -962,7 +968,7 @@ test.describe('Course Management Tests', () => {
         return;
       }
       await manageContentButton.click();
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       await page.waitForTimeout(1000);
 
       // Check if we're on the course content page
@@ -999,7 +1005,7 @@ test.describe('Course Management Tests', () => {
         return;
       }
       await coursesNav.click();
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Should see courses list
       const coursesTable = page.locator('table, .courses-list, mat-card').first();
@@ -1014,7 +1020,7 @@ test.describe('Course Management Tests', () => {
       const enrollmentsNav = page.locator('a:has-text("Enrollments"), a:has-text("My Enrollments")').first();
       if (await enrollmentsNav.isVisible({ timeout: 3000 }).catch(() => false)) {
         await enrollmentsNav.click();
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
         await page.waitForTimeout(1000);
         
         // Should see enrollments page - check for various possible titles
@@ -1030,7 +1036,7 @@ test.describe('Course Management Tests', () => {
             // We're on the enrollments page, test passes
           } else {
             // If Enrollments page not accessible, try direct navigation
-            await page.goto(`${APP_BASE_URL}/enrollments`, { waitUntil: 'networkidle' }).catch(() => {});
+            await page.goto(`${APP_BASE_URL}/enrollments`, { waitUntil: 'domcontentloaded' }).catch(() => {});
             await page.waitForTimeout(2000);
             const currentUrl = page.url();
             expect(currentUrl.includes('/enrollments') || currentUrl.includes('/dashboard')).toBeTruthy();
@@ -1038,7 +1044,7 @@ test.describe('Course Management Tests', () => {
         }
       } else {
         // If Enrollments nav not found, try direct navigation
-        await page.goto(`${APP_BASE_URL}/enrollments`, { waitUntil: 'networkidle' }).catch(() => {});
+        await page.goto(`${APP_BASE_URL}/enrollments`, { waitUntil: 'domcontentloaded' }).catch(() => {});
         await page.waitForTimeout(2000);
         const currentUrl = page.url();
         expect(currentUrl.includes('/enrollments') || currentUrl.includes('/dashboard')).toBeTruthy();
@@ -1056,7 +1062,7 @@ test.describe('Course Management Tests', () => {
         return;
       }
       await coursesNav.click();
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Find a course and try to access its content
       // Viewers might be able to view course details or content

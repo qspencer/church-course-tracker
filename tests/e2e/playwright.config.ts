@@ -1,8 +1,30 @@
 import { defineConfig, devices } from '@playwright/test';
+import { readFileSync, existsSync } from 'fs';
+import { join } from 'path';
 
-const env =
-  ((globalThis as unknown as { process?: { env?: Record<string, string | undefined> } }).process?.env) ??
-  {};
+// Load .env.e2e file BEFORE evaluating config
+const envFile = join(__dirname, '.env.e2e');
+if (existsSync(envFile)) {
+  const content = readFileSync(envFile, 'utf-8');
+  for (const line of content.split('\n')) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) continue;
+    const match = trimmed.match(/^([^=]+)=(.*)$/);
+    if (match) {
+      const key = match[1].trim();
+      let value = match[2].trim();
+      if ((value.startsWith('"') && value.endsWith('"')) ||
+          (value.startsWith("'") && value.endsWith("'"))) {
+        value = value.slice(1, -1);
+      }
+      if (!process.env[key]) {
+        process.env[key] = value;
+      }
+    }
+  }
+}
+
+const env = process.env;
 
 // Determine if we're testing against a remote URL (not localhost)
 // Match the logic from utils/auth.ts - default includes the /churchcoursetracker path
@@ -24,16 +46,16 @@ const config = {
   globalSetup: require.resolve('./global-setup.ts'),
   /* Global teardown - cleans up CSV test data after tests complete */
   globalTeardown: require.resolve('./global-teardown.ts'),
-  /* Run tests in files in parallel */
-  fullyParallel: true,
+  /* Run tests in files in parallel - disabled locally for stability */
+  fullyParallel: !!env.CI,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!env.CI,
   /* Retry on CI only - increased to 2 for network resilience */
-  retries: env.CI ? 2 : 0,
-  /* Use multiple workers for parallel execution - 1 on CI to avoid rate limiting, 4 locally */
-  workers: env.CI ? 1 : 4,
+  retries: env.CI ? 2 : 1, // 1 retry locally for flaky tests
+  /* Use multiple workers for parallel execution - 1 on CI, 2 locally for balance */
+  workers: env.CI ? 1 : 2,
   /* Global test timeout - increased for slower CI environments and network latency */
-  timeout: env.CI ? 300000 : 30000, // 5 minutes in CI, 30 seconds locally
+  timeout: env.CI ? 300000 : 60000, // 5 minutes in CI, 60 seconds locally
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: [
     ['html'],

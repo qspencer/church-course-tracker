@@ -20,13 +20,13 @@ async function isVisible(page: Page, selector: string): Promise<boolean> {
 test.describe('Comprehensive Role-Based Testing', () => {
   test.beforeEach(async ({ page }) => {
     // Navigate to the application
-    await page.goto(APP_BASE_URL, { waitUntil: 'networkidle' });
+    await page.goto(APP_BASE_URL, { waitUntil: 'domcontentloaded' });
   });
 
   test.describe('Application Accessibility Tests', () => {
     test('Application loads successfully', async ({ page }) => {
       await page.goto(APP_BASE_URL);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       
       // Check if the page loads without errors
       const title = await page.title();
@@ -46,7 +46,7 @@ test.describe('Comprehensive Role-Based Testing', () => {
   test.describe('Authentication Tests', () => {
     test('Login page is accessible', async ({ page }) => {
       await page.goto(`${APP_BASE_URL}/auth`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       
       // Check for login form elements - try both formControlName and name attributes
       const usernameField = await page.locator('input[formControlName="username"], input[name="username"]').first().isVisible();
@@ -60,7 +60,7 @@ test.describe('Comprehensive Role-Based Testing', () => {
 
     test('Invalid credentials show error', async ({ page }) => {
       await page.goto(`${APP_BASE_URL}/auth`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       
       // Try both formControlName and name attributes
       const usernameInput = page.locator('input[formControlName="username"], input[name="username"]').first();
@@ -220,7 +220,7 @@ test.describe('Comprehensive Role-Based Testing', () => {
     test('Page load performance', async ({ page }) => {
       const startTime = Date.now();
       await page.goto(APP_BASE_URL);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       const loadTime = Date.now() - startTime;
       
       console.log(`Page load time: ${loadTime}ms`);
@@ -242,7 +242,7 @@ test.describe('Comprehensive Role-Based Testing', () => {
   test.describe('Error Handling Tests', () => {
     test('404 pages are handled gracefully', async ({ page }) => {
       // Angular apps typically return 200 and handle 404s client-side
-      const response = await page.goto(`${APP_BASE_URL}/nonexistent-page`, { waitUntil: 'networkidle' });
+      const response = await page.goto(`${APP_BASE_URL}/nonexistent-page`, { waitUntil: 'domcontentloaded' });
       // The response might be 200 (Angular handles routing) or 404 (server-side)
       // Either way, we should end up on a 404 page or be redirected
       const url = page.url();
@@ -265,7 +265,7 @@ test.describe('Comprehensive Role-Based Testing', () => {
     test('Mobile viewport works', async ({ page }) => {
       await page.setViewportSize({ width: 375, height: 667 });
       await page.goto(APP_BASE_URL);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       
       // Check if page is responsive
       const body = await page.locator('body');

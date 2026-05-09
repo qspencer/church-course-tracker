@@ -78,7 +78,7 @@ export async function loginAsRole(page: Page, role: UserRole, testInfo: TestInfo
   const { expectNavigation, dashboardPath, timeoutMs } = { ...DEFAULT_LOGIN_OPTIONS, ...options };
 
   // Navigate and wait for network to settle
-  await page.goto(`${APP_BASE_URL}/auth`, { waitUntil: 'networkidle' });
+  await page.goto(`${APP_BASE_URL}/auth`, { waitUntil: 'domcontentloaded' });
 
   // Wait for Angular to initialize
   await page.waitForTimeout(1000);
@@ -125,7 +125,7 @@ export async function loginAsRole(page: Page, role: UserRole, testInfo: TestInfo
     }
 
     // Wait for dashboard to fully load
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
   }
 
   return user;
@@ -149,7 +149,7 @@ export async function logout(page: Page) {
   });
 
   // Navigate to auth page to ensure we're logged out
-  await page.goto(`${APP_BASE_URL}/auth`, { waitUntil: 'networkidle' });
+  await page.goto(`${APP_BASE_URL}/auth`, { waitUntil: 'domcontentloaded' });
 
   // Wait for auth page to be ready - ensure form is visible
   const usernameLocator = page.locator('input[formControlName="username"]');
