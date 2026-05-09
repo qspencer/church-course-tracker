@@ -51,7 +51,7 @@ resource "aws_db_instance" "main" {
   
   engine         = "postgres"
   engine_version = "15.12"
-  instance_class = "db.t3.micro"  # Smallest instance for cost optimization
+  instance_class = "db.t4g.micro"  # Graviton instance - cheaper and faster than t3
   
   allocated_storage     = 20
   max_allocated_storage = 50  # Reduced for cost optimization
@@ -627,77 +627,9 @@ resource "aws_route53_record" "api_quentinspencer_com" {
   }
 }
 
-# VPC Endpoints for AWS Services (reduces NAT dependency and improves reliability)
-# Security Group for VPC Endpoints
-resource "aws_security_group" "vpc_endpoints" {
-  name_prefix = "${var.app_name}-vpc-endpoints-"
-  vpc_id      = module.vpc.vpc_id
-  description = "Security group for VPC endpoints"
-
-  ingress {
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = [module.vpc.vpc_cidr_block]
-    description = "Allow HTTPS from VPC"
-  }
-
-  tags = {
-    Name        = "${var.app_name}-vpc-endpoints-sg"
-    Environment = var.environment
-    Application = var.app_name
-  }
-}
-
-# Secrets Manager VPC Endpoint
-resource "aws_vpc_endpoint" "secretsmanager" {
-  vpc_id              = module.vpc.vpc_id
-  service_name        = "com.amazonaws.${var.aws_region}.secretsmanager"
-  vpc_endpoint_type   = "Interface"
-  subnet_ids          = module.vpc.private_subnets
-  security_group_ids  = [aws_security_group.vpc_endpoints.id]
-  private_dns_enabled = true
-
-  tags = {
-    Name        = "${var.app_name}-secretsmanager-endpoint"
-    Environment = var.environment
-    Application = var.app_name
-  }
-}
-
-# ECR API VPC Endpoint
-resource "aws_vpc_endpoint" "ecr_api" {
-  vpc_id              = module.vpc.vpc_id
-  service_name        = "com.amazonaws.${var.aws_region}.ecr.api"
-  vpc_endpoint_type   = "Interface"
-  subnet_ids          = module.vpc.private_subnets
-  security_group_ids  = [aws_security_group.vpc_endpoints.id]
-  private_dns_enabled = true
-
-  tags = {
-    Name        = "${var.app_name}-ecr-api-endpoint"
-    Environment = var.environment
-    Application = var.app_name
-  }
-}
-
-# ECR DKR VPC Endpoint (for docker pull)
-resource "aws_vpc_endpoint" "ecr_dkr" {
-  vpc_id              = module.vpc.vpc_id
-  service_name        = "com.amazonaws.${var.aws_region}.ecr.dkr"
-  vpc_endpoint_type   = "Interface"
-  subnet_ids          = module.vpc.private_subnets
-  security_group_ids  = [aws_security_group.vpc_endpoints.id]
-  private_dns_enabled = true
-
-  tags = {
-    Name        = "${var.app_name}-ecr-dkr-endpoint"
-    Environment = var.environment
-    Application = var.app_name
-  }
-}
-
-# S3 VPC Endpoint (Gateway type, required for ECR image layers)
+# S3 VPC Endpoint (Gateway type - FREE, improves S3 access performance)
+# Note: Interface VPC Endpoints for ECR, Logs, and Secrets Manager removed for cost savings.
+# NAT instances provide internet access for these services.
 resource "aws_vpc_endpoint" "s3" {
   vpc_id            = module.vpc.vpc_id
   service_name      = "com.amazonaws.${var.aws_region}.s3"
@@ -706,22 +638,6 @@ resource "aws_vpc_endpoint" "s3" {
 
   tags = {
     Name        = "${var.app_name}-s3-endpoint"
-    Environment = var.environment
-    Application = var.app_name
-  }
-}
-
-# CloudWatch Logs VPC Endpoint (for container logs)
-resource "aws_vpc_endpoint" "logs" {
-  vpc_id              = module.vpc.vpc_id
-  service_name        = "com.amazonaws.${var.aws_region}.logs"
-  vpc_endpoint_type   = "Interface"
-  subnet_ids          = module.vpc.private_subnets
-  security_group_ids  = [aws_security_group.vpc_endpoints.id]
-  private_dns_enabled = true
-
-  tags = {
-    Name        = "${var.app_name}-logs-endpoint"
     Environment = var.environment
     Application = var.app_name
   }
