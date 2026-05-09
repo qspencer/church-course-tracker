@@ -68,6 +68,10 @@ resource "aws_ecs_task_definition" "backend" {
         {
           name      = "PLANNING_CENTER_SECRET"
           valueFrom = "${aws_secretsmanager_secret.app_secrets.arn}:PLANNING_CENTER_SECRET::"
+        },
+        {
+          name      = "ADMIN_PASSWORD"
+          valueFrom = "${aws_secretsmanager_secret.app_secrets.arn}:ADMIN_PASSWORD::"
         }
       ]
 

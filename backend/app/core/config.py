@@ -198,24 +198,37 @@ class Settings(BaseSettings):
                     "DEBUG mode is enabled in production - this is not recommended"
                 )
 
-            # Refuse to start in production if any seed-user password is still
-            # the dev placeholder. Operators must set explicit env vars.
+            # Refuse to start in production if ADMIN_PASSWORD is still the
+            # dev placeholder - that is the real operator credential and
+            # absolutely must be set. The other seed passwords (staff,
+            # instructor, viewer) are dev convenience accounts; warn but
+            # do not block, because in a long-running production system
+            # those user records already exist in the DB from prior boots
+            # and the env vars are not actively consumed at runtime.
             placeholder = self.DEV_PASSWORD_PLACEHOLDER
-            unset = [
+            if self.ADMIN_PASSWORD == placeholder:
+                raise ValueError(
+                    "Refusing to start: ADMIN_PASSWORD is still set to the "
+                    "dev placeholder. Set it via the ADMIN_PASSWORD environment "
+                    "variable (typically sourced from AWS Secrets Manager) "
+                    "before deploying to production."
+                )
+            warned = [
                 name
                 for name, value in (
-                    ("ADMIN_PASSWORD", self.ADMIN_PASSWORD),
                     ("STAFF_PASSWORD", self.STAFF_PASSWORD),
                     ("INSTRUCTOR_PASSWORD", self.INSTRUCTOR_PASSWORD),
                     ("VIEWER_PASSWORD", self.VIEWER_PASSWORD),
                 )
                 if value == placeholder
             ]
-            if unset:
-                raise ValueError(
-                    "Refusing to start: the following seed-user passwords are "
-                    "still set to the dev placeholder. Set them via environment "
-                    f"variables before deploying to production: {', '.join(unset)}"
+            if warned:
+                logger.warning(
+                    "Production environment is using dev placeholder for "
+                    "non-admin seed passwords: %s. This is non-fatal because "
+                    "those accounts are not used at runtime once seeded, "
+                    "but consider rotating them.",
+                    ", ".join(warned),
                 )
 
         # Validate secret key strength

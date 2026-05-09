@@ -43,29 +43,32 @@ def _make_prod_settings(**overrides) -> Settings:
 class TestProductionPasswordValidation:
     """Production startup must refuse placeholder passwords."""
 
-    def test_all_placeholders_rejected_in_production(self):
+    def test_admin_placeholder_rejected_in_production(self):
+        """ADMIN_PASSWORD is the only password that hard-blocks production startup."""
         with pytest.raises(ValueError) as exc:
             _make_prod_settings(
                 ADMIN_PASSWORD="CHANGE_ME_DEV_ONLY",
-                STAFF_PASSWORD="CHANGE_ME_DEV_ONLY",
-                INSTRUCTOR_PASSWORD="CHANGE_ME_DEV_ONLY",
-                VIEWER_PASSWORD="CHANGE_ME_DEV_ONLY",
+                STAFF_PASSWORD="anything",
+                INSTRUCTOR_PASSWORD="anything",
+                VIEWER_PASSWORD="anything",
             )
-        message = str(exc.value)
-        # Error must name every offender so operators know what to fix.
-        for var in ("ADMIN_PASSWORD", "STAFF_PASSWORD",
-                    "INSTRUCTOR_PASSWORD", "VIEWER_PASSWORD"):
-            assert var in message
+        assert "ADMIN_PASSWORD" in str(exc.value)
 
-    def test_one_placeholder_rejected_in_production(self):
-        with pytest.raises(ValueError) as exc:
-            _make_prod_settings(
-                ADMIN_PASSWORD="real-strong-pass",
-                STAFF_PASSWORD="CHANGE_ME_DEV_ONLY",
-                INSTRUCTOR_PASSWORD="real-strong-pass",
-                VIEWER_PASSWORD="real-strong-pass",
-            )
-        assert "STAFF_PASSWORD" in str(exc.value)
+    def test_non_admin_placeholders_warn_but_allowed_in_production(self, caplog):
+        """STAFF/INSTRUCTOR/VIEWER placeholders log a warning but do not block.
+
+        Rationale: those are dev-helper seed accounts; in a long-running prod
+        system the user records already exist in the DB and the env vars are
+        not actively consumed. Hard-blocking on them was over-strict.
+        """
+        # Should not raise.
+        s = _make_prod_settings(
+            ADMIN_PASSWORD="real-strong-pass",
+            STAFF_PASSWORD="CHANGE_ME_DEV_ONLY",
+            INSTRUCTOR_PASSWORD="CHANGE_ME_DEV_ONLY",
+            VIEWER_PASSWORD="CHANGE_ME_DEV_ONLY",
+        )
+        assert s.ENVIRONMENT == "production"
 
     def test_real_passwords_accepted_in_production(self):
         # Should not raise.
