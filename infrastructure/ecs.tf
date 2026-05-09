@@ -43,10 +43,6 @@ resource "aws_ecs_task_definition" "backend" {
           value = var.environment
         },
         {
-          name  = "DATABASE_URL"
-          value = "postgresql://postgres:${var.db_password}@${aws_db_instance.main.address}:${aws_db_instance.main.port}/church_course_tracker"
-        },
-        {
           name  = "AWS_S3_BUCKET"
           value = aws_s3_bucket.uploads.bucket
         },
@@ -56,7 +52,20 @@ resource "aws_ecs_task_definition" "backend" {
         }
       ]
 
+      # DATABASE_URL was previously injected here as a plaintext env var by
+      # interpolating var.db_password directly into the ECS task definition.
+      # That made the password visible in:
+      #   - the ECS console (task definition env vars are plain text in the UI)
+      #   - terraform.tfvars (where db_password is set)
+      #   - terraform plan/apply output
+      # As of 2026-05-09 the full DATABASE_URL is sourced from Secrets Manager
+      # via the secrets[] block below. The Secrets Manager value is the single
+      # source of truth; var.db_password is no longer used by the ECS task.
       secrets = [
+        {
+          name      = "DATABASE_URL"
+          valueFrom = "${aws_secretsmanager_secret.app_secrets.arn}:DATABASE_URL::"
+        },
         {
           name      = "SECRET_KEY"
           valueFrom = "${aws_secretsmanager_secret.app_secrets.arn}:SECRET_KEY::"
