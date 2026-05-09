@@ -21,25 +21,39 @@ def upgrade() -> None:
     """
     Ensure admin user exists in the database.
     This is idempotent - it will only create the user if it doesn't exist.
-    Uses environment variables for configuration (defaults to Admin/Matthew778*).
+    Reads admin credentials from environment variables. If ADMIN_PASSWORD is
+    unset, the migration logs a warning and skips user creation - operators
+    must then seed the admin user out-of-band. We deliberately do NOT ship a
+    default password here (a leaked literal lived in this file prior to May 2026).
     """
     connection = op.get_bind()
-    
-    # Get admin credentials from environment variables (with defaults)
+
     import os
     admin_username = os.getenv("ADMIN_USERNAME", "Admin")
     admin_email = os.getenv("ADMIN_EMAIL", "admin@example.com")
-    admin_password = os.getenv("ADMIN_PASSWORD", "Matthew778*")
+    admin_password = os.getenv("ADMIN_PASSWORD")
     admin_full_name = os.getenv("ADMIN_FULL_NAME", "System Admin")
-    
+
     # Check if admin user already exists
     result = connection.execute(
         text("SELECT COUNT(*) FROM users WHERE username = :username OR email = :email"),
         {"username": admin_username, "email": admin_email}
     )
     count = result.scalar()
-    
-    if count == 0:
+
+    if count > 0:
+        print(f"ℹ️  Admin user already exists (username: {admin_username}), skipping creation")
+        return
+
+    if not admin_password:
+        print(
+            "⚠️  ADMIN_PASSWORD not set; skipping admin user creation. "
+            "Seed the admin user manually (e.g. via the create-admin script) "
+            "after setting ADMIN_PASSWORD."
+        )
+        return
+
+    if True:
         # Import password hashing - add backend to path first
         import sys
         backend_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'backend')
@@ -85,8 +99,6 @@ def upgrade() -> None:
         )
         connection.commit()
         print(f"✅ Created admin user ({admin_username})")
-    else:
-        print(f"ℹ️  Admin user already exists (username: {admin_username}), skipping creation")
 
 
 def downgrade() -> None:

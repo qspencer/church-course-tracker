@@ -1,58 +1,64 @@
 #!/bin/bash
 
-# Script to increment application version
-# This script reads the current version from environment.prod.ts, increments it, and updates the file
+# Increment the application version.
+#
+# Canonical source: frontend/church-course-tracker/version.txt
+# Mirrors that value into:
+#   - frontend/church-course-tracker/src/environments/environment.ts
+#   - frontend/church-course-tracker/src/environments/environment.prod.ts
+#
+# Status messages go to stderr; the new version (and only the new version)
+# goes to stdout so callers can capture it (e.g. GitHub Actions outputs).
 
 set -e
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+VERSION_FILE="$PROJECT_ROOT/frontend/church-course-tracker/version.txt"
+ENV_BASE_FILE="$PROJECT_ROOT/frontend/church-course-tracker/src/environments/environment.ts"
 ENV_PROD_FILE="$PROJECT_ROOT/frontend/church-course-tracker/src/environments/environment.prod.ts"
 
-# Colors for output
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
+NC='\033[0m'
 
-# Send status messages to stderr so they don't interfere with version capture
 echo -e "${GREEN}📌 Incrementing application version...${NC}" >&2
 
-# Extract current version from environment.prod.ts
-if [ -f "$ENV_PROD_FILE" ]; then
-    # Extract version using grep and sed
-    CURRENT_VERSION=$(grep -oP "version:\s*['\"]\K[^'\"]*" "$ENV_PROD_FILE" || echo "0.00")
-    
-    if [ -z "$CURRENT_VERSION" ] || [ "$CURRENT_VERSION" = "0.00" ]; then
-        CURRENT_VERSION="0.02"
-    fi
-    
-    echo -e "${YELLOW}Current version: $CURRENT_VERSION${NC}" >&2
-    
-    # Increment version (0.02 -> 0.03, etc.)
-    # Convert to integer (multiply by 100), increment, then divide by 100
-    VERSION_INT=$(echo "$CURRENT_VERSION * 100" | bc | cut -d. -f1)
-    NEW_VERSION_INT=$((VERSION_INT + 1))
-    NEW_VERSION=$(printf "%.2f" $(echo "scale=2; $NEW_VERSION_INT / 100" | bc))
-    
-    # Format to 2 decimal places (0.03 instead of 0.3)
-    NEW_VERSION=$(printf "%.2f" "$NEW_VERSION")
-    
-    echo -e "${GREEN}New version: $NEW_VERSION${NC}" >&2
-    
-    # Update environment.prod.ts
-    if [[ "$OSTYPE" == "darwin"* ]]; then
-        # macOS
-        sed -i '' "s/version: '.*'/version: '$NEW_VERSION'/g" "$ENV_PROD_FILE"
-    else
-        # Linux
-        sed -i "s/version: '.*'/version: '$NEW_VERSION'/g" "$ENV_PROD_FILE"
-    fi
-    
-    echo -e "${GREEN}✅ Version updated to $NEW_VERSION in environment.prod.ts${NC}" >&2
-    
-    # Return ONLY the version number to stdout (for capture by calling scripts)
-    echo "$NEW_VERSION"
+# 1. Read current version from version.txt (canonical). Fall back to 0.00.
+if [ -f "$VERSION_FILE" ]; then
+    CURRENT_VERSION=$(tr -d '[:space:]' < "$VERSION_FILE")
 else
-    echo -e "${YELLOW}⚠️  environment.prod.ts not found, using default version 0.03${NC}" >&2
-    echo "0.03"
+    CURRENT_VERSION="0.00"
 fi
 
+if [ -z "$CURRENT_VERSION" ]; then
+    CURRENT_VERSION="0.00"
+fi
+
+echo -e "${YELLOW}Current version: $CURRENT_VERSION${NC}" >&2
+
+# 2. Increment by 0.01. Use awk so we don't need bc.
+NEW_VERSION=$(awk "BEGIN { printf \"%.2f\", $CURRENT_VERSION + 0.01 }")
+echo -e "${GREEN}New version: $NEW_VERSION${NC}" >&2
+
+# 3. Write to all three sources atomically.
+echo "$NEW_VERSION" > "$VERSION_FILE"
+
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    SED_INPLACE=(-i '')
+else
+    SED_INPLACE=(-i)
+fi
+
+for f in "$ENV_BASE_FILE" "$ENV_PROD_FILE"; do
+    if [ -f "$f" ]; then
+        # Replace either an existing version literal or the VERSION_PLACEHOLDER
+        # token used by deploy-frontend.sh.
+        sed "${SED_INPLACE[@]}" -E "s/version: *['\"][^'\"]*['\"]/version: '$NEW_VERSION'/g" "$f"
+        sed "${SED_INPLACE[@]}" "s/VERSION_PLACEHOLDER/$NEW_VERSION/g" "$f"
+    fi
+done
+
+echo -e "${GREEN}✅ Version $NEW_VERSION written to version.txt, environment.ts, environment.prod.ts${NC}" >&2
+
+# 4. Emit ONLY the version number to stdout for capture by callers.
+echo "$NEW_VERSION"

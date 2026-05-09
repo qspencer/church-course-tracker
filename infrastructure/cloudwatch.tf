@@ -3,8 +3,8 @@
 # CloudWatch Log Group for Backend
 resource "aws_cloudwatch_log_group" "backend" {
   name              = "/ecs/${var.app_name}-backend"
-  retention_in_days = 30
-  
+  retention_in_days = 14  # Reduced from 30 for cost savings
+
   tags = {
     Environment = var.environment
     Application = var.app_name
@@ -152,8 +152,10 @@ resource "aws_sns_topic" "alerts" {
 }
 
 # SNS Topic Subscription (Email)
+# Endpoint is sourced from var.alert_email (required, validated). The
+# subscription must be confirmed via the email AWS sends after first apply.
 resource "aws_sns_topic_subscription" "email_alerts" {
   topic_arn = aws_sns_topic.alerts.arn
   protocol  = "email"
-  endpoint  = "admin@your-domain.com"  # Change this to your email
+  endpoint  = var.alert_email
 }

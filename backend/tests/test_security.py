@@ -474,18 +474,29 @@ class TestAuthenticationDependencies:
         assert response.status_code == 200
     
     def test_get_current_admin_user_non_admin(self, client: TestClient, staff_token):
-        """Test getting current admin user when user is not admin"""
-        # Test the dependency directly by creating a token for a staff user
-        from app.core.security import create_access_token
-        staff_token_direct = create_access_token({"sub": "999", "role": "staff"})
-        
-        headers = {"Authorization": f"Bearer {staff_token_direct}"}
-        # Use a non-existent endpoint that would require admin access
-        response = client.get("/api/v1/users/999", headers=headers)
-        
-        # This should work since it's just getting a user by ID
-        # The real test is that the dependency would raise 403 if used
-        assert response.status_code in [200, 404]  # User might not exist
+        """A staff token must be rejected with 403 by admin-only endpoints.
+
+        Previously this test exercised GET /users/{user_id} and only asserted
+        that the call did not crash, which silently passed because that
+        endpoint was unauthenticated (the bug fixed in May 2026). It now
+        targets POST /users/ which is genuinely admin-only.
+        """
+        headers = {"Authorization": f"Bearer {staff_token}"}
+        response = client.post(
+            "/api/v1/users/",
+            headers=headers,
+            json={
+                "username": "newuser",
+                "email": "newuser@example.com",
+                "full_name": "New User",
+                "password": "Password123!",
+                "role": "viewer",
+            },
+        )
+        assert response.status_code == 403, (
+            f"Expected 403 for staff token on admin-only POST /users/, "
+            f"got {response.status_code}."
+        )
 
 
 class TestSecurityHeaders:

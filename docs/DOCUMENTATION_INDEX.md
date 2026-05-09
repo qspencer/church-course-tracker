@@ -1,7 +1,7 @@
 # Church Course Tracker - Documentation Index
 
-**Last Updated:** January 16, 2026
-**Documents:** 16 active, 103+ archived
+**Last Updated:** May 9, 2026
+**Documents:** 18 active, 125+ archived
 
 This directory contains the active documentation for the Church Course Tracker project. Historical and completed documentation has been moved to the `archive/` subdirectory.
 
@@ -170,47 +170,32 @@ Comprehensive test review with improvements:
 **Audience:** Developers, QA Engineers
 **Status:** ✅ Active reference document
 
-### **[SKIPPED_TESTS_ANALYSIS.md](SKIPPED_TESTS_ANALYSIS.md)**
-Analysis of skipped tests across the test suite:
-- Backend tests status
-- Frontend tests status
-- E2E tests status
-- Reasons for skipping tests
-- Recommendations
+### **[EVALUATION_2026-05-09.md](EVALUATION_2026-05-09.md)**
+Independent application evaluation covering backend, frontend, tests, infrastructure, and documentation:
+- Critical security findings and prioritized fix list
+- Code quality issues with file:line citations
+- Infrastructure concerns
+- Test suite status (unit + e2e)
+- Documentation hygiene assessment
+- Strengths worth preserving
+- Recommended next steps
 
-**Generated:** January 12, 2026
-**Audience:** Developers, QA Engineers
+**Generated:** May 9, 2026
+**Audience:** Tech Leads, Maintainers
 **Status:** ✅ Active reference document
 
 ---
 
-## 📝 **Documentation Maintenance**
+## 📂 Archived Reports
 
-These documents track documentation quality and maintenance activities.
+The following point-in-time reports have been moved to `archive/` (May 9, 2026 cleanup):
+- Skipped-tests analyses → `archive/SKIPPED_TESTS_ANALYSIS.md`, `archive/E2E_SKIPPED_TESTS_COMPLETE_ANALYSIS.md`
+- Documentation reviews → `archive/DOCUMENTATION_ACCURACY_REPORT.md`, `archive/DOCUMENTATION_REVIEW_REPORT_JAN_2026.md`
+- Phase / completion reports (Jan 17, 2026) → `archive/CODE_QUALITY_IMPROVEMENTS_JAN_17_2026.md`, `archive/PHASE_3_PROGRESS_JAN_17_2026.md`, `archive/SENTRY_ERROR_FIX_JAN_17_2026.md`, `archive/CUSTOM_TAB_IMPORT_COMPLETION.md`
+- Test-result snapshots → `archive/TEST_RESULTS_SUMMARY_2026-01-17.md`, `archive/BACKEND_TEST_RESULTS_SUMMARY.md`, `archive/FRONTEND_TEST_RESULTS_SUMMARY.md`, `archive/FRONTEND_TEST_INVESTIGATION.md`
+- E2E iteration logs → 12 `archive/E2E_*.md` files
 
-### **[DOCUMENTATION_ACCURACY_REPORT.md](DOCUMENTATION_ACCURACY_REPORT.md)**
-Comprehensive review of all documentation against actual codebase:
-- Verification of all documented features
-- Identification of undocumented features
-- Credential accuracy verification
-- Critical issues and discrepancies
-- Recommendations for updates
-
-**Generated:** January 13, 2026
-**Audience:** Documentation maintainers, Tech Leads
-**Status:** ✅ Active reference document
-
-### **[DOCUMENTATION_REVIEW_REPORT_JAN_2026.md](DOCUMENTATION_REVIEW_REPORT_JAN_2026.md)**
-Complete documentation review and cleanup report:
-- Document-by-document accuracy verification
-- Source code verification results
-- Archive recommendations implemented
-- Documentation health scorecard
-- Maintenance recommendations
-
-**Generated:** January 16, 2026
-**Audience:** Documentation maintainers, Tech Leads
-**Status:** ✅ Active maintenance record
+For current test/quality status, see `EVALUATION_2026-05-09.md`.
 
 ---
 
@@ -296,7 +281,7 @@ A document should remain active when:
 - **End Users:** USER_GUIDE.md, FEATURES.md
 - **Administrators:** USER_GUIDE.md, PLANNING_CENTER_*.md
 - **Developers:** PROJECT_STRUCTURE.md, CODE_REVIEW_AND_IMPROVEMENTS.md, TEST_REVIEW_AND_IMPROVEMENTS.md
-- **QA Engineers:** TEST_REVIEW_AND_IMPROVEMENTS.md, SKIPPED_TESTS_ANALYSIS.md
+- **QA Engineers:** TEST_REVIEW_AND_IMPROVEMENTS.md, EVALUATION_2026-05-09.md (test status section)
 
 ### By Topic
 - **Getting Started:** GETTING_STARTED.md
@@ -305,8 +290,8 @@ A document should remain active when:
 - **Code Quality:** CODE_REVIEW_AND_IMPROVEMENTS.md, IMPROVEMENT_RECOMMENDATIONS.md
 - **Error Handling:** ERROR_HANDLING.md
 - **Logging:** LOGGING.md
-- **Testing:** TEST_REVIEW_AND_IMPROVEMENTS.md, SKIPPED_TESTS_ANALYSIS.md
-- **Documentation:** DOCUMENTATION_ACCURACY_REPORT.md, DOCUMENTATION_REVIEW_REPORT_JAN_2026.md
+- **Testing:** TEST_REVIEW_AND_IMPROVEMENTS.md, EVALUATION_2026-05-09.md
+- **Documentation:** EVALUATION_2026-05-09.md (Documentation section)
 - **Project Structure:** PROJECT_STRUCTURE.md
 
 ---
@@ -329,8 +314,8 @@ When updating existing documentation:
 
 ## 📊 **Documentation Statistics**
 
-- **Total Active Documents:** 16
-- **Total Archived Documents:** 103+
+- **Total Active Documents:** 18
+- **Total Archived Documents:** 125+
 - **User Documentation:** 3 documents (all ✅ accurate and updated)
 - **Technical Documentation:** 5 documents (structure, Planning Center x2, error handling, logging)
 - **Planning & Analysis:** 3 documents (code review, improvements, HTML plan)

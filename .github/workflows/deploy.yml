@@ -124,7 +124,9 @@ jobs:
         # Pull latest changes before committing
         git pull --rebase origin ${{ github.ref_name }} || echo "Pull failed, continuing..."
         
-        git add frontend/church-course-tracker/src/environments/environment.prod.ts
+        git add frontend/church-course-tracker/version.txt \
+                frontend/church-course-tracker/src/environments/environment.ts \
+                frontend/church-course-tracker/src/environments/environment.prod.ts
         if git diff --staged --quiet; then
           echo "No version changes to commit"
         else

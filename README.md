@@ -6,7 +6,7 @@ A comprehensive learning management system designed specifically for churches to
 
 - **Production Frontend**: https://apps.quentinspencer.com
 - **Production API**: https://api.quentinspencer.com
-- **Admin Credentials**: `Admin` / `Matthew778*`
+- **Admin Credentials**: contact the project maintainer (do not commit credentials to this repo)
 
 ## 🎯 Overview
 
@@ -119,9 +119,8 @@ church-course-tracker/
    - Backend API: http://localhost:8000
    - API Documentation: http://localhost:8000/docs
 
-4. **Log in with default admin credentials:**
-   - Username: `Admin`
-   - Password: `Matthew778*`
+4. **Log in to the local instance:**
+   Set seed-user passwords via environment variables (`ADMIN_PASSWORD`, `STAFF_PASSWORD`, `INSTRUCTOR_PASSWORD`, `VIEWER_PASSWORD`) before first startup. In development, if these are unset, the seed users are created with the placeholder `CHANGE_ME_DEV_ONLY`. Production startup will refuse to launch unless real values are provided.
 
 ### 🏗️ Local Development Setup
 
@@ -625,5 +624,4 @@ For support and questions:
 **🎉 The Church Course Tracker is now fully deployed and production-ready on AWS!**
 
 **Live Application**: https://apps.quentinspencer.com  
-**API Documentation**: https://api.quentinspencer.com/docs  
-**Admin Access**: `Admin` / `Matthew778*`
+**API Documentation**: https://api.quentinspencer.com/docs

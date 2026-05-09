@@ -135,32 +135,37 @@ class Settings(BaseSettings):
     LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")
 
     # Default User Configuration
-    # These can be overridden via environment variables.
-    # To change these, set the environment variables before running migrations or starting the server.
-    # Example: export ADMIN_USERNAME="MyAdmin" ADMIN_PASSWORD="SecurePass123!"
+    # Default passwords below are DEVELOPMENT PLACEHOLDERS ONLY.
+    # Production startup will raise if these placeholders are still in use
+    # (see _validate_security_settings). Set real values via environment:
+    #   export ADMIN_PASSWORD="..." STAFF_PASSWORD="..." \
+    #          INSTRUCTOR_PASSWORD="..." VIEWER_PASSWORD="..."
+
+    # Sentinel value used to detect unset/placeholder passwords in production.
+    DEV_PASSWORD_PLACEHOLDER: str = "CHANGE_ME_DEV_ONLY"
 
     # Admin User
     ADMIN_USERNAME: str = os.getenv("ADMIN_USERNAME", "Admin")
     ADMIN_EMAIL: str = os.getenv("ADMIN_EMAIL", "admin@example.com")
-    ADMIN_PASSWORD: str = os.getenv("ADMIN_PASSWORD", "Matthew778*")
+    ADMIN_PASSWORD: str = os.getenv("ADMIN_PASSWORD", "CHANGE_ME_DEV_ONLY")
     ADMIN_FULL_NAME: str = os.getenv("ADMIN_FULL_NAME", "System Admin")
 
     # Staff User
     STAFF_USERNAME: str = os.getenv("STAFF_USERNAME", "Staff")
     STAFF_EMAIL: str = os.getenv("STAFF_EMAIL", "staff@example.com")
-    STAFF_PASSWORD: str = os.getenv("STAFF_PASSWORD", "Staff123!")
+    STAFF_PASSWORD: str = os.getenv("STAFF_PASSWORD", "CHANGE_ME_DEV_ONLY")
     STAFF_FULL_NAME: str = os.getenv("STAFF_FULL_NAME", "Default Staff")
 
     # Instructor User
     INSTRUCTOR_USERNAME: str = os.getenv("INSTRUCTOR_USERNAME", "Instructor")
     INSTRUCTOR_EMAIL: str = os.getenv("INSTRUCTOR_EMAIL", "instructor@example.com")
-    INSTRUCTOR_PASSWORD: str = os.getenv("INSTRUCTOR_PASSWORD", "Instructor123!")
+    INSTRUCTOR_PASSWORD: str = os.getenv("INSTRUCTOR_PASSWORD", "CHANGE_ME_DEV_ONLY")
     INSTRUCTOR_FULL_NAME: str = os.getenv("INSTRUCTOR_FULL_NAME", "Default Instructor")
 
     # Viewer User
     VIEWER_USERNAME: str = os.getenv("VIEWER_USERNAME", "Viewer")
     VIEWER_EMAIL: str = os.getenv("VIEWER_EMAIL", "viewer@example.com")
-    VIEWER_PASSWORD: str = os.getenv("VIEWER_PASSWORD", "Viewer123!")
+    VIEWER_PASSWORD: str = os.getenv("VIEWER_PASSWORD", "CHANGE_ME_DEV_ONLY")
     VIEWER_FULL_NAME: str = os.getenv("VIEWER_FULL_NAME", "Default Viewer")
 
     def __init__(self, **kwargs):
@@ -191,6 +196,26 @@ class Settings(BaseSettings):
             if self.DEBUG:
                 logger.warning(
                     "DEBUG mode is enabled in production - this is not recommended"
+                )
+
+            # Refuse to start in production if any seed-user password is still
+            # the dev placeholder. Operators must set explicit env vars.
+            placeholder = self.DEV_PASSWORD_PLACEHOLDER
+            unset = [
+                name
+                for name, value in (
+                    ("ADMIN_PASSWORD", self.ADMIN_PASSWORD),
+                    ("STAFF_PASSWORD", self.STAFF_PASSWORD),
+                    ("INSTRUCTOR_PASSWORD", self.INSTRUCTOR_PASSWORD),
+                    ("VIEWER_PASSWORD", self.VIEWER_PASSWORD),
+                )
+                if value == placeholder
+            ]
+            if unset:
+                raise ValueError(
+                    "Refusing to start: the following seed-user passwords are "
+                    "still set to the dev placeholder. Set them via environment "
+                    f"variables before deploying to production: {', '.join(unset)}"
                 )
 
         # Validate secret key strength

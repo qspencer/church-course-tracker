@@ -71,3 +71,13 @@ variable "nat_instance_type" {
   type        = string
   default     = "t3.micro"
 }
+
+variable "alert_email" {
+  description = "Email address that receives CloudWatch alarm notifications via SNS. Required - no default. Set via terraform.tfvars or TF_VAR_alert_email."
+  type        = string
+
+  validation {
+    condition     = length(var.alert_email) > 0 && can(regex("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$", var.alert_email))
+    error_message = "alert_email must be a non-empty, valid email address."
+  }
+}

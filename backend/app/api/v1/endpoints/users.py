@@ -150,12 +150,13 @@ async def update_user_preferences(
 @router.get("", response_model=List[User])
 @router.get("/", response_model=List[User])
 async def get_users(
-    skip: int = 0, 
-    limit: int = 100, 
+    skip: int = 0,
+    limit: int = 100,
     role: str = None,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_active_user),
 ):
-    """Get all users, optionally filtered by role"""
+    """Get all users, optionally filtered by role. Requires authentication."""
     user_service = UserService(db)
     return user_service.get_users(skip=skip, limit=limit, role=role)
 
@@ -181,8 +182,12 @@ async def bulk_delete_users(
 
 
 @router.get("/{user_id}", response_model=User)
-async def get_user(user_id: int, db: Session = Depends(get_db)):
-    """Get a specific user by ID"""
+async def get_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_active_user),
+):
+    """Get a specific user by ID. Requires authentication."""
     user_service = UserService(db)
     user = user_service.get_user(user_id)
     if not user:
@@ -199,7 +204,14 @@ async def create_user(
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_active_user),
 ):
-    """Create a new user"""
+    """Create a new user - Admin only"""
+    # Authorization: Only admin users can create new users
+    if current_user["role"] != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only admin users can create new user accounts",
+        )
+
     user_service = UserService(db)
     try:
         return user_service.create_user(user, created_by=current_user["id"])
@@ -224,7 +236,18 @@ async def update_user(
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_active_user),
 ):
-    """Update an existing user"""
+    """Update an existing user - Admin only
+
+    This endpoint allows admins to update any user's information including role.
+    Non-admin users should use PATCH /me to update their own profile.
+    """
+    # Authorization: Only admin users can update other users
+    if current_user["role"] != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only admin users can update user accounts. Use PATCH /me to update your own profile.",
+        )
+
     user_service = UserService(db)
     try:
         user = user_service.update_user(
@@ -257,7 +280,14 @@ async def delete_user(
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_active_user),
 ):
-    """Delete a user"""
+    """Delete a user - Admin only"""
+    # Authorization: Only admin users can delete users
+    if current_user["role"] != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only admin users can delete user accounts",
+        )
+
     user_service = UserService(db)
     success = user_service.delete_user(user_id, deleted_by=current_user["id"])
     if not success:
