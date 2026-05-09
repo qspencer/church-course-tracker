@@ -34,6 +34,10 @@ venv.bak/
 *.db
 *.sqlite
 *.sqlite3
+# SQLite WAL/SHM files (transient runtime state)
+*.db-shm
+*.db-wal
+*.db-journal
 
 # Logs
 logs
@@ -85,5 +89,15 @@ infrastructure/.terraform/
 infrastructure/.terraform.lock.hcl
 infrastructure/terraform.tfstate*
 infrastructure/tfplan
+*.tfplan
+
+# User-uploaded runtime files (do not commit)
+backend/uploads/
+
+# Playwright generated test reports (regenerated each run)
+tests/e2e/playwright-report/
+tests/e2e/test-results/
+playwright-report/
+test-results/
 backend/venv_lint/
 .env.e2e
