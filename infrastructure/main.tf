@@ -479,6 +479,17 @@ resource "aws_instance" "nat" {
     Environment = var.environment
     Application = var.app_name
   }
+
+  # The AMI is sourced from data.aws_ami.amazon_linux_2 with most_recent=true,
+  # which means every new AL2 release would otherwise force the NAT instances
+  # to be replaced - a high-risk operation given the iptables user_data script
+  # is fragile across AMI changes. Ignore AMI drift; the instances keep their
+  # launch-time AMI until someone explicitly taints + applies to refresh.
+  # Same logic for user_data: heredoc whitespace can change without semantic
+  # difference, and changing user_data also forces replacement.
+  lifecycle {
+    ignore_changes = [ami, user_data]
+  }
 }
 
 # Get the primary network interface for each NAT instance
