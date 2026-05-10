@@ -193,10 +193,17 @@ class Settings(BaseSettings):
             if not self.ALLOWED_ORIGINS:
                 raise ValueError("ALLOWED_ORIGINS must be configured for production")
 
+            # Hard-override DEBUG to False in production. Previously this was a
+            # soft warning, but settings.DEBUG is publicly exposed via /health
+            # (and any future code that gates on it expects truthful state),
+            # so leaving it at whatever the env var said is an information-
+            # leak risk. If DEBUG was truthy here it came from a misconfigured
+            # env var or the dev default; either way, prod must not run with it.
             if self.DEBUG:
                 logger.warning(
-                    "DEBUG mode is enabled in production - this is not recommended"
+                    "DEBUG was True under ENVIRONMENT=production; forcing DEBUG=False"
                 )
+                self.DEBUG = False
 
             # Refuse to start in production if ADMIN_PASSWORD is still the
             # dev placeholder - that is the real operator credential and

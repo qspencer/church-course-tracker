@@ -91,6 +91,43 @@ class TestProductionPasswordValidation:
         assert s.ADMIN_PASSWORD == "CHANGE_ME_DEV_ONLY"
 
 
+class TestDebugForcedOffInProduction:
+    """In production, settings.DEBUG must be False regardless of input.
+
+    Background: settings.DEBUG is surfaced in the public /health payload as
+    ``checks.debug_mode`` and, more importantly, is the flag any future code
+    would gate verbose-error or developer-only behavior on. Previously the
+    validator only logged a warning if DEBUG was True under
+    ENVIRONMENT=production; the value passed through unchanged. As of May
+    2026 the validator hard-overrides DEBUG to False whenever ENVIRONMENT is
+    production so that env-var misconfiguration cannot leak debug state to
+    end users.
+    """
+
+    def test_debug_forced_false_in_production_even_when_input_is_true(self):
+        s = _make_prod_settings(
+            ADMIN_PASSWORD="real-strong-pass",
+            DEBUG=True,
+        )
+        assert s.DEBUG is False
+
+    def test_debug_remains_false_in_production_when_input_is_false(self):
+        s = _make_prod_settings(
+            ADMIN_PASSWORD="real-strong-pass",
+            DEBUG=False,
+        )
+        assert s.DEBUG is False
+
+    def test_debug_preserved_in_development(self):
+        s = Settings(
+            ENVIRONMENT="development",
+            SECRET_KEY="x" * 64,
+            ADMIN_PASSWORD="CHANGE_ME_DEV_ONLY",
+            DEBUG=True,
+        )
+        assert s.DEBUG is True
+
+
 class TestNoLeakedSecretsInActivePaths:
     """The previously-leaked admin password must not appear in active deploy paths.
 
