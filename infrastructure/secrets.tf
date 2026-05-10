@@ -13,6 +13,20 @@ resource "aws_secretsmanager_secret" "app_secrets" {
 }
 
 # Application Secrets Version
+#
+# IMPORTANT: the secret_string here is the *bootstrap* value. The live secret
+# is updated out-of-band (via `aws secretsmanager put-secret-value`) and now
+# contains DATABASE_URL, ADMIN_PASSWORD, USE_MOCK_PLANNING_CENTER, and the
+# real Planning Center credentials. Terraform's view (via version_id) is
+# stale because secret versions are immutable - terraform reads the version
+# it created at first apply, which still exists in version history, so
+# `plan` reports no drift even though AWSCURRENT has moved.
+#
+# The lifecycle.ignore_changes below prevents a future `terraform apply`
+# from accidentally creating a new version with the placeholder content
+# above and clobbering the live values. Any future change to the secret
+# contents must be done via `aws secretsmanager put-secret-value` (or via
+# a future, deliberate Terraform-managed JSON encode that mirrors live).
 resource "aws_secretsmanager_secret_version" "app_secrets" {
   secret_id = aws_secretsmanager_secret.app_secrets.id
   secret_string = jsonencode({
@@ -21,6 +35,10 @@ resource "aws_secretsmanager_secret_version" "app_secrets" {
     PLANNING_CENTER_SECRET    = "your-planning-center-secret"
     PLANNING_CENTER_ACCESS_TOKEN = "your-planning-center-access-token"
   })
+
+  lifecycle {
+    ignore_changes = [secret_string, version_stages]
+  }
 }
 
 # Database Password Secret
