@@ -18,7 +18,10 @@ memory_target_value = 85
 alert_email = "qspencer@gmail.com"
 
 # Database settings
-# WARNING: this value is in cleartext in a tracked file. Phase 4 (DB password
-# to Secrets Manager) is the planned fix. Until then, treat this file as
-# sensitive and avoid sharing.
-db_password = "qicBHo2ypeSkuyrU"
+# (db_password removed 2026-05-10: the RDS master password is now generated
+# by random_password.db in infrastructure/secrets.tf and lives only in
+# Terraform state and Secrets Manager. There is no longer a cleartext
+# operator value to set here. To manually rotate the password, run:
+#   terraform apply -replace=random_password.db
+# and then update app_secrets DATABASE_URL via aws secretsmanager
+# put-secret-value, and force a new ECS deployment.)

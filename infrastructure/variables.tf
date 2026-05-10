@@ -18,12 +18,6 @@ variable "environment" {
   default     = "production"
 }
 
-variable "db_password" {
-  description = "Database password"
-  type        = string
-  sensitive   = true
-}
-
 variable "domain_name" {
   description = "Domain name for the application"
   type        = string
