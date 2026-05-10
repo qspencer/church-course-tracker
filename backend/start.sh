@@ -799,12 +799,11 @@ fi
 # Admin user creation is handled idempotently by Alembic migration
 # v2w3x4y5z6a7_ensure_admin_user (run via `alembic upgrade head` above),
 # which reads ADMIN_PASSWORD from the environment (sourced from Secrets
-# Manager). The previously-invoked /app/create_admin_standalone.py and
-# /app/create_test_users_standalone.py shipped with hardcoded credentials
-# (the leaked Matthew778* admin password and weak staff/viewer passwords)
-# and would silently reset the admin password on every container restart.
-# Both scripts and their Dockerfile COPY entries were removed in the
-# May 2026 hardening pass.
+# Manager). Two standalone Python scripts that previously ran here on
+# every container boot shipped with hardcoded admin/staff/viewer
+# credentials and would silently reset the admin password on every
+# restart. Both scripts and their Dockerfile COPY entries were removed
+# in the May 2026 hardening pass.
 
 # Start the application
 echo "🚀 Starting FastAPI application..."

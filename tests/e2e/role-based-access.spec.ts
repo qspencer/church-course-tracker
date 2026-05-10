@@ -726,9 +726,9 @@ test.describe('Role-Based Access Control', () => {
       
       const adminCreds = credentials.admin;
       if (!adminCreds) {
-        // Use default admin credentials
-      const username = 'Admin';
-      const password = 'Matthew778*';
+        // Admin credentials must be provided via env (see test setup).
+        // We skip the test rather than fall back to a baked-in literal.
+        test.skip(true, 'admin credentials not configured');
         return;
       }
       

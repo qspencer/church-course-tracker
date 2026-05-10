@@ -1,13 +1,24 @@
 import { test, expect } from '@playwright/test';
 import { API_BASE_URL } from './utils/auth';
 
-// Test data for different roles
-// Note: Using actual admin credentials that exist in production
-// Staff and viewer users may need to be created in the database first
+// Test data for different roles. All passwords are sourced from env vars
+// that the CI runner is expected to populate from a secrets store. Tests
+// that require a missing credential should skip rather than fall back to
+// a baked-in value (a baked-in fallback was previously the mechanism that
+// kept a leaked admin password alive across every CI run).
 const testUsers = {
-  admin: { username: "Admin", password: "Matthew778*" },  // Using actual production admin
-  staff: { username: 'staff', password: 'staff123' },
-  viewer: { username: 'viewer', password: 'viewer123' }
+  admin: {
+    username: process.env.E2E_ADMIN_USERNAME ?? process.env.ADMIN_USERNAME ?? 'Admin',
+    password: process.env.E2E_ADMIN_PASSWORD ?? process.env.ADMIN_PASSWORD ?? '',
+  },
+  staff: {
+    username: process.env.E2E_STAFF_USERNAME ?? 'staff',
+    password: process.env.E2E_STAFF_PASSWORD ?? '',
+  },
+  viewer: {
+    username: process.env.E2E_VIEWER_USERNAME ?? 'viewer',
+    password: process.env.E2E_VIEWER_PASSWORD ?? '',
+  },
 };
 
 // Helper function to get auth token
@@ -497,13 +508,15 @@ test.describe('Church Course Tracker - Comprehensive Test Suite', () => {
       const getResponse = await request.get(`${API_BASE_URL}/api/v1/courses/`);
       // Allow for rate limiting (429) and service unavailable (503)
       expect([200, 429, 503]).toContain(getResponse.status());
-      
-      // Test POST (login)
+
+      // Test POST (login) - uses the same env-sourced admin credentials as the
+      // testUsers.admin definition at the top of this file.
+      test.skip(!testUsers.admin.password, 'admin password env var not set');
       const postResponse = await request.post(`${API_BASE_URL}/api/v1/auth/login`, {
         headers: {
           'Content-Type': 'application/json'
         },
-        data: { username: "Admin", password: "Matthew778*" }
+        data: testUsers.admin
       });
       // Allow for rate limiting (429), bad request (400), and unauthorized (401)
       const postStatus = postResponse.status();

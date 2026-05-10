@@ -24,14 +24,17 @@ All executable scripts are located in the `scripts/` subdirectory:
 - `deploy-frontend.sh` - Deploy frontend to AWS
 - `deploy-aws.sh` - Deploy to AWS
 - `setup-dev.sh` - Development environment setup
-- `migrate-database.sh` - Run database migrations
 - And more...
 
 ### Python Scripts
-- `create_admin_user.py` - Create admin users
 - `health_check.py` - Health check utilities
 - `test-mock-api.py` - Test mock API
 - And more...
+
+Database migrations run automatically on backend container start via
+`alembic upgrade head` in `backend/start.sh`. Admin user creation is
+handled idempotently by an Alembic migration that reads ADMIN_PASSWORD
+from the environment.
 
 **Usage:**
 ```bash

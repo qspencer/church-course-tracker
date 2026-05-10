@@ -129,33 +129,37 @@ class TestDebugForcedOffInProduction:
 
 
 class TestNoLeakedSecretsInActivePaths:
-    """The previously-leaked admin password must not appear in active deploy paths.
+    """The previously-leaked admin password must not appear anywhere active.
 
-    Scope is intentionally narrow: production code, migrations, the public
-    README, the frontend, and the Terraform that provisions the live infra.
-    Historical references in archived docs and one-off recovery scripts are
-    out of scope here - they need a separate cleanup pass tracked in the
-    May 2026 evaluation document.
+    Scope broadened May 2026 after the legacy-scripts cleanup pass: the
+    leaked literal had crept into ~20 one-off operational scripts and three
+    e2e test fallbacks that were each individually a small footprint but
+    collectively re-introduced the credential in every clone of the repo
+    (and, for the standalone admin-create script, re-asserted it on every
+    container restart). All those callers were removed or rewritten to
+    read from environment variables.
+
+    The exclusions below are *legitimate* references: the docs/archive
+    folder is frozen historical state, the evaluation document explains
+    the original incident, and this file itself names the literal so it
+    can search for it.
     """
 
     LEAKED_VALUE = "Matthew778*"
 
-    # Paths that ship to production users / get applied to the live system.
-    # If the leaked literal shows up here, that is a real regression.
-    ACTIVE_PATHS = [
-        "README.md",
-        "backend/app",
-        "backend/migrations",
-        "frontend/church-course-tracker/src",
-        "infrastructure",
-    ]
+    # Files allowed to contain the leaked literal as a documented historical
+    # reference. Any new entry here should be scrutinized in code review.
+    ALLOWED_PATHS = {
+        "backend/tests/test_config_security.py",  # this guard itself
+        "docs/EVALUATION_2026-05-09.md",          # the incident postmortem
+    }
 
     def test_leaked_password_absent_from_active_paths(self):
         try:
             result = subprocess.run(
                 [
                     "git", "-C", str(REPO_ROOT), "grep", "-n",
-                    "--fixed-strings", "--", self.LEAKED_VALUE, "--", *self.ACTIVE_PATHS,
+                    "--fixed-strings", "--", self.LEAKED_VALUE,
                 ],
                 capture_output=True, text=True, timeout=30,
             )
@@ -163,14 +167,24 @@ class TestNoLeakedSecretsInActivePaths:
             pytest.skip("git not available in test environment")
 
         # git grep exits 0 when matches are found, 1 when none.
-        if result.returncode == 0:
-            hits = [
-                line for line in result.stdout.splitlines()
-                if "test_config_security.py" not in line
-            ]
-            assert not hits, (
-                f"Leaked credential '{self.LEAKED_VALUE}' is present in active "
-                "deploy paths:\n" + "\n".join(hits) +
-                "\n\nFollow-up cleanup of legacy scripts/e2e fallbacks tracked "
-                "in docs/EVALUATION_2026-05-09.md (Section 8)."
-            )
+        if result.returncode != 0:
+            return
+
+        hits = []
+        for line in result.stdout.splitlines():
+            # git grep output format: <path>:<line>:<content>
+            path = line.split(":", 1)[0]
+            if path in self.ALLOWED_PATHS:
+                continue
+            if path.startswith("docs/archive/"):
+                # Archived docs are frozen historical state.
+                continue
+            hits.append(line)
+
+        assert not hits, (
+            f"Leaked credential '{self.LEAKED_VALUE}' is present in active "
+            "paths:\n" + "\n".join(hits) +
+            "\n\nIf the reference is legitimate (e.g. a postmortem), add the "
+            "path to TestNoLeakedSecretsInActivePaths.ALLOWED_PATHS with a "
+            "comment explaining why."
+        )

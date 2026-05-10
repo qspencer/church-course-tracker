@@ -13,8 +13,7 @@ const ADMIN_USERNAME =
 const ADMIN_PASSWORD =
   env.E2E_ADMIN_PASSWORD ??
   env.ADMIN_PASSWORD ??
-  env.API_PASSWORD ??
-  'Matthew778*';
+  env.API_PASSWORD;
 
 test.describe('API Endpoint Tests', () => {
   test('API health endpoint is accessible', async ({ request }) => {
@@ -42,9 +41,12 @@ test.describe('API Endpoint Tests', () => {
   });
 
   test('API authentication endpoint works', async ({ request }, testInfo) => {
-    // Use default credentials from config if not provided
-    const username = ADMIN_USERNAME || 'Admin';
-    const password = ADMIN_PASSWORD || 'Matthew778*';
+    // ADMIN_PASSWORD must be provided by the CI runner via E2E_ADMIN_PASSWORD,
+    // ADMIN_PASSWORD, or API_PASSWORD env var. Tests that need auth fail loudly
+    // rather than falling back to a baked-in credential.
+    test.skip(!ADMIN_PASSWORD, 'ADMIN_PASSWORD env var not set');
+    const username = ADMIN_USERNAME;
+    const password = ADMIN_PASSWORD as string;
 
     const response = await request.post(`${API_BASE_URL}/api/v1/auth/login`, {
       headers: {
