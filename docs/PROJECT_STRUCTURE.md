@@ -21,7 +21,6 @@ All executable scripts are located in the `scripts/` subdirectory:
 
 ### Shell Scripts
 - `QUICK_TEST.sh` - Quick test script for Planning Center integration
-- `backend-start.sh` - Start backend server
 - `deploy-frontend.sh` - Deploy frontend to AWS
 - `deploy-aws.sh` - Deploy to AWS
 - `setup-dev.sh` - Development environment setup
@@ -38,7 +37,7 @@ All executable scripts are located in the `scripts/` subdirectory:
 ```bash
 # Run scripts from project root
 ./scripts/QUICK_TEST.sh
-./scripts/backend-start.sh
+./scripts/deploy-aws.sh
 ```
 
 ---

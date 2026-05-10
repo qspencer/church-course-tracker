@@ -796,25 +796,15 @@ else
     echo "✅ Column addition script completed successfully"
 fi
 
-# Create default admin user if it doesn't exist
-echo "👤 Creating default admin user..."
-python3 /app/create_admin_standalone.py
-
-if [ $? -eq 0 ]; then
-    echo "✅ Admin user setup completed!"
-else
-    echo "⚠️  Admin user setup failed - user may already exist. Continuing..."
-fi
-
-# Create test users (staff and viewer) for E2E testing
-echo "👥 Creating test users for E2E testing..."
-python3 /app/create_test_users_standalone.py
-
-if [ $? -eq 0 ]; then
-    echo "✅ Test users setup completed!"
-else
-    echo "⚠️  Test users setup failed - users may already exist. Continuing..."
-fi
+# Admin user creation is handled idempotently by Alembic migration
+# v2w3x4y5z6a7_ensure_admin_user (run via `alembic upgrade head` above),
+# which reads ADMIN_PASSWORD from the environment (sourced from Secrets
+# Manager). The previously-invoked /app/create_admin_standalone.py and
+# /app/create_test_users_standalone.py shipped with hardcoded credentials
+# (the leaked Matthew778* admin password and weak staff/viewer passwords)
+# and would silently reset the admin password on every container restart.
+# Both scripts and their Dockerfile COPY entries were removed in the
+# May 2026 hardening pass.
 
 # Start the application
 echo "🚀 Starting FastAPI application..."
