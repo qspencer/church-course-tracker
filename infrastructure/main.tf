@@ -60,15 +60,21 @@ resource "aws_db_instance" "main" {
   
   db_name  = "church_course_tracker"
   username = "postgres"
-  password = var.db_password
-  
+  password = random_password.db.result
+
   vpc_security_group_ids = [aws_security_group.rds.id]
   db_subnet_group_name   = aws_db_subnet_group.main.name
-  
+
   backup_retention_period = 3  # Reduced for cost optimization
   backup_window         = "03:00-04:00"
   maintenance_window    = "sun:04:00-sun:05:00"
-  
+
+  # apply_immediately so password rotation via random_password.db doesn't
+  # queue to the next Sunday maintenance window. The trade-off is that any
+  # future modify-db-instance change (instance class, engine version, etc.)
+  # also applies immediately - acceptable for this small admin site.
+  apply_immediately = true
+
   skip_final_snapshot = true  # For development
   deletion_protection = false  # For development
   
