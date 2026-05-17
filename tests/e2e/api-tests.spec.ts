@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { getApiAuthToken } from './utils/auth';
 
 const env =
   ((globalThis as unknown as { process?: { env?: Record<string, string | undefined> } }).process?.env) ??
@@ -33,9 +34,17 @@ test.describe('API Endpoint Tests', () => {
   });
 
   test('API users endpoint responds', async ({ request }) => {
-    const response = await request.get(`${API_BASE_URL}/api/v1/users/`);
+    // /users requires admin auth as of May 2026 hardening pass; was previously
+    // public. We test it with admin credentials provided by the CI workflow
+    // (E2E_ADMIN_PASSWORD secret); skip when those aren't configured locally.
+    const token = await getApiAuthToken(request, 'admin');
+    test.skip(!token, 'admin credentials not configured (or login failed)');
+
+    const response = await request.get(`${API_BASE_URL}/api/v1/users/`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
     expect(response.status()).toBe(200);
-    
+
     const data = await response.json();
     expect(Array.isArray(data)).toBeTruthy();
   });

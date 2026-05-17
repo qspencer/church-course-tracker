@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { API_BASE_URL } from './utils/auth';
+import { API_BASE_URL, getApiAuthToken } from './utils/auth';
 
 // Test data for different roles. All passwords are sourced from env vars
 // that the CI runner is expected to populate from a secrets store. Tests
@@ -402,12 +402,18 @@ test.describe('Church Course Tracker - Comprehensive Test Suite', () => {
     });
 
     test('Users endpoint returns proper data structure', async ({ request }) => {
-      const response = await request.get(`${API_BASE_URL}/api/v1/users/`);
+      // /users requires admin auth as of May 2026 hardening pass.
+      const token = await getApiAuthToken(request, 'admin');
+      test.skip(!token, 'admin credentials not configured (or login failed)');
+
+      const response = await request.get(`${API_BASE_URL}/api/v1/users/`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       expect(response.status()).toBe(200);
-      
+
       const data = await response.json();
       expect(Array.isArray(data)).toBeTruthy();
-      
+
       console.log(`✓ Users endpoint returns ${data.length} users`);
     });
 

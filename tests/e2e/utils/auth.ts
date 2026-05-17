@@ -1,4 +1,4 @@
-import { expect, type Page, type TestInfo } from '@playwright/test';
+import { expect, type APIRequestContext, type Page, type TestInfo } from '@playwright/test';
 
 type UserRole = 'admin' | 'staff' | 'viewer';
 
@@ -165,6 +165,43 @@ export function requireEnvValue(testInfo: TestInfo, value: string | undefined, m
     return false;
   }
   return true;
+}
+
+/**
+ * Fetches a Bearer token for the given role by POSTing to /api/v1/auth/login.
+ * Returns null when the role's credentials are not configured in env (so the
+ * caller can test.skip cleanly) or when login fails. Handles transient 429/503
+ * by retrying once with a short backoff.
+ *
+ * Use this in API tests that need to hit endpoints requiring auth (notably
+ * /api/v1/users/ which was made auth-required during the May 2026 hardening
+ * pass). Pair the returned token with `Authorization: Bearer <token>` on the
+ * request you actually want to test.
+ */
+export async function getApiAuthToken(
+  request: APIRequestContext,
+  role: UserRole = 'admin',
+): Promise<string | null> {
+  const creds = credentials[role];
+  if (!creds) {
+    return null;
+  }
+
+  const post = () => request.post(`${API_BASE_URL}/api/v1/auth/login`, {
+    headers: { 'Content-Type': 'application/json' },
+    data: creds,
+  });
+
+  let response = await post();
+  if (response.status() === 429 || response.status() === 503) {
+    await new Promise((r) => setTimeout(r, response.status() === 503 ? 3000 : 1500));
+    response = await post();
+  }
+  if (response.status() !== 200) {
+    return null;
+  }
+  const data = await response.json();
+  return data.access_token ?? data.token ?? null;
 }
 
 

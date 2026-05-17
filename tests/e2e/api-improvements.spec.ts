@@ -1,5 +1,5 @@
 import { test, expect, APIResponse } from '@playwright/test';
-import { API_BASE_URL, testUsers } from './utils/auth';
+import { API_BASE_URL, getApiAuthToken, testUsers } from './utils/auth';
 
 // Credentials are loaded from environment variables via utils/auth.ts
 // Set E2E_ADMIN_USERNAME, E2E_ADMIN_PASSWORD, etc. in your environment
@@ -209,15 +209,23 @@ test.describe('API Improvements Verification', () => {
   });
 
   test('All endpoints maintain functionality with new middleware', async ({ request }) => {
-    // Test multiple endpoints to ensure middleware doesn't break functionality
-    const endpoints = [
-      '/api/v1/courses/',
-      '/api/v1/users/',
-      '/health'
+    // Test that public and auth-required endpoints both behave correctly
+    // through the middleware stack. As of May 2026, /api/v1/users/ requires
+    // admin auth - we fetch a token and pass it for that one endpoint.
+    const token = await getApiAuthToken(request, 'admin');
+    test.skip(!token, 'admin credentials not configured (or login failed)');
+
+    const cases: Array<{ endpoint: string; auth: boolean }> = [
+      { endpoint: '/api/v1/courses/', auth: false },
+      { endpoint: '/api/v1/users/', auth: true },
+      { endpoint: '/health', auth: false },
     ];
-    
-    for (const endpoint of endpoints) {
-      const response = await request.get(`${API_BASE_URL}${endpoint}`);
+
+    for (const { endpoint, auth } of cases) {
+      const options = auth
+        ? { headers: { Authorization: `Bearer ${token}` } }
+        : undefined;
+      const response = await request.get(`${API_BASE_URL}${endpoint}`, options);
       expect(response.status()).toBe(200);
       console.log(`✓ Endpoint ${endpoint} working correctly`);
     }

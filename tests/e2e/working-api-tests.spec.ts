@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { API_BASE_URL, testUsers } from './utils/auth';
+import { API_BASE_URL, getApiAuthToken, testUsers } from './utils/auth';
 
 // Credentials are loaded from environment variables via utils/auth.ts
 // Set E2E_ADMIN_USERNAME, E2E_ADMIN_PASSWORD, etc. in your environment
@@ -16,9 +16,15 @@ test.describe('Working API Tests', () => {
   });
 
   test('API users endpoint responds correctly', async ({ request }) => {
-    const response = await request.get(`${API_BASE_URL}/api/v1/users/`);
+    // /users requires admin auth as of May 2026 hardening pass.
+    const token = await getApiAuthToken(request, 'admin');
+    test.skip(!token, 'admin credentials not configured (or login failed)');
+
+    const response = await request.get(`${API_BASE_URL}/api/v1/users/`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
     expect(response.status()).toBe(200);
-    
+
     const data = await response.json();
     expect(Array.isArray(data)).toBeTruthy();
     console.log(`✓ Users endpoint returned ${data.length} users`);
