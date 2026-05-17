@@ -42,6 +42,24 @@ jobs:
         PLAYWRIGHT_BASE_URL: https://apps.quentinspencer.com
         E2E_SKIP_DATA_LOAD: 'true'  # Skip data loading when testing against production
         E2E_SKIP_DATA_CLEANUP: 'true'  # Skip data cleanup when testing against production
+        # Credentials for auth-required tests. See tests/e2e/utils/auth.ts for
+        # the resolution order. Usernames are NOT secret (they're just role
+        # names that exist in the prod DB) so they have plain defaults here.
+        # Passwords come from repository secrets. If a secret is not set,
+        # ${{ secrets.X }} resolves to an empty string and any test that
+        # requires that credential will test.skip() cleanly rather than fail.
+        # To enable admin-authenticated tests: in the GitHub repository
+        # settings, add a secret named E2E_ADMIN_PASSWORD with the value of
+        # the current production admin password (also stored in AWS Secrets
+        # Manager under church-course-tracker-secrets:ADMIN_PASSWORD). The
+        # staff/viewer accounts are not auto-provisioned in production; if
+        # you create them manually, add the corresponding secrets here.
+        E2E_ADMIN_USERNAME: Admin
+        E2E_ADMIN_PASSWORD: ${{ secrets.E2E_ADMIN_PASSWORD }}
+        E2E_STAFF_USERNAME: staff
+        E2E_STAFF_PASSWORD: ${{ secrets.E2E_STAFF_PASSWORD }}
+        E2E_VIEWER_USERNAME: viewer
+        E2E_VIEWER_PASSWORD: ${{ secrets.E2E_VIEWER_PASSWORD }}
     
     - name: Upload test results
       uses: actions/upload-artifact@v4
