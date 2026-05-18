@@ -8,6 +8,7 @@ from app.api.v1.endpoints import (audit, auth, autocomplete_suggestions, course_
                                   courses, custom_attributes, enrollments, mock_planning_center,
                                   people, planning_center_sync, program_content, programs, progress,
                                   reports, sync, system_settings, users)
+from app.core.config import settings
 
 api_router = APIRouter()
 
@@ -66,9 +67,14 @@ api_router.include_router(
     system_settings.router, prefix="/settings", tags=["system-settings"]
 )
 
-# Mock Planning Center endpoints (for development/testing)
-api_router.include_router(
-    mock_planning_center.router,
-    prefix="/mock-planning-center",
-    tags=["mock-planning-center"],
-)
+# Mock Planning Center endpoints (for development/testing). Mounted only
+# when explicitly enabled AND outside of production. The mock module itself
+# has no auth gates on its routes - exposing it in production would be an
+# unauthenticated write surface. The audit (2026-05-18 §3.1 B9) flagged
+# this as a P1 risk; we close it here by gating registration.
+if settings.ENVIRONMENT != "production" and settings.USE_MOCK_PLANNING_CENTER:
+    api_router.include_router(
+        mock_planning_center.router,
+        prefix="/mock-planning-center",
+        tags=["mock-planning-center"],
+    )

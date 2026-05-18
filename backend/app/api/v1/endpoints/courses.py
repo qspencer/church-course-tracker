@@ -77,6 +77,7 @@ async def get_courses(
     limit: int = 100,
     is_active: Optional[bool] = None,
     db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_active_user),
 ):
     """Get all courses with pagination and optional filtering"""
     course_service = CourseService(db)
@@ -112,7 +113,11 @@ async def bulk_delete_courses(
 
 
 @router.get("/{course_id}", response_model=Course)
-async def get_course(course_id: int, db: Session = Depends(get_db)):
+async def get_course(
+    course_id: int,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_active_user),
+):
     """Get a specific course by ID"""
     course_service = CourseService(db)
     course = course_service.get_course(course_id)
@@ -129,6 +134,7 @@ async def get_course(course_id: int, db: Session = Depends(get_db)):
 async def get_available_prerequisites(
     course_id: Optional[int] = None,
     db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_active_user),
 ):
     """Get list of courses available as prerequisites (excludes current course if provided)"""
     course_service = CourseService(db)
@@ -150,7 +156,11 @@ async def get_available_prerequisites(
 
 
 @router.get("/pc-event/{pc_event_id}", response_model=Course)
-async def get_course_by_pc_event_id(pc_event_id: str, db: Session = Depends(get_db)):
+async def get_course_by_pc_event_id(
+    pc_event_id: str,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_active_user),
+):
     """Get a course by Planning Center event ID"""
     course_service = CourseService(db)
     course = course_service.get_course_by_pc_event_id(pc_event_id)

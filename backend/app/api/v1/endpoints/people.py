@@ -21,6 +21,17 @@ import logging
 router = APIRouter()
 
 
+def _require_admin(current_user: dict) -> None:
+    """Raise 403 if the caller is not admin. Destructive verbs in this module
+    write to PII tables synced from Planning Center and should not be open to
+    staff/instructor/viewer roles."""
+    if current_user.get("role") != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin role required",
+        )
+
+
 @router.get("", response_model=List[People])
 @router.get("/", response_model=List[People])
 async def get_people(
@@ -28,6 +39,7 @@ async def get_people(
     limit: int = 100,
     is_active: Optional[bool] = None,
     db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_active_user),
 ):
     """Get all people with pagination and optional filtering"""
     people_service = PeopleService(db)
@@ -35,7 +47,11 @@ async def get_people(
 
 
 @router.get("/{person_id}", response_model=People)
-async def get_person(person_id: int, db: Session = Depends(get_db)):
+async def get_person(
+    person_id: int,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_active_user),
+):
     """Get a specific person by ID"""
     people_service = PeopleService(db)
     person = people_service.get_person(person_id)
@@ -47,7 +63,11 @@ async def get_person(person_id: int, db: Session = Depends(get_db)):
 
 
 @router.get("/pc-id/{pc_id}", response_model=People)
-async def get_person_by_pc_id(pc_id: str, db: Session = Depends(get_db)):
+async def get_person_by_pc_id(
+    pc_id: str,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_active_user),
+):
     """Get a person by Planning Center ID"""
     people_service = PeopleService(db)
     person = people_service.get_person_by_pc_id(pc_id)
@@ -61,7 +81,10 @@ async def get_person_by_pc_id(pc_id: str, db: Session = Depends(get_db)):
 
 @router.get("/search/{search_term}", response_model=List[People])
 async def search_people(
-    search_term: str, limit: int = 50, db: Session = Depends(get_db)
+    search_term: str,
+    limit: int = 50,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_active_user),
 ):
     """Search people by name or email"""
     people_service = PeopleService(db)
@@ -70,17 +93,26 @@ async def search_people(
 
 @router.post("", response_model=People, status_code=status.HTTP_201_CREATED)
 @router.post("/", response_model=People, status_code=status.HTTP_201_CREATED)
-async def create_person(person: PeopleCreate, db: Session = Depends(get_db)):
+async def create_person(
+    person: PeopleCreate,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_active_user),
+):
     """Create a new person"""
+    _require_admin(current_user)
     people_service = PeopleService(db)
     return people_service.create_person(person)
 
 
 @router.put("/{person_id}", response_model=People)
 async def update_person(
-    person_id: int, person_update: PeopleUpdate, db: Session = Depends(get_db)
+    person_id: int,
+    person_update: PeopleUpdate,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_active_user),
 ):
     """Update an existing person"""
+    _require_admin(current_user)
     people_service = PeopleService(db)
     person = people_service.update_person(person_id, person_update)
     if not person:
@@ -91,8 +123,13 @@ async def update_person(
 
 
 @router.delete("/{person_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_person(person_id: int, db: Session = Depends(get_db)):
+async def delete_person(
+    person_id: int,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_active_user),
+):
     """Delete a person"""
+    _require_admin(current_user)
     people_service = PeopleService(db)
     success = people_service.delete_person(person_id)
     if not success:
@@ -102,7 +139,11 @@ async def delete_person(person_id: int, db: Session = Depends(get_db)):
 
 
 @router.get("/{person_id}/enrollments", response_model=List[CourseEnrollment])
-async def get_person_enrollments(person_id: int, db: Session = Depends(get_db)):
+async def get_person_enrollments(
+    person_id: int,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_active_user),
+):
     """Get all enrollments for a specific person"""
     # Verify person exists
     people_service = PeopleService(db)
@@ -111,7 +152,7 @@ async def get_person_enrollments(person_id: int, db: Session = Depends(get_db)):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Person not found"
         )
-    
+
     # Get enrollments for this person
     enrollment_service = CourseEnrollmentService(db)
     enrollments = enrollment_service.get_enrollments(people_id=person_id)

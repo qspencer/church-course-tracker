@@ -19,7 +19,7 @@ from app.models.certification import Certification
 class TestPeopleEndpoints:
     """Test People API endpoints"""
     
-    def test_get_people(self, client, db_session, sample_people_data):
+    def test_get_people(self, client, db_session, sample_people_data, admin_token):
         """Test GET /people endpoint"""
         # Create test data
         people1 = People(**sample_people_data)
@@ -31,16 +31,17 @@ class TestPeopleEndpoints:
         )
         db_session.add_all([people1, people2])
         db_session.commit()
-        
-        response = client.get("/api/v1/people/")
+
+        headers = {"Authorization": f"Bearer {admin_token}"}
+        response = client.get("/api/v1/people/", headers=headers)
         assert response.status_code == 200
-        
+
         data = response.json()
         assert len(data) == 2
         assert data[0]["first_name"] == "John"
         assert data[1]["first_name"] == "Jane"
-    
-    def test_get_people_with_filter(self, client, db_session, sample_people_data):
+
+    def test_get_people_with_filter(self, client, db_session, sample_people_data, admin_token):
         """Test GET /people with active filter"""
         # Create test data
         people1 = People(**sample_people_data)
@@ -53,64 +54,68 @@ class TestPeopleEndpoints:
         )
         db_session.add_all([people1, people2])
         db_session.commit()
-        
+
+        headers = {"Authorization": f"Bearer {admin_token}"}
         # Test active filter
-        response = client.get("/api/v1/people/?is_active=true")
+        response = client.get("/api/v1/people/?is_active=true", headers=headers)
         assert response.status_code == 200
-        
+
         data = response.json()
         assert len(data) == 1
         assert data[0]["first_name"] == "John"
         assert data[0]["is_active"] is True
-        
+
         # Test inactive filter
-        response = client.get("/api/v1/people/?is_active=false")
+        response = client.get("/api/v1/people/?is_active=false", headers=headers)
         assert response.status_code == 200
-        
+
         data = response.json()
         assert len(data) == 1
         assert data[0]["first_name"] == "Jane"
         assert data[0]["is_active"] is False
-    
-    def test_get_person(self, client, db_session, sample_people_data):
+
+    def test_get_person(self, client, db_session, sample_people_data, admin_token):
         """Test GET /people/{person_id} endpoint"""
         people = People(**sample_people_data)
         db_session.add(people)
         db_session.commit()
-        
-        response = client.get(f"/api/v1/people/{people.id}")
+
+        headers = {"Authorization": f"Bearer {admin_token}"}
+        response = client.get(f"/api/v1/people/{people.id}", headers=headers)
         assert response.status_code == 200
-        
+
         data = response.json()
         assert data["id"] == people.id
         assert data["first_name"] == "John"
         assert data["last_name"] == "Doe"
         assert data["email"] == "john.doe@example.com"
-    
-    def test_get_person_not_found(self, client):
+
+    def test_get_person_not_found(self, client, admin_token):
         """Test GET /people/{person_id} with non-existent ID"""
-        response = client.get("/api/v1/people/999")
+        headers = {"Authorization": f"Bearer {admin_token}"}
+        response = client.get("/api/v1/people/999", headers=headers)
         assert response.status_code == 404
 
         data = response.json()
         # flexible check for 404 message
         assert "not found" in data["detail"].lower()
-    
-    def test_get_person_by_pc_id(self, client, db_session, sample_people_data):
+
+    def test_get_person_by_pc_id(self, client, db_session, sample_people_data, admin_token):
         """Test GET /people/pc-id/{pc_id} endpoint"""
         people = People(**sample_people_data)
         db_session.add(people)
         db_session.commit()
-        
-        response = client.get(f"/api/v1/people/pc-id/{people.planning_center_id}")
+
+        headers = {"Authorization": f"Bearer {admin_token}"}
+        response = client.get(f"/api/v1/people/pc-id/{people.planning_center_id}", headers=headers)
         assert response.status_code == 200
-        
+
         data = response.json()
         assert data["id"] == people.id
         assert data["planning_center_id"] == "pc_12345"
         assert data["first_name"] == "John"
-    
-    def test_search_people(self, client, db_session, sample_people_data):
+
+    def test_search_people(self, client, db_session, sample_people_data, admin_token):
         """Test GET /people/search/{search_term} endpoint"""
         people1 = People(**sample_people_data)
         people2 = People(
@@ -121,24 +126,25 @@ class TestPeopleEndpoints:
         )
         db_session.add_all([people1, people2])
         db_session.commit()
-        
+
+        headers = {"Authorization": f"Bearer {admin_token}"}
         # Search by first name
-        response = client.get("/api/v1/people/search/John")
+        response = client.get("/api/v1/people/search/John", headers=headers)
         assert response.status_code == 200
-        
+
         data = response.json()
         assert len(data) == 1
         assert data[0]["first_name"] == "John"
-        
+
         # Search by last name
-        response = client.get("/api/v1/people/search/Smith")
+        response = client.get("/api/v1/people/search/Smith", headers=headers)
         assert response.status_code == 200
-        
+
         data = response.json()
         assert len(data) == 1
         assert data[0]["last_name"] == "Smith"
-    
-    def test_create_person(self, client):
+
+    def test_create_person(self, client, admin_token):
         """Test POST /people endpoint"""
         people_data = {
             "planning_center_id": "pc_12345",
@@ -148,54 +154,57 @@ class TestPeopleEndpoints:
             "phone": "555-1234",
             "is_active": True
         }
-        
-        response = client.post("/api/v1/people/", json=people_data)
+
+        headers = {"Authorization": f"Bearer {admin_token}"}
+        response = client.post("/api/v1/people/", json=people_data, headers=headers)
         assert response.status_code == 201
-        
+
         data = response.json()
         assert data["first_name"] == "John"
         assert data["last_name"] == "Doe"
         assert data["email"] == "john.doe@example.com"
         assert data["id"] is not None
         assert data["created_at"] is not None
-    
-    def test_update_person(self, client, db_session, sample_people_data):
+
+    def test_update_person(self, client, db_session, sample_people_data, admin_token):
         """Test PUT /people/{person_id} endpoint"""
         people = People(**sample_people_data)
         db_session.add(people)
         db_session.commit()
-        
+
         update_data = {
             "first_name": "Jane",
             "email": "jane.doe@example.com"
         }
-        
-        response = client.put(f"/api/v1/people/{people.id}", json=update_data)
+
+        headers = {"Authorization": f"Bearer {admin_token}"}
+        response = client.put(f"/api/v1/people/{people.id}", json=update_data, headers=headers)
         assert response.status_code == 200
-        
+
         data = response.json()
         assert data["first_name"] == "Jane"
         assert data["email"] == "jane.doe@example.com"
         assert data["last_name"] == "Doe"  # Unchanged
-    
-    def test_delete_person(self, client, db_session, sample_people_data):
+
+    def test_delete_person(self, client, db_session, sample_people_data, admin_token):
         """Test DELETE /people/{person_id} endpoint"""
         people = People(**sample_people_data)
         db_session.add(people)
         db_session.commit()
-        
-        response = client.delete(f"/api/v1/people/{people.id}")
+
+        headers = {"Authorization": f"Bearer {admin_token}"}
+        response = client.delete(f"/api/v1/people/{people.id}", headers=headers)
         assert response.status_code == 204
-        
+
         # Verify person is deleted
-        response = client.get(f"/api/v1/people/{people.id}")
+        response = client.get(f"/api/v1/people/{people.id}", headers=headers)
         assert response.status_code == 404
 
 
 class TestCourseEndpoints:
     """Test Course API endpoints"""
     
-    def test_get_courses(self, client, db_session, sample_course_data):
+    def test_get_courses(self, client, db_session, sample_course_data, admin_token):
         """Test GET /courses endpoint"""
         course1 = Course(**sample_course_data)
         course2 = Course(
@@ -206,16 +215,17 @@ class TestCourseEndpoints:
         )
         db_session.add_all([course1, course2])
         db_session.commit()
-        
-        response = client.get("/api/v1/courses/")
+
+        headers = {"Authorization": f"Bearer {admin_token}"}
+        response = client.get("/api/v1/courses/", headers=headers)
         assert response.status_code == 200
-        
+
         data = response.json()
         assert len(data) == 2
         assert data[0]["title"] == "Introduction to Faith"
         assert data[1]["title"] == "Advanced Faith"
-    
-    def test_get_courses_with_filter(self, client, db_session, sample_course_data):
+
+    def test_get_courses_with_filter(self, client, db_session, sample_course_data, admin_token):
         """Test GET /courses with active filter"""
         course1 = Course(**sample_course_data)
         course2 = Course(
@@ -226,48 +236,51 @@ class TestCourseEndpoints:
         )
         db_session.add_all([course1, course2])
         db_session.commit()
-        
+
+        headers = {"Authorization": f"Bearer {admin_token}"}
         # Test active filter
-        response = client.get("/api/v1/courses/?is_active=true")
+        response = client.get("/api/v1/courses/?is_active=true", headers=headers)
         assert response.status_code == 200
-        
+
         data = response.json()
         assert len(data) == 1
         assert data[0]["title"] == "Introduction to Faith"
         assert data[0]["is_active"] is True
-        
+
         # Test inactive filter
-        response = client.get("/api/v1/courses/?is_active=false")
+        response = client.get("/api/v1/courses/?is_active=false", headers=headers)
         assert response.status_code == 200
-        
+
         data = response.json()
         assert len(data) == 1
         assert data[0]["title"] == "Inactive Course"
         assert data[0]["is_active"] is False
-    
-    def test_get_course(self, client, db_session, sample_course_data):
+
+    def test_get_course(self, client, db_session, sample_course_data, admin_token):
         """Test GET /courses/{course_id} endpoint"""
         course = Course(**sample_course_data)
         db_session.add(course)
         db_session.commit()
-        
-        response = client.get(f"/api/v1/courses/{course.id}")
+
+        headers = {"Authorization": f"Bearer {admin_token}"}
+        response = client.get(f"/api/v1/courses/{course.id}", headers=headers)
         assert response.status_code == 200
-        
+
         data = response.json()
         assert data["id"] == course.id
         assert data["title"] == "Introduction to Faith"
         assert data["planning_center_event_id"] == "evt_123"
-    
-    def test_get_course_by_pc_event_id(self, client, db_session, sample_course_data):
+
+    def test_get_course_by_pc_event_id(self, client, db_session, sample_course_data, admin_token):
         """Test GET /courses/pc-event/{pc_event_id} endpoint"""
         course = Course(**sample_course_data)
         db_session.add(course)
         db_session.commit()
-        
-        response = client.get(f"/api/v1/courses/pc-event/{course.planning_center_event_id}")
+
+        headers = {"Authorization": f"Bearer {admin_token}"}
+        response = client.get(f"/api/v1/courses/pc-event/{course.planning_center_event_id}", headers=headers)
         assert response.status_code == 200
-        
+
         data = response.json()
         assert data["id"] == course.id
         assert data["planning_center_event_id"] == "evt_123"
@@ -427,13 +440,13 @@ class TestCourseEndpoints:
         course = Course(**sample_course_data)
         db_session.add(course)
         db_session.commit()
-        
+
         headers = {"Authorization": f"Bearer {admin_token}"}
         response = client.delete(f"/api/v1/courses/{course.id}", headers=headers)
         assert response.status_code == 204
-        
+
         # Verify course is deleted
-        response = client.get(f"/api/v1/courses/{course.id}")
+        response = client.get(f"/api/v1/courses/{course.id}", headers=headers)
         assert response.status_code == 404
     
     def test_delete_course_as_staff_forbidden(self, client, staff_token, db_session, sample_course_data):
@@ -499,7 +512,7 @@ class TestCourseEndpoints:
         assert data["failed_ids"] == []
 
         # Verify courses are deleted
-        response = client.get(f"/api/v1/courses/{course1.id}")
+        response = client.get(f"/api/v1/courses/{course1.id}", headers=headers)
         assert response.status_code == 404
 
     def test_bulk_delete_courses_as_staff_forbidden(self, client, staff_token, db_session, sample_course_data):
@@ -569,14 +582,14 @@ class TestCourseEndpoints:
 class TestEnrollmentEndpoints:
     """Test CourseEnrollment API endpoints"""
     
-    def test_get_enrollments(self, client, db_session, sample_people_data, sample_course_data):
+    def test_get_enrollments(self, client, db_session, sample_people_data, sample_course_data, admin_token):
         """Test GET /enrollments endpoint"""
         # Create related records
         people = People(**sample_people_data)
         course = Course(**sample_course_data)
         db_session.add_all([people, course])
         db_session.commit()
-        
+
         # Create enrollments
         enrollment1 = CourseEnrollment(
             people_id=people.id,
@@ -592,24 +605,25 @@ class TestEnrollmentEndpoints:
         )
         db_session.add_all([enrollment1, enrollment2])
         db_session.commit()
-        
-        response = client.get("/api/v1/enrollments/")
+
+        headers = {"Authorization": f"Bearer {admin_token}"}
+        response = client.get("/api/v1/enrollments/", headers=headers)
         assert response.status_code == 200
-        
+
         data = response.json()
         assert len(data) == 2
         # Check both statuses exist (order may vary)
         statuses = {e["status"] for e in data}
         assert statuses == {"enrolled", "completed"}
-    
-    def test_get_enrollments_with_filters(self, client, db_session, sample_people_data, sample_course_data):
+
+    def test_get_enrollments_with_filters(self, client, db_session, sample_people_data, sample_course_data, admin_token):
         """Test GET /enrollments with filters"""
         # Create related records
         people = People(**sample_people_data)
         course = Course(**sample_course_data)
         db_session.add_all([people, course])
         db_session.commit()
-        
+
         # Create enrollments
         enrollment1 = CourseEnrollment(
             people_id=people.id,
@@ -625,37 +639,38 @@ class TestEnrollmentEndpoints:
         )
         db_session.add_all([enrollment1, enrollment2])
         db_session.commit()
-        
+
+        headers = {"Authorization": f"Bearer {admin_token}"}
         # Filter by status
-        response = client.get("/api/v1/enrollments/?status=enrolled")
+        response = client.get("/api/v1/enrollments/?status=enrolled", headers=headers)
         assert response.status_code == 200
-        
+
         data = response.json()
         assert len(data) == 1
         assert data[0]["status"] == "enrolled"
-        
+
         # Filter by course
-        response = client.get(f"/api/v1/enrollments/?course_id={course.id}")
+        response = client.get(f"/api/v1/enrollments/?course_id={course.id}", headers=headers)
         assert response.status_code == 200
-        
+
         data = response.json()
         assert len(data) == 2
-        
+
         # Filter by people
-        response = client.get(f"/api/v1/enrollments/?people_id={people.id}")
+        response = client.get(f"/api/v1/enrollments/?people_id={people.id}", headers=headers)
         assert response.status_code == 200
-        
+
         data = response.json()
         assert len(data) == 2
-    
-    def test_get_enrollment(self, client, db_session, sample_people_data, sample_course_data):
+
+    def test_get_enrollment(self, client, db_session, sample_people_data, sample_course_data, admin_token):
         """Test GET /enrollments/{enrollment_id} endpoint"""
         # Create related records
         people = People(**sample_people_data)
         course = Course(**sample_course_data)
         db_session.add_all([people, course])
         db_session.commit()
-        
+
         # Create enrollment
         enrollment = CourseEnrollment(
             people_id=people.id,
@@ -665,34 +680,36 @@ class TestEnrollmentEndpoints:
         )
         db_session.add(enrollment)
         db_session.commit()
-        
-        response = client.get(f"/api/v1/enrollments/{enrollment.id}")
+
+        headers = {"Authorization": f"Bearer {admin_token}"}
+        response = client.get(f"/api/v1/enrollments/{enrollment.id}", headers=headers)
         assert response.status_code == 200
-        
+
         data = response.json()
         assert data["id"] == enrollment.id
         assert data["status"] == "enrolled"
         assert data["people_id"] == people.id
         assert data["course_id"] == course.id
-    
-    def test_create_enrollment(self, client, db_session, sample_people_data, sample_course_data):
+
+    def test_create_enrollment(self, client, db_session, sample_people_data, sample_course_data, admin_token):
         """Test POST /enrollments endpoint"""
         # Create related records
         people = People(**sample_people_data)
         course = Course(**sample_course_data)
         db_session.add_all([people, course])
         db_session.commit()
-        
+
         enrollment_data = {
             "people_id": people.id,
             "course_id": course.id,
             "enrollment_date": datetime.now(timezone.utc).isoformat(),
             "status": "enrolled"
         }
-        
-        response = client.post("/api/v1/enrollments/", json=enrollment_data)
+
+        headers = {"Authorization": f"Bearer {admin_token}"}
+        response = client.post("/api/v1/enrollments/", json=enrollment_data, headers=headers)
         assert response.status_code == 201
-        
+
         data = response.json()
         assert data["people_id"] == people.id
         assert data["course_id"] == course.id
@@ -737,14 +754,14 @@ class TestEnrollmentEndpoints:
         assert data[0]["course_id"] == course.id
         assert data[1]["course_id"] == course.id
     
-    def test_update_enrollment(self, client, db_session, sample_people_data, sample_course_data):
+    def test_update_enrollment(self, client, db_session, sample_people_data, sample_course_data, admin_token):
         """Test PUT /enrollments/{enrollment_id} endpoint"""
         # Create related records
         people = People(**sample_people_data)
         course = Course(**sample_course_data)
         db_session.add_all([people, course])
         db_session.commit()
-        
+
         # Create enrollment
         enrollment = CourseEnrollment(
             people_id=people.id,
@@ -754,27 +771,28 @@ class TestEnrollmentEndpoints:
         )
         db_session.add(enrollment)
         db_session.commit()
-        
+
         update_data = {
             "status": "in_progress",
             "progress_percentage": 50.0
         }
-        
-        response = client.put(f"/api/v1/enrollments/{enrollment.id}", json=update_data)
+
+        headers = {"Authorization": f"Bearer {admin_token}"}
+        response = client.put(f"/api/v1/enrollments/{enrollment.id}", json=update_data, headers=headers)
         assert response.status_code == 200
-        
+
         data = response.json()
         assert data["status"] == "in_progress"
         assert data["progress_percentage"] == 50.0
-    
-    def test_update_progress(self, client, db_session, sample_people_data, sample_course_data):
+
+    def test_update_progress(self, client, db_session, sample_people_data, sample_course_data, admin_token):
         """Test PUT /enrollments/{enrollment_id}/progress endpoint"""
         # Create related records
         people = People(**sample_people_data)
         course = Course(**sample_course_data)
         db_session.add_all([people, course])
         db_session.commit()
-        
+
         # Create enrollment
         enrollment = CourseEnrollment(
             people_id=people.id,
@@ -785,22 +803,23 @@ class TestEnrollmentEndpoints:
         )
         db_session.add(enrollment)
         db_session.commit()
-        
-        response = client.put(f"/api/v1/enrollments/{enrollment.id}/progress?progress_percentage=75.0")
+
+        headers = {"Authorization": f"Bearer {admin_token}"}
+        response = client.put(f"/api/v1/enrollments/{enrollment.id}/progress?progress_percentage=75.0", headers=headers)
         assert response.status_code == 200
-        
+
         data = response.json()
         assert data["progress_percentage"] == 75.0
         assert data["status"] == "in_progress"
-    
-    def test_delete_enrollment(self, client, db_session, sample_people_data, sample_course_data):
+
+    def test_delete_enrollment(self, client, db_session, sample_people_data, sample_course_data, admin_token):
         """Test DELETE /enrollments/{enrollment_id} endpoint"""
         # Create related records
         people = People(**sample_people_data)
         course = Course(**sample_course_data)
         db_session.add_all([people, course])
         db_session.commit()
-        
+
         # Create enrollment
         enrollment = CourseEnrollment(
             people_id=people.id,
@@ -810,12 +829,13 @@ class TestEnrollmentEndpoints:
         )
         db_session.add(enrollment)
         db_session.commit()
-        
-        response = client.delete(f"/api/v1/enrollments/{enrollment.id}")
+
+        headers = {"Authorization": f"Bearer {admin_token}"}
+        response = client.delete(f"/api/v1/enrollments/{enrollment.id}", headers=headers)
         assert response.status_code == 204
-        
+
         # Verify enrollment is deleted
-        response = client.get(f"/api/v1/enrollments/{enrollment.id}")
+        response = client.get(f"/api/v1/enrollments/{enrollment.id}", headers=headers)
         assert response.status_code == 404
 
 

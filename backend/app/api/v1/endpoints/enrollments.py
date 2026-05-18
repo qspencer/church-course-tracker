@@ -35,6 +35,7 @@ async def get_enrollments(
     sort: Optional[str] = None,
     order: Optional[str] = "asc",
     db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_active_user),
 ):
     """Get enrollments with optional filtering and sorting"""
     enrollment_service = CourseEnrollmentService(db)
@@ -65,7 +66,11 @@ async def bulk_delete_enrollments(
 
 
 @router.get("/{enrollment_id}", response_model=CourseEnrollment)
-async def get_enrollment(enrollment_id: int, db: Session = Depends(get_db)):
+async def get_enrollment(
+    enrollment_id: int,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_active_user),
+):
     """Get a specific enrollment by ID"""
     enrollment_service = CourseEnrollmentService(db)
     enrollment = enrollment_service.get_enrollment(enrollment_id)
@@ -78,7 +83,9 @@ async def get_enrollment(enrollment_id: int, db: Session = Depends(get_db)):
 
 @router.get("/pc-registration/{pc_registration_id}", response_model=CourseEnrollment)
 async def get_enrollment_by_pc_registration_id(
-    pc_registration_id: str, db: Session = Depends(get_db)
+    pc_registration_id: str,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_active_user),
 ):
     """Get enrollment by Planning Center registration ID"""
     enrollment_service = CourseEnrollmentService(db)
@@ -96,9 +103,16 @@ async def get_enrollment_by_pc_registration_id(
 @router.post("", response_model=CourseEnrollment, status_code=status.HTTP_201_CREATED)
 @router.post("/", response_model=CourseEnrollment, status_code=status.HTTP_201_CREATED)
 async def create_enrollment(
-    enrollment: CourseEnrollmentCreate, db: Session = Depends(get_db)
+    enrollment: CourseEnrollmentCreate,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_active_user),
 ):
     """Create a new enrollment"""
+    if current_user.get("role") not in ("admin", "staff"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only admin and staff users can create enrollments",
+        )
     enrollment_service = CourseEnrollmentService(db)
     return enrollment_service.create_enrollment(enrollment)
 
@@ -197,8 +211,14 @@ async def update_enrollment(
     enrollment_id: int,
     enrollment_update: CourseEnrollmentUpdate,
     db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_active_user),
 ):
     """Update an existing enrollment"""
+    if current_user.get("role") not in ("admin", "staff"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only admin and staff users can update enrollments",
+        )
     enrollment_service = CourseEnrollmentService(db)
     enrollment = enrollment_service.update_enrollment(enrollment_id, enrollment_update)
     if not enrollment:
@@ -210,9 +230,17 @@ async def update_enrollment(
 
 @router.put("/{enrollment_id}/progress", response_model=CourseEnrollment)
 async def update_progress(
-    enrollment_id: int, progress_percentage: float, db: Session = Depends(get_db)
+    enrollment_id: int,
+    progress_percentage: float,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_active_user),
 ):
     """Update enrollment progress percentage"""
+    if current_user.get("role") not in ("admin", "staff", "instructor"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only admin, staff, and instructor users can update progress",
+        )
     enrollment_service = CourseEnrollmentService(db)
     enrollment = enrollment_service.update_progress(enrollment_id, progress_percentage)
     if not enrollment:
@@ -266,8 +294,17 @@ async def import_registrations(
 
 
 @router.delete("/{enrollment_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_enrollment(enrollment_id: int, db: Session = Depends(get_db)):
+async def delete_enrollment(
+    enrollment_id: int,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_active_user),
+):
     """Delete an enrollment"""
+    if current_user.get("role") != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only admin users can delete enrollments",
+        )
     enrollment_service = CourseEnrollmentService(db)
     success = enrollment_service.delete_enrollment(enrollment_id)
     if not success:

@@ -8,6 +8,7 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
+from app.api.v1.endpoints.auth import get_current_active_user
 from app.core.database import get_db
 from app.schemas.report import ReportResponse, ReportType
 from app.services.report_service import ReportService
@@ -16,7 +17,10 @@ router = APIRouter()
 
 
 @router.get("/dashboard")
-async def get_dashboard_stats(db: Session = Depends(get_db)):
+async def get_dashboard_stats(
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_active_user),
+):
     """Get dashboard statistics"""
     report_service = ReportService(db)
     return report_service.get_dashboard_stats()
@@ -28,6 +32,7 @@ async def get_completion_trends(
     end_date: Optional[date] = None,
     course_ids: Optional[List[int]] = Query(None),
     db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_active_user),
 ):
     """Get completion trends data"""
     report_service = ReportService(db)
@@ -42,6 +47,7 @@ async def get_enrollment_report(
     start_date: Optional[datetime] = None,
     end_date: Optional[datetime] = None,
     db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_active_user),
 ):
     """Generate enrollment report"""
     report_service = ReportService(db)
@@ -56,6 +62,7 @@ async def get_completion_report(
     start_date: Optional[datetime] = None,
     end_date: Optional[datetime] = None,
     db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_active_user),
 ):
     """Generate completion rate report"""
     report_service = ReportService(db)
@@ -69,6 +76,7 @@ async def get_member_progress_report(
     member_id: Optional[int] = None,
     course_id: Optional[int] = None,
     db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_active_user),
 ):
     """Generate member progress report"""
     report_service = ReportService(db)
@@ -85,6 +93,7 @@ async def export_report(
     start_date: Optional[datetime] = None,
     end_date: Optional[datetime] = None,
     db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_active_user),
 ):
     """Export report in specified format"""
     report_service = ReportService(db)
