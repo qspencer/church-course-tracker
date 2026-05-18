@@ -40,18 +40,15 @@ async def get_current_user(
 
     try:
         from app.core.security import verify_token
-        
-        # Log Authorization header for debugging
+
+        # Note: we deliberately do NOT log Authorization header content or JWT
+        # token previews. Prior to May 2026 this code logged 30-char header
+        # previews and 20-char token previews at INFO; both shipped to
+        # CloudWatch and Sentry on every authenticated request, leaking
+        # token prefixes. Log only structural facts.
         auth_header = request.headers.get("Authorization")
-        if auth_header:
-            auth_preview = auth_header[:30] + "..." if len(auth_header) > 30 else auth_header
-            logger.info(f"Authorization header received: {auth_preview} (length: {len(auth_header)})")
-        else:
-            logger.warning("No Authorization header found in request")
-        
-        # Log token info for debugging (first 20 chars only for security)
-        token_preview = token[:20] + "..." if len(token) > 20 else token
-        logger.info(f"Extracted token: {token_preview} (length: {len(token)})")
+        if not auth_header:
+            logger.debug("No Authorization header found in request")
         
         user_id = verify_token(token)
         if user_id is None:
@@ -207,7 +204,6 @@ async def login(login_data: LoginRequest, db: Session = Depends(get_db)):
     }
 
 
-@router.post("refresh")
 @router.post("/refresh")
 async def refresh_token(
     current_user: dict = Depends(get_current_user), db: Session = Depends(get_db)
