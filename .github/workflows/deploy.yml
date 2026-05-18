@@ -140,7 +140,8 @@ jobs:
         
         git add frontend/church-course-tracker/version.txt \
                 frontend/church-course-tracker/src/environments/environment.ts \
-                frontend/church-course-tracker/src/environments/environment.prod.ts
+                frontend/church-course-tracker/src/environments/environment.prod.ts \
+                frontend/church-course-tracker/src/environments/environment.dev.ts
         if git diff --staged --quiet; then
           echo "No version changes to commit"
         else

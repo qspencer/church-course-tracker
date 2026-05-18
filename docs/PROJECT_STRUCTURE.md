@@ -50,23 +50,25 @@ from the environment.
 All project documentation is located in the `docs/` subdirectory:
 
 ### Main Documentation
-- `GETTING_STARTED.md` - Getting started guide
-- `USER_GUIDE.md` - User guide
+- `GETTING_STARTED.md` - End-user getting started guide
+- `USER_GUIDE.md` - End-user guide
 - `FEATURES.md` - Features overview
-- `PROJECT_PLAN_HTML_DOCUMENTATION.md` - Project plan
+- `PROJECT_PLAN_HTML_DOCUMENTATION.md` - Historical project plan
 
-### Status and Progress Documents
-- `CURRENT_STATUS_AND_NEXT_STEPS.md` - Current status
-- `IMPLEMENTATION_PROGRESS.md` - Implementation progress
-- `TEST_RESULTS_SUMMARY.md` - Test results
-- And more...
+### Evaluations and Audits
+- `EVALUATION_2026-05-09.md` - Initial code/security audit
+- `EVALUATION_2026-05-18.md` - Follow-up audit covering code, tests,
+  deployment, docs, and outstanding work
+- `DOCUMENTATION_INDEX.md` - Index of all docs
+
+### Operational References
+- `ERROR_HANDLING.md` - Backend error handling conventions
+- `LOGGING.md` - Logging configuration and Sentry integration
 
 ### Planning Center Integration
 - `PLANNING_CENTER_INTEGRATION_SETUP.md` - Setup guide
 - `PLANNING_CENTER_QUICK_START.md` - Quick start
-- `PLANNING_CENTER_TEST_RESULTS.md` - Test results
-- `LOCAL_TESTING_GUIDE.md` - Local testing guide
-- `START_SERVER.md` - Server startup guide
+- `PLANNING_CENTER_CUSTOM_TABS.md` - Custom tabs reference
 
 ### Images
 - `docs/images/` - Project images, screenshots, and diagrams

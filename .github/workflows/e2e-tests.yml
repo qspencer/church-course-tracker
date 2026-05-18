@@ -1,5 +1,10 @@
 name: E2E Tests
 
+# Least-privilege default. This workflow runs Playwright against
+# production; it does not push, deploy, or write to the repository.
+permissions:
+  contents: read
+
 on:
   push:
     branches: [ main ]

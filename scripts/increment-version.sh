@@ -6,6 +6,11 @@
 # Mirrors that value into:
 #   - frontend/church-course-tracker/src/environments/environment.ts
 #   - frontend/church-course-tracker/src/environments/environment.prod.ts
+#   - frontend/church-course-tracker/src/environments/environment.dev.ts
+#
+# environment.dev.ts was added 2026-05-18 after the May-18 audit flagged
+# it as a 13-version drift (was 0.65 while prod was 0.78). Sentry
+# breadcrumbs from dev builds were reporting the wrong version.
 #
 # Status messages go to stderr; the new version (and only the new version)
 # goes to stdout so callers can capture it (e.g. GitHub Actions outputs).
@@ -16,6 +21,7 @@ PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 VERSION_FILE="$PROJECT_ROOT/frontend/church-course-tracker/version.txt"
 ENV_BASE_FILE="$PROJECT_ROOT/frontend/church-course-tracker/src/environments/environment.ts"
 ENV_PROD_FILE="$PROJECT_ROOT/frontend/church-course-tracker/src/environments/environment.prod.ts"
+ENV_DEV_FILE="$PROJECT_ROOT/frontend/church-course-tracker/src/environments/environment.dev.ts"
 
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -49,7 +55,7 @@ else
     SED_INPLACE=(-i)
 fi
 
-for f in "$ENV_BASE_FILE" "$ENV_PROD_FILE"; do
+for f in "$ENV_BASE_FILE" "$ENV_PROD_FILE" "$ENV_DEV_FILE"; do
     if [ -f "$f" ]; then
         # Replace either an existing version literal or the VERSION_PLACEHOLDER
         # token used by deploy-frontend.sh.
@@ -58,7 +64,7 @@ for f in "$ENV_BASE_FILE" "$ENV_PROD_FILE"; do
     fi
 done
 
-echo -e "${GREEN}✅ Version $NEW_VERSION written to version.txt, environment.ts, environment.prod.ts${NC}" >&2
+echo -e "${GREEN}✅ Version $NEW_VERSION written to version.txt, environment.ts, environment.prod.ts, environment.dev.ts${NC}" >&2
 
 # 4. Emit ONLY the version number to stdout for capture by callers.
 echo "$NEW_VERSION"

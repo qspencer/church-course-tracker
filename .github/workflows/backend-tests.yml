@@ -1,5 +1,11 @@
 name: Backend Tests
 
+# Least-privilege default. This workflow only needs to checkout code and
+# upload coverage to codecov; it does not push, deploy, or write to the
+# repository.
+permissions:
+  contents: read
+
 on:
   workflow_dispatch:
   push:

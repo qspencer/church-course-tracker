@@ -6,16 +6,18 @@ from datetime import datetime, timezone
 from typing import List, Optional
 import logging
 
-from passlib.context import CryptContext
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from app.core.security import get_password_hash
 from app.models.user import User as UserModel
 from app.schemas.user import UserCreate, UserUpdate, UserProfileUpdate
 from app.services.audit_service import AuditService
 
-# Password hashing
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# Password hashing is delegated to app.core.security.get_password_hash, which
+# uses bcrypt directly. The previous passlib.CryptContext-based hashing path
+# was removed 2026-05-18 because passlib is unmaintained (last release 2019)
+# and the rest of the codebase already used the bcrypt helper directly.
 logger = logging.getLogger(__name__)
 
 
@@ -174,8 +176,9 @@ class UserService:
         self, user: UserCreate, created_by: Optional[int] = None
     ) -> UserModel:
         """Create a new user"""
-        # Hash the password
-        hashed_password = pwd_context.hash(user.password)
+        # Hash the password using the bcrypt helper from app.core.security
+        # (was passlib.CryptContext.hash() prior to 2026-05-18).
+        hashed_password = get_password_hash(user.password)
 
         db_user = UserModel(
             username=user.username,

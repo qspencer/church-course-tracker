@@ -1,5 +1,10 @@
 name: Frontend Tests
 
+# Least-privilege default. This workflow runs ng test + ng build; it does
+# not push, deploy, or write to the repository.
+permissions:
+  contents: read
+
 on:
   workflow_dispatch:
   push:
