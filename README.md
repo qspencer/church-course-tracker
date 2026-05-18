@@ -145,6 +145,15 @@ npm install
 npm start
 ```
 
+## 📖 Engineer Documentation
+
+- **[Developer Quickstart](docs/DEVELOPER_QUICKSTART.md)** — get to a green
+  test run from a fresh clone in under 1 hour
+- **[Operational Runbooks](docs/RUNBOOKS/)** — rollback, RDS password
+  rotation, Secrets Manager value update
+- **[Latest Evaluation](docs/EVALUATION_2026-05-18.md)** — current state of
+  code, tests, deployment, docs, and outstanding work
+
 ## ☁️ AWS Deployment
 
 ### Prerequisites
