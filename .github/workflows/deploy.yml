@@ -5,6 +5,12 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+# Workflow-level least-privilege defaults. Each job opts in to additional
+# permissions it needs (id-token: write for OIDC; contents: write only on
+# deploy-frontend which pushes the version bump back to the repo).
+permissions:
+  contents: read
+
 env:
   AWS_REGION: us-east-1
   ECR_REPOSITORY: church-course-tracker-backend
@@ -12,21 +18,28 @@ env:
   ECS_SERVICE: church-course-tracker-service
   S3_BUCKET: ${{ secrets.S3_STATIC_BUCKET }}
   CLOUDFRONT_DISTRIBUTION_ID: ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}
+  # OIDC role created by infrastructure/github_actions_oidc.tf
+  # (resource: aws_iam_role.github_actions_app_deploy). Replaces the
+  # long-lived AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY pattern that
+  # the 2026-05-18 evaluation §3.3 finding GH-01 flagged as a P0.
+  AWS_DEPLOY_ROLE_ARN: arn:aws:iam::334581603621:role/church-course-tracker-github-actions-app-deploy
 
 jobs:
   deploy-backend:
     name: Deploy Backend to ECS
     runs-on: ubuntu-latest
-    
+    permissions:
+      id-token: write   # required for aws-actions/configure-aws-credentials OIDC
+      contents: read
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-    
+
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v4
       with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        role-to-assume: ${{ env.AWS_DEPLOY_ROLE_ARN }}
         aws-region: ${{ env.AWS_REGION }}
     
     - name: Login to Amazon ECR
@@ -94,7 +107,8 @@ jobs:
     name: Deploy Frontend to S3/CloudFront
     runs-on: ubuntu-latest
     permissions:
-      contents: write  # Required to push version updates back to repo
+      id-token: write  # required for OIDC role assumption
+      contents: write  # required to push version updates back to repo
     
     steps:
     - name: Checkout code
@@ -158,10 +172,9 @@ jobs:
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v4
       with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        role-to-assume: ${{ env.AWS_DEPLOY_ROLE_ARN }}
         aws-region: ${{ env.AWS_REGION }}
-    
+
     - name: Deploy to S3
       run: |
         aws s3 sync frontend/church-course-tracker/dist/church-course-tracker/ s3://${{ env.S3_BUCKET }}/churchcoursetracker/ --delete
