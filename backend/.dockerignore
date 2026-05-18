@@ -1,0 +1,90 @@
+# Production Docker build context exclusions for the backend service.
+#
+# The Dockerfile uses `COPY . .` after `pip install -r requirements.txt`, so
+# anything in the build context that's not explicitly excluded here will ship
+# into the production image and may end up on disk inside the running ECS
+# container. This file closes the leak surface flagged as P0 in the
+# 2026-05-18 evaluation (DK-01).
+#
+# Categories of exclusion:
+#   1. Secrets / credentials      (.env*, *.pem, *.key)
+#   2. Local databases            (*.db, *.sqlite, *.db-shm, *.db-wal)
+#   3. Local logs / coverage      (*.log, .coverage*, htmlcov/, .pytest_cache/)
+#   4. Local virtualenvs          (venv/, venv_*/, .venv/, lib/)
+#   5. Test artifacts             (tests/, test-results/)
+#   6. Editor / OS / VCS          (.git/, .vscode/, .idea/, .DS_Store)
+#   7. Cached bytecode            (__pycache__/, *.pyc, *.pyo, *.pyd)
+#   8. Documentation              (*.md - shipped via the docs site, not the API image)
+#   9. Misc artifacts             (typo pip filenames, captured HTTP responses)
+
+# --- 1. Secrets / credentials ---
+.env
+.env.*
+*.pem
+*.key
+*.p12
+
+# --- 2. Local databases ---
+*.db
+*.sqlite
+*.db-shm
+*.db-wal
+
+# --- 3. Local logs / coverage ---
+*.log
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# --- 4. Local virtualenvs ---
+venv/
+venv_*/
+.venv/
+env/
+ENV/
+lib/
+
+# --- 5. Test artifacts ---
+tests/
+test-results/
+
+# --- 6. Editor / OS / VCS ---
+.git/
+.gitignore
+.gitattributes
+.github/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# --- 7. Cached bytecode ---
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.so
+
+# --- 8. Documentation ---
+*.md
+docs/
+
+# --- 9. Misc local-dev artifacts surfaced by 2026-05-18 audit ---
+=*
+# (e.g. `=3.0.0` left over from a botched `pip install foo>=3.0.0`)
+completion-trends*
+# (captured HTTP response from a debugging session)
+uploads/
+# (runtime-only directory, recreated by start.sh at container start)
+data/
+# (CSV seed data is loaded by a separate flow, not baked into the image)
+
+# --- Build artifacts ---
+build/
+dist/
+*.egg-info/

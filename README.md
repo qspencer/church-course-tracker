@@ -130,9 +130,11 @@ cd backend
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
-cp .env.example .env
+cp env.example .env
+# Edit .env and set ADMIN_PASSWORD (and optionally STAFF/INSTRUCTOR/VIEWER
+# passwords). The admin user is created by Alembic migration
+# v2w3x4y5z6a7_ensure_admin_user when ADMIN_PASSWORD is present.
 alembic upgrade head
-python create_default_admin.py
 uvicorn main:app --reload
 ```
 
@@ -194,18 +196,22 @@ npm run test:api
 npm run test:performance
 ```
 
-### Test Coverage
-- **Backend**: 95%+ code coverage
-- **Frontend**: 90%+ component coverage
-- **E2E**: Complete user journey testing
-- **API**: All endpoints tested
-- **Performance**: Load and stress testing
+### Test Coverage (2026-05-18)
+- **Backend**: 574 tests / 56% coverage (`pytest --cov`)
+- **Frontend**: 49 spec files / 62% lines / 49.5% branches (Karma)
+- **E2E**: 19 spec files / 183 tests against production (Playwright)
+
+See `docs/EVALUATION_2026-05-18.md` for the most recent test-quality audit
+and known gaps (notably `planning_center_sync_service.py` at 22% and
+several frontend component trees without specs).
 
 ## 📚 API Documentation
 
 ### Live API Documentation
-- **Production**: https://api.quentinspencer.com/docs
-- **Development**: http://localhost:8000/docs
+- **Production**: OpenAPI schema at https://api.quentinspencer.com/openapi.json
+  (interactive Swagger UI is intentionally disabled in production; the schema
+  is reachable for tooling and reference).
+- **Development**: http://localhost:8000/docs (Swagger UI), http://localhost:8000/openapi.json
 
 ### Key Endpoints
 - `GET /api/v1/courses` - List all courses
@@ -297,7 +303,9 @@ The system integrates with Planning Center through a mock API that simulates:
 6. CloudFront cache invalidated
 7. Health checks and monitoring activated
 
-**See `docs/CI_CD_SETUP.md` for detailed setup instructions.**
+See `.github/workflows/` for the active CI/CD configuration (5 workflows:
+`backend-tests.yml`, `frontend-tests.yml`, `e2e-tests.yml`, `deploy.yml`,
+`deploy-docs.yml`).
 
 ## 📈 Monitoring & Observability
 
@@ -564,7 +572,9 @@ alembic downgrade -1
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is currently a private application without a published open-source
+license. If you intend to reuse, fork, or contribute to it, contact the project
+maintainer to discuss terms.
 
 ## 🆘 Support
 
@@ -611,13 +621,9 @@ For support and questions:
 
 ## 📊 Project Status
 
-- **Version**: 1.0.0
-- **Status**: ✅ Production Ready
-- **Deployment**: ✅ AWS ECS Fargate
-- **Testing**: ✅ Comprehensive Test Suite
-- **Documentation**: ✅ Complete
-- **Last Updated**: January 2025
-- **Next Review**: February 2025
+- **Version**: see `frontend/church-course-tracker/version.txt` (single source of truth)
+- **Status**: deployed to AWS ECS Fargate at https://apps.quentinspencer.com
+- **Most recent audit**: `docs/EVALUATION_2026-05-18.md`
 
 ---
 
