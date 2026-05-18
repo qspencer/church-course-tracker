@@ -340,6 +340,15 @@ test.describe('Church Course Tracker - Comprehensive Test Suite', () => {
     });
 
     test('Non-admin users cannot authenticate', async ({ request }) => {
+      // This test can only meaningfully verify non-admin auth behavior when
+      // staff and viewer credentials are configured in the env. Without them,
+      // posting `data: undefined` produces a 422 (pydantic missing-body
+      // validation error), which is unrelated to the auth path under test.
+      test.skip(
+        !testUsers.staff.password || !testUsers.viewer.password,
+        'staff/viewer credentials not configured (E2E_STAFF_PASSWORD/E2E_VIEWER_PASSWORD)',
+      );
+
       // Test staff authentication - may succeed if user exists, or fail if not
       const staffResponse = await request.post(`${API_BASE_URL}/api/v1/auth/login`, {
         headers: {
@@ -378,9 +387,12 @@ test.describe('Church Course Tracker - Comprehensive Test Suite', () => {
         viewerStatus = retryViewer.status();
       }
       
-      // Accept 400 (bad request) in addition to other status codes
-      expect([200, 400, 401, 403, 429]).toContain(staffStatus);
-      expect([200, 400, 401, 403, 429]).toContain(viewerStatus);
+      // 423 (Locked) is also a valid "cannot authenticate" outcome - the
+      // backend enforces per-user account lockout after N bad attempts and
+      // repeated test runs can trip it. From this test's perspective the
+      // user is still failing to authenticate, which is what's being asserted.
+      expect([200, 400, 401, 403, 423, 429]).toContain(staffStatus);
+      expect([200, 400, 401, 403, 423, 429]).toContain(viewerStatus);
       
       if (staffResponse.status() === 401 && viewerResponse.status() === 401) {
         console.log('✓ Non-admin users cannot authenticate (as expected)');

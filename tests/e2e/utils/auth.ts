@@ -43,10 +43,31 @@ export const testUsers: Record<UserRole, Credentials | undefined> = {
   viewer: readEnvCredentials('viewer'),
 };
 
-export const APP_BASE_URL = (env.APP_BASE_URL ?? env.PLAYWRIGHT_BASE_URL ?? DEFAULT_APP_BASE_URL).replace(
-  /\/+$/,
-  ''
-);
+// Resolve the app base URL. We prefer APP_BASE_URL (which is typically
+// set with the /churchcoursetracker base href included), then fall back
+// to PLAYWRIGHT_BASE_URL or BASE_URL (typically set in CI workflows
+// without the suffix), then the suffixed default for local dev.
+//
+// IMPORTANT: production routes are served under /churchcoursetracker.
+// If a caller passes a bare https://apps.quentinspencer.com (which is
+// what .github/workflows/e2e-tests.yml does), we must re-add the
+// /churchcoursetracker suffix so APP_BASE_URL-based assertions match
+// the actual prod URL. This was the root cause of the
+// audit-and-security.spec.ts "Session timeout" test failing every CI
+// run from 2026-03-30 through 2026-05-18 (see 2026-05-18 evaluation
+// §3.2 finding Q1).
+function _resolveAppBaseUrl(): string {
+  let url = env.APP_BASE_URL ?? env.PLAYWRIGHT_BASE_URL ?? env.BASE_URL ?? DEFAULT_APP_BASE_URL;
+  // strip trailing slashes for clean concatenation
+  url = url.replace(/\/+$/, '');
+  // re-attach the /churchcoursetracker base href when the host implies it
+  if (url.includes('apps.quentinspencer.com') && !url.includes('/churchcoursetracker')) {
+    url = `${url}/churchcoursetracker`;
+  }
+  return url;
+}
+
+export const APP_BASE_URL = _resolveAppBaseUrl();
 
 export const API_BASE_URL = (env.API_BASE_URL ?? DEFAULT_API_BASE_URL).replace(/\/+$/, '');
 

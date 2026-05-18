@@ -362,26 +362,22 @@ test.describe('Audit and Security Tests', () => {
         }
       });
       
-      // Try to navigate to dashboard - should redirect to auth
+      // Try to navigate to dashboard - should redirect to auth.
+      // Use waitForURL instead of fixed sleeps: the Angular auth guard's
+      // redirect can be quick or slow depending on network/RTT, and a
+      // fixed 2s wait was racy enough to fail intermittently in CI.
       await page.goto(`${APP_BASE_URL}/dashboard`, { waitUntil: 'domcontentloaded' });
-      
-      // Wait a bit for redirect to complete
-      await page.waitForTimeout(2000);
-      
-      // Check if we're redirected to auth page
-      // The redirect might go to /auth or /churchcoursetracker/auth depending on routing
-      const currentUrl = page.url();
-      const isOnAuthPage = currentUrl.includes('/auth');
-      
-      if (!isOnAuthPage) {
-        // If not redirected, try making a request that requires auth
+
+      try {
+        await page.waitForURL(/\/auth/, { timeout: 15_000 });
+      } catch {
+        // Some routes only trigger the auth check on a subsequent navigation.
+        // Make a second attempt before asserting.
         await page.goto(`${APP_BASE_URL}/dashboard`, { waitUntil: 'domcontentloaded' });
-        await page.waitForTimeout(2000);
+        await page.waitForURL(/\/auth/, { timeout: 15_000 });
       }
-      
-      // Accept either /auth or /churchcoursetracker/auth as valid redirects
-      const finalUrl = page.url();
-      expect(finalUrl).toMatch(/\/auth/);
+
+      expect(page.url()).toMatch(/\/auth/);
     });
 
     test('Invalid credentials show error', async ({ page }) => {
