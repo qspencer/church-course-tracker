@@ -1,184 +1,238 @@
 <div class="member-dialog">
   <h2 mat-dialog-title>
-    <span *ngIf="viewMode">Member Details</span>
-    <span *ngIf="!viewMode">{{ isEditing ? 'Edit Member' : 'Add New Member' }}</span>
+    @if (viewMode) {
+      <span>Member Details</span>
+    }
+    @if (!viewMode) {
+      <span>{{ isEditing ? 'Edit Member' : 'Add New Member' }}</span>
+    }
   </h2>
-  
+
   <mat-dialog-content>
     <!-- View Mode: Read-only display -->
-    <div *ngIf="viewMode && member" class="member-details-view">
-      <div class="detail-section">
-        <h3 class="detail-label">Name</h3>
-        <p class="detail-value">{{ member.first_name }} {{ member.last_name }}</p>
+    @if (viewMode && member) {
+      <div class="member-details-view">
+        <div class="detail-section">
+          <h3 class="detail-label">Name</h3>
+          <p class="detail-value">{{ member.first_name }} {{ member.last_name }}</p>
+        </div>
+        <div class="detail-row">
+          <div class="detail-item">
+            <h3 class="detail-label">Email</h3>
+            <p class="detail-value">
+              @if (member.email) {
+                <a [href]="'mailto:' + member.email">{{ member.email }}</a>
+              }
+              @if (!member.email) {
+                <span class="no-data">No email</span>
+              }
+            </p>
+          </div>
+          <div class="detail-item">
+            <h3 class="detail-label">Phone</h3>
+            <p class="detail-value">
+              @if (member.phone) {
+                <a [href]="'tel:' + member.phone">{{ member.phone }}</a>
+              }
+              @if (!member.phone) {
+                <span class="no-data">No phone</span>
+              }
+            </p>
+          </div>
+        </div>
+        @if (member.address1 || member.city || member.state || member.zip) {
+          <div class="detail-row">
+            <div class="detail-item full-width">
+              <h3 class="detail-label">Address</h3>
+              <p class="detail-value">
+                @if (member.address1) {
+                  <span>{{ member.address1 }}<br></span>
+                }
+                @if (member.address2) {
+                  <span>{{ member.address2 }}<br></span>
+                }
+                @if (member.city) {
+                  <span>{{ member.city }}, </span>
+                }
+                @if (member.state) {
+                  <span>{{ member.state }} </span>
+                }
+                @if (member.zip) {
+                  <span>{{ member.zip }}</span>
+                }
+                @if (!member.address1 && !member.city && !member.state && !member.zip) {
+                  <span class="no-data">No address</span>
+                }
+              </p>
+            </div>
+          </div>
+        }
+        <div class="detail-row">
+          <div class="detail-item">
+            <h3 class="detail-label">Status</h3>
+            <p class="detail-value">
+              <mat-chip [color]="member.is_active ? 'primary' : 'warn'" selected>
+                {{ member.is_active ? 'Active' : 'Inactive' }}
+              </mat-chip>
+            </p>
+          </div>
+          @if (member.status) {
+            <div class="detail-item">
+              <h3 class="detail-label">Member Status</h3>
+              <p class="detail-value">{{ member.status }}</p>
+            </div>
+          }
+        </div>
+        @if (member.date_of_birth || member.gender) {
+          <div class="detail-row">
+            @if (member.date_of_birth) {
+              <div class="detail-item">
+                <h3 class="detail-label">Date of Birth</h3>
+                <p class="detail-value">{{ formatDate(member.date_of_birth) }}</p>
+              </div>
+            }
+            @if (member.gender) {
+              <div class="detail-item">
+                <h3 class="detail-label">Gender</h3>
+                <p class="detail-value">{{ member.gender }}</p>
+              </div>
+            }
+          </div>
+        }
+        @if (member.join_date) {
+          <div class="detail-row">
+            <div class="detail-item">
+              <h3 class="detail-label">Join Date</h3>
+              <p class="detail-value">{{ formatDate(member.join_date) }}</p>
+            </div>
+          </div>
+        }
+        @if (member.household_name || member.household_id) {
+          <div class="detail-row">
+            @if (member.household_name) {
+              <div class="detail-item">
+                <h3 class="detail-label">Household</h3>
+                <p class="detail-value">{{ member.household_name }}</p>
+              </div>
+            }
+            @if (member.household_id) {
+              <div class="detail-item">
+                <h3 class="detail-label">Household ID</h3>
+                <p class="detail-value">{{ member.household_id }}</p>
+              </div>
+            }
+          </div>
+        }
+        <div class="detail-row">
+          <div class="detail-item">
+            <h3 class="detail-label">Created</h3>
+            <p class="detail-value">{{ formatDate(member.created_at) }}</p>
+          </div>
+          <div class="detail-item">
+            <h3 class="detail-label">Last Updated</h3>
+            <p class="detail-value">{{ formatDate(member.updated_at) }}</p>
+          </div>
+        </div>
+        @if (member.last_synced_at) {
+          <div class="detail-row">
+            <div class="detail-item">
+              <h3 class="detail-label">Last Synced</h3>
+              <p class="detail-value">{{ formatDate(member.last_synced_at) }}</p>
+            </div>
+          </div>
+        }
+        <!-- Create User Account Section -->
+        @if (member.planning_center_id) {
+          <div class="detail-row">
+            <div class="detail-item full-width">
+              <h3 class="detail-label">User Account</h3>
+              <p class="detail-value">
+                @if (!hasUserAccount) {
+                  <button
+                    mat-raised-button
+                    color="primary"
+                    (click)="createUserAccount()"
+                    [disabled]="isCreatingUser">
+                    <mat-icon>person_add</mat-icon>
+                    Create User Account (Instructor)
+                  </button>
+                }
+                @if (hasUserAccount) {
+                  <span class="user-account-exists">
+                    <mat-icon color="primary">check_circle</mat-icon>
+                    User account exists
+                  </span>
+                }
+              </p>
+            </div>
+          </div>
+        }
       </div>
-
-      <div class="detail-row">
-        <div class="detail-item">
-          <h3 class="detail-label">Email</h3>
-          <p class="detail-value">
-            <a *ngIf="member.email" [href]="'mailto:' + member.email">{{ member.email }}</a>
-            <span *ngIf="!member.email" class="no-data">No email</span>
-          </p>
-        </div>
-        <div class="detail-item">
-          <h3 class="detail-label">Phone</h3>
-          <p class="detail-value">
-            <a *ngIf="member.phone" [href]="'tel:' + member.phone">{{ member.phone }}</a>
-            <span *ngIf="!member.phone" class="no-data">No phone</span>
-          </p>
-        </div>
-      </div>
-
-      <div class="detail-row" *ngIf="member.address1 || member.city || member.state || member.zip">
-        <div class="detail-item full-width">
-          <h3 class="detail-label">Address</h3>
-          <p class="detail-value">
-            <span *ngIf="member.address1">{{ member.address1 }}<br></span>
-            <span *ngIf="member.address2">{{ member.address2 }}<br></span>
-            <span *ngIf="member.city">{{ member.city }}, </span>
-            <span *ngIf="member.state">{{ member.state }} </span>
-            <span *ngIf="member.zip">{{ member.zip }}</span>
-            <span *ngIf="!member.address1 && !member.city && !member.state && !member.zip" class="no-data">No address</span>
-          </p>
-        </div>
-      </div>
-
-      <div class="detail-row">
-        <div class="detail-item">
-          <h3 class="detail-label">Status</h3>
-          <p class="detail-value">
-            <mat-chip [color]="member.is_active ? 'primary' : 'warn'" selected>
-              {{ member.is_active ? 'Active' : 'Inactive' }}
-            </mat-chip>
-          </p>
-        </div>
-        <div class="detail-item" *ngIf="member.status">
-          <h3 class="detail-label">Member Status</h3>
-          <p class="detail-value">{{ member.status }}</p>
-        </div>
-      </div>
-
-      <div class="detail-row" *ngIf="member.date_of_birth || member.gender">
-        <div class="detail-item" *ngIf="member.date_of_birth">
-          <h3 class="detail-label">Date of Birth</h3>
-          <p class="detail-value">{{ formatDate(member.date_of_birth) }}</p>
-        </div>
-        <div class="detail-item" *ngIf="member.gender">
-          <h3 class="detail-label">Gender</h3>
-          <p class="detail-value">{{ member.gender }}</p>
-        </div>
-      </div>
-
-      <div class="detail-row" *ngIf="member.join_date">
-        <div class="detail-item">
-          <h3 class="detail-label">Join Date</h3>
-          <p class="detail-value">{{ formatDate(member.join_date) }}</p>
-        </div>
-      </div>
-
-      <div class="detail-row" *ngIf="member.household_name || member.household_id">
-        <div class="detail-item" *ngIf="member.household_name">
-          <h3 class="detail-label">Household</h3>
-          <p class="detail-value">{{ member.household_name }}</p>
-        </div>
-        <div class="detail-item" *ngIf="member.household_id">
-          <h3 class="detail-label">Household ID</h3>
-          <p class="detail-value">{{ member.household_id }}</p>
-        </div>
-      </div>
-
-      <div class="detail-row">
-        <div class="detail-item">
-          <h3 class="detail-label">Created</h3>
-          <p class="detail-value">{{ formatDate(member.created_at) }}</p>
-        </div>
-        <div class="detail-item">
-          <h3 class="detail-label">Last Updated</h3>
-          <p class="detail-value">{{ formatDate(member.updated_at) }}</p>
-        </div>
-      </div>
-
-      <div class="detail-row" *ngIf="member.last_synced_at">
-        <div class="detail-item">
-          <h3 class="detail-label">Last Synced</h3>
-          <p class="detail-value">{{ formatDate(member.last_synced_at) }}</p>
-        </div>
-      </div>
-
-      <!-- Create User Account Section -->
-      <div class="detail-row" *ngIf="member.planning_center_id">
-        <div class="detail-item full-width">
-          <h3 class="detail-label">User Account</h3>
-          <p class="detail-value">
-            <button 
-              *ngIf="!hasUserAccount"
-              mat-raised-button 
-              color="primary" 
-              (click)="createUserAccount()"
-              [disabled]="isCreatingUser">
-              <mat-icon>person_add</mat-icon>
-              Create User Account (Instructor)
-            </button>
-            <span *ngIf="hasUserAccount" class="user-account-exists">
-              <mat-icon color="primary">check_circle</mat-icon>
-              User account exists
-            </span>
-          </p>
-        </div>
-      </div>
-    </div>
+    }
 
     <!-- Edit/Create Mode: Form -->
-    <form *ngIf="!viewMode" [formGroup]="memberForm" class="member-form">
-      <div class="name-row">
-        <mat-form-field appearance="outline" class="half-width">
-          <mat-label>First Name</mat-label>
-          <input matInput formControlName="first_name">
-          <mat-error *ngIf="shouldShowError('first_name')">{{ getErrorMessage('first_name') }}</mat-error>
+    @if (!viewMode) {
+      <form [formGroup]="memberForm" class="member-form">
+        <div class="name-row">
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>First Name</mat-label>
+            <input matInput formControlName="first_name">
+            @if (shouldShowError('first_name')) {
+              <mat-error>{{ getErrorMessage('first_name') }}</mat-error>
+            }
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Last Name</mat-label>
+            <input matInput formControlName="last_name">
+            @if (shouldShowError('last_name')) {
+              <mat-error>{{ getErrorMessage('last_name') }}</mat-error>
+            }
+          </mat-form-field>
+        </div>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Email</mat-label>
+          <input matInput formControlName="email" type="email">
+          <mat-icon matSuffix>email</mat-icon>
+          @if (shouldShowError('email')) {
+            <mat-error>{{ getErrorMessage('email') }}</mat-error>
+          }
         </mat-form-field>
-
-        <mat-form-field appearance="outline" class="half-width">
-          <mat-label>Last Name</mat-label>
-          <input matInput formControlName="last_name">
-          <mat-error *ngIf="shouldShowError('last_name')">{{ getErrorMessage('last_name') }}</mat-error>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Phone</mat-label>
+          <input matInput formControlName="phone" type="tel">
+          <mat-icon matSuffix>phone</mat-icon>
+          @if (shouldShowError('phone')) {
+            <mat-error>{{ getErrorMessage('phone') }}</mat-error>
+          }
         </mat-form-field>
-      </div>
-
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Email</mat-label>
-        <input matInput formControlName="email" type="email">
-        <mat-icon matSuffix>email</mat-icon>
-        <mat-error *ngIf="shouldShowError('email')">{{ getErrorMessage('email') }}</mat-error>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Phone</mat-label>
-        <input matInput formControlName="phone" type="tel">
-        <mat-icon matSuffix>phone</mat-icon>
-        <mat-error *ngIf="shouldShowError('phone')">{{ getErrorMessage('phone') }}</mat-error>
-      </mat-form-field>
-
-      <!-- Planning Center ID is hidden but still tracked in the form -->
-      <input type="hidden" formControlName="planning_center_id">
-    </form>
+        <!-- Planning Center ID is hidden but still tracked in the form -->
+        <input type="hidden" formControlName="planning_center_id">
+      </form>
+    }
   </mat-dialog-content>
-  
+
   <mat-dialog-actions align="end">
-    <button *ngIf="viewMode" mat-button (click)="onCancel()">
-      Close
-    </button>
-    <ng-container *ngIf="!viewMode">
+    @if (viewMode) {
+      <button mat-button (click)="onCancel()">
+        Close
+      </button>
+    }
+    @if (!viewMode) {
       <button mat-button (click)="onCancel()" [disabled]="isLoading">
         Cancel
       </button>
-      <button 
-        mat-raised-button 
-        color="primary" 
-        (click)="onSubmit()" 
+      <button
+        mat-raised-button
+        color="primary"
+        (click)="onSubmit()"
         [disabled]="!memberForm.valid || isLoading">
-        <mat-spinner *ngIf="isLoading" diameter="20"></mat-spinner>
-        <span *ngIf="!isLoading">{{ isEditing ? 'Update' : 'Create' }}</span>
+        @if (isLoading) {
+          <mat-spinner diameter="20"></mat-spinner>
+        }
+        @if (!isLoading) {
+          <span>{{ isEditing ? 'Update' : 'Create' }}</span>
+        }
       </button>
-    </ng-container>
+    }
   </mat-dialog-actions>
 </div>

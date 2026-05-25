@@ -5,98 +5,102 @@
     View and import registrations from Planning Center as enrollments.
   </p>
 
-  <div *ngIf="isLoading" class="loading-container">
-    <mat-spinner diameter="30"></mat-spinner>
-    <p>Loading registrations...</p>
-  </div>
-
-  <div *ngIf="!isLoading">
-    <div class="registrations-header">
-      <span class="count-info">
-        {{ registrations.length }} registration(s) found
-      </span>
-      <button mat-button (click)="selectAll()">
-        {{ selectedRegistrations.size === registrations.length ? 'Deselect All' : 'Select All' }}
-      </button>
+  @if (isLoading) {
+    <div class="loading-container">
+      <mat-spinner diameter="30"></mat-spinner>
+      <p>Loading registrations...</p>
     </div>
+  }
 
-    <div *ngIf="registrations.length === 0" class="no-data">
-      <mat-icon>people_outline</mat-icon>
-      <p>No registrations found for this event</p>
+  @if (!isLoading) {
+    <div>
+      <div class="registrations-header">
+        <span class="count-info">
+          {{ registrations.length }} registration(s) found
+        </span>
+        <button mat-button (click)="selectAll()">
+          {{ selectedRegistrations.size === registrations.length ? 'Deselect All' : 'Select All' }}
+        </button>
+      </div>
+      @if (registrations.length === 0) {
+        <div class="no-data">
+          <mat-icon>people_outline</mat-icon>
+          <p>No registrations found for this event</p>
+        </div>
+      }
+      @if (registrations.length > 0) {
+        <table mat-table [dataSource]="dataSource" class="registrations-table">
+          <!-- Checkbox Column -->
+          <ng-container matColumnDef="select">
+            <th mat-header-cell *matHeaderCellDef>
+              <mat-checkbox
+                [checked]="selectedRegistrations.size === registrations.length"
+                [indeterminate]="selectedRegistrations.size > 0 && selectedRegistrations.size < registrations.length"
+                (change)="selectAll()">
+              </mat-checkbox>
+            </th>
+            <td mat-cell *matCellDef="let registration">
+              <mat-checkbox
+                [checked]="isSelected(registration.id)"
+                (change)="toggleSelection(registration.id)">
+              </mat-checkbox>
+            </td>
+          </ng-container>
+          <!-- Person Name Column -->
+          <ng-container matColumnDef="person_name">
+            <th mat-header-cell *matHeaderCellDef>Name</th>
+            <td mat-cell *matCellDef="let registration">
+              <div class="person-info">
+                <strong>{{ getPersonName(registration) }}</strong>
+                @if (getPersonEmail(registration)) {
+                  <small>{{ getPersonEmail(registration) }}</small>
+                }
+              </div>
+            </td>
+          </ng-container>
+          <!-- Status Column -->
+          <ng-container matColumnDef="status">
+            <th mat-header-cell *matHeaderCellDef>Status</th>
+            <td mat-cell *matCellDef="let registration">
+              <mat-chip [color]="getStatusColor(registration.attributes?.status)" selected>
+                {{ registration.attributes?.status || 'N/A' }}
+              </mat-chip>
+            </td>
+          </ng-container>
+          <!-- Registration Date Column -->
+          <ng-container matColumnDef="registration_date">
+            <th mat-header-cell *matHeaderCellDef>Registration Date</th>
+            <td mat-cell *matCellDef="let registration">
+              {{ formatDate(registration.attributes?.registration_date) }}
+            </td>
+          </ng-container>
+          <!-- Actions Column -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>Actions</th>
+            <td mat-cell *matCellDef="let registration">
+              <button mat-icon-button (click)="importSingle(registration)" matTooltip="Import as enrollment">
+                <mat-icon>cloud_download</mat-icon>
+              </button>
+            </td>
+          </ng-container>
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+      }
     </div>
-
-    <table *ngIf="registrations.length > 0" mat-table [dataSource]="dataSource" class="registrations-table">
-      <!-- Checkbox Column -->
-      <ng-container matColumnDef="select">
-        <th mat-header-cell *matHeaderCellDef>
-          <mat-checkbox
-            [checked]="selectedRegistrations.size === registrations.length"
-            [indeterminate]="selectedRegistrations.size > 0 && selectedRegistrations.size < registrations.length"
-            (change)="selectAll()">
-          </mat-checkbox>
-        </th>
-        <td mat-cell *matCellDef="let registration">
-          <mat-checkbox
-            [checked]="isSelected(registration.id)"
-            (change)="toggleSelection(registration.id)">
-          </mat-checkbox>
-        </td>
-      </ng-container>
-
-      <!-- Person Name Column -->
-      <ng-container matColumnDef="person_name">
-        <th mat-header-cell *matHeaderCellDef>Name</th>
-        <td mat-cell *matCellDef="let registration">
-          <div class="person-info">
-            <strong>{{ getPersonName(registration) }}</strong>
-            <small *ngIf="getPersonEmail(registration)">{{ getPersonEmail(registration) }}</small>
-          </div>
-        </td>
-      </ng-container>
-
-      <!-- Status Column -->
-      <ng-container matColumnDef="status">
-        <th mat-header-cell *matHeaderCellDef>Status</th>
-        <td mat-cell *matCellDef="let registration">
-          <mat-chip [color]="getStatusColor(registration.attributes?.status)" selected>
-            {{ registration.attributes?.status || 'N/A' }}
-          </mat-chip>
-        </td>
-      </ng-container>
-
-      <!-- Registration Date Column -->
-      <ng-container matColumnDef="registration_date">
-        <th mat-header-cell *matHeaderCellDef>Registration Date</th>
-        <td mat-cell *matCellDef="let registration">
-          {{ formatDate(registration.attributes?.registration_date) }}
-        </td>
-      </ng-container>
-
-      <!-- Actions Column -->
-      <ng-container matColumnDef="actions">
-        <th mat-header-cell *matHeaderCellDef>Actions</th>
-        <td mat-cell *matCellDef="let registration">
-          <button mat-icon-button (click)="importSingle(registration)" matTooltip="Import as enrollment">
-            <mat-icon>cloud_download</mat-icon>
-          </button>
-        </td>
-      </ng-container>
-
-      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-    </table>
-  </div>
+  }
 </div>
 
 <div mat-dialog-actions align="end">
   <button mat-button (click)="onCancel()">Close</button>
-  <button
-    *ngIf="data.courseId && registrations.length > 0"
-    mat-raised-button
-    color="primary"
-    (click)="onImport()"
-    [disabled]="selectedRegistrations.size === 0 || isLoading">
-    Import Selected ({{ getSelectedCount() }})
-  </button>
+  @if (data.courseId && registrations.length > 0) {
+    <button
+      mat-raised-button
+      color="primary"
+      (click)="onImport()"
+      [disabled]="selectedRegistrations.size === 0 || isLoading">
+      Import Selected ({{ getSelectedCount() }})
+    </button>
+  }
 </div>
 

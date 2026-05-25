@@ -2,166 +2,193 @@
   <h2 mat-dialog-title>
     {{ viewMode ? 'Enrollment Details' : (isEditing ? 'Edit Enrollment' : 'Create New Enrollment') }}
   </h2>
-  
+
   <mat-dialog-content>
-    <div *ngIf="isLoading" class="loading-container">
-      <mat-spinner></mat-spinner>
-      <p>Loading data...</p>
-    </div>
+    @if (isLoading) {
+      <div class="loading-container">
+        <mat-spinner></mat-spinner>
+        <p>Loading data...</p>
+      </div>
+    }
 
-    <div *ngIf="viewMode && !isLoading && data.enrollment" class="details-view">
-      <mat-card class="info-card">
-        <mat-card-content>
-          <div class="details-section">
-            <h3>Student Information</h3>
-            <div class="detail-row">
-              <mat-icon>person</mat-icon>
-              <div>
-                <strong>{{ data.enrollment.person?.first_name }} {{ data.enrollment.person?.last_name }}</strong>
-                <div class="secondary" *ngIf="data.enrollment.person?.email">{{ data.enrollment.person?.email }}</div>
-                <div class="secondary" *ngIf="data.enrollment.person?.phone">{{ data.enrollment.person?.phone }}</div>
-              </div>
-            </div>
-          </div>
-
-          <div class="details-section">
-            <h3>Course</h3>
-            <div class="detail-row">
-              <mat-icon>school</mat-icon>
-              <div>
-                <strong>{{ data.enrollment.course?.title || 'N/A' }}</strong>
-                <div class="secondary" *ngIf="data.enrollment.course?.duration_weeks">
-                  Duration: {{ data.enrollment.course?.duration_weeks }} week{{ data.enrollment.course?.duration_weeks === 1 ? '' : 's' }}
+    @if (viewMode && !isLoading && data.enrollment) {
+      <div class="details-view">
+        <mat-card class="info-card">
+          <mat-card-content>
+            <div class="details-section">
+              <h3>Student Information</h3>
+              <div class="detail-row">
+                <mat-icon>person</mat-icon>
+                <div>
+                  <strong>{{ data.enrollment.person?.first_name }} {{ data.enrollment.person?.last_name }}</strong>
+                  @if (data.enrollment.person?.email) {
+                    <div class="secondary">{{ data.enrollment.person?.email }}</div>
+                  }
+                  @if (data.enrollment.person?.phone) {
+                    <div class="secondary">{{ data.enrollment.person?.phone }}</div>
+                  }
                 </div>
               </div>
             </div>
-          </div>
-
-          <div class="details-section status-progress">
-            <div class="status">
-              <h3>Status</h3>
-              <mat-chip [color]="getStatusColor(data.enrollment.status)" selected>
-                {{ getStatusLabel(data.enrollment.status) }}
-              </mat-chip>
-            </div>
-            <div class="progress">
-              <h3>Progress</h3>
-              <mat-progress-bar 
-                mode="determinate" 
-                [value]="data.enrollment.progress_percentage">
-              </mat-progress-bar>
-              <span class="progress-text">{{ data.enrollment.progress_percentage | number:'1.0-0' }}%</span>
-            </div>
-          </div>
-
-          <div class="details-section">
-            <h3>Timeline</h3>
-            <div class="detail-row">
-              <mat-icon>event</mat-icon>
-              <div>
-                <strong>Enrolled:</strong>
-                <span class="secondary">{{ formatDate(data.enrollment.enrolled_at) }}</span>
-              </div>
-            </div>
-            <div class="detail-row" *ngIf="data.enrollment.completion_date">
-              <mat-icon>flag</mat-icon>
-              <div>
-                <strong>Completed:</strong>
-                <span class="secondary">{{ formatDate(data.enrollment.completion_date) }}</span>
-              </div>
-            </div>
-            <div class="detail-row" *ngIf="data.enrollment.notes">
-              <mat-icon>notes</mat-icon>
-              <div>
-                <strong>Notes:</strong>
-                <span class="secondary">{{ data.enrollment.notes }}</span>
-              </div>
-            </div>
-          </div>
-        </mat-card-content>
-      </mat-card>
-    </div>
-
-    <form *ngIf="!viewMode && !isLoading" [formGroup]="enrollmentForm" class="enrollment-form">
-      <mat-form-field appearance="outline" class="full-width" [hidden]="isEditing">
-        <mat-label>Student</mat-label>
-        <mat-select formControlName="person_id">
-          <mat-option *ngFor="let member of members" [value]="member.id">
-            {{ getPersonDisplayName(member) }}
-            <span *ngIf="member.email" class="member-email"> - {{ member.email }}</span>
-          </mat-option>
-        </mat-select>
-        <mat-icon matSuffix>person</mat-icon>
-        <mat-error>{{ getErrorMessage('person_id') }}</mat-error>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="full-width" [hidden]="isEditing">
-        <mat-label>Course</mat-label>
-        <mat-select formControlName="course_id">
-          <mat-option *ngFor="let course of courses" [value]="course.id">
-            {{ getCourseDisplayName(course) }}
-          </mat-option>
-        </mat-select>
-        <mat-icon matSuffix>school</mat-icon>
-        <mat-error>{{ getErrorMessage('course_id') }}</mat-error>
-      </mat-form-field>
-
-      <!-- Show current enrollment info when editing -->
-      <div *ngIf="isEditing && data.enrollment" class="current-enrollment-info">
-        <mat-card class="info-card">
-          <mat-card-content>
-            <div class="enrollment-details">
-              <div class="detail-item">
-                <mat-icon>person</mat-icon>
-                <span>
-                  <strong>Student:</strong> 
-                  {{ data.enrollment.person?.first_name }} {{ data.enrollment.person?.last_name }}
-                </span>
-              </div>
-              <div class="detail-item">
+            <div class="details-section">
+              <h3>Course</h3>
+              <div class="detail-row">
                 <mat-icon>school</mat-icon>
-                <span>
-                  <strong>Course:</strong> 
-                  {{ data.enrollment.course?.title }}
-                </span>
+                <div>
+                  <strong>{{ data.enrollment.course?.title || 'N/A' }}</strong>
+                  @if (data.enrollment.course?.duration_weeks) {
+                    <div class="secondary">
+                      Duration: {{ data.enrollment.course?.duration_weeks }} week{{ data.enrollment.course?.duration_weeks === 1 ? '' : 's' }}
+                    </div>
+                  }
+                </div>
               </div>
-              <div class="detail-item">
-                <mat-icon>trending_up</mat-icon>
-                <span>
-                  <strong>Progress:</strong> 
-                  {{ data.enrollment.progress_percentage | number:'1.0-0' }}%
-                </span>
+            </div>
+            <div class="details-section status-progress">
+              <div class="status">
+                <h3>Status</h3>
+                <mat-chip [color]="getStatusColor(data.enrollment.status)" selected>
+                  {{ getStatusLabel(data.enrollment.status) }}
+                </mat-chip>
               </div>
+              <div class="progress">
+                <h3>Progress</h3>
+                <mat-progress-bar
+                  mode="determinate"
+                  [value]="data.enrollment.progress_percentage">
+                </mat-progress-bar>
+                <span class="progress-text">{{ data.enrollment.progress_percentage | number:'1.0-0' }}%</span>
+              </div>
+            </div>
+            <div class="details-section">
+              <h3>Timeline</h3>
+              <div class="detail-row">
+                <mat-icon>event</mat-icon>
+                <div>
+                  <strong>Enrolled:</strong>
+                  <span class="secondary">{{ formatDate(data.enrollment.enrolled_at) }}</span>
+                </div>
+              </div>
+              @if (data.enrollment.completion_date) {
+                <div class="detail-row">
+                  <mat-icon>flag</mat-icon>
+                  <div>
+                    <strong>Completed:</strong>
+                    <span class="secondary">{{ formatDate(data.enrollment.completion_date) }}</span>
+                  </div>
+                </div>
+              }
+              @if (data.enrollment.notes) {
+                <div class="detail-row">
+                  <mat-icon>notes</mat-icon>
+                  <div>
+                    <strong>Notes:</strong>
+                    <span class="secondary">{{ data.enrollment.notes }}</span>
+                  </div>
+                </div>
+              }
             </div>
           </mat-card-content>
         </mat-card>
       </div>
+    }
 
-      <mat-form-field appearance="outline" class="full-width" floatLabel="always">
-        <mat-label>Status</mat-label>
-        <mat-select formControlName="status">
-          <mat-option *ngFor="let status of statusOptions" [value]="status.value">
-            {{ status.label }}
-          </mat-option>
-        </mat-select>
-        <mat-icon matSuffix>flag</mat-icon>
-        <mat-error *ngIf="shouldShowError('status')">{{ getErrorMessage('status') }}</mat-error>
-      </mat-form-field>
-    </form>
+    @if (!viewMode && !isLoading) {
+      <form [formGroup]="enrollmentForm" class="enrollment-form">
+        <mat-form-field appearance="outline" class="full-width" [hidden]="isEditing">
+          <mat-label>Student</mat-label>
+          <mat-select formControlName="person_id">
+            @for (member of members; track member) {
+              <mat-option [value]="member.id">
+                {{ getPersonDisplayName(member) }}
+                @if (member.email) {
+                  <span class="member-email"> - {{ member.email }}</span>
+                }
+              </mat-option>
+            }
+          </mat-select>
+          <mat-icon matSuffix>person</mat-icon>
+          <mat-error>{{ getErrorMessage('person_id') }}</mat-error>
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="full-width" [hidden]="isEditing">
+          <mat-label>Course</mat-label>
+          <mat-select formControlName="course_id">
+            @for (course of courses; track course) {
+              <mat-option [value]="course.id">
+                {{ getCourseDisplayName(course) }}
+              </mat-option>
+            }
+          </mat-select>
+          <mat-icon matSuffix>school</mat-icon>
+          <mat-error>{{ getErrorMessage('course_id') }}</mat-error>
+        </mat-form-field>
+        <!-- Show current enrollment info when editing -->
+        @if (isEditing && data.enrollment) {
+          <div class="current-enrollment-info">
+            <mat-card class="info-card">
+              <mat-card-content>
+                <div class="enrollment-details">
+                  <div class="detail-item">
+                    <mat-icon>person</mat-icon>
+                    <span>
+                      <strong>Student:</strong>
+                      {{ data.enrollment.person?.first_name }} {{ data.enrollment.person?.last_name }}
+                    </span>
+                  </div>
+                  <div class="detail-item">
+                    <mat-icon>school</mat-icon>
+                    <span>
+                      <strong>Course:</strong>
+                      {{ data.enrollment.course?.title }}
+                    </span>
+                  </div>
+                  <div class="detail-item">
+                    <mat-icon>trending_up</mat-icon>
+                    <span>
+                      <strong>Progress:</strong>
+                      {{ data.enrollment.progress_percentage | number:'1.0-0' }}%
+                    </span>
+                  </div>
+                </div>
+              </mat-card-content>
+            </mat-card>
+          </div>
+        }
+        <mat-form-field appearance="outline" class="full-width" floatLabel="always">
+          <mat-label>Status</mat-label>
+          <mat-select formControlName="status">
+            @for (status of statusOptions; track status) {
+              <mat-option [value]="status.value">
+                {{ status.label }}
+              </mat-option>
+            }
+          </mat-select>
+          <mat-icon matSuffix>flag</mat-icon>
+          @if (shouldShowError('status')) {
+            <mat-error>{{ getErrorMessage('status') }}</mat-error>
+          }
+        </mat-form-field>
+      </form>
+    }
   </mat-dialog-content>
-  
+
   <mat-dialog-actions align="end">
     <button mat-button (click)="onCancel()" [disabled]="isLoading">
       {{ viewMode ? 'Close' : 'Cancel' }}
     </button>
-    <button 
-      mat-raised-button 
-      color="primary" 
-      (click)="onSubmit()" 
-      *ngIf="!viewMode"
-      [disabled]="!enrollmentForm.valid || isLoading">
-      <mat-spinner *ngIf="isLoading" diameter="20"></mat-spinner>
-      <span *ngIf="!isLoading">{{ isEditing ? 'Update' : 'Create' }}</span>
-    </button>
+    @if (!viewMode) {
+      <button
+        mat-raised-button
+        color="primary"
+        (click)="onSubmit()"
+        [disabled]="!enrollmentForm.valid || isLoading">
+        @if (isLoading) {
+          <mat-spinner diameter="20"></mat-spinner>
+        }
+        @if (!isLoading) {
+          <span>{{ isEditing ? 'Update' : 'Create' }}</span>
+        }
+      </button>
+    }
   </mat-dialog-actions>
 </div>

@@ -1,136 +1,181 @@
 <div class="pairing-dialog">
   <h2 mat-dialog-title>
-    <span *ngIf="viewMode">Pairing Details</span>
-    <span *ngIf="!viewMode && isEditing">Edit Pairing</span>
-    <span *ngIf="!viewMode && !isEditing">Create Pairing</span>
+    @if (viewMode) {
+      <span>Pairing Details</span>
+    }
+    @if (!viewMode && isEditing) {
+      <span>Edit Pairing</span>
+    }
+    @if (!viewMode && !isEditing) {
+      <span>Create Pairing</span>
+    }
   </h2>
-  
+
   <mat-dialog-content>
     <!-- View Mode: Read-only display -->
-    <div *ngIf="viewMode && data.pairing" class="pairing-details-view">
-      <div class="detail-section">
-        <h3 class="detail-label">Primary Participant</h3>
-        <p class="detail-value">{{ getParticipantName(data.pairing.primary_participant_id) }}</p>
-      </div>
-
-      <div class="detail-section">
-        <h3 class="detail-label">Secondary Participant</h3>
-        <p class="detail-value">{{ getParticipantName(data.pairing.secondary_participant_id) }}</p>
-      </div>
-
-      <div class="detail-row">
-        <div class="detail-item">
-          <h3 class="detail-label">Status</h3>
-          <p class="detail-value">
-            <mat-chip [color]="getStatusColor(data.pairing.status)" selected>
-              {{ data.pairing.status | titlecase }}
-            </mat-chip>
-          </p>
+    @if (viewMode && data.pairing) {
+      <div class="pairing-details-view">
+        <div class="detail-section">
+          <h3 class="detail-label">Primary Participant</h3>
+          <p class="detail-value">{{ getParticipantName(data.pairing.primary_participant_id) }}</p>
         </div>
-        <div class="detail-item" *ngIf="data.pairing.start_date">
-          <h3 class="detail-label">Start Date</h3>
-          <p class="detail-value">{{ data.pairing.start_date | date:'short' }}</p>
+        <div class="detail-section">
+          <h3 class="detail-label">Secondary Participant</h3>
+          <p class="detail-value">{{ getParticipantName(data.pairing.secondary_participant_id) }}</p>
         </div>
+        <div class="detail-row">
+          <div class="detail-item">
+            <h3 class="detail-label">Status</h3>
+            <p class="detail-value">
+              <mat-chip [color]="getStatusColor(data.pairing.status)" selected>
+                {{ data.pairing.status | titlecase }}
+              </mat-chip>
+            </p>
+          </div>
+          @if (data.pairing.start_date) {
+            <div class="detail-item">
+              <h3 class="detail-label">Start Date</h3>
+              <p class="detail-value">{{ data.pairing.start_date | date:'short' }}</p>
+            </div>
+          }
+        </div>
+        @if (data.pairing.notes) {
+          <div class="detail-section">
+            <h3 class="detail-label">Notes</h3>
+            <p class="detail-value">{{ data.pairing.notes }}</p>
+          </div>
+        }
+        @if (data.pairing.end_date) {
+          <div class="detail-item">
+            <h3 class="detail-label">End Date</h3>
+            <p class="detail-value">{{ data.pairing.end_date | date:'short' }}</p>
+          </div>
+        }
       </div>
-
-      <div class="detail-section" *ngIf="data.pairing.notes">
-        <h3 class="detail-label">Notes</h3>
-        <p class="detail-value">{{ data.pairing.notes }}</p>
-      </div>
-
-      <div class="detail-item" *ngIf="data.pairing.end_date">
-        <h3 class="detail-label">End Date</h3>
-        <p class="detail-value">{{ data.pairing.end_date | date:'short' }}</p>
-      </div>
-    </div>
+    }
 
     <!-- Edit/Create Mode: Form -->
-    <form [formGroup]="pairingForm" *ngIf="!viewMode" class="pairing-form">
-      <mat-form-field appearance="outline" class="full-width" floatLabel="always">
-        <mat-label>Primary Participant</mat-label>
-        <mat-select formControlName="primary_participant_id" [disabled]="isEditing">
-          <mat-option *ngFor="let participant of primaryParticipants" [value]="participant.id">
-            {{ getParticipantDisplay(participant) }}
-          </mat-option>
-        </mat-select>
-        <mat-error *ngIf="shouldShowError('primary_participant_id')">
-          Primary participant is required
-        </mat-error>
-        <mat-hint *ngIf="primaryParticipants.length === 0">
-          No primary participants available. Add participants with primary roles first.
-        </mat-hint>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="full-width" floatLabel="always">
-        <mat-label>Secondary Participant</mat-label>
-        <mat-select formControlName="secondary_participant_id" [disabled]="isEditing">
-          <mat-option *ngFor="let participant of secondaryParticipants" [value]="participant.id">
-            {{ getParticipantDisplay(participant) }}
-          </mat-option>
-        </mat-select>
-        <mat-error *ngIf="shouldShowError('secondary_participant_id')">
-          Secondary participant is required
-        </mat-error>
-        <mat-hint *ngIf="secondaryParticipants.length === 0">
-          No secondary participants available. Add participants with secondary roles first.
-        </mat-hint>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="full-width" floatLabel="always">
-        <mat-label>Status</mat-label>
-        <mat-select formControlName="status">
-          <mat-option *ngFor="let status of statusOptions" [value]="status.value">
-            {{ status.label }}
-          </mat-option>
-        </mat-select>
-        <mat-error *ngIf="shouldShowError('status')">
-          Status is required
-        </mat-error>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="full-width" floatLabel="always">
-        <mat-label>Notes</mat-label>
-        <textarea matInput formControlName="notes" rows="3"></textarea>
-      </mat-form-field>
-
-      <div class="info-box" *ngIf="program.relationship_config">
-        <mat-icon>info</mat-icon>
-        <div class="info-content">
-          <strong>Pairing Rules:</strong>
-          <ul>
-            <li *ngIf="program.relationship_config.allow_multiple_secondary">
-              Multiple secondary participants per primary are allowed
-            </li>
-            <li *ngIf="!program.relationship_config.allow_multiple_secondary">
-              Only one secondary participant per primary is allowed
-            </li>
-            <li *ngIf="program.relationship_config.max_secondary_per_primary">
-              Maximum {{ program.relationship_config.max_secondary_per_primary }} secondary participant(s) per primary
-            </li>
-            <li *ngIf="program.relationship_config.require_pairing">
-              Explicit pairing is required for this program
-            </li>
-          </ul>
-        </div>
-      </div>
-    </form>
+    @if (!viewMode) {
+      <form [formGroup]="pairingForm" class="pairing-form">
+        <mat-form-field appearance="outline" class="full-width" floatLabel="always">
+          <mat-label>Primary Participant</mat-label>
+          <mat-select formControlName="primary_participant_id" [disabled]="isEditing">
+            @for (participant of primaryParticipants; track participant) {
+              <mat-option [value]="participant.id">
+                {{ getParticipantDisplay(participant) }}
+              </mat-option>
+            }
+          </mat-select>
+          @if (shouldShowError('primary_participant_id')) {
+            <mat-error>
+              Primary participant is required
+            </mat-error>
+          }
+          @if (primaryParticipants.length === 0) {
+            <mat-hint>
+              No primary participants available. Add participants with primary roles first.
+            </mat-hint>
+          }
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="full-width" floatLabel="always">
+          <mat-label>Secondary Participant</mat-label>
+          <mat-select formControlName="secondary_participant_id" [disabled]="isEditing">
+            @for (participant of secondaryParticipants; track participant) {
+              <mat-option [value]="participant.id">
+                {{ getParticipantDisplay(participant) }}
+              </mat-option>
+            }
+          </mat-select>
+          @if (shouldShowError('secondary_participant_id')) {
+            <mat-error>
+              Secondary participant is required
+            </mat-error>
+          }
+          @if (secondaryParticipants.length === 0) {
+            <mat-hint>
+              No secondary participants available. Add participants with secondary roles first.
+            </mat-hint>
+          }
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="full-width" floatLabel="always">
+          <mat-label>Status</mat-label>
+          <mat-select formControlName="status">
+            @for (status of statusOptions; track status) {
+              <mat-option [value]="status.value">
+                {{ status.label }}
+              </mat-option>
+            }
+          </mat-select>
+          @if (shouldShowError('status')) {
+            <mat-error>
+              Status is required
+            </mat-error>
+          }
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="full-width" floatLabel="always">
+          <mat-label>Notes</mat-label>
+          <textarea matInput formControlName="notes" rows="3"></textarea>
+        </mat-form-field>
+        @if (program.relationship_config) {
+          <div class="info-box">
+            <mat-icon>info</mat-icon>
+            <div class="info-content">
+              <strong>Pairing Rules:</strong>
+              <ul>
+                @if (program.relationship_config.allow_multiple_secondary) {
+                  <li>
+                    Multiple secondary participants per primary are allowed
+                  </li>
+                }
+                @if (!program.relationship_config.allow_multiple_secondary) {
+                  <li>
+                    Only one secondary participant per primary is allowed
+                  </li>
+                }
+                @if (program.relationship_config.max_secondary_per_primary) {
+                  <li>
+                    Maximum {{ program.relationship_config.max_secondary_per_primary }} secondary participant(s) per primary
+                  </li>
+                }
+                @if (program.relationship_config.require_pairing) {
+                  <li>
+                    Explicit pairing is required for this program
+                  </li>
+                }
+              </ul>
+            </div>
+          </div>
+        }
+      </form>
+    }
   </mat-dialog-content>
 
   <mat-dialog-actions align="end">
     <button mat-button (click)="onCancel()">
-      <span *ngIf="viewMode">Close</span>
-      <span *ngIf="!viewMode">Cancel</span>
+      @if (viewMode) {
+        <span>Close</span>
+      }
+      @if (!viewMode) {
+        <span>Cancel</span>
+      }
     </button>
-    <button 
-      *ngIf="!viewMode"
-      mat-raised-button 
-      color="primary" 
-      (click)="onSubmit()"
-      [disabled]="pairingForm.invalid || isLoading || primaryParticipants.length === 0 || secondaryParticipants.length === 0">
-      <mat-spinner *ngIf="isLoading" diameter="20" style="display: inline-block; margin-right: 8px;"></mat-spinner>
-      <span *ngIf="isEditing">Update</span>
-      <span *ngIf="!isEditing">Create</span>
-    </button>
+    @if (!viewMode) {
+      <button
+        mat-raised-button
+        color="primary"
+        (click)="onSubmit()"
+        [disabled]="pairingForm.invalid || isLoading || primaryParticipants.length === 0 || secondaryParticipants.length === 0">
+        @if (isLoading) {
+          <mat-spinner diameter="20" style="display: inline-block; margin-right: 8px;"></mat-spinner>
+        }
+        @if (isEditing) {
+          <span>Update</span>
+        }
+        @if (!isEditing) {
+          <span>Create</span>
+        }
+      </button>
+    }
   </mat-dialog-actions>
 </div>
 

@@ -5,12 +5,16 @@
     <mat-form-field appearance="outline" class="full-width">
       <mat-label>Title</mat-label>
       <input matInput formControlName="title" required>
-      <mat-error *ngIf="shouldShowError('title') && contentForm.get('title')?.hasError('required')">
-        Title is required
-      </mat-error>
-      <mat-error *ngIf="shouldShowError('title') && contentForm.get('title')?.hasError('minlength')">
-        Title must be at least 1 character
-      </mat-error>
+      @if (shouldShowError('title') && contentForm.get('title')?.hasError('required')) {
+        <mat-error>
+          Title is required
+        </mat-error>
+      }
+      @if (shouldShowError('title') && contentForm.get('title')?.hasError('minlength')) {
+        <mat-error>
+          Title must be at least 1 character
+        </mat-error>
+      }
     </mat-form-field>
 
     <mat-form-field appearance="outline" class="full-width" floatLabel="always">
@@ -21,65 +25,81 @@
     <mat-form-field appearance="outline" class="full-width" floatLabel="always">
       <mat-label>Content Type</mat-label>
       <mat-select formControlName="content_type" required>
-        <mat-option *ngFor="let type of contentTypes" [value]="type">
-          {{ getContentTypeDisplayName(type) }}
-        </mat-option>
+        @for (type of contentTypes; track type) {
+          <mat-option [value]="type">
+            {{ getContentTypeDisplayName(type) }}
+          </mat-option>
+        }
       </mat-select>
-      <mat-error *ngIf="shouldShowError('content_type')">
-        Content type is required
-      </mat-error>
+      @if (shouldShowError('content_type')) {
+        <mat-error>
+          Content type is required
+        </mat-error>
+      }
     </mat-form-field>
 
     <mat-form-field appearance="outline" class="full-width" [hidden]="data.modules.length === 0" floatLabel="always">
       <mat-label>Module (Optional)</mat-label>
       <mat-select formControlName="module_id">
         <mat-option [value]="null">None</mat-option>
-        <mat-option *ngFor="let module of data.modules" [value]="module.id">
-          {{ module.title }}
-        </mat-option>
+        @for (module of data.modules; track module) {
+          <mat-option [value]="module.id">
+            {{ module.title }}
+          </mat-option>
+        }
       </mat-select>
     </mat-form-field>
 
     <mat-form-field appearance="outline" class="full-width"
-                    [hidden]="contentForm.get('content_type')?.value !== ContentType.EXTERNAL_LINK">
+      [hidden]="contentForm.get('content_type')?.value !== ContentType.EXTERNAL_LINK">
       <mat-label>External URL</mat-label>
       <input matInput formControlName="external_url" type="url">
-      <mat-error *ngIf="shouldShowError('external_url')">
-        External URL is required for external links
-      </mat-error>
+      @if (shouldShowError('external_url')) {
+        <mat-error>
+          External URL is required for external links
+        </mat-error>
+      }
     </mat-form-field>
 
     <mat-form-field appearance="outline" class="full-width"
-                    [hidden]="contentForm.get('content_type')?.value !== ContentType.EMBEDDED" floatLabel="always">
+      [hidden]="contentForm.get('content_type')?.value !== ContentType.EMBEDDED" floatLabel="always">
       <mat-label>Embedded Content</mat-label>
       <textarea matInput formControlName="embedded_content" rows="5"></textarea>
-      <mat-error *ngIf="shouldShowError('embedded_content')">
-        Embedded content is required for embedded content type
-      </mat-error>
+      @if (shouldShowError('embedded_content')) {
+        <mat-error>
+          Embedded content is required for embedded content type
+        </mat-error>
+      }
     </mat-form-field>
 
     <div class="file-upload-section"
-         [hidden]="!requiresFile(contentForm.get('content_type')?.value)">
+      [hidden]="!requiresFile(contentForm.get('content_type')?.value)">
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>{{ isEditing ? 'Replace File' : 'File Upload' }}</mat-label>
-        <div class="file-upload-container" *ngIf="isEditing && data.content?.file_name">
-          <span class="current-file-info">
-            <mat-icon>description</mat-icon>
-            <span>Current file: {{ data.content?.file_name }}</span>
-            <span class="file-size" *ngIf="data.content?.file_size">({{ formatFileSize(data.content!.file_size) }})</span>
-          </span>
-        </div>
+        @if (isEditing && data.content?.file_name) {
+          <div class="file-upload-container">
+            <span class="current-file-info">
+              <mat-icon>description</mat-icon>
+              <span>Current file: {{ data.content?.file_name }}</span>
+              @if (data.content?.file_size) {
+                <span class="file-size">({{ formatFileSize(data.content!.file_size) }})</span>
+              }
+            </span>
+          </div>
+        }
         <div class="file-upload-container">
-          <input type="file" 
-                 #fileInput 
-                 (change)="onFileSelected($event)"
-                 accept=".pdf,.doc,.docx,.mp4,.avi,.mov,.mp3,.wav,.jpg,.jpeg,.png,.gif"
-                 style="display: none;">
+          <input type="file"
+            #fileInput
+            (change)="onFileSelected($event)"
+            accept=".pdf,.doc,.docx,.mp4,.avi,.mov,.mp3,.wav,.jpg,.jpeg,.png,.gif"
+            style="display: none;">
           <button mat-stroked-button type="button" (click)="fileInput.click()">
             <mat-icon>{{ isEditing ? 'swap_horiz' : 'attach_file' }}</mat-icon>
             {{ isEditing ? 'Choose Replacement File' : 'Choose File' }}
           </button>
-          <span class="file-name" *ngIf="selectedFile">{{ getFileName() }}</span>
+          @if (selectedFile) {
+            <span class="file-name">{{ getFileName() }}</span>
+          }
         </div>
         <mat-hint>
           {{ isEditing ? 'Upload a new file to replace the existing one. ' : 'Upload a file for this content. ' }}
@@ -101,8 +121,12 @@
     Cancel
   </button>
   <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="isLoading || !contentForm.valid">
-    <span *ngIf="isLoading">Creating...</span>
-    <span *ngIf="!isLoading">{{ isEditing ? 'Update' : 'Create' }}</span>
+    @if (isLoading) {
+      <span>Creating...</span>
+    }
+    @if (!isLoading) {
+      <span>{{ isEditing ? 'Update' : 'Create' }}</span>
+    }
   </button>
 </mat-dialog-actions>
 

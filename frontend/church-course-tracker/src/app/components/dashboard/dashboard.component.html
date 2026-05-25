@@ -19,316 +19,323 @@
     </div>
   </div>
 
-  <div *ngIf="isLoading" class="loading-container">
-    <mat-spinner></mat-spinner>
-    <p>Loading dashboard data...</p>
-  </div>
+  @if (isLoading) {
+    <div class="loading-container">
+      <mat-spinner></mat-spinner>
+      <p>Loading dashboard data...</p>
+    </div>
+  }
 
-  <div *ngIf="!isLoading && (stats || programStats)" class="dashboard-content">
-    <!-- Stats Cards -->
-    <div class="stats-grid">
-      <!-- Courses View Stats -->
-      <ng-container *ngIf="viewMode === 'courses' && stats">
-        <mat-card class="stat-card clickable-card" (click)="navigateToCourses()" style="cursor: pointer; position: relative;">
-          <mat-card-content style="pointer-events: auto;">
+  @if (!isLoading && (stats || programStats)) {
+    <div class="dashboard-content">
+      <!-- Stats Cards -->
+      <div class="stats-grid">
+        <!-- Courses View Stats -->
+        @if (viewMode === 'courses' && stats) {
+          <mat-card class="stat-card clickable-card" (click)="navigateToCourses()" style="cursor: pointer; position: relative;">
+            <mat-card-content style="pointer-events: auto;">
+              <div class="stat-content">
+                <div class="stat-icon courses-icon">
+                  <mat-icon>school</mat-icon>
+                </div>
+                <div class="stat-info">
+                  <h3>{{ stats.total_courses }}</h3>
+                  <p>Total Courses</p>
+                  <small>{{ stats.active_courses }} active</small>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+          <mat-card class="stat-card clickable-card" (click)="navigateToEnrollments()" style="cursor: pointer; position: relative;">
+            <mat-card-content style="pointer-events: auto;">
+              <div class="stat-content">
+                <div class="stat-icon enrollments-icon">
+                  <mat-icon>assignment</mat-icon>
+                </div>
+                <div class="stat-info">
+                  <h3>{{ stats.total_enrollments }}</h3>
+                  <p>Total Enrollments</p>
+                  <small>{{ stats.completed_enrollments }} completed</small>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+          <mat-card class="stat-card clickable-card" (click)="navigateToMembers()" style="cursor: pointer; position: relative;">
+            <mat-card-content style="pointer-events: auto;">
+              <div class="stat-content">
+                <div class="stat-icon members-icon">
+                  <mat-icon>people</mat-icon>
+                </div>
+                <div class="stat-info">
+                  <h3>{{ stats.total_members }}</h3>
+                  <p>Total Members</p>
+                  <small>Active learners</small>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        }
+        <!-- Programs View Stats -->
+        @if (viewMode === 'programs' && programStats) {
+          <mat-card class="stat-card clickable-card" (click)="navigateToPrograms()" style="cursor: pointer; position: relative;">
+            <mat-card-content style="pointer-events: auto;">
+              <div class="stat-content">
+                <div class="stat-icon courses-icon">
+                  <mat-icon>groups</mat-icon>
+                </div>
+                <div class="stat-info">
+                  <h3>{{ programStats.total_programs }}</h3>
+                  <p>Total Programs</p>
+                  <small>{{ programStats.active_programs }} active</small>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+          <mat-card class="stat-card clickable-card" (click)="navigateToPrograms()" style="cursor: pointer; position: relative;">
+            <mat-card-content style="pointer-events: auto;">
+              <div class="stat-content">
+                <div class="stat-icon enrollments-icon">
+                  <mat-icon>person</mat-icon>
+                </div>
+                <div class="stat-info">
+                  <h3>{{ programStats.total_participants }}</h3>
+                  <p>Total Participants</p>
+                  <small>{{ programStats.active_participants }} active</small>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+          <mat-card class="stat-card clickable-card" (click)="navigateToPrograms()" style="cursor: pointer; position: relative;">
+            <mat-card-content style="pointer-events: auto;">
+              <div class="stat-content">
+                <div class="stat-icon members-icon">
+                  <mat-icon>handshake</mat-icon>
+                </div>
+                <div class="stat-info">
+                  <h3>{{ programStats.total_pairings }}</h3>
+                  <p>Total Pairings</p>
+                  <small>{{ programStats.active_pairings }} active</small>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+          <mat-card class="stat-card clickable-card" (click)="navigateToPrograms()" style="cursor: pointer; position: relative;">
+            <mat-card-content style="pointer-events: auto;">
+              <div class="stat-content">
+                <div class="stat-icon enrollments-icon">
+                  <mat-icon>event</mat-icon>
+                </div>
+                <div class="stat-info">
+                  <h3>{{ programStats.total_sessions }}</h3>
+                  <p>Total Sessions</p>
+                  <small>Logged sessions</small>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        }
+        <!-- Completion Rate (shared) -->
+        <mat-card class="stat-card">
+          <mat-card-content>
             <div class="stat-content">
-              <div class="stat-icon courses-icon">
-                <mat-icon>school</mat-icon>
+              <div class="stat-icon completion-icon">
+                <mat-icon>trending_up</mat-icon>
               </div>
               <div class="stat-info">
-                <h3>{{ stats.total_courses }}</h3>
-                <p>Total Courses</p>
-                <small>{{ stats.active_courses }} active</small>
+                <h3 [style.color]="getCompletionRateColor()">{{ getCompletionRate() | number:'1.1-1' }}%</h3>
+                <p>Completion Rate</p>
+                <small>Overall progress</small>
               </div>
             </div>
           </mat-card-content>
         </mat-card>
-
-        <mat-card class="stat-card clickable-card" (click)="navigateToEnrollments()" style="cursor: pointer; position: relative;">
-          <mat-card-content style="pointer-events: auto;">
-            <div class="stat-content">
-              <div class="stat-icon enrollments-icon">
-                <mat-icon>assignment</mat-icon>
+      </div>
+      <!-- Charts Section -->
+      <div class="charts-section">
+        <div class="chart-container">
+          <mat-card>
+            <mat-card-header>
+              <mat-card-title>
+                {{ viewMode === 'courses' ? 'Course' : 'Program' }} Completion Overview
+              </mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <div class="chart-wrapper">
+                <canvas
+                  baseChart
+                  [data]="completionChartData"
+                  [options]="viewMode === 'courses' ? completionChartOptions : programCompletionChartOptions"
+                  type="doughnut">
+                </canvas>
               </div>
-              <div class="stat-info">
-                <h3>{{ stats.total_enrollments }}</h3>
-                <p>Total Enrollments</p>
-                <small>{{ stats.completed_enrollments }} completed</small>
+            </mat-card-content>
+          </mat-card>
+        </div>
+        <div class="chart-container">
+          <mat-card>
+            <mat-card-header>
+              <mat-card-title>
+                {{ viewMode === 'courses' ? 'Enrollment' : 'Program Activity' }} Trends
+              </mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <div class="chart-wrapper">
+                <canvas
+                  baseChart
+                  [data]="viewMode === 'courses' ? enrollmentTrendsData : programTrendsData"
+                  [options]="viewMode === 'courses' ? enrollmentTrendsOptions : programTrendsOptions"
+                  type="line">
+                </canvas>
               </div>
-            </div>
-          </mat-card-content>
-        </mat-card>
-
-        <mat-card class="stat-card clickable-card" (click)="navigateToMembers()" style="cursor: pointer; position: relative;">
-          <mat-card-content style="pointer-events: auto;">
-            <div class="stat-content">
-              <div class="stat-icon members-icon">
-                <mat-icon>people</mat-icon>
-              </div>
-              <div class="stat-info">
-                <h3>{{ stats.total_members }}</h3>
-                <p>Total Members</p>
-                <small>Active learners</small>
-              </div>
-            </div>
-          </mat-card-content>
-        </mat-card>
-      </ng-container>
-
-      <!-- Programs View Stats -->
-      <ng-container *ngIf="viewMode === 'programs' && programStats">
-        <mat-card class="stat-card clickable-card" (click)="navigateToPrograms()" style="cursor: pointer; position: relative;">
-          <mat-card-content style="pointer-events: auto;">
-            <div class="stat-content">
-              <div class="stat-icon courses-icon">
-                <mat-icon>groups</mat-icon>
-              </div>
-              <div class="stat-info">
-                <h3>{{ programStats.total_programs }}</h3>
-                <p>Total Programs</p>
-                <small>{{ programStats.active_programs }} active</small>
-              </div>
-            </div>
-          </mat-card-content>
-        </mat-card>
-
-        <mat-card class="stat-card clickable-card" (click)="navigateToPrograms()" style="cursor: pointer; position: relative;">
-          <mat-card-content style="pointer-events: auto;">
-            <div class="stat-content">
-              <div class="stat-icon enrollments-icon">
-                <mat-icon>person</mat-icon>
-              </div>
-              <div class="stat-info">
-                <h3>{{ programStats.total_participants }}</h3>
-                <p>Total Participants</p>
-                <small>{{ programStats.active_participants }} active</small>
-              </div>
-            </div>
-          </mat-card-content>
-        </mat-card>
-
-        <mat-card class="stat-card clickable-card" (click)="navigateToPrograms()" style="cursor: pointer; position: relative;">
-          <mat-card-content style="pointer-events: auto;">
-            <div class="stat-content">
-              <div class="stat-icon members-icon">
-                <mat-icon>handshake</mat-icon>
-              </div>
-              <div class="stat-info">
-                <h3>{{ programStats.total_pairings }}</h3>
-                <p>Total Pairings</p>
-                <small>{{ programStats.active_pairings }} active</small>
-              </div>
-            </div>
-          </mat-card-content>
-        </mat-card>
-
-        <mat-card class="stat-card clickable-card" (click)="navigateToPrograms()" style="cursor: pointer; position: relative;">
-          <mat-card-content style="pointer-events: auto;">
-            <div class="stat-content">
-              <div class="stat-icon enrollments-icon">
-                <mat-icon>event</mat-icon>
-              </div>
-              <div class="stat-info">
-                <h3>{{ programStats.total_sessions }}</h3>
-                <p>Total Sessions</p>
-                <small>Logged sessions</small>
-              </div>
-            </div>
-          </mat-card-content>
-        </mat-card>
-      </ng-container>
-
-      <!-- Completion Rate (shared) -->
-      <mat-card class="stat-card">
-        <mat-card-content>
-          <div class="stat-content">
-            <div class="stat-icon completion-icon">
-              <mat-icon>trending_up</mat-icon>
-            </div>
-            <div class="stat-info">
-              <h3 [style.color]="getCompletionRateColor()">{{ getCompletionRate() | number:'1.1-1' }}%</h3>
-              <p>Completion Rate</p>
-              <small>Overall progress</small>
-            </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </div>
+      <!-- Recent Activity Section -->
+      <div class="activity-section">
+        <!-- Courses View -->
+        @if (viewMode === 'courses') {
+          <div class="recent-courses">
+            <mat-card>
+              <mat-card-header>
+                <mat-card-title>Recent Courses</mat-card-title>
+                <mat-card-subtitle>Latest course additions</mat-card-subtitle>
+              </mat-card-header>
+              <mat-card-content>
+                @if (recentCourses.length === 0) {
+                  <div class="no-data">
+                    <mat-icon>school</mat-icon>
+                    <p>No recent courses</p>
+                  </div>
+                }
+                @for (course of recentCourses; track course) {
+                  <div class="course-item">
+                    <div class="course-info">
+                      <h4>{{ course.title }}</h4>
+                      <p>{{ course.description | slice:0:100 }}...</p>
+                      <small>{{ course.duration_weeks }} weeks • Created {{ course.created_at | date:'short' }}</small>
+                    </div>
+                    <div class="course-status">
+                      <mat-chip [color]="course.is_active ? 'primary' : 'warn'" selected>
+                        {{ course.is_active ? 'Active' : 'Inactive' }}
+                      </mat-chip>
+                    </div>
+                  </div>
+                }
+              </mat-card-content>
+              <mat-card-actions>
+                <button mat-button routerLink="/courses">View All Courses</button>
+              </mat-card-actions>
+            </mat-card>
           </div>
-        </mat-card-content>
-      </mat-card>
-    </div>
-
-    <!-- Charts Section -->
-    <div class="charts-section">
-      <div class="chart-container">
-        <mat-card>
-          <mat-card-header>
-            <mat-card-title>
-              {{ viewMode === 'courses' ? 'Course' : 'Program' }} Completion Overview
-            </mat-card-title>
-          </mat-card-header>
-          <mat-card-content>
-            <div class="chart-wrapper">
-              <canvas 
-                baseChart
-                [data]="completionChartData"
-                [options]="viewMode === 'courses' ? completionChartOptions : programCompletionChartOptions"
-                type="doughnut">
-              </canvas>
-            </div>
-          </mat-card-content>
-        </mat-card>
+          <div class="recent-enrollments">
+            <mat-card>
+              <mat-card-header>
+                <mat-card-title>Recent Enrollments</mat-card-title>
+                <mat-card-subtitle>Latest student enrollments</mat-card-subtitle>
+              </mat-card-header>
+              <mat-card-content>
+                @if (recentEnrollments.length === 0) {
+                  <div class="no-data">
+                    <mat-icon>assignment</mat-icon>
+                    <p>No recent enrollments</p>
+                  </div>
+                }
+                @for (enrollment of recentEnrollments; track enrollment) {
+                  <div class="enrollment-item">
+                    <div class="enrollment-info">
+                      <h4>{{ getEnrollmentMemberName(enrollment) }}</h4>
+                      <p>{{ enrollment.course?.title || ('Course #' + (enrollment.course_id || '')) }}</p>
+                      <small>Enrolled {{ (enrollment.enrolled_at || enrollment.enrollment_date) | date:'short' }}</small>
+                    </div>
+                    <div class="enrollment-progress">
+                      <mat-progress-bar
+                        mode="determinate"
+                        [value]="enrollment.progress_percentage">
+                      </mat-progress-bar>
+                      <small>{{ enrollment.progress_percentage | number:'1.0-0' }}%</small>
+                    </div>
+                  </div>
+                }
+              </mat-card-content>
+              <mat-card-actions>
+                <button mat-button routerLink="/enrollments">View All Enrollments</button>
+              </mat-card-actions>
+            </mat-card>
+          </div>
+        }
+        <!-- Programs View -->
+        @if (viewMode === 'programs') {
+          <div class="recent-courses">
+            <mat-card>
+              <mat-card-header>
+                <mat-card-title>Recent Programs</mat-card-title>
+                <mat-card-subtitle>Latest program additions</mat-card-subtitle>
+              </mat-card-header>
+              <mat-card-content>
+                @if (recentPrograms.length === 0) {
+                  <div class="no-data">
+                    <mat-icon>groups</mat-icon>
+                    <p>No recent programs</p>
+                  </div>
+                }
+                @for (program of recentPrograms; track program) {
+                  <div class="course-item">
+                    <div class="course-info">
+                      <h4>{{ program.title }}</h4>
+                      <p>{{ program.description | slice:0:100 }}...</p>
+                      <small>Created {{ program.created_at | date:'short' }}</small>
+                    </div>
+                    <div class="course-status">
+                      <mat-chip [color]="program.is_active ? 'primary' : 'warn'" selected>
+                        {{ program.is_active ? 'Active' : 'Inactive' }}
+                      </mat-chip>
+                    </div>
+                  </div>
+                }
+              </mat-card-content>
+              <mat-card-actions>
+                <button mat-button routerLink="/programs">View All Programs</button>
+              </mat-card-actions>
+            </mat-card>
+          </div>
+          <div class="recent-enrollments">
+            <mat-card>
+              <mat-card-header>
+                <mat-card-title>Recent Participants</mat-card-title>
+                <mat-card-subtitle>Latest program participants</mat-card-subtitle>
+              </mat-card-header>
+              <mat-card-content>
+                @if (recentParticipants.length === 0) {
+                  <div class="no-data">
+                    <mat-icon>person</mat-icon>
+                    <p>No recent participants</p>
+                  </div>
+                }
+                @for (participant of recentParticipants; track participant) {
+                  <div class="enrollment-item">
+                    <div class="enrollment-info">
+                      <h4>Participant #{{ participant.id }}</h4>
+                      <p>Role: {{ participant.role_name }}</p>
+                      <small>Joined {{ participant.start_date | date:'short' }}</small>
+                    </div>
+                    <div class="enrollment-progress">
+                      <mat-progress-bar
+                        mode="determinate"
+                        [value]="participant.progress_percentage">
+                      </mat-progress-bar>
+                      <small>{{ participant.progress_percentage | number:'1.0-0' }}%</small>
+                    </div>
+                  </div>
+                }
+              </mat-card-content>
+              <mat-card-actions>
+                <button mat-button routerLink="/programs">View All Programs</button>
+              </mat-card-actions>
+            </mat-card>
+          </div>
+        }
       </div>
-
-      <div class="chart-container">
-        <mat-card>
-          <mat-card-header>
-            <mat-card-title>
-              {{ viewMode === 'courses' ? 'Enrollment' : 'Program Activity' }} Trends
-            </mat-card-title>
-          </mat-card-header>
-          <mat-card-content>
-            <div class="chart-wrapper">
-              <canvas 
-                baseChart
-                [data]="viewMode === 'courses' ? enrollmentTrendsData : programTrendsData"
-                [options]="viewMode === 'courses' ? enrollmentTrendsOptions : programTrendsOptions"
-                type="line">
-              </canvas>
-            </div>
-          </mat-card-content>
-        </mat-card>
-      </div>
     </div>
-
-    <!-- Recent Activity Section -->
-    <div class="activity-section">
-      <!-- Courses View -->
-      <ng-container *ngIf="viewMode === 'courses'">
-        <div class="recent-courses">
-          <mat-card>
-            <mat-card-header>
-              <mat-card-title>Recent Courses</mat-card-title>
-              <mat-card-subtitle>Latest course additions</mat-card-subtitle>
-            </mat-card-header>
-            <mat-card-content>
-              <div *ngIf="recentCourses.length === 0" class="no-data">
-                <mat-icon>school</mat-icon>
-                <p>No recent courses</p>
-              </div>
-              <div *ngFor="let course of recentCourses" class="course-item">
-                <div class="course-info">
-                  <h4>{{ course.title }}</h4>
-                  <p>{{ course.description | slice:0:100 }}...</p>
-                  <small>{{ course.duration_weeks }} weeks • Created {{ course.created_at | date:'short' }}</small>
-                </div>
-                <div class="course-status">
-                  <mat-chip [color]="course.is_active ? 'primary' : 'warn'" selected>
-                    {{ course.is_active ? 'Active' : 'Inactive' }}
-                  </mat-chip>
-                </div>
-              </div>
-            </mat-card-content>
-            <mat-card-actions>
-              <button mat-button routerLink="/courses">View All Courses</button>
-            </mat-card-actions>
-          </mat-card>
-        </div>
-
-        <div class="recent-enrollments">
-          <mat-card>
-            <mat-card-header>
-              <mat-card-title>Recent Enrollments</mat-card-title>
-              <mat-card-subtitle>Latest student enrollments</mat-card-subtitle>
-            </mat-card-header>
-            <mat-card-content>
-              <div *ngIf="recentEnrollments.length === 0" class="no-data">
-                <mat-icon>assignment</mat-icon>
-                <p>No recent enrollments</p>
-              </div>
-              <div *ngFor="let enrollment of recentEnrollments" class="enrollment-item">
-                <div class="enrollment-info">
-                  <h4>{{ getEnrollmentMemberName(enrollment) }}</h4>
-                  <p>{{ enrollment.course?.title || ('Course #' + (enrollment.course_id || '')) }}</p>
-                  <small>Enrolled {{ (enrollment.enrolled_at || enrollment.enrollment_date) | date:'short' }}</small>
-                </div>
-                <div class="enrollment-progress">
-                  <mat-progress-bar 
-                    mode="determinate" 
-                    [value]="enrollment.progress_percentage">
-                  </mat-progress-bar>
-                  <small>{{ enrollment.progress_percentage | number:'1.0-0' }}%</small>
-                </div>
-              </div>
-            </mat-card-content>
-            <mat-card-actions>
-              <button mat-button routerLink="/enrollments">View All Enrollments</button>
-            </mat-card-actions>
-          </mat-card>
-        </div>
-      </ng-container>
-
-      <!-- Programs View -->
-      <ng-container *ngIf="viewMode === 'programs'">
-        <div class="recent-courses">
-          <mat-card>
-            <mat-card-header>
-              <mat-card-title>Recent Programs</mat-card-title>
-              <mat-card-subtitle>Latest program additions</mat-card-subtitle>
-            </mat-card-header>
-            <mat-card-content>
-              <div *ngIf="recentPrograms.length === 0" class="no-data">
-                <mat-icon>groups</mat-icon>
-                <p>No recent programs</p>
-              </div>
-              <div *ngFor="let program of recentPrograms" class="course-item">
-                <div class="course-info">
-                  <h4>{{ program.title }}</h4>
-                  <p>{{ program.description | slice:0:100 }}...</p>
-                  <small>Created {{ program.created_at | date:'short' }}</small>
-                </div>
-                <div class="course-status">
-                  <mat-chip [color]="program.is_active ? 'primary' : 'warn'" selected>
-                    {{ program.is_active ? 'Active' : 'Inactive' }}
-                  </mat-chip>
-                </div>
-              </div>
-            </mat-card-content>
-            <mat-card-actions>
-              <button mat-button routerLink="/programs">View All Programs</button>
-            </mat-card-actions>
-          </mat-card>
-        </div>
-
-        <div class="recent-enrollments">
-          <mat-card>
-            <mat-card-header>
-              <mat-card-title>Recent Participants</mat-card-title>
-              <mat-card-subtitle>Latest program participants</mat-card-subtitle>
-            </mat-card-header>
-            <mat-card-content>
-              <div *ngIf="recentParticipants.length === 0" class="no-data">
-                <mat-icon>person</mat-icon>
-                <p>No recent participants</p>
-              </div>
-              <div *ngFor="let participant of recentParticipants" class="enrollment-item">
-                <div class="enrollment-info">
-                  <h4>Participant #{{ participant.id }}</h4>
-                  <p>Role: {{ participant.role_name }}</p>
-                  <small>Joined {{ participant.start_date | date:'short' }}</small>
-                </div>
-                <div class="enrollment-progress">
-                  <mat-progress-bar 
-                    mode="determinate" 
-                    [value]="participant.progress_percentage">
-                  </mat-progress-bar>
-                  <small>{{ participant.progress_percentage | number:'1.0-0' }}%</small>
-                </div>
-              </div>
-            </mat-card-content>
-            <mat-card-actions>
-              <button mat-button routerLink="/programs">View All Programs</button>
-            </mat-card-actions>
-          </mat-card>
-        </div>
-      </ng-container>
-    </div>
-  </div>
+  }
 </div>

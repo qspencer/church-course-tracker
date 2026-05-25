@@ -15,143 +15,185 @@
     </div>
 
     <!-- PC Event Selection -->
-    <div *ngIf="sourceType === 'event'">
-      <!-- Loading State -->
-      <div *ngIf="isLoadingEvents" class="loading-control">
-        <mat-spinner diameter="30"></mat-spinner>
-        <p>Loading events from Planning Center...</p>
-      </div>
-
-      <!-- Event Selection Control (shown after loading) -->
-      <mat-form-field appearance="outline" class="full-width" *ngIf="!isLoadingEvents">
-        <mat-label>Planning Center Event</mat-label>
-        
-        <!-- Use mat-select for ≤20 items -->
-        <mat-select formControlName="pc_event_id" *ngIf="useSelectForEvents">
-          <mat-option *ngFor="let event of events" [value]="event.id">
-            {{ event.attributes.name }}<span *ngIf="getEventDate(event)"> ({{ getEventDate(event)! | date:'shortDate' }})</span>
-          </mat-option>
-        </mat-select>
-
-        <!-- Use mat-autocomplete with alphabetical grouping for >20 items -->
-        <input
-          *ngIf="!useSelectForEvents"
-          type="text"
-          matInput
-          [formControl]="eventControl"
-          [matAutocomplete]="eventAuto"
-          #eventAutoTrigger="matAutocompleteTrigger"
-          placeholder="Search events..."
-        />
-        <mat-autocomplete
-          #eventAuto="matAutocomplete"
-          [displayWith]="displayEventName">
-          <ng-container *ngFor="let group of filteredEvents | async">
-            <mat-optgroup [label]="group.letter" [attr.data-group-letter]="group.letter">
-              <mat-option *ngFor="let event of group.events" [value]="event">
-                {{ event.attributes.name }}<span *ngIf="getEventDate(event)"> ({{ getEventDate(event)! | date:'shortDate' }})</span>
-              </mat-option>
+    @if (sourceType === 'event') {
+      <div>
+        <!-- Loading State -->
+        @if (isLoadingEvents) {
+          <div class="loading-control">
+            <mat-spinner diameter="30"></mat-spinner>
+            <p>Loading events from Planning Center...</p>
+          </div>
+        }
+        <!-- Event Selection Control (shown after loading) -->
+        @if (!isLoadingEvents) {
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Planning Center Event</mat-label>
+            <!-- Use mat-select for ≤20 items -->
+            @if (useSelectForEvents) {
+              <mat-select formControlName="pc_event_id">
+                @for (event of events; track event) {
+                  <mat-option [value]="event.id">
+                    {{ event.attributes.name }}@if (getEventDate(event)) {
+                    <span> ({{ getEventDate(event)! | date:'shortDate' }})</span>
+                  }
+                </mat-option>
+              }
+            </mat-select>
+          }
+          <!-- Use mat-autocomplete with alphabetical grouping for >20 items -->
+          @if (!useSelectForEvents) {
+            <input
+              type="text"
+              matInput
+              [formControl]="eventControl"
+              [matAutocomplete]="eventAuto"
+              #eventAutoTrigger="matAutocompleteTrigger"
+              placeholder="Search events..."
+              />
+          }
+          <mat-autocomplete
+            #eventAuto="matAutocomplete"
+            [displayWith]="displayEventName">
+            @for (group of filteredEvents | async; track group) {
+              <mat-optgroup [label]="group.letter" [attr.data-group-letter]="group.letter">
+                @for (event of group.events; track event) {
+                  <mat-option [value]="event">
+                    {{ event.attributes.name }}@if (getEventDate(event)) {
+                    <span> ({{ getEventDate(event)! | date:'shortDate' }})</span>
+                  }
+                </mat-option>
+              }
             </mat-optgroup>
-          </ng-container>
+          }
         </mat-autocomplete>
-
-        <mat-error *ngIf="importForm.get('pc_event_id')?.hasError('required')">
-          Event is required
-        </mat-error>
+        @if (importForm.get('pc_event_id')?.hasError('required')) {
+          <mat-error>
+            Event is required
+          </mat-error>
+        }
       </mat-form-field>
-    </div>
+    }
+  </div>
+}
 
-    <!-- PC List Selection -->
-    <div *ngIf="sourceType === 'list'">
-      <!-- Loading State -->
-      <div *ngIf="isLoadingLists" class="loading-control">
+<!-- PC List Selection -->
+@if (sourceType === 'list') {
+  <div>
+    <!-- Loading State -->
+    @if (isLoadingLists) {
+      <div class="loading-control">
         <mat-spinner diameter="30"></mat-spinner>
         <p>Loading lists from Planning Center...</p>
       </div>
-
-      <!-- List Selection Control (shown after loading) -->
-      <mat-form-field appearance="outline" class="full-width" *ngIf="!isLoadingLists">
+    }
+    <!-- List Selection Control (shown after loading) -->
+    @if (!isLoadingLists) {
+      <mat-form-field appearance="outline" class="full-width">
         <mat-label>Planning Center List</mat-label>
-        
         <!-- Use mat-select for ≤20 items -->
-        <mat-select formControlName="pc_list_id" *ngIf="useSelectForLists">
-          <mat-option *ngFor="let list of lists" [value]="list.id">
-            {{ list.attributes.name }}
-          </mat-option>
-        </mat-select>
-
+        @if (useSelectForLists) {
+          <mat-select formControlName="pc_list_id">
+            @for (list of lists; track list) {
+              <mat-option [value]="list.id">
+                {{ list.attributes.name }}
+              </mat-option>
+            }
+          </mat-select>
+        }
         <!-- Use mat-autocomplete with alphabetical grouping for >20 items -->
-        <input
-          *ngIf="!useSelectForLists"
-          type="text"
-          matInput
-          [formControl]="listControl"
-          [matAutocomplete]="listAuto"
-          #listAutoTrigger="matAutocompleteTrigger"
-          placeholder="Search lists..."
-        />
+        @if (!useSelectForLists) {
+          <input
+            type="text"
+            matInput
+            [formControl]="listControl"
+            [matAutocomplete]="listAuto"
+            #listAutoTrigger="matAutocompleteTrigger"
+            placeholder="Search lists..."
+            />
+        }
         <mat-autocomplete
           #listAuto="matAutocomplete"
           [displayWith]="displayListName">
-          <ng-container *ngFor="let group of filteredLists | async">
+          @for (group of filteredLists | async; track group) {
             <mat-optgroup [label]="group.letter" [attr.data-group-letter]="group.letter">
-              <mat-option *ngFor="let list of group.lists" [value]="list">
-                {{ list.attributes.name }}
-              </mat-option>
+              @for (list of group.lists; track list) {
+                <mat-option [value]="list">
+                  {{ list.attributes.name }}
+                </mat-option>
+              }
             </mat-optgroup>
-          </ng-container>
+          }
         </mat-autocomplete>
-
-        <mat-error *ngIf="importForm.get('pc_list_id')?.hasError('required')">
-          List is required
-        </mat-error>
+        @if (importForm.get('pc_list_id')?.hasError('required')) {
+          <mat-error>
+            List is required
+          </mat-error>
+        }
       </mat-form-field>
-    </div>
+    }
+  </div>
+}
 
-    <!-- Preview Section -->
-    <div *ngIf="previewData && !isLoadingDetails" class="preview-section">
-      <h3>Preview</h3>
-      <div class="preview-content">
+<!-- Preview Section -->
+@if (previewData && !isLoadingDetails) {
+  <div class="preview-section">
+    <h3>Preview</h3>
+    <div class="preview-content">
+      <div class="preview-item">
+        <strong>Title:</strong> {{ previewData.title || 'N/A' }}
+      </div>
+      @if (previewData.description) {
         <div class="preview-item">
-          <strong>Title:</strong> {{ previewData.title || 'N/A' }}
-        </div>
-        <div class="preview-item" *ngIf="previewData.description">
           <strong>Description:</strong> {{ previewData.description }}
         </div>
-        <div class="preview-item" *ngIf="previewData.event_start_date">
+      }
+      @if (previewData.event_start_date) {
+        <div class="preview-item">
           <strong>Start Date:</strong> {{ previewData.event_start_date | date:'short' }}
         </div>
-        <div class="preview-item" *ngIf="previewData.event_end_date">
+      }
+      @if (previewData.event_end_date) {
+        <div class="preview-item">
           <strong>End Date:</strong> {{ previewData.event_end_date | date:'short' }}
         </div>
-        <div class="preview-item" *ngIf="previewData.max_capacity">
+      }
+      @if (previewData.max_capacity) {
+        <div class="preview-item">
           <strong>Max Capacity:</strong> {{ previewData.max_capacity }}
         </div>
-        <div class="preview-item" *ngIf="previewData.planning_center_event_id">
+      }
+      @if (previewData.planning_center_event_id) {
+        <div class="preview-item">
           <strong>PC Event ID:</strong> {{ previewData.planning_center_event_id }}
         </div>
-        <div class="preview-item" *ngIf="previewData.planning_center_list_id">
+      }
+      @if (previewData.planning_center_list_id) {
+        <div class="preview-item">
           <strong>PC List ID:</strong> {{ previewData.planning_center_list_id }}
         </div>
-      </div>
-      <p class="preview-note">
-        <mat-icon>info</mat-icon>
-        You can edit these values in the next step before creating the {{ data.entityType === 'course' ? 'course' : 'program' }}.
-      </p>
+      }
     </div>
+    <p class="preview-note">
+      <mat-icon>info</mat-icon>
+      You can edit these values in the next step before creating the {{ data.entityType === 'course' ? 'course' : 'program' }}.
+    </p>
+  </div>
+}
 
-    <div *ngIf="isLoadingDetails" class="loading-preview">
-      <mat-spinner diameter="30"></mat-spinner>
-      <p>Loading details...</p>
-    </div>
-  </form>
+@if (isLoadingDetails) {
+  <div class="loading-preview">
+    <mat-spinner diameter="30"></mat-spinner>
+    <p>Loading details...</p>
+  </div>
+}
+</form>
 </div>
 
 <div mat-dialog-actions align="end">
   <button mat-button (click)="onCancel()">Cancel</button>
-  <button 
-    mat-raised-button 
-    color="primary" 
+  <button
+    mat-raised-button
+    color="primary"
     (click)="onSubmit()"
     [disabled]="importForm.invalid || !previewData || isLoadingDetails">
     Continue

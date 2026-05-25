@@ -3,45 +3,51 @@
     <mat-icon>school</mat-icon>
     Enrollments for {{ member.first_name }} {{ member.last_name }}
   </h2>
-  
-  <mat-dialog-content>
-    <div *ngIf="enrollments.length === 0" class="no-enrollments">
-      <mat-icon>assignment</mat-icon>
-      <p>No enrollments found for this member.</p>
-    </div>
 
-    <div *ngIf="enrollments.length > 0" class="enrollments-list">
-      <div *ngFor="let enrollment of enrollments" class="enrollment-item">
-        <div class="enrollment-header">
-          <h3>{{ enrollment.course?.title || 'Unknown Course' }}</h3>
-          <mat-chip [color]="getStatusColor(enrollment.status)" selected>
-            {{ getStatusText(enrollment.status) }}
-          </mat-chip>
-        </div>
-        
-        <div class="enrollment-details">
-          <div class="detail-row">
-            <div class="detail-item">
-              <span class="detail-label">Progress</span>
-              <span class="detail-value">{{ enrollment.progress_percentage }}%</span>
-            </div>
-            <div class="detail-item">
-              <span class="detail-label">Enrolled</span>
-              <span class="detail-value">{{ formatDate(enrollment.enrolled_at) }}</span>
-            </div>
-          </div>
-          
-          <div class="detail-row" *ngIf="enrollment.completion_date">
-            <div class="detail-item">
-              <span class="detail-label">Completed</span>
-              <span class="detail-value">{{ formatDate(enrollment.completion_date) }}</span>
-            </div>
-          </div>
-        </div>
+  <mat-dialog-content>
+    @if (enrollments.length === 0) {
+      <div class="no-enrollments">
+        <mat-icon>assignment</mat-icon>
+        <p>No enrollments found for this member.</p>
       </div>
-    </div>
+    }
+
+    @if (enrollments.length > 0) {
+      <div class="enrollments-list">
+        @for (enrollment of enrollments; track enrollment) {
+          <div class="enrollment-item">
+            <div class="enrollment-header">
+              <h3>{{ enrollment.course?.title || 'Unknown Course' }}</h3>
+              <mat-chip [color]="getStatusColor(enrollment.status)" selected>
+                {{ getStatusText(enrollment.status) }}
+              </mat-chip>
+            </div>
+            <div class="enrollment-details">
+              <div class="detail-row">
+                <div class="detail-item">
+                  <span class="detail-label">Progress</span>
+                  <span class="detail-value">{{ enrollment.progress_percentage }}%</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-label">Enrolled</span>
+                  <span class="detail-value">{{ formatDate(enrollment.enrolled_at) }}</span>
+                </div>
+              </div>
+              @if (enrollment.completion_date) {
+                <div class="detail-row">
+                  <div class="detail-item">
+                    <span class="detail-label">Completed</span>
+                    <span class="detail-value">{{ formatDate(enrollment.completion_date) }}</span>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
   </mat-dialog-content>
-  
+
   <mat-dialog-actions align="end">
     <button mat-button (click)="close()">Close</button>
   </mat-dialog-actions>

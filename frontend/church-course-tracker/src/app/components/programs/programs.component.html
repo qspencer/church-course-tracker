@@ -2,30 +2,33 @@
   <div class="programs-header">
     <h1>Programs Management</h1>
     <div class="header-actions">
-      <button 
-        *ngIf="canCreateProgram()" 
-        mat-stroked-button 
-        color="accent" 
-        (click)="openImportDialog()">
-        <mat-icon>cloud_download</mat-icon>
-        Import Program from Planning Center
-      </button>
-      <button 
-        *ngIf="canCreateProgram()" 
-        mat-stroked-button 
-        color="accent" 
-        (click)="openBulkImportDialog()">
-        <mat-icon>people</mat-icon>
-        Import Participants from Planning Center
-      </button>
-      <button 
-        *ngIf="canCreateProgram()" 
-        mat-raised-button 
-        color="primary" 
-        (click)="openProgramDialog()">
-        <mat-icon>add</mat-icon>
-        Add New Program
-      </button>
+      @if (canCreateProgram()) {
+        <button
+          mat-stroked-button
+          color="accent"
+          (click)="openImportDialog()">
+          <mat-icon>cloud_download</mat-icon>
+          Import Program from Planning Center
+        </button>
+      }
+      @if (canCreateProgram()) {
+        <button
+          mat-stroked-button
+          color="accent"
+          (click)="openBulkImportDialog()">
+          <mat-icon>people</mat-icon>
+          Import Participants from Planning Center
+        </button>
+      }
+      @if (canCreateProgram()) {
+        <button
+          mat-raised-button
+          color="primary"
+          (click)="openProgramDialog()">
+          <mat-icon>add</mat-icon>
+          Add New Program
+        </button>
+      }
     </div>
   </div>
 
@@ -44,177 +47,175 @@
       </mat-form-field>
 
       <!-- Loading Spinner -->
-      <div *ngIf="isLoading" class="loading-container">
-        <mat-spinner></mat-spinner>
-        <p>Loading programs...</p>
-      </div>
+      @if (isLoading) {
+        <div class="loading-container">
+          <mat-spinner></mat-spinner>
+          <p>Loading programs...</p>
+        </div>
+      }
 
       <!-- Programs Table -->
-      <div *ngIf="!isLoading" class="table-container">
-        <table mat-table [dataSource]="dataSource" matSort class="programs-table">
-          <!-- Title Column -->
-          <ng-container matColumnDef="title">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>Title</th>
-            <td mat-cell *matCellDef="let program">
-              <div class="program-title">
-                <strong>{{ program.title }}</strong>
-              </div>
-            </td>
-          </ng-container>
-
-          <!-- Description Column -->
-          <ng-container matColumnDef="description">
-            <th mat-header-cell *matHeaderCellDef>Description</th>
-            <td mat-cell *matCellDef="let program">
-              <div class="program-description">
-                {{ program.description || 'No description' | slice:0:100 }}
-                <span *ngIf="program.description && program.description.length > 100">...</span>
-              </div>
-            </td>
-          </ng-container>
-
-          <!-- Status Column -->
-          <ng-container matColumnDef="is_active">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>Status</th>
-            <td mat-cell *matCellDef="let program">
-              <mat-chip 
-                [color]="getStatusColor(program.is_active)" 
-                selected
-                class="status-chip">
-                {{ getStatusText(program.is_active) }}
-              </mat-chip>
-            </td>
-          </ng-container>
-
-          <!-- Created Date Column -->
-          <ng-container matColumnDef="created_at">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>Created</th>
-            <td mat-cell *matCellDef="let program">
-              <div class="date-info">
-                {{ program.created_at | date:'short' }}
-              </div>
-            </td>
-          </ng-container>
-
-          <!-- Actions Column -->
-          <ng-container matColumnDef="actions">
-            <th mat-header-cell *matHeaderCellDef>Actions</th>
-            <td mat-cell *matCellDef="let program">
-              <div class="actions-container">
-                <button 
-                  mat-icon-button 
-                  color="primary" 
-                  (click)="viewProgramDetails(program)"
-                  matTooltip="View Details">
-                  <mat-icon>visibility</mat-icon>
-                </button>
-                
-                <button 
-                  mat-icon-button 
-                  color="primary" 
-                  (click)="manageParticipants(program)"
-                  matTooltip="Manage Participants">
-                  <mat-icon>people</mat-icon>
-                </button>
-                
-                <button 
-                  mat-icon-button 
-                  color="accent" 
-                  (click)="managePairings(program)"
-                  matTooltip="Manage Pairings">
-                  <mat-icon>link</mat-icon>
-                </button>
-                
-                <button 
-                  mat-icon-button 
-                  color="primary" 
-                  (click)="manageSessions(program)"
-                  matTooltip="Manage Sessions">
-                  <mat-icon>event</mat-icon>
-                </button>
-                
+      @if (!isLoading) {
+        <div class="table-container">
+          <table mat-table [dataSource]="dataSource" matSort class="programs-table">
+            <!-- Title Column -->
+            <ng-container matColumnDef="title">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Title</th>
+              <td mat-cell *matCellDef="let program">
+                <div class="program-title">
+                  <strong>{{ program.title }}</strong>
+                </div>
+              </td>
+            </ng-container>
+            <!-- Description Column -->
+            <ng-container matColumnDef="description">
+              <th mat-header-cell *matHeaderCellDef>Description</th>
+              <td mat-cell *matCellDef="let program">
+                <div class="program-description">
+                  {{ program.description || 'No description' | slice:0:100 }}
+                  @if (program.description && program.description.length > 100) {
+                    <span>...</span>
+                  }
+                </div>
+              </td>
+            </ng-container>
+            <!-- Status Column -->
+            <ng-container matColumnDef="is_active">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Status</th>
+              <td mat-cell *matCellDef="let program">
+                <mat-chip
+                  [color]="getStatusColor(program.is_active)"
+                  selected
+                  class="status-chip">
+                  {{ getStatusText(program.is_active) }}
+                </mat-chip>
+              </td>
+            </ng-container>
+            <!-- Created Date Column -->
+            <ng-container matColumnDef="created_at">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Created</th>
+              <td mat-cell *matCellDef="let program">
+                <div class="date-info">
+                  {{ program.created_at | date:'short' }}
+                </div>
+              </td>
+            </ng-container>
+            <!-- Actions Column -->
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef>Actions</th>
+              <td mat-cell *matCellDef="let program">
+                <div class="actions-container">
+                  <button
+                    mat-icon-button
+                    color="primary"
+                    (click)="viewProgramDetails(program)"
+                    matTooltip="View Details">
+                    <mat-icon>visibility</mat-icon>
+                  </button>
+                  <button
+                    mat-icon-button
+                    color="primary"
+                    (click)="manageParticipants(program)"
+                    matTooltip="Manage Participants">
+                    <mat-icon>people</mat-icon>
+                  </button>
+                  <button
+                    mat-icon-button
+                    color="accent"
+                    (click)="managePairings(program)"
+                    matTooltip="Manage Pairings">
+                    <mat-icon>link</mat-icon>
+                  </button>
+                  <button
+                    mat-icon-button
+                    color="primary"
+                    (click)="manageSessions(program)"
+                    matTooltip="Manage Sessions">
+                    <mat-icon>event</mat-icon>
+                  </button>
+                  <button
+                    mat-icon-button
+                    color="accent"
+                    (click)="manageProgress(program)"
+                    matTooltip="Manage Progress">
+                    <mat-icon>trending_up</mat-icon>
+                  </button>
+                  @if (canEditProgram()) {
+                    <button
+                      mat-icon-button
+                      color="primary"
+                      (click)="configureCustomTab(program)"
+                      matTooltip="Configure Custom Tab Import">
+                      <mat-icon>tab</mat-icon>
+                    </button>
+                  }
+                  @if (program.planning_center_tab_config?.enabled) {
+                    <button
+                      mat-icon-button
+                      color="accent"
+                      (click)="importFromCustomTab(program)"
+                      matTooltip="Import from Custom Tab">
+                      <mat-icon>cloud_download</mat-icon>
+                    </button>
+                  }
+                  @if (canEditProgram()) {
+                    <button
+                      mat-icon-button
+                      color="accent"
+                      (click)="editProgram(program)"
+                      matTooltip="Edit Program">
+                      <mat-icon>edit</mat-icon>
+                    </button>
+                  }
+                  @if (canToggleProgramStatus()) {
+                    <button
+                      mat-icon-button
+                      [color]="program.is_active ? 'warn' : 'primary'"
+                      (click)="toggleProgramStatus(program)"
+                      [matTooltip]="program.is_active ? 'Deactivate Program' : 'Activate Program'">
+                      <mat-icon>{{ program.is_active ? 'pause' : 'play_arrow' }}</mat-icon>
+                    </button>
+                  }
+                  @if (canDeleteProgram()) {
+                    <button
+                      mat-icon-button
+                      color="warn"
+                      (click)="deleteProgram(program)"
+                      matTooltip="Delete Program">
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  }
+                </div>
+              </td>
+            </ng-container>
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+          </table>
+          <!-- No Data Message -->
+          @if (dataSource.data.length === 0) {
+            <div class="no-data">
+              <mat-icon>groups</mat-icon>
+              <h3>No programs found</h3>
+              <p>Get started by creating your first program</p>
+              @if (canCreateProgram()) {
                 <button
-                  mat-icon-button
-                  color="accent"
-                  (click)="manageProgress(program)"
-                  matTooltip="Manage Progress">
-                  <mat-icon>trending_up</mat-icon>
-                </button>
-
-                <button
-                  *ngIf="canEditProgram()"
-                  mat-icon-button
+                  mat-raised-button
                   color="primary"
-                  (click)="configureCustomTab(program)"
-                  matTooltip="Configure Custom Tab Import">
-                  <mat-icon>tab</mat-icon>
+                  (click)="openProgramDialog()">
+                  <mat-icon>add</mat-icon>
+                  Create Program
                 </button>
-
-                <button
-                  *ngIf="program.planning_center_tab_config?.enabled"
-                  mat-icon-button
-                  color="accent"
-                  (click)="importFromCustomTab(program)"
-                  matTooltip="Import from Custom Tab">
-                  <mat-icon>cloud_download</mat-icon>
-                </button>
-
-                <button
-                  *ngIf="canEditProgram()"
-                  mat-icon-button
-                  color="accent"
-                  (click)="editProgram(program)"
-                  matTooltip="Edit Program">
-                  <mat-icon>edit</mat-icon>
-                </button>
-                
-                <button 
-                  *ngIf="canToggleProgramStatus()"
-                  mat-icon-button 
-                  [color]="program.is_active ? 'warn' : 'primary'"
-                  (click)="toggleProgramStatus(program)"
-                  [matTooltip]="program.is_active ? 'Deactivate Program' : 'Activate Program'">
-                  <mat-icon>{{ program.is_active ? 'pause' : 'play_arrow' }}</mat-icon>
-                </button>
-                
-                <button 
-                  *ngIf="canDeleteProgram()"
-                  mat-icon-button 
-                  color="warn" 
-                  (click)="deleteProgram(program)"
-                  matTooltip="Delete Program">
-                  <mat-icon>delete</mat-icon>
-                </button>
-              </div>
-            </td>
-          </ng-container>
-
-          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-        </table>
-
-        <!-- No Data Message -->
-        <div *ngIf="dataSource.data.length === 0" class="no-data">
-          <mat-icon>groups</mat-icon>
-          <h3>No programs found</h3>
-          <p>Get started by creating your first program</p>
-          <button 
-            *ngIf="canCreateProgram()" 
-            mat-raised-button 
-            color="primary" 
-            (click)="openProgramDialog()">
-            <mat-icon>add</mat-icon>
-            Create Program
-          </button>
+              }
+            </div>
+          }
+          <!-- Paginator -->
+          <mat-paginator
+            [pageSizeOptions]="[5, 10, 25, 100]"
+            [pageSize]="10"
+            showFirstLastButtons>
+          </mat-paginator>
         </div>
-
-        <!-- Paginator -->
-        <mat-paginator 
-          [pageSizeOptions]="[5, 10, 25, 100]"
-          [pageSize]="10"
-          showFirstLastButtons>
-        </mat-paginator>
-      </div>
+      }
     </mat-card-content>
   </mat-card>
 </div>

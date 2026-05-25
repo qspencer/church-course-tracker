@@ -9,9 +9,11 @@
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Full Name</mat-label>
           <input matInput formControlName="full_name">
-          <mat-error *ngIf="shouldShowError('full_name')">
-            {{ getErrorMessage('full_name') }}
-          </mat-error>
+          @if (shouldShowError('full_name')) {
+            <mat-error>
+              {{ getErrorMessage('full_name') }}
+            </mat-error>
+          }
         </mat-form-field>
       </div>
 
@@ -19,9 +21,11 @@
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Email</mat-label>
           <input matInput type="email" formControlName="email">
-          <mat-error *ngIf="shouldShowError('email')">
-            {{ getErrorMessage('email') }}
-          </mat-error>
+          @if (shouldShowError('email')) {
+            <mat-error>
+              {{ getErrorMessage('email') }}
+            </mat-error>
+          }
         </mat-form-field>
       </div>
 
@@ -42,25 +46,33 @@
             <mat-option value="instructor">Instructor</mat-option>
             <mat-option value="viewer">Viewer</mat-option>
           </mat-select>
-          <mat-error *ngIf="shouldShowError('role')">
-            {{ getErrorMessage('role') }}
-          </mat-error>
+          @if (shouldShowError('role')) {
+            <mat-error>
+              {{ getErrorMessage('role') }}
+            </mat-error>
+          }
         </mat-form-field>
       </div>
 
       <div class="form-row">
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Password</mat-label>
-          <input matInput [type]="hidePassword ? 'password' : 'text'" 
-                 formControlName="password">
+          <input matInput [type]="hidePassword ? 'password' : 'text'"
+            formControlName="password">
           <button mat-icon-button matSuffix (click)="hidePassword = !hidePassword" type="button">
             <mat-icon>{{hidePassword ? 'visibility_off' : 'visibility'}}</mat-icon>
           </button>
-          <mat-hint *ngIf="data.mode === 'edit'">Leave blank to keep current password</mat-hint>
-          <mat-hint *ngIf="data.mode === 'create'">Minimum 8 characters</mat-hint>
-          <mat-error *ngIf="shouldShowError('password')">
-            {{ getErrorMessage('password') }}
-          </mat-error>
+          @if (data.mode === 'edit') {
+            <mat-hint>Leave blank to keep current password</mat-hint>
+          }
+          @if (data.mode === 'create') {
+            <mat-hint>Minimum 8 characters</mat-hint>
+          }
+          @if (shouldShowError('password')) {
+            <mat-error>
+              {{ getErrorMessage('password') }}
+            </mat-error>
+          }
         </mat-form-field>
       </div>
 
@@ -77,12 +89,16 @@
     <button mat-button (click)="onCancel()" [disabled]="isSubmitting">
       Cancel
     </button>
-    <button mat-raised-button 
-            color="primary" 
-            (click)="onSubmit()" 
-            [disabled]="userForm.invalid || isSubmitting">
-      <mat-spinner *ngIf="isSubmitting" diameter="20"></mat-spinner>
-      <span *ngIf="!isSubmitting">{{ data.mode === 'create' ? 'Create' : 'Update' }}</span>
+    <button mat-raised-button
+      color="primary"
+      (click)="onSubmit()"
+      [disabled]="userForm.invalid || isSubmitting">
+      @if (isSubmitting) {
+        <mat-spinner diameter="20"></mat-spinner>
+      }
+      @if (!isSubmitting) {
+        <span>{{ data.mode === 'create' ? 'Create' : 'Update' }}</span>
+      }
     </button>
   </mat-dialog-actions>
 </div>

@@ -1,281 +1,324 @@
 <div class="program-dialog">
   <h2 mat-dialog-title>
-    <span *ngIf="viewMode">Program Details</span>
-    <span *ngIf="!viewMode">{{ isEditMode ? 'Edit Program' : 'Create New Program' }}</span>
+    @if (viewMode) {
+      <span>Program Details</span>
+    }
+    @if (!viewMode) {
+      <span>{{ isEditMode ? 'Edit Program' : 'Create New Program' }}</span>
+    }
   </h2>
-  
+
   <mat-dialog-content>
     <!-- View Mode: Read-only display -->
-    <div *ngIf="viewMode && program" class="program-details-view">
-      <div class="detail-section">
-        <h3 class="detail-label">Title</h3>
-        <p class="detail-value">{{ program.title }}</p>
-      </div>
-
-      <div class="detail-section" *ngIf="program.description">
-        <h3 class="detail-label">Description</h3>
-        <p class="detail-value">{{ program.description }}</p>
-      </div>
-
-      <div class="detail-row">
-        <div class="detail-item">
-          <h3 class="detail-label">Status</h3>
-          <p class="detail-value">
-            <mat-chip [color]="program.is_active ? 'primary' : 'warn'" selected>
-              {{ program.is_active ? 'Active' : 'Inactive' }}
-            </mat-chip>
-          </p>
+    @if (viewMode && program) {
+      <div class="program-details-view">
+        <div class="detail-section">
+          <h3 class="detail-label">Title</h3>
+          <p class="detail-value">{{ program.title }}</p>
         </div>
-        <div class="detail-item" *ngIf="program.created_at">
-          <h3 class="detail-label">Created</h3>
-          <p class="detail-value">{{ program.created_at | date:'short' }}</p>
-        </div>
-      </div>
-
-      <!-- Role Definitions -->
-      <div class="detail-section" *ngIf="program.role_definitions && program.role_definitions.length > 0">
-        <h3 class="detail-label">Roles</h3>
-        <div class="roles-list">
-          <div *ngFor="let role of program.role_definitions" class="role-item">
-            <mat-chip [color]="role.is_primary ? 'primary' : 'accent'" selected>
-              {{ role.name }} ({{ role.min_participants }}-{{ role.max_participants }})
-              <span *ngIf="role.is_primary"> - Primary</span>
-            </mat-chip>
+        @if (program.description) {
+          <div class="detail-section">
+            <h3 class="detail-label">Description</h3>
+            <p class="detail-value">{{ program.description }}</p>
           </div>
+        }
+        <div class="detail-row">
+          <div class="detail-item">
+            <h3 class="detail-label">Status</h3>
+            <p class="detail-value">
+              <mat-chip [color]="program.is_active ? 'primary' : 'warn'" selected>
+                {{ program.is_active ? 'Active' : 'Inactive' }}
+              </mat-chip>
+            </p>
+          </div>
+          @if (program.created_at) {
+            <div class="detail-item">
+              <h3 class="detail-label">Created</h3>
+              <p class="detail-value">{{ program.created_at | date:'short' }}</p>
+            </div>
+          }
         </div>
-      </div>
-
-      <!-- Relationship Config -->
-      <div class="detail-section" *ngIf="program.relationship_config">
-        <h3 class="detail-label">Relationship Configuration</h3>
-        <div class="config-details">
-          <p><strong>Allow Multiple Secondary:</strong> {{ program.relationship_config.allow_multiple_secondary ? 'Yes' : 'No' }}</p>
-          <p *ngIf="program.relationship_config.max_secondary_per_primary">
-            <strong>Max Secondary per Primary:</strong> {{ program.relationship_config.max_secondary_per_primary }}
-          </p>
-          <p><strong>Require Pairing:</strong> {{ program.relationship_config.require_pairing ? 'Yes' : 'No' }}</p>
-          <p><strong>Progress Calculation:</strong> {{ program.relationship_config.progress_calculation }}</p>
-        </div>
-      </div>
-
-      <!-- Locations -->
-      <div class="detail-section" *ngIf="getLocations().length > 0">
-        <h3 class="detail-label">Locations</h3>
-        <div class="chip-list">
-          <mat-chip *ngFor="let location of getLocations()" selected>{{ location }}</mat-chip>
-        </div>
-      </div>
-
-      <!-- Delivery Modes -->
-      <div class="detail-section" *ngIf="getDeliveryModes().length > 0">
-        <h3 class="detail-label">Delivery Modes</h3>
-        <div class="chip-list">
-          <mat-chip *ngFor="let mode of getDeliveryModes()" selected>{{ mode }}</mat-chip>
-        </div>
-      </div>
-
-      <!-- Prerequisites -->
-      <div class="detail-section" *ngIf="getPrerequisites().length > 0">
-        <h3 class="detail-label">Prerequisites</h3>
-        <div class="chip-list">
-          <mat-chip *ngFor="let prereqId of getPrerequisites()" selected>
-            Course ID: {{ prereqId }}
-          </mat-chip>
-        </div>
-      </div>
-    </div>
-
-    <!-- Action Buttons in View Mode -->
-    <div *ngIf="viewMode && program" class="view-mode-actions">
-      <button mat-raised-button color="primary" (click)="manageParticipants()">
-        <mat-icon>people</mat-icon>
-        Manage Participants
-      </button>
-      <button mat-raised-button color="accent" (click)="managePairings()">
-        <mat-icon>link</mat-icon>
-        Manage Pairings
-      </button>
-      <button mat-raised-button color="primary" (click)="manageSessions()">
-        <mat-icon>event</mat-icon>
-        Manage Sessions
-      </button>
-      <button mat-raised-button color="accent" (click)="manageProgress()">
-        <mat-icon>trending_up</mat-icon>
-        Manage Progress
-      </button>
-      <button mat-raised-button color="primary" (click)="manageContent()">
-        <mat-icon>library_books</mat-icon>
-        Manage Content
-      </button>
-    </div>
-
-    <!-- Edit/Create Mode: Form -->
-    <form [formGroup]="programForm" *ngIf="!viewMode" class="program-form">
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Title</mat-label>
-        <input matInput formControlName="title" required>
-        <mat-error *ngIf="programForm.get('title')?.hasError('required')">
-          Title is required
-        </mat-error>
-        <mat-error *ngIf="programForm.get('title')?.hasError('maxlength')">
-          Title must be less than 200 characters
-        </mat-error>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Description</mat-label>
-        <textarea matInput formControlName="description" rows="4"></textarea>
-      </mat-form-field>
-
-      <mat-checkbox formControlName="is_active">Active</mat-checkbox>
-
-      <!-- Role Definitions -->
-      <div class="form-section">
-        <h3>Role Definitions</h3>
-        <p class="section-description">Define the roles participants can have in this program</p>
-        
-        <div formArrayName="role_definitions">
-          <div *ngFor="let role of roleDefinitions.controls; let i = index" [formGroupName]="i" class="role-definition-item">
-            <div class="role-form-row">
-              <mat-form-field appearance="outline" class="role-name">
-                <mat-label>Role Name</mat-label>
-                <input matInput formControlName="name">
-                <mat-error *ngIf="shouldShowRoleError(role, 'name')">Required</mat-error>
-              </mat-form-field>
-
-              <mat-form-field appearance="outline" class="role-min">
-                <mat-label>Min Participants</mat-label>
-                <input matInput type="number" formControlName="min_participants" min="0">
-                <mat-error *ngIf="shouldShowRoleError(role, 'min_participants')">Required</mat-error>
-              </mat-form-field>
-
-              <mat-form-field appearance="outline" class="role-max">
-                <mat-label>Max Participants</mat-label>
-                <input matInput type="number" formControlName="max_participants" min="1">
-                <mat-error *ngIf="shouldShowRoleError(role, 'max_participants')">Required</mat-error>
-              </mat-form-field>
-
-              <mat-checkbox formControlName="is_primary" class="role-primary">Primary Role</mat-checkbox>
-
-              <button mat-icon-button type="button" (click)="removeRoleDefinition(i)" color="warn" *ngIf="roleDefinitions.length > 1">
-                <mat-icon>delete</mat-icon>
-              </button>
+        <!-- Role Definitions -->
+        @if (program.role_definitions && program.role_definitions.length > 0) {
+          <div class="detail-section">
+            <h3 class="detail-label">Roles</h3>
+            <div class="roles-list">
+              @for (role of program.role_definitions; track role) {
+                <div class="role-item">
+                  <mat-chip [color]="role.is_primary ? 'primary' : 'accent'" selected>
+                    {{ role.name }} ({{ role.min_participants }}-{{ role.max_participants }})
+                    @if (role.is_primary) {
+                      <span> - Primary</span>
+                    }
+                  </mat-chip>
+                </div>
+              }
             </div>
           </div>
-        </div>
+        }
+        <!-- Relationship Config -->
+        @if (program.relationship_config) {
+          <div class="detail-section">
+            <h3 class="detail-label">Relationship Configuration</h3>
+            <div class="config-details">
+              <p><strong>Allow Multiple Secondary:</strong> {{ program.relationship_config.allow_multiple_secondary ? 'Yes' : 'No' }}</p>
+              @if (program.relationship_config.max_secondary_per_primary) {
+                <p>
+                  <strong>Max Secondary per Primary:</strong> {{ program.relationship_config.max_secondary_per_primary }}
+                </p>
+              }
+              <p><strong>Require Pairing:</strong> {{ program.relationship_config.require_pairing ? 'Yes' : 'No' }}</p>
+              <p><strong>Progress Calculation:</strong> {{ program.relationship_config.progress_calculation }}</p>
+            </div>
+          </div>
+        }
+        <!-- Locations -->
+        @if (getLocations().length > 0) {
+          <div class="detail-section">
+            <h3 class="detail-label">Locations</h3>
+            <div class="chip-list">
+              @for (location of getLocations(); track location) {
+                <mat-chip selected>{{ location }}</mat-chip>
+              }
+            </div>
+          </div>
+        }
+        <!-- Delivery Modes -->
+        @if (getDeliveryModes().length > 0) {
+          <div class="detail-section">
+            <h3 class="detail-label">Delivery Modes</h3>
+            <div class="chip-list">
+              @for (mode of getDeliveryModes(); track mode) {
+                <mat-chip selected>{{ mode }}</mat-chip>
+              }
+            </div>
+          </div>
+        }
+        <!-- Prerequisites -->
+        @if (getPrerequisites().length > 0) {
+          <div class="detail-section">
+            <h3 class="detail-label">Prerequisites</h3>
+            <div class="chip-list">
+              @for (prereqId of getPrerequisites(); track prereqId) {
+                <mat-chip selected>
+                  Course ID: {{ prereqId }}
+                </mat-chip>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
 
-        <button mat-button type="button" (click)="addRoleDefinition()" color="primary">
-          <mat-icon>add</mat-icon>
-          Add Role
+    <!-- Action Buttons in View Mode -->
+    @if (viewMode && program) {
+      <div class="view-mode-actions">
+        <button mat-raised-button color="primary" (click)="manageParticipants()">
+          <mat-icon>people</mat-icon>
+          Manage Participants
+        </button>
+        <button mat-raised-button color="accent" (click)="managePairings()">
+          <mat-icon>link</mat-icon>
+          Manage Pairings
+        </button>
+        <button mat-raised-button color="primary" (click)="manageSessions()">
+          <mat-icon>event</mat-icon>
+          Manage Sessions
+        </button>
+        <button mat-raised-button color="accent" (click)="manageProgress()">
+          <mat-icon>trending_up</mat-icon>
+          Manage Progress
+        </button>
+        <button mat-raised-button color="primary" (click)="manageContent()">
+          <mat-icon>library_books</mat-icon>
+          Manage Content
         </button>
       </div>
+    }
 
-      <!-- Relationship Configuration -->
-      <div class="form-section" formGroupName="relationship_config">
-        <h3>Relationship Configuration</h3>
-        <p class="section-description">Configure how participants can be paired</p>
-
-        <mat-checkbox formControlName="allow_multiple_secondary">
-          Allow multiple secondary participants per primary
-        </mat-checkbox>
-
+    <!-- Edit/Create Mode: Form -->
+    @if (!viewMode) {
+      <form [formGroup]="programForm" class="program-form">
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Max Secondary per Primary (leave empty for unlimited)</mat-label>
-          <input matInput type="number" formControlName="max_secondary_per_primary" min="1">
+          <mat-label>Title</mat-label>
+          <input matInput formControlName="title" required>
+          @if (programForm.get('title')?.hasError('required')) {
+            <mat-error>
+              Title is required
+            </mat-error>
+          }
+          @if (programForm.get('title')?.hasError('maxlength')) {
+            <mat-error>
+              Title must be less than 200 characters
+            </mat-error>
+          }
         </mat-form-field>
-
-        <mat-checkbox formControlName="require_pairing">
-          Require explicit pairing
-        </mat-checkbox>
-
-        <mat-form-field appearance="outline" class="full-width" floatLabel="always">
-          <mat-label>Progress Calculation Method</mat-label>
-          <mat-select formControlName="progress_calculation">
-            <mat-option value="content_based">Content Based</mat-option>
-            <mat-option value="session_based">Session Based</mat-option>
-            <mat-option value="custom">Custom</mat-option>
-          </mat-select>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Description</mat-label>
+          <textarea matInput formControlName="description" rows="4"></textarea>
         </mat-form-field>
-      </div>
-
-      <!-- Locations -->
-      <div class="form-section">
-        <h3>Locations</h3>
-        <div class="chip-input-container">
-          <mat-chip-listbox>
-            <mat-chip *ngFor="let location of programForm.get('locations')?.value" (removed)="removeLocation(location)">
-              {{ location }}
-              <button matChipRemove>
-                <mat-icon>cancel</mat-icon>
-              </button>
-            </mat-chip>
-          </mat-chip-listbox>
-          <mat-form-field appearance="outline" class="chip-input-field">
-            <mat-label>Add Location</mat-label>
-            <input 
-              matInput 
-              [(ngModel)]="locationInput" 
-              (keydown.enter)="addLocation(); $event.preventDefault()"
-              [ngModelOptions]="{standalone: true}">
-            <mat-hint>Press Enter to add location</mat-hint>
+        <mat-checkbox formControlName="is_active">Active</mat-checkbox>
+        <!-- Role Definitions -->
+        <div class="form-section">
+          <h3>Role Definitions</h3>
+          <p class="section-description">Define the roles participants can have in this program</p>
+          <div formArrayName="role_definitions">
+            @for (role of roleDefinitions.controls; track role; let i = $index) {
+              <div [formGroupName]="i" class="role-definition-item">
+                <div class="role-form-row">
+                  <mat-form-field appearance="outline" class="role-name">
+                    <mat-label>Role Name</mat-label>
+                    <input matInput formControlName="name">
+                    @if (shouldShowRoleError(role, 'name')) {
+                      <mat-error>Required</mat-error>
+                    }
+                  </mat-form-field>
+                  <mat-form-field appearance="outline" class="role-min">
+                    <mat-label>Min Participants</mat-label>
+                    <input matInput type="number" formControlName="min_participants" min="0">
+                    @if (shouldShowRoleError(role, 'min_participants')) {
+                      <mat-error>Required</mat-error>
+                    }
+                  </mat-form-field>
+                  <mat-form-field appearance="outline" class="role-max">
+                    <mat-label>Max Participants</mat-label>
+                    <input matInput type="number" formControlName="max_participants" min="1">
+                    @if (shouldShowRoleError(role, 'max_participants')) {
+                      <mat-error>Required</mat-error>
+                    }
+                  </mat-form-field>
+                  <mat-checkbox formControlName="is_primary" class="role-primary">Primary Role</mat-checkbox>
+                  @if (roleDefinitions.length > 1) {
+                    <button mat-icon-button type="button" (click)="removeRoleDefinition(i)" color="warn">
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+          <button mat-button type="button" (click)="addRoleDefinition()" color="primary">
+            <mat-icon>add</mat-icon>
+            Add Role
+          </button>
+        </div>
+        <!-- Relationship Configuration -->
+        <div class="form-section" formGroupName="relationship_config">
+          <h3>Relationship Configuration</h3>
+          <p class="section-description">Configure how participants can be paired</p>
+          <mat-checkbox formControlName="allow_multiple_secondary">
+            Allow multiple secondary participants per primary
+          </mat-checkbox>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Max Secondary per Primary (leave empty for unlimited)</mat-label>
+            <input matInput type="number" formControlName="max_secondary_per_primary" min="1">
+          </mat-form-field>
+          <mat-checkbox formControlName="require_pairing">
+            Require explicit pairing
+          </mat-checkbox>
+          <mat-form-field appearance="outline" class="full-width" floatLabel="always">
+            <mat-label>Progress Calculation Method</mat-label>
+            <mat-select formControlName="progress_calculation">
+              <mat-option value="content_based">Content Based</mat-option>
+              <mat-option value="session_based">Session Based</mat-option>
+              <mat-option value="custom">Custom</mat-option>
+            </mat-select>
           </mat-form-field>
         </div>
-      </div>
-
-      <!-- Delivery Modes -->
-      <div class="form-section">
-        <h3>Delivery Modes</h3>
-        <div class="chip-input-container">
-          <mat-chip-listbox>
-            <mat-chip *ngFor="let mode of programForm.get('delivery_modes')?.value" (removed)="removeDeliveryMode(mode)">
-              {{ mode }}
-              <button matChipRemove>
-                <mat-icon>cancel</mat-icon>
-              </button>
-            </mat-chip>
-          </mat-chip-listbox>
-          <mat-form-field appearance="outline" class="chip-input-field">
-            <mat-label>Add Delivery Mode</mat-label>
-            <input 
-              matInput 
-              [(ngModel)]="deliveryModeInput" 
-              (keydown.enter)="addDeliveryMode(); $event.preventDefault()"
-              [ngModelOptions]="{standalone: true}">
-            <mat-hint>Press Enter to add delivery mode</mat-hint>
+        <!-- Locations -->
+        <div class="form-section">
+          <h3>Locations</h3>
+          <div class="chip-input-container">
+            <mat-chip-listbox>
+              @for (location of programForm.get('locations')?.value; track location) {
+                <mat-chip (removed)="removeLocation(location)">
+                  {{ location }}
+                  <button matChipRemove>
+                    <mat-icon>cancel</mat-icon>
+                  </button>
+                </mat-chip>
+              }
+            </mat-chip-listbox>
+            <mat-form-field appearance="outline" class="chip-input-field">
+              <mat-label>Add Location</mat-label>
+              <input
+                matInput
+                [(ngModel)]="locationInput"
+                (keydown.enter)="addLocation(); $event.preventDefault()"
+                [ngModelOptions]="{standalone: true}">
+              <mat-hint>Press Enter to add location</mat-hint>
+            </mat-form-field>
+          </div>
+        </div>
+        <!-- Delivery Modes -->
+        <div class="form-section">
+          <h3>Delivery Modes</h3>
+          <div class="chip-input-container">
+            <mat-chip-listbox>
+              @for (mode of programForm.get('delivery_modes')?.value; track mode) {
+                <mat-chip (removed)="removeDeliveryMode(mode)">
+                  {{ mode }}
+                  <button matChipRemove>
+                    <mat-icon>cancel</mat-icon>
+                  </button>
+                </mat-chip>
+              }
+            </mat-chip-listbox>
+            <mat-form-field appearance="outline" class="chip-input-field">
+              <mat-label>Add Delivery Mode</mat-label>
+              <input
+                matInput
+                [(ngModel)]="deliveryModeInput"
+                (keydown.enter)="addDeliveryMode(); $event.preventDefault()"
+                [ngModelOptions]="{standalone: true}">
+              <mat-hint>Press Enter to add delivery mode</mat-hint>
+            </mat-form-field>
+          </div>
+        </div>
+        <!-- Prerequisites -->
+        <div class="form-section">
+          <h3>Prerequisites</h3>
+          <p class="section-description">Select courses or programs that must be completed before joining this program</p>
+          <mat-form-field appearance="outline" class="full-width" floatLabel="always">
+            <mat-label>Prerequisites</mat-label>
+            <mat-select formControlName="prerequisites" multiple>
+              @for (course of availableCourses; track course) {
+                <mat-option [value]="course.id">
+                  {{ course.title }}
+                </mat-option>
+              }
+            </mat-select>
           </mat-form-field>
         </div>
-      </div>
-
-      <!-- Prerequisites -->
-      <div class="form-section">
-        <h3>Prerequisites</h3>
-        <p class="section-description">Select courses or programs that must be completed before joining this program</p>
-        <mat-form-field appearance="outline" class="full-width" floatLabel="always">
-          <mat-label>Prerequisites</mat-label>
-          <mat-select formControlName="prerequisites" multiple>
-            <mat-option *ngFor="let course of availableCourses" [value]="course.id">
-              {{ course.title }}
-            </mat-option>
-          </mat-select>
-        </mat-form-field>
-      </div>
-    </form>
+      </form>
+    }
   </mat-dialog-content>
 
   <mat-dialog-actions align="end">
     <button mat-button (click)="onCancel()">
-      <span *ngIf="viewMode">Close</span>
-      <span *ngIf="!viewMode">Cancel</span>
+      @if (viewMode) {
+        <span>Close</span>
+      }
+      @if (!viewMode) {
+        <span>Cancel</span>
+      }
     </button>
-    <button 
-      *ngIf="!viewMode"
-      mat-raised-button 
-      color="primary" 
-      (click)="onSubmit()"
-      [disabled]="programForm.invalid || isLoading">
-      <mat-spinner *ngIf="isLoading" diameter="20" style="display: inline-block; margin-right: 8px;"></mat-spinner>
-      <span *ngIf="isEditMode">Update</span>
-      <span *ngIf="!isEditMode">Create</span>
-    </button>
+    @if (!viewMode) {
+      <button
+        mat-raised-button
+        color="primary"
+        (click)="onSubmit()"
+        [disabled]="programForm.invalid || isLoading">
+        @if (isLoading) {
+          <mat-spinner diameter="20" style="display: inline-block; margin-right: 8px;"></mat-spinner>
+        }
+        @if (isEditMode) {
+          <span>Update</span>
+        }
+        @if (!isEditMode) {
+          <span>Create</span>
+        }
+      </button>
+    }
   </mat-dialog-actions>
 </div>

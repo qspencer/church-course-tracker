@@ -1,72 +1,92 @@
 <div class="user-import-dialog">
   <h2 mat-dialog-title>Import User from Planning Center</h2>
-  
+
   <mat-dialog-content>
     <form [formGroup]="searchForm">
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Search by Name, Email, or Phone</mat-label>
-        <input 
-          matInput 
+        <input
+          matInput
           [matAutocomplete]="auto"
           formControlName="search"
           placeholder="Enter name, email, or phone number">
-        <mat-autocomplete 
+        <mat-autocomplete
           #auto="matAutocomplete"
           [displayWith]="displayPerson"
           (optionSelected)="onPersonSelected($event.option.value)">
-          <mat-option 
-            *ngFor="let person of filteredResults | async" 
-            [value]="person">
-            <div class="person-option">
-              <div class="person-name">
-                {{ person.attributes.first_name }} {{ person.attributes.last_name }}
+          @for (person of filteredResults | async; track person) {
+            <mat-option
+              [value]="person">
+              <div class="person-option">
+                <div class="person-name">
+                  {{ person.attributes.first_name }} {{ person.attributes.last_name }}
+                </div>
+                @if (person.attributes.email || person.attributes.phone_number) {
+                  <div class="person-details">
+                    @if (person.attributes.email) {
+                      <span>{{ person.attributes.email }}</span>
+                    }
+                    @if (person.attributes.email && person.attributes.phone_number) {
+                      <span> • </span>
+                    }
+                    @if (person.attributes.phone_number) {
+                      <span>{{ person.attributes.phone_number }}</span>
+                    }
+                  </div>
+                }
               </div>
-              <div class="person-details" *ngIf="person.attributes.email || person.attributes.phone_number">
-                <span *ngIf="person.attributes.email">{{ person.attributes.email }}</span>
-                <span *ngIf="person.attributes.email && person.attributes.phone_number"> • </span>
-                <span *ngIf="person.attributes.phone_number">{{ person.attributes.phone_number }}</span>
-              </div>
-            </div>
-          </mat-option>
-          <mat-option *ngIf="isLoading">
-            <mat-spinner diameter="20"></mat-spinner>
-            <span style="margin-left: 10px;">Searching...</span>
-          </mat-option>
-          <mat-option *ngIf="!isLoading && (filteredResults | async)?.length === 0 && searchControl.value?.length >= 2">
-            No results found
-          </mat-option>
+            </mat-option>
+          }
+          @if (isLoading) {
+            <mat-option>
+              <mat-spinner diameter="20"></mat-spinner>
+              <span style="margin-left: 10px;">Searching...</span>
+            </mat-option>
+          }
+          @if (!isLoading && (filteredResults | async)?.length === 0 && searchControl.value?.length >= 2) {
+            <mat-option>
+              No results found
+            </mat-option>
+          }
         </mat-autocomplete>
-        <mat-spinner *ngIf="isLoading" diameter="20" matSuffix></mat-spinner>
+        @if (isLoading) {
+          <mat-spinner diameter="20" matSuffix></mat-spinner>
+        }
         <mat-hint>Search for people in Planning Center by name, email, or phone number</mat-hint>
       </mat-form-field>
 
-      <div *ngIf="selectedPerson" class="selected-person">
-        <h3>Selected Person:</h3>
-        <div class="person-info">
-          <p><strong>Name:</strong> {{ selectedPerson.attributes.first_name }} {{ selectedPerson.attributes.last_name }}</p>
-          <p *ngIf="selectedPerson.attributes.email"><strong>Email:</strong> {{ selectedPerson.attributes.email }}</p>
-          <p *ngIf="selectedPerson.attributes.phone_number"><strong>Phone:</strong> {{ selectedPerson.attributes.phone_number }}</p>
+      @if (selectedPerson) {
+        <div class="selected-person">
+          <h3>Selected Person:</h3>
+          <div class="person-info">
+            <p><strong>Name:</strong> {{ selectedPerson.attributes.first_name }} {{ selectedPerson.attributes.last_name }}</p>
+            @if (selectedPerson.attributes.email) {
+              <p><strong>Email:</strong> {{ selectedPerson.attributes.email }}</p>
+            }
+            @if (selectedPerson.attributes.phone_number) {
+              <p><strong>Phone:</strong> {{ selectedPerson.attributes.phone_number }}</p>
+            }
+          </div>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Role</mat-label>
+            <mat-select formControlName="role">
+              <mat-option value="admin">Admin</mat-option>
+              <mat-option value="staff">Staff</mat-option>
+              <mat-option value="instructor">Instructor</mat-option>
+              <mat-option value="viewer">Viewer</mat-option>
+            </mat-select>
+            <mat-hint>Select the role for this user</mat-hint>
+          </mat-form-field>
         </div>
-
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Role</mat-label>
-          <mat-select formControlName="role">
-            <mat-option value="admin">Admin</mat-option>
-            <mat-option value="staff">Staff</mat-option>
-            <mat-option value="instructor">Instructor</mat-option>
-            <mat-option value="viewer">Viewer</mat-option>
-          </mat-select>
-          <mat-hint>Select the role for this user</mat-hint>
-        </mat-form-field>
-      </div>
+      }
     </form>
   </mat-dialog-content>
 
   <mat-dialog-actions align="end">
     <button mat-button (click)="onCancel()">Cancel</button>
-    <button 
-      mat-raised-button 
-      color="primary" 
+    <button
+      mat-raised-button
+      color="primary"
       (click)="onImport()"
       [disabled]="!selectedPerson || !searchForm.valid">
       Import User

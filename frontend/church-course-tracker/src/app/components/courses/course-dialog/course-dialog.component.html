@@ -1,264 +1,322 @@
 <div class="course-dialog">
   <h2 mat-dialog-title>
-    <span *ngIf="viewMode">Course Details</span>
-    <span *ngIf="!viewMode">{{ isEditing ? 'Edit Course' : 'Create New Course' }}</span>
+    @if (viewMode) {
+      <span>Course Details</span>
+    }
+    @if (!viewMode) {
+      <span>{{ isEditing ? 'Edit Course' : 'Create New Course' }}</span>
+    }
   </h2>
-  
+
   <mat-dialog-content>
     <!-- View Mode: Read-only display -->
-    <div *ngIf="viewMode && course" class="course-details-view">
-      <div class="detail-section">
-        <h3 class="detail-label">Title</h3>
-        <p class="detail-value">{{ course.title }}</p>
+    @if (viewMode && course) {
+      <div class="course-details-view">
+        <div class="detail-section">
+          <h3 class="detail-label">Title</h3>
+          <p class="detail-value">{{ course.title }}</p>
+        </div>
+        <div class="detail-section">
+          <h3 class="detail-label">Description</h3>
+          <p class="detail-value">{{ course.description }}</p>
+        </div>
+        <div class="detail-row">
+          <div class="detail-item">
+            <h3 class="detail-label">Duration</h3>
+            <p class="detail-value">{{ formatDuration(course.duration_weeks) }}</p>
+          </div>
+          <div class="detail-item">
+            <h3 class="detail-label">Status</h3>
+            <p class="detail-value">
+              <mat-chip [color]="course.is_active ? 'primary' : 'warn'" selected>
+                {{ course.is_active ? 'Active' : 'Inactive' }}
+              </mat-chip>
+            </p>
+          </div>
+        </div>
+        @if (course.planning_center_event_name || course.planning_center_event_id) {
+          <div class="detail-row">
+            @if (course.planning_center_event_name) {
+              <div class="detail-item">
+                <h3 class="detail-label">Planning Center Event</h3>
+                <p class="detail-value">{{ course.planning_center_event_name }}</p>
+              </div>
+            }
+            @if (course.planning_center_event_id) {
+              <div class="detail-item">
+                <h3 class="detail-label">Event ID</h3>
+                <p class="detail-value">{{ course.planning_center_event_id }}</p>
+              </div>
+            }
+          </div>
+        }
+        <!-- Import Registrations Section -->
+        @if (course.planning_center_event_id) {
+          <div class="detail-row">
+            <div class="detail-item full-width">
+              <h3 class="detail-label">Event Registrations</h3>
+              <p class="detail-value">
+                <button
+                  mat-raised-button
+                  color="accent"
+                  (click)="viewEventRegistrations()">
+                  <mat-icon>people</mat-icon>
+                  View/Import Registrations
+                </button>
+              </p>
+            </div>
+          </div>
+        }
+        @if (course.event_start_date || course.event_end_date) {
+          <div class="detail-row">
+            @if (course.event_start_date) {
+              <div class="detail-item">
+                <h3 class="detail-label">Event Start Date</h3>
+                <p class="detail-value">{{ formatDate(course.event_start_date) }}</p>
+              </div>
+            }
+            @if (course.event_end_date) {
+              <div class="detail-item">
+                <h3 class="detail-label">Event End Date</h3>
+                <p class="detail-value">{{ formatDate(course.event_end_date) }}</p>
+              </div>
+            }
+          </div>
+        }
+        @if (course.max_capacity !== null || course.current_registrations !== undefined) {
+          <div class="detail-row">
+            @if (course.max_capacity !== null) {
+              <div class="detail-item">
+                <h3 class="detail-label">Max Capacity</h3>
+                <p class="detail-value">{{ course.max_capacity }}</p>
+              </div>
+            }
+            @if (course.current_registrations !== undefined) {
+              <div class="detail-item">
+                <h3 class="detail-label">Current Registrations</h3>
+                <p class="detail-value">{{ course.current_registrations }}</p>
+              </div>
+            }
+          </div>
+        }
+        @if (hasPrerequisites()) {
+          <div class="detail-section">
+            <h3 class="detail-label">Prerequisites</h3>
+            <div class="prerequisites-list">
+              @for (prereqId of getPrerequisites(); track prereqId) {
+                <mat-chip selected>
+                  Course ID: {{ prereqId }}
+                </mat-chip>
+              }
+            </div>
+          </div>
+        }
+        @if (getInstructors().length > 0) {
+          <div class="detail-section">
+            <h3 class="detail-label">Instructors</h3>
+            <div class="prerequisites-list">
+              @for (instructor of getInstructors(); track instructor) {
+                <mat-chip selected>
+                  {{ getInstructorDisplay(instructor) }}
+                </mat-chip>
+              }
+            </div>
+          </div>
+        }
+        @if (getLocations().length > 0) {
+          <div class="detail-section">
+            <h3 class="detail-label">Locations</h3>
+            <div class="prerequisites-list">
+              @for (location of getLocations(); track location) {
+                <mat-chip selected>
+                  {{ location }}
+                </mat-chip>
+              }
+            </div>
+          </div>
+        }
+        @if (getDeliveryModes().length > 0) {
+          <div class="detail-section">
+            <h3 class="detail-label">Delivery Modes</h3>
+            <div class="prerequisites-list">
+              @for (mode of getDeliveryModes(); track mode) {
+                <mat-chip selected>
+                  {{ mode }}
+                </mat-chip>
+              }
+            </div>
+          </div>
+        }
+        @if (course.content_unlock_mode || course.max_file_size_mb) {
+          <div class="detail-row">
+            @if (course.content_unlock_mode) {
+              <div class="detail-item">
+                <h3 class="detail-label">Content Unlock Mode</h3>
+                <p class="detail-value">{{ course.content_unlock_mode }}</p>
+              </div>
+            }
+            @if (course.max_file_size_mb) {
+              <div class="detail-item">
+                <h3 class="detail-label">Max File Size</h3>
+                <p class="detail-value">{{ course.max_file_size_mb }} MB</p>
+              </div>
+            }
+          </div>
+        }
+        <div class="detail-row">
+          <div class="detail-item">
+            <h3 class="detail-label">Created</h3>
+            <p class="detail-value">{{ formatDate(course.created_at) }}</p>
+            @if (course.created_by_user_name) {
+              <p class="detail-value user-name">
+                by {{ course.created_by_user_name }}
+              </p>
+            }
+          </div>
+          <div class="detail-item">
+            <h3 class="detail-label">Last Updated</h3>
+            <p class="detail-value">{{ formatDate(course.updated_at) }}</p>
+            @if (course.updated_by_user_name || course.created_by_user_name) {
+              <p
+                class="detail-value user-name"
+                >
+                by {{ course.updated_by_user_name || course.created_by_user_name }}
+              </p>
+            }
+          </div>
+        </div>
       </div>
-
-      <div class="detail-section">
-        <h3 class="detail-label">Description</h3>
-        <p class="detail-value">{{ course.description }}</p>
-      </div>
-
-      <div class="detail-row">
-        <div class="detail-item">
-          <h3 class="detail-label">Duration</h3>
-          <p class="detail-value">{{ formatDuration(course.duration_weeks) }}</p>
-        </div>
-        <div class="detail-item">
-          <h3 class="detail-label">Status</h3>
-          <p class="detail-value">
-            <mat-chip [color]="course.is_active ? 'primary' : 'warn'" selected>
-              {{ course.is_active ? 'Active' : 'Inactive' }}
-            </mat-chip>
-          </p>
-        </div>
-      </div>
-
-      <div class="detail-row" *ngIf="course.planning_center_event_name || course.planning_center_event_id">
-        <div class="detail-item" *ngIf="course.planning_center_event_name">
-          <h3 class="detail-label">Planning Center Event</h3>
-          <p class="detail-value">{{ course.planning_center_event_name }}</p>
-        </div>
-        <div class="detail-item" *ngIf="course.planning_center_event_id">
-          <h3 class="detail-label">Event ID</h3>
-          <p class="detail-value">{{ course.planning_center_event_id }}</p>
-        </div>
-      </div>
-
-      <!-- Import Registrations Section -->
-      <div class="detail-row" *ngIf="course.planning_center_event_id">
-        <div class="detail-item full-width">
-          <h3 class="detail-label">Event Registrations</h3>
-          <p class="detail-value">
-            <button 
-              mat-raised-button 
-              color="accent" 
-              (click)="viewEventRegistrations()">
-              <mat-icon>people</mat-icon>
-              View/Import Registrations
-            </button>
-          </p>
-        </div>
-      </div>
-
-      <div class="detail-row" *ngIf="course.event_start_date || course.event_end_date">
-        <div class="detail-item" *ngIf="course.event_start_date">
-          <h3 class="detail-label">Event Start Date</h3>
-          <p class="detail-value">{{ formatDate(course.event_start_date) }}</p>
-        </div>
-        <div class="detail-item" *ngIf="course.event_end_date">
-          <h3 class="detail-label">Event End Date</h3>
-          <p class="detail-value">{{ formatDate(course.event_end_date) }}</p>
-        </div>
-      </div>
-
-      <div class="detail-row" *ngIf="course.max_capacity !== null || course.current_registrations !== undefined">
-        <div class="detail-item" *ngIf="course.max_capacity !== null">
-          <h3 class="detail-label">Max Capacity</h3>
-          <p class="detail-value">{{ course.max_capacity }}</p>
-        </div>
-        <div class="detail-item" *ngIf="course.current_registrations !== undefined">
-          <h3 class="detail-label">Current Registrations</h3>
-          <p class="detail-value">{{ course.current_registrations }}</p>
-        </div>
-      </div>
-
-      <div class="detail-section" *ngIf="hasPrerequisites()">
-        <h3 class="detail-label">Prerequisites</h3>
-        <div class="prerequisites-list">
-          <mat-chip *ngFor="let prereqId of getPrerequisites()" selected>
-            Course ID: {{ prereqId }}
-          </mat-chip>
-        </div>
-      </div>
-
-      <div class="detail-section" *ngIf="getInstructors().length > 0">
-        <h3 class="detail-label">Instructors</h3>
-        <div class="prerequisites-list">
-          <mat-chip *ngFor="let instructor of getInstructors()" selected>
-            {{ getInstructorDisplay(instructor) }}
-          </mat-chip>
-        </div>
-      </div>
-
-      <div class="detail-section" *ngIf="getLocations().length > 0">
-        <h3 class="detail-label">Locations</h3>
-        <div class="prerequisites-list">
-          <mat-chip *ngFor="let location of getLocations()" selected>
-            {{ location }}
-          </mat-chip>
-        </div>
-      </div>
-
-      <div class="detail-section" *ngIf="getDeliveryModes().length > 0">
-        <h3 class="detail-label">Delivery Modes</h3>
-        <div class="prerequisites-list">
-          <mat-chip *ngFor="let mode of getDeliveryModes()" selected>
-            {{ mode }}
-          </mat-chip>
-        </div>
-      </div>
-
-      <div class="detail-row" *ngIf="course.content_unlock_mode || course.max_file_size_mb">
-        <div class="detail-item" *ngIf="course.content_unlock_mode">
-          <h3 class="detail-label">Content Unlock Mode</h3>
-          <p class="detail-value">{{ course.content_unlock_mode }}</p>
-        </div>
-        <div class="detail-item" *ngIf="course.max_file_size_mb">
-          <h3 class="detail-label">Max File Size</h3>
-          <p class="detail-value">{{ course.max_file_size_mb }} MB</p>
-        </div>
-      </div>
-
-      <div class="detail-row">
-        <div class="detail-item">
-          <h3 class="detail-label">Created</h3>
-          <p class="detail-value">{{ formatDate(course.created_at) }}</p>
-          <p class="detail-value user-name" *ngIf="course.created_by_user_name">
-            by {{ course.created_by_user_name }}
-          </p>
-        </div>
-        <div class="detail-item">
-          <h3 class="detail-label">Last Updated</h3>
-          <p class="detail-value">{{ formatDate(course.updated_at) }}</p>
-          <p
-            class="detail-value user-name"
-            *ngIf="course.updated_by_user_name || course.created_by_user_name"
-          >
-            by {{ course.updated_by_user_name || course.created_by_user_name }}
-          </p>
-        </div>
-      </div>
-    </div>
+    }
 
     <!-- Edit/Create Mode: Form -->
-    <form *ngIf="!viewMode" [formGroup]="courseForm" class="course-form">
-      <mat-form-field appearance="outline" class="full-width" floatLabel="always">
-        <mat-label>Course Title</mat-label>
-        <input matInput formControlName="title">
-        <mat-error *ngIf="shouldShowError('title')">{{ getErrorMessage('title') }}</mat-error>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="full-width" floatLabel="always">
-        <mat-label>Course Description</mat-label>
-        <textarea 
-          matInput 
-          formControlName="description" 
-          rows="2"
-          style="min-height: auto; height: auto;">
-        </textarea>
-        <mat-error *ngIf="shouldShowError('description')">{{ getErrorMessage('description') }}</mat-error>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Duration (weeks)</mat-label>
-        <input 
-          matInput 
-          type="number" 
-          formControlName="duration_weeks" 
-          min="1"
-          max="52">
-        <mat-hint>Enter the course duration in weeks (1-52)</mat-hint>
-        <mat-error *ngIf="shouldShowError('duration_weeks')">{{ getErrorMessage('duration_weeks') }}</mat-error>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="full-width" floatLabel="always">
-        <mat-label>Prerequisites</mat-label>
-        <mat-select formControlName="prerequisites" multiple>
-          <mat-option *ngFor="let course of availablePrerequisites" [value]="course.id">
-            {{ course.title }}
-          </mat-option>
-        </mat-select>
-        <mat-hint>Select courses that must be completed before enrolling in this course</mat-hint>
-        <mat-spinner *ngIf="loadingPrerequisites" diameter="20" matSuffix></mat-spinner>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="full-width" floatLabel="always">
-        <mat-label>Instructors</mat-label>
-        <mat-select formControlName="instructors" multiple>
-          <mat-option value="TBD">TBD (To Be Determined)</mat-option>
-          <mat-option *ngFor="let user of availableUsers" [value]="user.id">
-            {{ user.full_name }} ({{ user.email }})
-          </mat-option>
-        </mat-select>
-        <mat-hint>Select instructors or mark as TBD if not yet assigned</mat-hint>
-        <mat-spinner *ngIf="loadingUsers" diameter="20" matSuffix></mat-spinner>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="full-width" floatLabel="always">
-        <mat-label>Locations</mat-label>
-        <div class="chip-input-container">
-          <mat-chip-listbox>
-            <mat-chip *ngFor="let location of courseForm.value.locations" (removed)="removeLocation(location)">
-              {{ location }}
-              <button matChipRemove>
-                <mat-icon>cancel</mat-icon>
-              </button>
-            </mat-chip>
-          </mat-chip-listbox>
-          <input 
-            matInput 
-            [(ngModel)]="locationInput" 
-            (keydown.enter)="addLocation(); $event.preventDefault()"
-            placeholder="Add location (e.g., Room 101, Online, Zoom)"
-            [ngModelOptions]="{standalone: true}">
-        </div>
-        <mat-hint>Press Enter to add location</mat-hint>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="full-width" floatLabel="always">
-        <mat-label>Delivery Modes</mat-label>
-        <div class="chip-input-container">
-          <mat-chip-listbox>
-            <mat-chip *ngFor="let mode of courseForm.value.delivery_modes" (removed)="removeDeliveryMode(mode)">
-              {{ mode }}
-              <button matChipRemove>
-                <mat-icon>cancel</mat-icon>
-              </button>
-            </mat-chip>
-          </mat-chip-listbox>
-          <input 
-            matInput 
-            [(ngModel)]="deliveryModeInput" 
-            (keydown.enter)="addDeliveryMode(); $event.preventDefault()"
-            placeholder="Add delivery mode (e.g., In-person, Online, Hybrid)"
-            [ngModelOptions]="{standalone: true}">
-        </div>
-        <mat-hint>Press Enter to add delivery mode</mat-hint>
-      </mat-form-field>
-    </form>
+    @if (!viewMode) {
+      <form [formGroup]="courseForm" class="course-form">
+        <mat-form-field appearance="outline" class="full-width" floatLabel="always">
+          <mat-label>Course Title</mat-label>
+          <input matInput formControlName="title">
+          @if (shouldShowError('title')) {
+            <mat-error>{{ getErrorMessage('title') }}</mat-error>
+          }
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="full-width" floatLabel="always">
+          <mat-label>Course Description</mat-label>
+          <textarea
+            matInput
+            formControlName="description"
+            rows="2"
+            style="min-height: auto; height: auto;">
+          </textarea>
+          @if (shouldShowError('description')) {
+            <mat-error>{{ getErrorMessage('description') }}</mat-error>
+          }
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Duration (weeks)</mat-label>
+          <input
+            matInput
+            type="number"
+            formControlName="duration_weeks"
+            min="1"
+            max="52">
+          <mat-hint>Enter the course duration in weeks (1-52)</mat-hint>
+          @if (shouldShowError('duration_weeks')) {
+            <mat-error>{{ getErrorMessage('duration_weeks') }}</mat-error>
+          }
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="full-width" floatLabel="always">
+          <mat-label>Prerequisites</mat-label>
+          <mat-select formControlName="prerequisites" multiple>
+            @for (course of availablePrerequisites; track course) {
+              <mat-option [value]="course.id">
+                {{ course.title }}
+              </mat-option>
+            }
+          </mat-select>
+          <mat-hint>Select courses that must be completed before enrolling in this course</mat-hint>
+          @if (loadingPrerequisites) {
+            <mat-spinner diameter="20" matSuffix></mat-spinner>
+          }
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="full-width" floatLabel="always">
+          <mat-label>Instructors</mat-label>
+          <mat-select formControlName="instructors" multiple>
+            <mat-option value="TBD">TBD (To Be Determined)</mat-option>
+            @for (user of availableUsers; track user) {
+              <mat-option [value]="user.id">
+                {{ user.full_name }} ({{ user.email }})
+              </mat-option>
+            }
+          </mat-select>
+          <mat-hint>Select instructors or mark as TBD if not yet assigned</mat-hint>
+          @if (loadingUsers) {
+            <mat-spinner diameter="20" matSuffix></mat-spinner>
+          }
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="full-width" floatLabel="always">
+          <mat-label>Locations</mat-label>
+          <div class="chip-input-container">
+            <mat-chip-listbox>
+              @for (location of courseForm.value.locations; track location) {
+                <mat-chip (removed)="removeLocation(location)">
+                  {{ location }}
+                  <button matChipRemove>
+                    <mat-icon>cancel</mat-icon>
+                  </button>
+                </mat-chip>
+              }
+            </mat-chip-listbox>
+            <input
+              matInput
+              [(ngModel)]="locationInput"
+              (keydown.enter)="addLocation(); $event.preventDefault()"
+              placeholder="Add location (e.g., Room 101, Online, Zoom)"
+              [ngModelOptions]="{standalone: true}">
+          </div>
+          <mat-hint>Press Enter to add location</mat-hint>
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="full-width" floatLabel="always">
+          <mat-label>Delivery Modes</mat-label>
+          <div class="chip-input-container">
+            <mat-chip-listbox>
+              @for (mode of courseForm.value.delivery_modes; track mode) {
+                <mat-chip (removed)="removeDeliveryMode(mode)">
+                  {{ mode }}
+                  <button matChipRemove>
+                    <mat-icon>cancel</mat-icon>
+                  </button>
+                </mat-chip>
+              }
+            </mat-chip-listbox>
+            <input
+              matInput
+              [(ngModel)]="deliveryModeInput"
+              (keydown.enter)="addDeliveryMode(); $event.preventDefault()"
+              placeholder="Add delivery mode (e.g., In-person, Online, Hybrid)"
+              [ngModelOptions]="{standalone: true}">
+          </div>
+          <mat-hint>Press Enter to add delivery mode</mat-hint>
+        </mat-form-field>
+      </form>
+    }
   </mat-dialog-content>
-  
+
   <mat-dialog-actions align="end">
     <button mat-button (click)="viewMode ? onClose() : onCancel()" [disabled]="isLoading">
       {{ viewMode ? 'Close' : 'Cancel' }}
     </button>
-    <button 
-      *ngIf="!viewMode"
-      mat-raised-button 
-      color="primary" 
-      (click)="onSubmit()" 
-      [disabled]="!courseForm.valid || isLoading">
-      <mat-spinner *ngIf="isLoading" diameter="20"></mat-spinner>
-      <span *ngIf="!isLoading">{{ isEditing ? 'Update' : 'Create' }}</span>
-    </button>
+    @if (!viewMode) {
+      <button
+        mat-raised-button
+        color="primary"
+        (click)="onSubmit()"
+        [disabled]="!courseForm.valid || isLoading">
+        @if (isLoading) {
+          <mat-spinner diameter="20"></mat-spinner>
+        }
+        @if (!isLoading) {
+          <span>{{ isEditing ? 'Update' : 'Create' }}</span>
+        }
+      </button>
+    }
   </mat-dialog-actions>
 </div>

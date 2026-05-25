@@ -35,13 +35,17 @@
               </mat-form-field>
 
               <div class="form-actions">
-                <button 
-                  mat-raised-button 
-                  color="primary" 
+                <button
+                  mat-raised-button
+                  color="primary"
                   type="submit"
                   [disabled]="!profileForm.valid || isSavingProfile">
-                  <mat-spinner *ngIf="isSavingProfile" diameter="20"></mat-spinner>
-                  <span *ngIf="!isSavingProfile">Save Changes</span>
+                  @if (isSavingProfile) {
+                    <mat-spinner diameter="20"></mat-spinner>
+                  }
+                  @if (!isSavingProfile) {
+                    <span>Save Changes</span>
+                  }
                 </button>
               </div>
             </form>
@@ -54,9 +58,9 @@
             <form [formGroup]="passwordForm" (ngSubmit)="onChangePassword()">
               <mat-form-field appearance="outline" class="full-width">
                 <mat-label>Current Password</mat-label>
-                <input 
-                  matInput 
-                  [type]="hideCurrentPassword ? 'password' : 'text'" 
+                <input
+                  matInput
+                  [type]="hideCurrentPassword ? 'password' : 'text'"
                   formControlName="current_password"
                   autocomplete="current-password">
                 <button mat-icon-button matSuffix type="button" (click)="hideCurrentPassword = !hideCurrentPassword">
@@ -68,9 +72,9 @@
 
               <mat-form-field appearance="outline" class="full-width">
                 <mat-label>New Password</mat-label>
-                <input 
-                  matInput 
-                  [type]="hideNewPassword ? 'password' : 'text'" 
+                <input
+                  matInput
+                  [type]="hideNewPassword ? 'password' : 'text'"
                   formControlName="new_password"
                   autocomplete="new-password">
                 <button mat-icon-button matSuffix type="button" (click)="hideNewPassword = !hideNewPassword">
@@ -82,9 +86,9 @@
 
               <mat-form-field appearance="outline" class="full-width">
                 <mat-label>Confirm New Password</mat-label>
-                <input 
-                  matInput 
-                  [type]="hideConfirmPassword ? 'password' : 'text'" 
+                <input
+                  matInput
+                  [type]="hideConfirmPassword ? 'password' : 'text'"
                   formControlName="confirm_password"
                   autocomplete="new-password">
                 <button mat-icon-button matSuffix type="button" (click)="hideConfirmPassword = !hideConfirmPassword">
@@ -95,13 +99,17 @@
               </mat-form-field>
 
               <div class="form-actions">
-                <button 
-                  mat-raised-button 
-                  color="primary" 
+                <button
+                  mat-raised-button
+                  color="primary"
                   type="submit"
                   [disabled]="!passwordForm.valid || isChangingPassword">
-                  <mat-spinner *ngIf="isChangingPassword" diameter="20"></mat-spinner>
-                  <span *ngIf="!isChangingPassword">Change Password</span>
+                  @if (isChangingPassword) {
+                    <mat-spinner diameter="20"></mat-spinner>
+                  }
+                  @if (!isChangingPassword) {
+                    <span>Change Password</span>
+                  }
                 </button>
               </div>
             </form>
@@ -146,13 +154,17 @@
               </mat-slide-toggle>
 
               <div class="form-actions">
-                <button 
-                  mat-raised-button 
-                  color="primary" 
+                <button
+                  mat-raised-button
+                  color="primary"
                   type="submit"
                   [disabled]="!preferencesForm.valid || isSavingPreferences">
-                  <mat-spinner *ngIf="isSavingPreferences" diameter="20"></mat-spinner>
-                  <span *ngIf="!isSavingPreferences">Save Preferences</span>
+                  @if (isSavingPreferences) {
+                    <mat-spinner diameter="20"></mat-spinner>
+                  }
+                  @if (!isSavingPreferences) {
+                    <span>Save Preferences</span>
+                  }
                 </button>
               </div>
             </form>

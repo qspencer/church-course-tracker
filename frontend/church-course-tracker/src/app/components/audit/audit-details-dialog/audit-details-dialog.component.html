@@ -19,46 +19,56 @@
       <span class="label">Changed By</span>
       <span class="value">{{ userName }}</span>
     </div>
-    <div class="meta-item" *ngIf="log.ip_address">
-      <span class="label">IP Address</span>
-      <span class="value monospace">{{ log.ip_address }}</span>
-    </div>
-    <div class="meta-item" *ngIf="log.user_agent">
-      <span class="label">User Agent</span>
-      <span class="value">{{ log.user_agent }}</span>
-    </div>
+    @if (log.ip_address) {
+      <div class="meta-item">
+        <span class="label">IP Address</span>
+        <span class="value monospace">{{ log.ip_address }}</span>
+      </div>
+    }
+    @if (log.user_agent) {
+      <div class="meta-item">
+        <span class="label">User Agent</span>
+        <span class="value">{{ log.user_agent }}</span>
+      </div>
+    }
   </div>
 
-  <div class="changes-section" *ngIf="changeEntries.length > 0">
-    <h3>Field Changes</h3>
-    <table class="changes-table">
-      <thead>
-        <tr>
-          <th>Field</th>
-          <th>Previous Value</th>
-          <th>New Value</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let change of changeEntries">
-          <td class="field-name">
-            <code>{{ change.key }}</code>
-          </td>
-          <td>
-            <pre>{{ formatValue(change.oldValue) }}</pre>
-          </td>
-          <td>
-            <pre>{{ formatValue(change.newValue) }}</pre>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+  @if (changeEntries.length > 0) {
+    <div class="changes-section">
+      <h3>Field Changes</h3>
+      <table class="changes-table">
+        <thead>
+          <tr>
+            <th>Field</th>
+            <th>Previous Value</th>
+            <th>New Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (change of changeEntries; track change) {
+            <tr>
+              <td class="field-name">
+                <code>{{ change.key }}</code>
+              </td>
+              <td>
+                <pre>{{ formatValue(change.oldValue) }}</pre>
+              </td>
+              <td>
+                <pre>{{ formatValue(change.newValue) }}</pre>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
 
-  <div class="no-changes" *ngIf="changeEntries.length === 0">
-    <mat-icon color="primary">info</mat-icon>
-    <p>No field-level changes recorded for this audit entry.</p>
-  </div>
+  @if (changeEntries.length === 0) {
+    <div class="no-changes">
+      <mat-icon color="primary">info</mat-icon>
+      <p>No field-level changes recorded for this audit entry.</p>
+    </div>
+  }
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">

@@ -10,10 +10,12 @@
         <mat-icon>cloud_download</mat-icon>
         Import from Planning Center
       </button>
-      <button *ngIf="viewMode === 'courses'" mat-raised-button color="primary" (click)="openEnrollmentDialog()">
-        <mat-icon>assignment_ind</mat-icon>
-        New Enrollment
-      </button>
+      @if (viewMode === 'courses') {
+        <button mat-raised-button color="primary" (click)="openEnrollmentDialog()">
+          <mat-icon>assignment_ind</mat-icon>
+          New Enrollment
+        </button>
+      }
     </div>
   </div>
 
@@ -32,165 +34,171 @@
       </mat-form-field>
 
       <!-- Loading Spinner -->
-      <div *ngIf="isLoading" class="loading-container">
-        <mat-spinner></mat-spinner>
-        <p>Loading {{ viewMode === 'courses' ? 'enrollments' : 'participants' }}...</p>
-      </div>
+      @if (isLoading) {
+        <div class="loading-container">
+          <mat-spinner></mat-spinner>
+          <p>Loading {{ viewMode === 'courses' ? 'enrollments' : 'participants' }}...</p>
+        </div>
+      }
 
       <!-- Enrollments Table -->
-      <div *ngIf="!isLoading" class="table-container">
-        <table mat-table [dataSource]="dataSource" matSort class="enrollments-table">
-          <!-- Student Name Column -->
-          <ng-container matColumnDef="person_name">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>Student</th>
-            <td mat-cell *matCellDef="let item">
-              <div class="student-info">
-                <div class="student-avatar">
-                  <mat-icon>person</mat-icon>
+      @if (!isLoading) {
+        <div class="table-container">
+          <table mat-table [dataSource]="dataSource" matSort class="enrollments-table">
+            <!-- Student Name Column -->
+            <ng-container matColumnDef="person_name">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Student</th>
+              <td mat-cell *matCellDef="let item">
+                <div class="student-info">
+                  <div class="student-avatar">
+                    <mat-icon>person</mat-icon>
+                  </div>
+                  <div class="student-details">
+                    <strong>{{ getPersonName(item) }}</strong>
+                    @if (getPersonEmail(item)) {
+                      <small>{{ getPersonEmail(item) }}</small>
+                    }
+                  </div>
                 </div>
-                <div class="student-details">
-                  <strong>{{ getPersonName(item) }}</strong>
-                  <small *ngIf="getPersonEmail(item)">{{ getPersonEmail(item) }}</small>
+              </td>
+            </ng-container>
+            <!-- Course Title Column (Courses view) -->
+            <ng-container matColumnDef="course_title">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Course</th>
+              <td mat-cell *matCellDef="let enrollment">
+                <div class="course-info">
+                  <strong>{{ enrollment.course?.title }}</strong>
+                  @if (enrollment.course?.duration_weeks) {
+                    <small>{{ enrollment.course.duration_weeks }} weeks</small>
+                  }
                 </div>
-              </div>
-            </td>
-          </ng-container>
-
-          <!-- Course Title Column (Courses view) -->
-          <ng-container matColumnDef="course_title">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>Course</th>
-            <td mat-cell *matCellDef="let enrollment">
-              <div class="course-info">
-                <strong>{{ enrollment.course?.title }}</strong>
-                <small *ngIf="enrollment.course?.duration_weeks">{{ enrollment.course.duration_weeks }} weeks</small>
-              </div>
-            </td>
-          </ng-container>
-
-          <!-- Program Title Column (Programs view) -->
-          <ng-container matColumnDef="program_title">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>Program</th>
-            <td mat-cell *matCellDef="let participant">
-              <div class="program-info">
-                <strong>{{ getProgramTitle(participant.program_id) }}</strong>
-              </div>
-            </td>
-          </ng-container>
-
-          <!-- Role Name Column (Programs view) -->
-          <ng-container matColumnDef="role_name">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>Role</th>
-            <td mat-cell *matCellDef="let participant">
-              <mat-chip selected class="role-chip">{{ participant.role_name }}</mat-chip>
-            </td>
-          </ng-container>
-
-          <!-- Status Column -->
-          <ng-container matColumnDef="status">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>Status</th>
-            <td mat-cell *matCellDef="let item">
-              <mat-chip 
-                [color]="getStatusColor(item.status)" 
-                selected
-                class="status-chip">
-                {{ getStatusText(item.status) }}
-              </mat-chip>
-            </td>
-          </ng-container>
-
-          <!-- Progress Column -->
-          <ng-container matColumnDef="progress_percentage">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>Progress</th>
-            <td mat-cell *matCellDef="let item">
-              <div class="progress-info">
-                <mat-progress-bar 
-                  mode="determinate" 
-                  [value]="item.progress_percentage || 0"
-                  [color]="getProgressColor(item.progress_percentage || 0)">
-                </mat-progress-bar>
-                <span class="progress-text">{{ (item.progress_percentage || 0) | number:'1.0-0' }}%</span>
-              </div>
-            </td>
-          </ng-container>
-
-          <!-- Enrolled Date Column (Courses view) -->
-          <ng-container matColumnDef="enrolled_at">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>Enrolled</th>
-            <td mat-cell *matCellDef="let enrollment">
-              <div class="date-info">
-                {{ enrollment.enrolled_at | date:'short' }}
-              </div>
-            </td>
-          </ng-container>
-
-          <!-- Start Date Column (Programs view) -->
-          <ng-container matColumnDef="start_date">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>Started</th>
-            <td mat-cell *matCellDef="let participant">
-              <div class="date-info">
-                {{ participant.start_date | date:'short' }}
-              </div>
-            </td>
-          </ng-container>
-
-          <!-- Actions Column -->
-          <ng-container matColumnDef="actions">
-            <th mat-header-cell *matHeaderCellDef>Actions</th>
-            <td mat-cell *matCellDef="let item">
-              <div class="actions-container">
-                <button 
-                  *ngIf="viewMode === 'courses'"
-                  mat-icon-button 
-                  color="primary" 
-                  (click)="viewEnrollmentDetails(item)"
-                  matTooltip="View Details">
-                  <mat-icon>visibility</mat-icon>
+              </td>
+            </ng-container>
+            <!-- Program Title Column (Programs view) -->
+            <ng-container matColumnDef="program_title">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Program</th>
+              <td mat-cell *matCellDef="let participant">
+                <div class="program-info">
+                  <strong>{{ getProgramTitle(participant.program_id) }}</strong>
+                </div>
+              </td>
+            </ng-container>
+            <!-- Role Name Column (Programs view) -->
+            <ng-container matColumnDef="role_name">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Role</th>
+              <td mat-cell *matCellDef="let participant">
+                <mat-chip selected class="role-chip">{{ participant.role_name }}</mat-chip>
+              </td>
+            </ng-container>
+            <!-- Status Column -->
+            <ng-container matColumnDef="status">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Status</th>
+              <td mat-cell *matCellDef="let item">
+                <mat-chip
+                  [color]="getStatusColor(item.status)"
+                  selected
+                  class="status-chip">
+                  {{ getStatusText(item.status) }}
+                </mat-chip>
+              </td>
+            </ng-container>
+            <!-- Progress Column -->
+            <ng-container matColumnDef="progress_percentage">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Progress</th>
+              <td mat-cell *matCellDef="let item">
+                <div class="progress-info">
+                  <mat-progress-bar
+                    mode="determinate"
+                    [value]="item.progress_percentage || 0"
+                    [color]="getProgressColor(item.progress_percentage || 0)">
+                  </mat-progress-bar>
+                  <span class="progress-text">{{ (item.progress_percentage || 0) | number:'1.0-0' }}%</span>
+                </div>
+              </td>
+            </ng-container>
+            <!-- Enrolled Date Column (Courses view) -->
+            <ng-container matColumnDef="enrolled_at">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Enrolled</th>
+              <td mat-cell *matCellDef="let enrollment">
+                <div class="date-info">
+                  {{ enrollment.enrolled_at | date:'short' }}
+                </div>
+              </td>
+            </ng-container>
+            <!-- Start Date Column (Programs view) -->
+            <ng-container matColumnDef="start_date">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Started</th>
+              <td mat-cell *matCellDef="let participant">
+                <div class="date-info">
+                  {{ participant.start_date | date:'short' }}
+                </div>
+              </td>
+            </ng-container>
+            <!-- Actions Column -->
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef>Actions</th>
+              <td mat-cell *matCellDef="let item">
+                <div class="actions-container">
+                  @if (viewMode === 'courses') {
+                    <button
+                      mat-icon-button
+                      color="primary"
+                      (click)="viewEnrollmentDetails(item)"
+                      matTooltip="View Details">
+                      <mat-icon>visibility</mat-icon>
+                    </button>
+                  }
+                  @if (viewMode === 'courses') {
+                    <button
+                      mat-icon-button
+                      color="accent"
+                      (click)="editEnrollment(item)"
+                      matTooltip="Edit Enrollment">
+                      <mat-icon>edit</mat-icon>
+                    </button>
+                  }
+                  @if (viewMode === 'courses') {
+                    <button
+                      mat-icon-button
+                      color="warn"
+                      (click)="deleteEnrollment(item)"
+                      matTooltip="Delete Enrollment">
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  }
+                </div>
+              </td>
+            </ng-container>
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+          </table>
+          <!-- No Data Message -->
+          @if (dataSource.data.length === 0) {
+            <div class="no-data">
+              <mat-icon>assignment</mat-icon>
+              <h3>No {{ viewMode === 'courses' ? 'enrollments' : 'participants' }} found</h3>
+              @if (viewMode === 'courses') {
+                <p>Get started by creating your first enrollment</p>
+              }
+              @if (viewMode === 'programs') {
+                <p>Import participants from Planning Center or add them through the Programs Management page</p>
+              }
+              @if (viewMode === 'courses') {
+                <button mat-raised-button color="primary" (click)="openEnrollmentDialog()">
+                  <mat-icon>assignment_ind</mat-icon>
+                  Create Enrollment
                 </button>
-                
-                <button 
-                  *ngIf="viewMode === 'courses'"
-                  mat-icon-button 
-                  color="accent" 
-                  (click)="editEnrollment(item)"
-                  matTooltip="Edit Enrollment">
-                  <mat-icon>edit</mat-icon>
-                </button>
-                
-                <button 
-                  *ngIf="viewMode === 'courses'"
-                  mat-icon-button 
-                  color="warn" 
-                  (click)="deleteEnrollment(item)"
-                  matTooltip="Delete Enrollment">
-                  <mat-icon>delete</mat-icon>
-                </button>
-              </div>
-            </td>
-          </ng-container>
-
-          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-        </table>
-
-        <!-- No Data Message -->
-        <div *ngIf="dataSource.data.length === 0" class="no-data">
-          <mat-icon>assignment</mat-icon>
-          <h3>No {{ viewMode === 'courses' ? 'enrollments' : 'participants' }} found</h3>
-          <p *ngIf="viewMode === 'courses'">Get started by creating your first enrollment</p>
-          <p *ngIf="viewMode === 'programs'">Import participants from Planning Center or add them through the Programs Management page</p>
-          <button *ngIf="viewMode === 'courses'" mat-raised-button color="primary" (click)="openEnrollmentDialog()">
-            <mat-icon>assignment_ind</mat-icon>
-            Create Enrollment
-          </button>
+              }
+            </div>
+          }
+          <!-- Paginator -->
+          <mat-paginator
+            [pageSizeOptions]="[5, 10, 25, 100]"
+            [pageSize]="10"
+            showFirstLastButtons>
+          </mat-paginator>
         </div>
-
-        <!-- Paginator -->
-        <mat-paginator 
-          [pageSizeOptions]="[5, 10, 25, 100]"
-          [pageSize]="10"
-          showFirstLastButtons>
-        </mat-paginator>
-      </div>
+      }
     </mat-card-content>
   </mat-card>
 </div>

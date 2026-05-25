@@ -15,109 +15,118 @@
 
       <mat-card-content>
         <!-- Login Form -->
-        <form *ngIf="isLoginMode" [formGroup]="loginForm" (ngSubmit)="onLogin()" class="auth-form">
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Username</mat-label>
-            <input matInput formControlName="username" autocomplete="username">
-            <mat-icon matSuffix>person</mat-icon>
-            <mat-error>{{ getErrorMessage(loginForm, 'username') }}</mat-error>
-          </mat-form-field>
-
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Password</mat-label>
-            <input matInput [type]="hidePassword ? 'password' : 'text'" formControlName="password" autocomplete="current-password">
-            <button mat-icon-button matSuffix type="button" (click)="hidePassword = !hidePassword">
-              <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+        @if (isLoginMode) {
+          <form [formGroup]="loginForm" (ngSubmit)="onLogin()" class="auth-form">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Username</mat-label>
+              <input matInput formControlName="username" autocomplete="username">
+              <mat-icon matSuffix>person</mat-icon>
+              <mat-error>{{ getErrorMessage(loginForm, 'username') }}</mat-error>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Password</mat-label>
+              <input matInput [type]="hidePassword ? 'password' : 'text'" formControlName="password" autocomplete="current-password">
+              <button mat-icon-button matSuffix type="button" (click)="hidePassword = !hidePassword">
+                <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+              </button>
+              <mat-error>{{ getErrorMessage(loginForm, 'password') }}</mat-error>
+            </mat-form-field>
+            <!-- Account Lockout Warning -->
+            @if (isAccountLocked && lockoutMessage) {
+              <mat-card class="lockout-warning">
+                <mat-card-content>
+                  <div class="lockout-content">
+                    <mat-icon color="warn">lock</mat-icon>
+                    <div class="lockout-text">
+                      <strong>Account Locked</strong>
+                      <p>{{ lockoutMessage }}</p>
+                      @if (lockoutUntil) {
+                        <p class="lockout-time">
+                          Lockout expires: {{ lockoutUntil | date:'short' }}
+                        </p>
+                      }
+                    </div>
+                  </div>
+                </mat-card-content>
+              </mat-card>
+            }
+            <!-- Remaining Attempts Warning -->
+            @if (remainingAttempts !== null && remainingAttempts > 0 && !isAccountLocked) {
+              <mat-card class="attempts-warning">
+                <mat-card-content>
+                  <div class="attempts-content">
+                    <mat-icon color="warn">warning</mat-icon>
+                    <span>{{ remainingAttempts }} attempt(s) remaining before account lockout</span>
+                  </div>
+                </mat-card-content>
+              </mat-card>
+            }
+            <button
+              mat-raised-button
+              color="primary"
+              type="submit"
+              class="full-width auth-button"
+              [disabled]="!loginForm.valid || isLoading || isAccountLocked">
+              @if (isLoading) {
+                <mat-spinner diameter="20"></mat-spinner>
+              }
+              @if (!isLoading) {
+                <span>Sign In</span>
+              }
             </button>
-            <mat-error>{{ getErrorMessage(loginForm, 'password') }}</mat-error>
-          </mat-form-field>
-
-          <!-- Account Lockout Warning -->
-          <mat-card *ngIf="isAccountLocked && lockoutMessage" class="lockout-warning">
-            <mat-card-content>
-              <div class="lockout-content">
-                <mat-icon color="warn">lock</mat-icon>
-                <div class="lockout-text">
-                  <strong>Account Locked</strong>
-                  <p>{{ lockoutMessage }}</p>
-                  <p *ngIf="lockoutUntil" class="lockout-time">
-                    Lockout expires: {{ lockoutUntil | date:'short' }}
-                  </p>
-                </div>
-              </div>
-            </mat-card-content>
-          </mat-card>
-
-          <!-- Remaining Attempts Warning -->
-          <mat-card *ngIf="remainingAttempts !== null && remainingAttempts > 0 && !isAccountLocked" class="attempts-warning">
-            <mat-card-content>
-              <div class="attempts-content">
-                <mat-icon color="warn">warning</mat-icon>
-                <span>{{ remainingAttempts }} attempt(s) remaining before account lockout</span>
-              </div>
-            </mat-card-content>
-          </mat-card>
-
-          <button 
-            mat-raised-button 
-            color="primary" 
-            type="submit" 
-            class="full-width auth-button"
-            [disabled]="!loginForm.valid || isLoading || isAccountLocked">
-            <mat-spinner *ngIf="isLoading" diameter="20"></mat-spinner>
-            <span *ngIf="!isLoading">Sign In</span>
-          </button>
-        </form>
+          </form>
+        }
 
         <!-- Register Form -->
-        <form *ngIf="!isLoginMode" [formGroup]="registerForm" (ngSubmit)="onRegister()" class="auth-form">
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Full Name</mat-label>
-            <input matInput formControlName="full_name" autocomplete="name">
-            <mat-icon matSuffix>person</mat-icon>
-            <mat-error>{{ getErrorMessage(registerForm, 'full_name') }}</mat-error>
-          </mat-form-field>
-
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Username</mat-label>
-            <input matInput formControlName="username" autocomplete="username">
-            <mat-icon matSuffix>account_circle</mat-icon>
-            <mat-error>{{ getErrorMessage(registerForm, 'username') }}</mat-error>
-          </mat-form-field>
-
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Email</mat-label>
-            <input matInput formControlName="email" type="email" autocomplete="email">
-            <mat-icon matSuffix>email</mat-icon>
-            <mat-error>{{ getErrorMessage(registerForm, 'email') }}</mat-error>
-          </mat-form-field>
-
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Password</mat-label>
-            <input matInput [type]="hidePassword ? 'password' : 'text'" formControlName="password" autocomplete="new-password">
-            <button mat-icon-button matSuffix type="button" (click)="hidePassword = !hidePassword">
-              <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+        @if (!isLoginMode) {
+          <form [formGroup]="registerForm" (ngSubmit)="onRegister()" class="auth-form">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Full Name</mat-label>
+              <input matInput formControlName="full_name" autocomplete="name">
+              <mat-icon matSuffix>person</mat-icon>
+              <mat-error>{{ getErrorMessage(registerForm, 'full_name') }}</mat-error>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Username</mat-label>
+              <input matInput formControlName="username" autocomplete="username">
+              <mat-icon matSuffix>account_circle</mat-icon>
+              <mat-error>{{ getErrorMessage(registerForm, 'username') }}</mat-error>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Email</mat-label>
+              <input matInput formControlName="email" type="email" autocomplete="email">
+              <mat-icon matSuffix>email</mat-icon>
+              <mat-error>{{ getErrorMessage(registerForm, 'email') }}</mat-error>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Password</mat-label>
+              <input matInput [type]="hidePassword ? 'password' : 'text'" formControlName="password" autocomplete="new-password">
+              <button mat-icon-button matSuffix type="button" (click)="hidePassword = !hidePassword">
+                <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+              </button>
+              <mat-error>{{ getErrorMessage(registerForm, 'password') }}</mat-error>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Confirm Password</mat-label>
+              <input matInput [type]="hidePassword ? 'password' : 'text'" formControlName="confirmPassword" autocomplete="new-password">
+              <mat-icon matSuffix>lock</mat-icon>
+              <mat-error>{{ getErrorMessage(registerForm, 'confirmPassword') }}</mat-error>
+            </mat-form-field>
+            <button
+              mat-raised-button
+              color="primary"
+              type="submit"
+              class="full-width auth-button"
+              [disabled]="!registerForm.valid || isLoading">
+              @if (isLoading) {
+                <mat-spinner diameter="20"></mat-spinner>
+              }
+              @if (!isLoading) {
+                <span>Create Account</span>
+              }
             </button>
-            <mat-error>{{ getErrorMessage(registerForm, 'password') }}</mat-error>
-          </mat-form-field>
-
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Confirm Password</mat-label>
-            <input matInput [type]="hidePassword ? 'password' : 'text'" formControlName="confirmPassword" autocomplete="new-password">
-            <mat-icon matSuffix>lock</mat-icon>
-            <mat-error>{{ getErrorMessage(registerForm, 'confirmPassword') }}</mat-error>
-          </mat-form-field>
-
-          <button 
-            mat-raised-button 
-            color="primary" 
-            type="submit" 
-            class="full-width auth-button"
-            [disabled]="!registerForm.valid || isLoading">
-            <mat-spinner *ngIf="isLoading" diameter="20"></mat-spinner>
-            <span *ngIf="!isLoading">Create Account</span>
-          </button>
-        </form>
+          </form>
+        }
       </mat-card-content>
 
       <mat-card-actions align="start">

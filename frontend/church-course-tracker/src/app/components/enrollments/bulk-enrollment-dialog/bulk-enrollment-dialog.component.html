@@ -23,75 +23,113 @@
     </div>
 
     <!-- PC Event Selection (shown if source_type is 'event') -->
-    <mat-form-field appearance="outline" class="full-width" *ngIf="sourceType === 'event'">
-      <mat-label>Planning Center Event</mat-label>
-      <mat-select formControlName="pc_event_id">
-        <mat-option *ngIf="isLoadingEvents">Loading events...</mat-option>
-        <mat-option *ngFor="let event of events" [value]="event.id">
-          {{ event.attributes.name }} ({{ event.attributes.start_date | date:'shortDate' }})
-        </mat-option>
-      </mat-select>
-      <mat-hint>Only showing recent events</mat-hint>
-      <mat-error *ngIf="form.get('pc_event_id')?.hasError('required')">
-        Event is required
-      </mat-error>
-    </mat-form-field>
+    @if (sourceType === 'event') {
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Planning Center Event</mat-label>
+        <mat-select formControlName="pc_event_id">
+          @if (isLoadingEvents) {
+            <mat-option>Loading events...</mat-option>
+          }
+          @for (event of events; track event) {
+            <mat-option [value]="event.id">
+              {{ event.attributes.name }} ({{ event.attributes.start_date | date:'shortDate' }})
+            </mat-option>
+          }
+        </mat-select>
+        <mat-hint>Only showing recent events</mat-hint>
+        @if (form.get('pc_event_id')?.hasError('required')) {
+          <mat-error>
+            Event is required
+          </mat-error>
+        }
+      </mat-form-field>
+    }
 
     <!-- PC List Selection (shown if source_type is 'list') -->
-    <mat-form-field appearance="outline" class="full-width" *ngIf="sourceType === 'list'">
-      <mat-label>Planning Center List</mat-label>
-      <mat-select formControlName="pc_list_id">
-        <mat-option *ngIf="isLoadingLists">Loading lists...</mat-option>
-        <mat-option *ngFor="let list of lists" [value]="list.id">
-          {{ list.attributes.name }}
-        </mat-option>
-      </mat-select>
-      <mat-error *ngIf="form.get('pc_list_id')?.hasError('required')">
-        List is required
-      </mat-error>
-    </mat-form-field>
+    @if (sourceType === 'list') {
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Planning Center List</mat-label>
+        <mat-select formControlName="pc_list_id">
+          @if (isLoadingLists) {
+            <mat-option>Loading lists...</mat-option>
+          }
+          @for (list of lists; track list) {
+            <mat-option [value]="list.id">
+              {{ list.attributes.name }}
+            </mat-option>
+          }
+        </mat-select>
+        @if (form.get('pc_list_id')?.hasError('required')) {
+          <mat-error>
+            List is required
+          </mat-error>
+        }
+      </mat-form-field>
+    }
 
     <!-- Target Course Selection (shown when target_type is 'course') -->
-    <mat-form-field appearance="outline" class="full-width" *ngIf="targetType === 'course'">
-      <mat-label>Target Course</mat-label>
-      <mat-select formControlName="course_id">
-        <mat-option *ngIf="isLoadingCourses">Loading courses...</mat-option>
-        <mat-option *ngFor="let course of courses" [value]="course.id">
-          {{ course.title }}
-        </mat-option>
-      </mat-select>
-      <mat-error *ngIf="form.get('course_id')?.hasError('required')">
-        Course is required
-      </mat-error>
-    </mat-form-field>
+    @if (targetType === 'course') {
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Target Course</mat-label>
+        <mat-select formControlName="course_id">
+          @if (isLoadingCourses) {
+            <mat-option>Loading courses...</mat-option>
+          }
+          @for (course of courses; track course) {
+            <mat-option [value]="course.id">
+              {{ course.title }}
+            </mat-option>
+          }
+        </mat-select>
+        @if (form.get('course_id')?.hasError('required')) {
+          <mat-error>
+            Course is required
+          </mat-error>
+        }
+      </mat-form-field>
+    }
 
     <!-- Target Program Selection (shown when target_type is 'program') -->
-    <mat-form-field appearance="outline" class="full-width" *ngIf="targetType === 'program'">
-      <mat-label>Target Program</mat-label>
-      <mat-select formControlName="program_id">
-        <mat-option *ngIf="isLoadingPrograms">Loading programs...</mat-option>
-        <mat-option *ngFor="let program of programs" [value]="program.id">
-          {{ program.title }}
-        </mat-option>
-      </mat-select>
-      <mat-error *ngIf="form.get('program_id')?.hasError('required')">
-        Program is required
-      </mat-error>
-    </mat-form-field>
+    @if (targetType === 'program') {
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Target Program</mat-label>
+        <mat-select formControlName="program_id">
+          @if (isLoadingPrograms) {
+            <mat-option>Loading programs...</mat-option>
+          }
+          @for (program of programs; track program) {
+            <mat-option [value]="program.id">
+              {{ program.title }}
+            </mat-option>
+          }
+        </mat-select>
+        @if (form.get('program_id')?.hasError('required')) {
+          <mat-error>
+            Program is required
+          </mat-error>
+        }
+      </mat-form-field>
+    }
 
     <!-- Role Selection (shown when target_type is 'program') -->
-    <mat-form-field appearance="outline" class="full-width" *ngIf="targetType === 'program'">
-      <mat-label>Participant Role</mat-label>
-      <mat-select formControlName="role_name">
-        <mat-option *ngFor="let role of getSelectedProgramRoles()" [value]="role">
-          {{ role }}
-        </mat-option>
-      </mat-select>
-      <mat-hint>Select the role for imported participants</mat-hint>
-      <mat-error *ngIf="form.get('role_name')?.hasError('required')">
-        Role is required
-      </mat-error>
-    </mat-form-field>
+    @if (targetType === 'program') {
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Participant Role</mat-label>
+        <mat-select formControlName="role_name">
+          @for (role of getSelectedProgramRoles(); track role) {
+            <mat-option [value]="role">
+              {{ role }}
+            </mat-option>
+          }
+        </mat-select>
+        <mat-hint>Select the role for imported participants</mat-hint>
+        @if (form.get('role_name')?.hasError('required')) {
+          <mat-error>
+            Role is required
+          </mat-error>
+        }
+      </mat-form-field>
+    }
 
     <!-- Options -->
     <div class="options-container">
@@ -104,12 +142,16 @@
 
 <div mat-dialog-actions align="end">
   <button mat-button (click)="onCancel()" [disabled]="isSubmitting">Cancel</button>
-  <button 
-    mat-raised-button 
-    color="primary" 
-    (click)="onSubmit()" 
+  <button
+    mat-raised-button
+    color="primary"
+    (click)="onSubmit()"
     [disabled]="form.invalid || isSubmitting || isLoadingEvents || (targetType === 'course' && isLoadingCourses) || (targetType === 'program' && isLoadingPrograms) || (sourceType === 'list' && isLoadingLists)">
-    <span *ngIf="!isSubmitting">{{ targetType === 'course' ? 'Import Enrollments' : 'Import Participants' }}</span>
-    <span *ngIf="isSubmitting">Processing...</span>
+    @if (!isSubmitting) {
+      <span>{{ targetType === 'course' ? 'Import Enrollments' : 'Import Participants' }}</span>
+    }
+    @if (isSubmitting) {
+      <span>Processing...</span>
+    }
   </button>
 </div>

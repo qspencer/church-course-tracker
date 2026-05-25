@@ -1,93 +1,100 @@
 <div class="app-container">
   <!-- Navigation Toolbar -->
-  <mat-toolbar color="primary" *ngIf="isAuthenticated">
-    <button mat-icon-button (click)="sidenav.toggle()">
-      <mat-icon>menu</mat-icon>
-    </button>
-    <span>{{ title }}<span class="version">{{ appVersion }}</span></span>
-    <span class="spacer"></span>
-    <span *ngIf="currentUser">Welcome, {{ currentUser.full_name }}</span>
-    <button mat-icon-button (click)="logout()" matTooltip="Logout">
-      <mat-icon>logout</mat-icon>
-    </button>
-  </mat-toolbar>
+  @if (isAuthenticated) {
+    <mat-toolbar color="primary">
+      <button mat-icon-button (click)="sidenav.toggle()">
+        <mat-icon>menu</mat-icon>
+      </button>
+      <span>{{ title }}<span class="version">{{ appVersion }}</span></span>
+      <span class="spacer"></span>
+      @if (currentUser) {
+        <span>Welcome, {{ currentUser.full_name }}</span>
+      }
+      <button mat-icon-button (click)="logout()" matTooltip="Logout">
+        <mat-icon>logout</mat-icon>
+      </button>
+    </mat-toolbar>
+  }
 
   <!-- Side Navigation -->
-  <mat-sidenav-container *ngIf="isAuthenticated" class="sidenav-container">
-    <mat-sidenav #sidenav mode="side" opened>
-      <mat-nav-list>
-        <!-- Main Navigation -->
-        <a mat-list-item routerLink="/dashboard" routerLinkActive="active">
-          <mat-icon matListItemIcon>dashboard</mat-icon>
-          <span matListItemTitle>Dashboard</span>
-        </a>
-        <a mat-list-item routerLink="/courses" routerLinkActive="active">
-          <mat-icon matListItemIcon>school</mat-icon>
-          <span matListItemTitle>Courses</span>
-        </a>
-        <a mat-list-item routerLink="/programs" routerLinkActive="active">
-          <mat-icon matListItemIcon>groups</mat-icon>
-          <span matListItemTitle>Programs</span>
-        </a>
-        <a mat-list-item routerLink="/enrollments" routerLinkActive="active">
-          <mat-icon matListItemIcon>assignment</mat-icon>
-          <span matListItemTitle>Enrollments</span>
-        </a>
-        <a mat-list-item routerLink="/progress" routerLinkActive="active">
-          <mat-icon matListItemIcon>trending_up</mat-icon>
-          <span matListItemTitle>Progress</span>
-        </a>
-        <a mat-list-item routerLink="/members" routerLinkActive="active">
-          <mat-icon matListItemIcon>people</mat-icon>
-          <span matListItemTitle>Members</span>
-        </a>
-        <a mat-list-item *ngIf="isStaffOrAdmin()" routerLink="/activity-logs" routerLinkActive="active">
-          <mat-icon matListItemIcon>timeline</mat-icon>
-          <span matListItemTitle>Activity Logs</span>
-        </a>
-        <a mat-list-item routerLink="/reports" routerLinkActive="active">
-          <mat-icon matListItemIcon>assessment</mat-icon>
-          <span matListItemTitle>Reports</span>
-        </a>
-
-        <!-- Administration Section (Admin Only) -->
-        <ng-container *ngIf="isAdmin()">
+  @if (isAuthenticated) {
+    <mat-sidenav-container class="sidenav-container">
+      <mat-sidenav #sidenav mode="side" opened>
+        <mat-nav-list>
+          <!-- Main Navigation -->
+          <a mat-list-item routerLink="/dashboard" routerLinkActive="active">
+            <mat-icon matListItemIcon>dashboard</mat-icon>
+            <span matListItemTitle>Dashboard</span>
+          </a>
+          <a mat-list-item routerLink="/courses" routerLinkActive="active">
+            <mat-icon matListItemIcon>school</mat-icon>
+            <span matListItemTitle>Courses</span>
+          </a>
+          <a mat-list-item routerLink="/programs" routerLinkActive="active">
+            <mat-icon matListItemIcon>groups</mat-icon>
+            <span matListItemTitle>Programs</span>
+          </a>
+          <a mat-list-item routerLink="/enrollments" routerLinkActive="active">
+            <mat-icon matListItemIcon>assignment</mat-icon>
+            <span matListItemTitle>Enrollments</span>
+          </a>
+          <a mat-list-item routerLink="/progress" routerLinkActive="active">
+            <mat-icon matListItemIcon>trending_up</mat-icon>
+            <span matListItemTitle>Progress</span>
+          </a>
+          <a mat-list-item routerLink="/members" routerLinkActive="active">
+            <mat-icon matListItemIcon>people</mat-icon>
+            <span matListItemTitle>Members</span>
+          </a>
+          @if (isStaffOrAdmin()) {
+            <a mat-list-item routerLink="/activity-logs" routerLinkActive="active">
+              <mat-icon matListItemIcon>timeline</mat-icon>
+              <span matListItemTitle>Activity Logs</span>
+            </a>
+          }
+          <a mat-list-item routerLink="/reports" routerLinkActive="active">
+            <mat-icon matListItemIcon>assessment</mat-icon>
+            <span matListItemTitle>Reports</span>
+          </a>
+          <!-- Administration Section (Admin Only) -->
+          @if (isAdmin()) {
+            <mat-divider></mat-divider>
+            <div class="nav-section-header">Administration</div>
+            <a mat-list-item routerLink="/users" routerLinkActive="active">
+              <mat-icon matListItemIcon>admin_panel_settings</mat-icon>
+              <span matListItemTitle>Users</span>
+            </a>
+            <a mat-list-item routerLink="/audit" routerLinkActive="active">
+              <mat-icon matListItemIcon>history</mat-icon>
+              <span matListItemTitle>Audit Logs</span>
+            </a>
+            <a mat-list-item routerLink="/settings" routerLinkActive="active">
+              <mat-icon matListItemIcon>settings</mat-icon>
+              <span matListItemTitle>System Settings</span>
+            </a>
+          }
+          <!-- Account Section -->
           <mat-divider></mat-divider>
-          <div class="nav-section-header">Administration</div>
-          <a mat-list-item routerLink="/users" routerLinkActive="active">
-            <mat-icon matListItemIcon>admin_panel_settings</mat-icon>
-            <span matListItemTitle>Users</span>
+          <div class="nav-section-header">Account</div>
+          <a mat-list-item routerLink="/profile" routerLinkActive="active">
+            <mat-icon matListItemIcon>account_circle</mat-icon>
+            <span matListItemTitle>My Profile</span>
           </a>
-          <a mat-list-item routerLink="/audit" routerLinkActive="active">
-            <mat-icon matListItemIcon>history</mat-icon>
-            <span matListItemTitle>Audit Logs</span>
-          </a>
-          <a mat-list-item routerLink="/settings" routerLinkActive="active">
-            <mat-icon matListItemIcon>settings</mat-icon>
-            <span matListItemTitle>System Settings</span>
-          </a>
-        </ng-container>
-
-        <!-- Account Section -->
-        <mat-divider></mat-divider>
-        <div class="nav-section-header">Account</div>
-        <a mat-list-item routerLink="/profile" routerLinkActive="active">
-          <mat-icon matListItemIcon>account_circle</mat-icon>
-          <span matListItemTitle>My Profile</span>
-        </a>
-      </mat-nav-list>
-    </mat-sidenav>
-
-    <!-- Main Content -->
-    <mat-sidenav-content>
-      <div class="content">
-        <router-outlet></router-outlet>
-      </div>
-    </mat-sidenav-content>
-  </mat-sidenav-container>
+        </mat-nav-list>
+      </mat-sidenav>
+      <!-- Main Content -->
+      <mat-sidenav-content>
+        <div class="content">
+          <router-outlet></router-outlet>
+        </div>
+      </mat-sidenav-content>
+    </mat-sidenav-container>
+  }
 
   <!-- Auth Content (when not authenticated) -->
-  <div *ngIf="!isAuthenticated" class="auth-container">
-    <router-outlet></router-outlet>
-  </div>
+  @if (!isAuthenticated) {
+    <div class="auth-container">
+      <router-outlet></router-outlet>
+    </div>
+  }
 </div>
