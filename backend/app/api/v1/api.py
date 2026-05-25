@@ -72,7 +72,22 @@ api_router.include_router(
 # has no auth gates on its routes - exposing it in production would be an
 # unauthenticated write surface. The audit (2026-05-18 §3.1 B9) flagged
 # this as a P1 risk; we close it here by gating registration.
-if settings.ENVIRONMENT != "production" and settings.USE_MOCK_PLANNING_CENTER:
+def _should_mount_mock_planning_center(environment: str, use_mock: bool) -> bool:
+    """Return True iff the mock PC router should be mounted on api_router.
+
+    Production must NEVER mount the mock router, regardless of the
+    USE_MOCK_PLANNING_CENTER toggle - it has no auth gates on its routes
+    and would be an unauthenticated write surface. Extracted as a
+    standalone function so the predicate can be unit-tested without
+    importlib gymnastics; see
+    tests/test_hardening_regressions.py::TestMockPlanningCenterGate.
+    """
+    return environment != "production" and bool(use_mock)
+
+
+if _should_mount_mock_planning_center(
+    settings.ENVIRONMENT, settings.USE_MOCK_PLANNING_CENTER
+):
     api_router.include_router(
         mock_planning_center.router,
         prefix="/mock-planning-center",
