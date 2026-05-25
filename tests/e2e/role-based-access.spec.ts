@@ -89,13 +89,13 @@ test.describe('Role-Based Access Control', () => {
 
       if (!adminNavVisible) {
         // Fallback to direct URL navigation if admin nav not visible
-        await page.goto(`${APP_BASE_URL}/users`, { waitUntil: 'domcontentloaded' });
+        await page.goto(`${APP_BASE_URL}/admin/users`, { waitUntil: 'domcontentloaded' });
       } else {
         // Navigate to users page via nav link
-        const usersLink = page.locator('a[routerLink="/users"], mat-nav-list a:has-text("Users")').first();
+        const usersLink = page.locator('a[routerLink="/admin/users"], mat-nav-list a:has-text("Users")').first();
         await usersLink.click();
       }
-      await page.waitForURL('**/users', { timeout: 15000 }).catch(() => {});
+      await page.waitForURL('**/admin/users', { timeout: 15000 }).catch(() => {});
       await page.waitForLoadState('domcontentloaded').catch(() => {});
 
       // Should be able to see user management interface
@@ -114,7 +114,7 @@ test.describe('Role-Based Access Control', () => {
         // Edit User button may not exist - skip if not found
         // If UI elements not found, at least verify admin can access users page
         const currentUrl = page.url();
-        expect(currentUrl.includes('/users') || currentUrl.includes('/dashboard')).toBeTruthy();
+        expect(currentUrl.includes('/admin/users') || currentUrl.includes('/dashboard')).toBeTruthy();
         return;
       }
     });
@@ -129,13 +129,13 @@ test.describe('Role-Based Access Control', () => {
 
       if (!adminNavVisible) {
         // Fallback to direct URL navigation if admin nav not visible
-        await page.goto(`${APP_BASE_URL}/audit`, { waitUntil: 'domcontentloaded' });
+        await page.goto(`${APP_BASE_URL}/admin/audit`, { waitUntil: 'domcontentloaded' });
       } else {
         // Navigate to audit logs via nav link
-        const auditLink = page.locator('a[routerLink="/audit"], mat-nav-list a:has-text("Audit Logs")').first();
+        const auditLink = page.locator('a[routerLink="/admin/audit"], mat-nav-list a:has-text("Audit Logs")').first();
         await auditLink.click();
       }
-      await page.waitForURL('**/audit', { timeout: 15000 }).catch(() => {});
+      await page.waitForURL('**/admin/audit', { timeout: 15000 }).catch(() => {});
 
       // Should see audit log interface
       // Check for audit log page - may have different titles
@@ -283,10 +283,10 @@ test.describe('Role-Based Access Control', () => {
 
       if (!adminNavVisible) {
         // Fallback to direct URL navigation if admin nav not visible
-        await page.goto(`${APP_BASE_URL}/settings`, { waitUntil: 'domcontentloaded' });
+        await page.goto(`${APP_BASE_URL}/admin/settings`, { waitUntil: 'domcontentloaded' });
       } else {
         // Navigate to settings page via navigation link
-        const settingsLink = page.locator('a[routerLink="/settings"], mat-nav-list a:has-text("System Settings")').first();
+        const settingsLink = page.locator('a[routerLink="/admin/settings"], mat-nav-list a:has-text("System Settings")').first();
         await settingsLink.click();
         await page.waitForURL('**/settings**', { timeout: 5000 }).catch(() => {});
       }
@@ -297,7 +297,7 @@ test.describe('Role-Based Access Control', () => {
       // Verify admin can access settings or is on an authorized admin page
       const url = page.url();
       // Settings page might redirect to dashboard if not implemented, or admin stays on settings
-      const isOnAuthorizedPage = url.includes('/settings') || url.includes('/dashboard') || url.includes('/courses');
+      const isOnAuthorizedPage = url.includes('/admin/settings') || url.includes('/dashboard') || url.includes('/courses');
       expect(isOnAuthorizedPage).toBeTruthy();
 
       // Try multiple ways to verify the page loaded
@@ -315,7 +315,7 @@ test.describe('Role-Based Access Control', () => {
 
       // Test passes if we're on the settings page
       // Even if content isn't fully loaded, being on the correct URL means admin has access
-      expect(url.includes('/settings')).toBeTruthy();
+      expect(url.includes('/admin/settings')).toBeTruthy();
       
       // If page content is visible, that's a bonus
       if (pageLoaded) {
@@ -481,7 +481,7 @@ test.describe('Role-Based Access Control', () => {
         expect(adminUrl).toMatch(/\/dashboard|\/auth/);
       }
 
-      await page.goto(`${APP_BASE_URL}/audit`, { waitUntil: 'domcontentloaded' });
+      await page.goto(`${APP_BASE_URL}/admin/audit`, { waitUntil: 'domcontentloaded' });
       await page.waitForTimeout(2000); // Wait for potential redirect
       const auditUrl = page.url();
       // Should be redirected to dashboard, or if not redirected, should show error/access denied
@@ -604,16 +604,16 @@ test.describe('Role-Based Access Control', () => {
       
       if (!linkExists) {
         // If Profile nav not found, try direct navigation
-        await page.goto(`${APP_BASE_URL}/profile`, { waitUntil: 'domcontentloaded' }).catch(() => {});
+        await page.goto(`${APP_BASE_URL}/account/profile`, { waitUntil: 'domcontentloaded' }).catch(() => {});
         await page.waitForTimeout(2000);
         const currentUrl = page.url();
-        expect(currentUrl.includes('/profile') || currentUrl.includes('/dashboard')).toBeTruthy();
+        expect(currentUrl.includes('/account/profile') || currentUrl.includes('/dashboard')).toBeTruthy();
         return;
       }
 
       await profileLink.scrollIntoViewIfNeeded();
       await profileLink.click();
-      await page.waitForURL('**/profile', { timeout: 10000 }).catch(() => {});
+      await page.waitForURL('**/account/profile', { timeout: 10000 }).catch(() => {});
       await page.waitForTimeout(1000);
       
       // Profile form fields use formControlName
@@ -626,7 +626,7 @@ test.describe('Role-Based Access Control', () => {
       } else {
         // If Profile form fields not found, at least verify user can access profile page
         const currentUrl = page.url();
-        expect(currentUrl.includes('/profile')).toBeTruthy();
+        expect(currentUrl.includes('/account/profile')).toBeTruthy();
       }
     });
 
@@ -636,7 +636,7 @@ test.describe('Role-Based Access Control', () => {
       }
 
       // Try to access management URLs directly
-      await page.goto(`${APP_BASE_URL}/users`, { waitUntil: 'domcontentloaded' });
+      await page.goto(`${APP_BASE_URL}/admin/users`, { waitUntil: 'domcontentloaded' });
       await page.waitForTimeout(2000); // Wait for potential redirect
       const usersUrl = page.url();
       // Should be redirected to dashboard or auth
@@ -667,7 +667,7 @@ test.describe('Role-Based Access Control', () => {
       if (!(await loginAs(page, 'staff', testInfo))) {
         return;
       }
-      await page.goto(`${APP_BASE_URL}/audit`);
+      await page.goto(`${APP_BASE_URL}/admin/audit`);
       await page.waitForTimeout(2000);
       const staffUrl = page.url();
       expect(staffUrl).toMatch(/\/dashboard/);

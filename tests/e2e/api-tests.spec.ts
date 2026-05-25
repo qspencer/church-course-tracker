@@ -40,7 +40,7 @@ test.describe('API Endpoint Tests', () => {
   });
 
   test('API users endpoint responds', async ({ request }) => {
-    // /users requires admin auth as of May 2026 hardening pass; was previously
+    // /admin/users requires admin auth as of May 2026 hardening pass; was previously
     // public. We test it with admin credentials provided by the CI workflow
     // (E2E_ADMIN_PASSWORD secret); skip when those aren't configured locally.
     const token = await getApiAuthToken(request, 'admin');

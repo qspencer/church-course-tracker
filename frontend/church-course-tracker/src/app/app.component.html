@@ -47,7 +47,7 @@
             <span matListItemTitle>Members</span>
           </a>
           @if (isStaffOrAdmin()) {
-            <a mat-list-item routerLink="/activity-logs" routerLinkActive="active">
+            <a mat-list-item routerLink="/account/activity-logs" routerLinkActive="active">
               <mat-icon matListItemIcon>timeline</mat-icon>
               <span matListItemTitle>Activity Logs</span>
             </a>
@@ -60,15 +60,15 @@
           @if (isAdmin()) {
             <mat-divider></mat-divider>
             <div class="nav-section-header">Administration</div>
-            <a mat-list-item routerLink="/users" routerLinkActive="active">
+            <a mat-list-item routerLink="/admin/users" routerLinkActive="active">
               <mat-icon matListItemIcon>admin_panel_settings</mat-icon>
               <span matListItemTitle>Users</span>
             </a>
-            <a mat-list-item routerLink="/audit" routerLinkActive="active">
+            <a mat-list-item routerLink="/admin/audit" routerLinkActive="active">
               <mat-icon matListItemIcon>history</mat-icon>
               <span matListItemTitle>Audit Logs</span>
             </a>
-            <a mat-list-item routerLink="/settings" routerLinkActive="active">
+            <a mat-list-item routerLink="/admin/settings" routerLinkActive="active">
               <mat-icon matListItemIcon>settings</mat-icon>
               <span matListItemTitle>System Settings</span>
             </a>
@@ -76,7 +76,7 @@
           <!-- Account Section -->
           <mat-divider></mat-divider>
           <div class="nav-section-header">Account</div>
-          <a mat-list-item routerLink="/profile" routerLinkActive="active">
+          <a mat-list-item routerLink="/account/profile" routerLinkActive="active">
             <mat-icon matListItemIcon>account_circle</mat-icon>
             <span matListItemTitle>My Profile</span>
           </a>

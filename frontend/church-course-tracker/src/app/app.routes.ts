@@ -72,36 +72,55 @@ export const routes: Routes = [
     canActivate: [AuthGuard],
   },
   {
-    path: 'users',
+    path: 'admin',
     loadComponent: () =>
-      import('./components/users/users.component').then(m => m.UsersComponent),
+      import('./components/admin-layout/admin-layout.component').then(
+        m => m.AdminLayoutComponent,
+      ),
     canActivate: [AuthGuard, AdminGuard],
+    canActivateChild: [AuthGuard, AdminGuard],
+    children: [
+      { path: '', redirectTo: 'users', pathMatch: 'full' },
+      {
+        path: 'users',
+        loadComponent: () =>
+          import('./components/users/users.component').then(m => m.UsersComponent),
+      },
+      {
+        path: 'audit',
+        loadComponent: () =>
+          import('./components/audit/audit.component').then(m => m.AuditComponent),
+      },
+      {
+        path: 'settings',
+        loadComponent: () =>
+          import('./components/settings/settings.component').then(m => m.SettingsComponent),
+      },
+    ],
   },
   {
-    path: 'audit',
+    path: 'account',
     loadComponent: () =>
-      import('./components/audit/audit.component').then(m => m.AuditComponent),
-    canActivate: [AuthGuard, AdminGuard],
-  },
-  {
-    path: 'settings',
-    loadComponent: () =>
-      import('./components/settings/settings.component').then(m => m.SettingsComponent),
-    canActivate: [AuthGuard, AdminGuard],
-  },
-  {
-    path: 'profile',
-    loadComponent: () =>
-      import('./components/profile/profile.component').then(m => m.ProfileComponent),
-    canActivate: [AuthGuard],
-  },
-  {
-    path: 'activity-logs',
-    loadComponent: () =>
-      import('./components/activity-logs/activity-logs.component').then(
-        m => m.ActivityLogsComponent,
+      import('./components/account-layout/account-layout.component').then(
+        m => m.AccountLayoutComponent,
       ),
     canActivate: [AuthGuard],
+    canActivateChild: [AuthGuard],
+    children: [
+      { path: '', redirectTo: 'profile', pathMatch: 'full' },
+      {
+        path: 'profile',
+        loadComponent: () =>
+          import('./components/profile/profile.component').then(m => m.ProfileComponent),
+      },
+      {
+        path: 'activity-logs',
+        loadComponent: () =>
+          import('./components/activity-logs/activity-logs.component').then(
+            m => m.ActivityLogsComponent,
+          ),
+      },
+    ],
   },
   {
     path: '404',

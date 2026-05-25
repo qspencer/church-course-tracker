@@ -22,7 +22,7 @@ test.describe('Working API Tests', () => {
   });
 
   test('API users endpoint responds correctly', async ({ request }) => {
-    // /users requires admin auth as of May 2026 hardening pass.
+    // /admin/users requires admin auth as of May 2026 hardening pass.
     const token = await getApiAuthToken(request, 'admin');
     test.skip(!token, 'admin credentials not configured (or login failed)');
 

@@ -196,7 +196,7 @@ async function switchToTab(page: Page, tabName: 'Content' | 'Modules' | 'Summary
     // For conditionally rendered tabs (Summary, Audit Logs), wait for them to appear
     // These tabs depend on async data loading (contentSummary, auditLogs)
     if (tabName === 'Summary' || tabName === 'Audit Logs') {
-      // Wait for network requests to complete (API calls for summary/audit data)
+      // Wait for network requests to complete (API calls for summary/admin/audit data)
       await page.waitForLoadState('domcontentloaded', { timeout: 10000 }).catch(() => {});
       // Wait for Angular to render conditional tabs after data loads
       await page.waitForTimeout(2000);

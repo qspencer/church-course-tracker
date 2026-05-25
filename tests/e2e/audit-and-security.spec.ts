@@ -19,10 +19,10 @@ async function requireVisible(locator: Locator, description: string, testInfo: T
         if (currentUrl.includes('/dashboard')) {
           // Try navigating directly to audit page
           try {
-            await locator.page().goto(`${APP_BASE_URL}/audit`, { waitUntil: 'domcontentloaded', timeout: 10000 });
+            await locator.page().goto(`${APP_BASE_URL}/admin/audit`, { waitUntil: 'domcontentloaded', timeout: 10000 });
             await locator.page().waitForTimeout(2000);
             const newUrl = locator.page().url();
-            if (newUrl.includes('/audit')) {
+            if (newUrl.includes('/admin/audit')) {
               return true; // Navigation worked, feature exists
             }
           } catch {
@@ -33,7 +33,7 @@ async function requireVisible(locator: Locator, description: string, testInfo: T
     }
     // If element not available, verify we're in a valid location
     const currentUrl = locator.page().url();
-    expect(currentUrl.includes('/dashboard') || currentUrl.includes('/audit') || currentUrl.includes('/users')).toBeTruthy();
+    expect(currentUrl.includes('/dashboard') || currentUrl.includes('/admin/audit') || currentUrl.includes('/admin/users')).toBeTruthy();
     return false;
   }
 }
@@ -71,15 +71,15 @@ test.describe('Audit and Security Tests', () => {
         await page.waitForTimeout(1000);
       } else {
         // Try navigating directly to audit page
-        await page.goto(`${APP_BASE_URL}/audit`, { waitUntil: 'domcontentloaded' });
+        await page.goto(`${APP_BASE_URL}/admin/audit`, { waitUntil: 'domcontentloaded' });
         await page.waitForTimeout(2000);
       }
       
       // Check if we're on the audit page
       const currentUrl = page.url();
-      if (!currentUrl.includes('/audit')) {
+      if (!currentUrl.includes('/admin/audit')) {
         // If not on audit page, verify admin can at least access admin features
-        expect(currentUrl.includes('/dashboard') || currentUrl.includes('/users') || currentUrl.includes('/settings')).toBeTruthy();
+        expect(currentUrl.includes('/dashboard') || currentUrl.includes('/admin/users') || currentUrl.includes('/admin/settings')).toBeTruthy();
         return;
       }
       
@@ -91,8 +91,8 @@ test.describe('Audit and Security Tests', () => {
         // Check if there's any audit-related content or any content at all
         const pageContent = await page.textContent('body').catch(() => '');
         // If we're on the audit URL, that's sufficient - admin has access
-        if (currentUrl.includes('/audit')) {
-          expect(currentUrl.includes('/audit')).toBeTruthy();
+        if (currentUrl.includes('/admin/audit')) {
+          expect(currentUrl.includes('/admin/audit')).toBeTruthy();
           return;
         }
       }
@@ -128,7 +128,7 @@ test.describe('Audit and Security Tests', () => {
       }
       
       // If we get here, we're on the audit page - that's sufficient to verify admin access
-      expect(currentUrl.includes('/audit')).toBeTruthy();
+      expect(currentUrl.includes('/admin/audit')).toBeTruthy();
     });
 
     test('Admin can filter audit logs', async ({ page }, testInfo) => {
@@ -137,14 +137,14 @@ test.describe('Audit and Security Tests', () => {
       }
 
       // Navigate to audit page directly
-      await page.goto(`${APP_BASE_URL}/audit`, { waitUntil: 'domcontentloaded' });
+      await page.goto(`${APP_BASE_URL}/admin/audit`, { waitUntil: 'domcontentloaded' });
       await page.waitForTimeout(2000);
       
       // Check if we're on the audit page
       const auditUrl = page.url();
-      if (!auditUrl.includes('/audit')) {
+      if (!auditUrl.includes('/admin/audit')) {
         // If not on audit page, verify admin can at least access admin features
-        expect(auditUrl.includes('/dashboard') || auditUrl.includes('/users') || auditUrl.includes('/settings')).toBeTruthy();
+        expect(auditUrl.includes('/dashboard') || auditUrl.includes('/admin/users') || auditUrl.includes('/admin/settings')).toBeTruthy();
         return;
       }
       
@@ -160,7 +160,7 @@ test.describe('Audit and Security Tests', () => {
       
       if (!hasFilters) {
         // If filters aren't available, at least verify we're on the audit page
-        expect(auditUrl.includes('/audit')).toBeTruthy();
+        expect(auditUrl.includes('/admin/audit')).toBeTruthy();
         return;
       }
       
@@ -182,7 +182,7 @@ test.describe('Audit and Security Tests', () => {
       }
       
       // If we get here, we're on the audit page - that's sufficient
-      expect(auditUrl.includes('/audit')).toBeTruthy();
+      expect(auditUrl.includes('/admin/audit')).toBeTruthy();
     });
 
     test('Admin can export audit logs', async ({ page }, testInfo) => {
@@ -191,14 +191,14 @@ test.describe('Audit and Security Tests', () => {
       }
 
       // Navigate to audit page directly
-      await page.goto(`${APP_BASE_URL}/audit`, { waitUntil: 'domcontentloaded' });
+      await page.goto(`${APP_BASE_URL}/admin/audit`, { waitUntil: 'domcontentloaded' });
       await page.waitForTimeout(2000);
       
       // Check if we're on the audit page
-      if (!page.url().includes('/audit')) {
+      if (!page.url().includes('/admin/audit')) {
         // If not on audit page, verify admin can at least access admin features
         const currentUrl = page.url();
-        expect(currentUrl.includes('/dashboard') || currentUrl.includes('/users') || currentUrl.includes('/settings')).toBeTruthy();
+        expect(currentUrl.includes('/dashboard') || currentUrl.includes('/admin/users') || currentUrl.includes('/admin/settings')).toBeTruthy();
         return;
       }
 
@@ -218,7 +218,7 @@ test.describe('Audit and Security Tests', () => {
       // Export buttons not found
       // If export functionality isn't available, at least verify we're on the audit page
       const currentUrl = page.url();
-      expect(currentUrl.includes('/audit')).toBeTruthy();
+      expect(currentUrl.includes('/admin/audit')).toBeTruthy();
     });
 
     test('Admin can view audit statistics', async ({ page }, testInfo) => {
@@ -227,14 +227,14 @@ test.describe('Audit and Security Tests', () => {
       }
 
       // Navigate to audit page directly
-      await page.goto(`${APP_BASE_URL}/audit`, { waitUntil: 'domcontentloaded' });
+      await page.goto(`${APP_BASE_URL}/admin/audit`, { waitUntil: 'domcontentloaded' });
       await page.waitForTimeout(2000);
       
       // Check if we're on the audit page
-      if (!page.url().includes('/audit')) {
+      if (!page.url().includes('/admin/audit')) {
         // If not on audit page, verify admin can at least access admin features
         const currentUrl = page.url();
-        expect(currentUrl.includes('/dashboard') || currentUrl.includes('/users') || currentUrl.includes('/settings')).toBeTruthy();
+        expect(currentUrl.includes('/dashboard') || currentUrl.includes('/admin/users') || currentUrl.includes('/admin/settings')).toBeTruthy();
         return;
       }
 
@@ -265,7 +265,7 @@ test.describe('Audit and Security Tests', () => {
       // Statistics not found
       // If statistics aren't available, at least verify we're on the audit page
       const currentUrl = page.url();
-      expect(currentUrl.includes('/audit')).toBeTruthy();
+      expect(currentUrl.includes('/admin/audit')).toBeTruthy();
     });
   });
 
@@ -279,12 +279,12 @@ test.describe('Audit and Security Tests', () => {
       await expect(page.locator('text=Audit Logs')).not.toBeVisible();
 
       // Try to access audit logs directly
-      await page.goto(`${APP_BASE_URL}/audit`);
+      await page.goto(`${APP_BASE_URL}/admin/audit`);
       await page.waitForLoadState('domcontentloaded');
 
       // Staff should be redirected away from audit page (to dashboard or another authorized page)
       const currentUrl = page.url();
-      expect(currentUrl.includes('/audit')).toBeFalsy();
+      expect(currentUrl.includes('/admin/audit')).toBeFalsy();
     });
 
     test('Staff can view limited activity logs', async ({ page }, testInfo) => {
@@ -298,13 +298,13 @@ test.describe('Audit and Security Tests', () => {
       
       if (!navVisible) {
         // If Activity Logs nav not visible, try direct navigation
-        await page.goto(`${APP_BASE_URL}/activity-logs`, { waitUntil: 'domcontentloaded' }).catch(() => {});
+        await page.goto(`${APP_BASE_URL}/account/activity-logs`, { waitUntil: 'domcontentloaded' }).catch(() => {});
         await page.waitForTimeout(2000);
         return;
       }
       
       await activityLogsNav.click();
-      await page.waitForURL('**/activity-logs', { timeout: 10000 }).catch(() => {});
+      await page.waitForURL('**/account/activity-logs', { timeout: 10000 }).catch(() => {});
       await page.waitForTimeout(1000);
       
       // Should see activity logs page
@@ -320,7 +320,7 @@ test.describe('Audit and Security Tests', () => {
       } else {
         // If content not found, at least verify we can navigate to the page
         const currentUrl = page.url();
-        expect(currentUrl.includes('/activity-logs') || currentUrl.includes('/dashboard')).toBeTruthy();
+        expect(currentUrl.includes('/account/activity-logs') || currentUrl.includes('/dashboard')).toBeTruthy();
       }
     });
   });
@@ -336,7 +336,7 @@ test.describe('Audit and Security Tests', () => {
       await expect(page.locator('text=Activity Logs')).not.toBeVisible();
       
       // Try to access audit URLs directly
-      await page.goto(`${APP_BASE_URL}/audit`);
+      await page.goto(`${APP_BASE_URL}/admin/audit`);
       await expect(page).toHaveURL(`${APP_BASE_URL}/dashboard`);
     });
   });

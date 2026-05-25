@@ -43,13 +43,13 @@ test.describe('User Management Tests', () => {
 
       if (!adminNavVisible) {
         // Fallback to direct URL navigation if admin nav not visible
-        await page.goto(`${APP_BASE_URL}/users`, { waitUntil: 'domcontentloaded' });
+        await page.goto(`${APP_BASE_URL}/admin/users`, { waitUntil: 'domcontentloaded' });
       } else {
         // Navigate via admin nav link
-        const usersLink = page.locator('a[routerLink="/users"], mat-nav-list a:has-text("Users")').first();
+        const usersLink = page.locator('a[routerLink="/admin/users"], mat-nav-list a:has-text("Users")').first();
         await usersLink.click();
       }
-      await page.waitForURL('**/users', { timeout: 10000 }).catch(() => {});
+      await page.waitForURL('**/admin/users', { timeout: 10000 }).catch(() => {});
       await page.waitForTimeout(1000);
 
       // Look for Add User button
@@ -59,7 +59,7 @@ test.describe('User Management Tests', () => {
       if (!addUserVisible) {
         // If Add User button not found, at least verify admin can access users page
         const currentUrl = page.url();
-        expect(currentUrl.includes('/users')).toBeTruthy();
+        expect(currentUrl.includes('/admin/users')).toBeTruthy();
         return;
       }
       
@@ -72,7 +72,7 @@ test.describe('User Management Tests', () => {
       if (!dialogVisible) {
         // If User dialog not found, at least verify admin can access users page
         const currentUrl = page.url();
-        expect(currentUrl.includes('/users')).toBeTruthy();
+        expect(currentUrl.includes('/admin/users')).toBeTruthy();
         return;
       }
       
@@ -117,12 +117,12 @@ test.describe('User Management Tests', () => {
         }
         // Verify we're on the users page or dashboard (form was submitted)
         const currentUrl = page.url();
-        expect(currentUrl.includes('/users') || currentUrl.includes('/dashboard')).toBeTruthy();
+        expect(currentUrl.includes('/admin/users') || currentUrl.includes('/dashboard')).toBeTruthy();
       } else {
         // If dialog didn't close, wait longer and verify we're still on users page
         await page.waitForTimeout(3000);
         const currentUrl = page.url();
-        expect(currentUrl.includes('/users') || currentUrl.includes('/dashboard')).toBeTruthy();
+        expect(currentUrl.includes('/admin/users') || currentUrl.includes('/dashboard')).toBeTruthy();
       }
     });
 
@@ -136,13 +136,13 @@ test.describe('User Management Tests', () => {
 
       if (!adminNavVisible) {
         // Fallback to direct URL navigation if admin nav not visible
-        await page.goto(`${APP_BASE_URL}/users`, { waitUntil: 'domcontentloaded' });
+        await page.goto(`${APP_BASE_URL}/admin/users`, { waitUntil: 'domcontentloaded' });
       } else {
         // Navigate via admin nav link
-        const usersLink = page.locator('a[routerLink="/users"], mat-nav-list a:has-text("Users")').first();
+        const usersLink = page.locator('a[routerLink="/admin/users"], mat-nav-list a:has-text("Users")').first();
         await usersLink.click();
       }
-      await page.waitForURL('**/users', { timeout: 10000 }).catch(() => {});
+      await page.waitForURL('**/admin/users', { timeout: 10000 }).catch(() => {});
       await page.waitForTimeout(1000); // Wait for table to load
 
       // IMPORTANT: Don't modify the Admin user as that breaks authentication for other tests
@@ -166,7 +166,7 @@ test.describe('User Management Tests', () => {
       if (!targetRow) {
         console.log('⚠️ Only admin users found - skipping role update test to avoid breaking auth');
         const currentUrl = page.url();
-        expect(currentUrl.includes('/users')).toBeTruthy();
+        expect(currentUrl.includes('/admin/users')).toBeTruthy();
         return;
       }
 
@@ -179,7 +179,7 @@ test.describe('User Management Tests', () => {
       if (!menuVisible) {
         // If User actions menu not found, at least verify admin can access users page
         const currentUrl = page.url();
-        expect(currentUrl.includes('/users')).toBeTruthy();
+        expect(currentUrl.includes('/admin/users')).toBeTruthy();
         return;
       }
 
@@ -193,7 +193,7 @@ test.describe('User Management Tests', () => {
       if (!editVisible) {
         // If Edit menu item not found, at least verify admin can access users page
         const currentUrl = page.url();
-        expect(currentUrl.includes('/users')).toBeTruthy();
+        expect(currentUrl.includes('/admin/users')).toBeTruthy();
         return;
       }
 
@@ -206,7 +206,7 @@ test.describe('User Management Tests', () => {
       if (!dialogVisible) {
         // If Edit dialog not found, at least verify admin can access users page
         const currentUrl = page.url();
-        expect(currentUrl.includes('/users')).toBeTruthy();
+        expect(currentUrl.includes('/admin/users')).toBeTruthy();
         return;
       }
 
@@ -330,13 +330,13 @@ test.describe('User Management Tests', () => {
 
       if (!adminNavVisible) {
         // Fallback to direct URL navigation if admin nav not visible
-        await page.goto(`${APP_BASE_URL}/users`, { waitUntil: 'domcontentloaded' });
+        await page.goto(`${APP_BASE_URL}/admin/users`, { waitUntil: 'domcontentloaded' });
       } else {
         // Navigate via admin nav link
-        const usersLink = page.locator('a[routerLink="/users"], mat-nav-list a:has-text("Users")').first();
+        const usersLink = page.locator('a[routerLink="/admin/users"], mat-nav-list a:has-text("Users")').first();
         await usersLink.click();
       }
-      await page.waitForURL('**/users', { timeout: 10000 }).catch(() => {});
+      await page.waitForURL('**/admin/users', { timeout: 10000 }).catch(() => {});
       await page.waitForTimeout(1000);
 
       // Find an active user to deactivate - look for Active chip in table
@@ -362,7 +362,7 @@ test.describe('User Management Tests', () => {
       if (!hasActiveUser) {
         console.log('⚠️ Only admin users are active - skipping deactivation test to avoid breaking auth');
         const currentUrl = page.url();
-        expect(currentUrl.includes('/users')).toBeTruthy();
+        expect(currentUrl.includes('/admin/users')).toBeTruthy();
         return;
       }
 
@@ -377,7 +377,7 @@ test.describe('User Management Tests', () => {
       if (!menuVisible) {
         // If User actions menu not found, at least verify admin can access users page
         const currentUrl = page.url();
-        expect(currentUrl.includes('/users')).toBeTruthy();
+        expect(currentUrl.includes('/admin/users')).toBeTruthy();
         return;
       }
 
@@ -392,7 +392,7 @@ test.describe('User Management Tests', () => {
         await page.keyboard.press('Escape');
         // If Deactivate menu item not found, at least verify admin can access users page
         const currentUrl = page.url();
-        expect(currentUrl.includes('/users')).toBeTruthy();
+        expect(currentUrl.includes('/admin/users')).toBeTruthy();
         return;
       }
 
@@ -480,13 +480,13 @@ test.describe('User Management Tests', () => {
 
       if (!adminNavVisible) {
         // Fallback to direct URL navigation if admin nav not visible
-        await page.goto(`${APP_BASE_URL}/users`, { waitUntil: 'domcontentloaded' });
+        await page.goto(`${APP_BASE_URL}/admin/users`, { waitUntil: 'domcontentloaded' });
       } else {
         // Navigate via admin nav link
-        const usersLink = page.locator('a[routerLink="/users"], mat-nav-list a:has-text("Users")').first();
+        const usersLink = page.locator('a[routerLink="/admin/users"], mat-nav-list a:has-text("Users")').first();
         await usersLink.click();
       }
-      await page.waitForURL('**/users', { timeout: 10000 }).catch(() => {});
+      await page.waitForURL('**/admin/users', { timeout: 10000 }).catch(() => {});
       await page.waitForTimeout(1000);
       
       // Open the menu for a user
@@ -496,7 +496,7 @@ test.describe('User Management Tests', () => {
       if (!menuVisible) {
         // If User actions menu not found, at least verify admin can access users page
         const currentUrl = page.url();
-        expect(currentUrl.includes('/users')).toBeTruthy();
+        expect(currentUrl.includes('/admin/users')).toBeTruthy();
         return;
       }
       
@@ -511,7 +511,7 @@ test.describe('User Management Tests', () => {
         await page.keyboard.press('Escape');
         // If Reset Password menu item not found, at least verify admin can access users page
         const currentUrl = page.url();
-        expect(currentUrl.includes('/users')).toBeTruthy();
+        expect(currentUrl.includes('/admin/users')).toBeTruthy();
         return;
       }
       
@@ -544,12 +544,12 @@ test.describe('User Management Tests', () => {
       await expect(page.locator('text=Users')).not.toBeVisible();
 
       // Try to access user management directly
-      await page.goto(`${APP_BASE_URL}/users`);
+      await page.goto(`${APP_BASE_URL}/admin/users`);
       await page.waitForLoadState('domcontentloaded');
 
       // Staff should be redirected away from users page (to dashboard or another authorized page)
       const currentUrl = page.url();
-      expect(currentUrl.includes('/users')).toBeFalsy();
+      expect(currentUrl.includes('/admin/users')).toBeFalsy();
     });
 
     test('Staff can provide user support', async ({ page }, testInfo) => {
@@ -576,16 +576,16 @@ test.describe('User Management Tests', () => {
       
       if (!linkExists) {
         // If Profile feature not deployed, try direct navigation
-        await page.goto(`${APP_BASE_URL}/profile`, { waitUntil: 'domcontentloaded' }).catch(() => {});
+        await page.goto(`${APP_BASE_URL}/account/profile`, { waitUntil: 'domcontentloaded' }).catch(() => {});
         await page.waitForTimeout(2000);
         const currentUrl = page.url();
-        expect(currentUrl.includes('/profile') || currentUrl.includes('/dashboard')).toBeTruthy();
+        expect(currentUrl.includes('/account/profile') || currentUrl.includes('/dashboard')).toBeTruthy();
         return;
       }
 
       await profileLink.scrollIntoViewIfNeeded();
       await profileLink.click();
-      await page.waitForURL('**/profile', { timeout: 10000 }).catch(() => {});
+      await page.waitForURL('**/account/profile', { timeout: 10000 }).catch(() => {});
       await page.waitForTimeout(1000);
       
       // Check for profile form
@@ -609,16 +609,16 @@ test.describe('User Management Tests', () => {
       
       if (!linkExists) {
         // If Profile feature not deployed, try direct navigation
-        await page.goto(`${APP_BASE_URL}/profile`, { waitUntil: 'domcontentloaded' }).catch(() => {});
+        await page.goto(`${APP_BASE_URL}/account/profile`, { waitUntil: 'domcontentloaded' }).catch(() => {});
         await page.waitForTimeout(2000);
         const currentUrl = page.url();
-        expect(currentUrl.includes('/profile') || currentUrl.includes('/dashboard')).toBeTruthy();
+        expect(currentUrl.includes('/account/profile') || currentUrl.includes('/dashboard')).toBeTruthy();
         return;
       }
 
       await profileLink.scrollIntoViewIfNeeded();
       await profileLink.click();
-      await page.waitForURL('**/profile', { timeout: 10000 }).catch(() => {});
+      await page.waitForURL('**/account/profile', { timeout: 10000 }).catch(() => {});
       await page.waitForTimeout(1000);
       
       // Click on Change Password tab
@@ -645,16 +645,16 @@ test.describe('User Management Tests', () => {
       
       if (!linkExists) {
         // If Profile feature not deployed, try direct navigation
-        await page.goto(`${APP_BASE_URL}/profile`, { waitUntil: 'domcontentloaded' }).catch(() => {});
+        await page.goto(`${APP_BASE_URL}/account/profile`, { waitUntil: 'domcontentloaded' }).catch(() => {});
         await page.waitForTimeout(2000);
         const currentUrl = page.url();
-        expect(currentUrl.includes('/profile') || currentUrl.includes('/dashboard')).toBeTruthy();
+        expect(currentUrl.includes('/account/profile') || currentUrl.includes('/dashboard')).toBeTruthy();
         return;
       }
 
       await profileLink.scrollIntoViewIfNeeded();
       await profileLink.click();
-      await page.waitForURL('**/profile', { timeout: 10000 }).catch(() => {});
+      await page.waitForURL('**/account/profile', { timeout: 10000 }).catch(() => {});
       await page.waitForTimeout(1000);
       
       // Click on Notifications tab
