@@ -151,7 +151,8 @@ class TestNoLeakedSecretsInActivePaths:
     # reference. Any new entry here should be scrutinized in code review.
     ALLOWED_PATHS = {
         "backend/tests/test_config_security.py",  # this guard itself
-        "docs/EVALUATION_2026-05-09.md",          # the incident postmortem
+        "docs/EVALUATION_2026-05-09.md",          # the original incident postmortem
+        "docs/EVALUATION_2026-05-18.md",          # follow-up audit; references the May-9 incident
     }
 
     def test_leaked_password_absent_from_active_paths(self):
