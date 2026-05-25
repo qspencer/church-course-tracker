@@ -8,7 +8,7 @@ import {
   withInterceptorsFromDi,
 } from '@angular/common/http';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
-import { MatNativeDateModule } from '@angular/material/core';
+import { provideNativeDateAdapter } from '@angular/material/core';
 import * as Sentry from '@sentry/angular';
 import '@angular/compiler';
 
@@ -41,7 +41,8 @@ bootstrapApplication(AppComponent, {
     provideAnimations(),
     provideRouter(routes),
     provideHttpClient(withInterceptorsFromDi()),
-    importProvidersFrom(ReactiveFormsModule, FormsModule, MatNativeDateModule),
+    provideNativeDateAdapter(),
+    importProvidersFrom(ReactiveFormsModule, FormsModule),
     { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
     { provide: HTTP_INTERCEPTORS, useClass: ErrorInterceptor, multi: true },
     {
