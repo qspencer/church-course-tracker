@@ -244,12 +244,19 @@ class CourseEnrollmentService:
                 record_id = db_enrollment.id
 
                 if soft_delete:
-                    # Soft delete - set status to 'dropped'
+                    # Soft delete - flip status to 'dropped'. Audit-logged as
+                    # "update" because AuditLogCreate's action field enforces
+                    # the pattern ^(insert|update|delete)$; "soft_delete" is
+                    # not a valid action and was silently failing here prior
+                    # to 2026-05-18 (the bulk_delete handler swallowed the
+                    # pydantic validation error and reported a failed
+                    # deletion). Semantically "update" is correct since the
+                    # row persists and only its status column changes.
                     db_enrollment.status = "dropped"
                     self.db.commit()
-                    action = "soft_delete"
+                    action = "update"
                 else:
-                    # Hard delete
+                    # Hard delete - row removed entirely.
                     self.db.delete(db_enrollment)
                     self.db.commit()
                     action = "delete"
