@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit, ViewChild, AfterViewInit } from '@angular/core';
+import { Component, Inject, OnInit, AfterViewInit, viewChild } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { MatPaginator, PageEvent } from '@angular/material/paginator';
 import { MatSort, MatSortHeader } from '@angular/material/sort';
@@ -48,8 +48,8 @@ export class ParticipantsManagementComponent implements OnInit, AfterViewInit {
   pageIndex = 0;
   pageSizeOptions = [5, 10, 25, 50, 100];
 
-  @ViewChild(MatPaginator) paginator!: MatPaginator;
-  @ViewChild(MatSort) sort!: MatSort;
+  readonly paginator = viewChild(MatPaginator);
+  readonly sort = viewChild(MatSort);
 
   constructor(
     private dialogRef: MatDialogRef<ParticipantsManagementComponent>,
@@ -89,16 +89,18 @@ export class ParticipantsManagementComponent implements OnInit, AfterViewInit {
   ngAfterViewInit(): void {
     // Set default sort to last name (member_name column) if sort is available
     // Note: Actual sorting is done server-side, this just sets the UI indicator
-    if (this.sort) {
-      this.dataSource.sort = this.sort;
-      this.sort.sort({ id: 'member_name', start: 'asc', disableClear: false });
+    const sort = this.sort();
+    if (sort) {
+      this.dataSource.sort = sort;
+      sort.sort({ id: 'member_name', start: 'asc', disableClear: false });
 
       // Note: Sort changes are handled server-side via loadParticipants()
       // The MatSort UI will show the sort indicator, but actual sorting happens on backend
-      this.sort.sortChange.subscribe(() => {
+      sort.sortChange.subscribe(() => {
         this.pageIndex = 0; // Reset to first page when sorting changes
-        if (this.paginator) {
-          this.paginator.pageIndex = 0;
+        const paginator = this.paginator();
+        if (paginator) {
+          paginator.pageIndex = 0;
         }
         // For now, we keep the default backend sort (by last name)
         // Future enhancement: implement server-side sort parameter
@@ -169,8 +171,9 @@ export class ParticipantsManagementComponent implements OnInit, AfterViewInit {
       next: (response) => {
         this.totalCount = response.count;
         // Update paginator length
-        if (this.paginator) {
-          this.paginator.length = this.totalCount;
+        const paginator = this.paginator();
+        if (paginator) {
+          paginator.length = this.totalCount;
         }
       },
       error: (error) => {
@@ -211,8 +214,9 @@ export class ParticipantsManagementComponent implements OnInit, AfterViewInit {
     
     // Reset to first page when search changes
     this.pageIndex = 0;
-    if (this.paginator) {
-      this.paginator.pageIndex = 0;
+    const paginator = this.paginator();
+    if (paginator) {
+      paginator.pageIndex = 0;
     }
     
     // Reload participants with server-side search
@@ -222,8 +226,9 @@ export class ParticipantsManagementComponent implements OnInit, AfterViewInit {
   onRoleFilterChange(): void {
     // Reset to first page when filter changes
     this.pageIndex = 0;
-    if (this.paginator) {
-      this.paginator.pageIndex = 0;
+    const paginator = this.paginator();
+    if (paginator) {
+      paginator.pageIndex = 0;
     }
     this.loadParticipants();
   }
@@ -231,8 +236,9 @@ export class ParticipantsManagementComponent implements OnInit, AfterViewInit {
   onStatusFilterChange(): void {
     // Reset to first page when filter changes
     this.pageIndex = 0;
-    if (this.paginator) {
-      this.paginator.pageIndex = 0;
+    const paginator = this.paginator();
+    if (paginator) {
+      paginator.pageIndex = 0;
     }
     this.loadParticipants();
   }
@@ -317,8 +323,9 @@ export class ParticipantsManagementComponent implements OnInit, AfterViewInit {
             // Reset to first page if we're on a page that might now be empty
             if (this.pageIndex > 0 && this.dataSource.data.length === 1) {
               this.pageIndex = 0;
-              if (this.paginator) {
-                this.paginator.pageIndex = 0;
+              const paginator = this.paginator();
+              if (paginator) {
+                paginator.pageIndex = 0;
               }
             }
             this.loadParticipants();

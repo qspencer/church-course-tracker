@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, Input } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -38,7 +38,7 @@ import { MatProgressSpinner } from '@angular/material/progress-spinner';
     imports: [MatTabGroup, MatTab, MatButton, MatIcon, MatProgressSpinner]
 })
 export class ProgramContentComponent implements OnInit, OnDestroy {
-  @Input() programId!: number;
+  programId!: number;
 
   // Data
   program: ProgramModel | null = null;
@@ -67,10 +67,7 @@ export class ProgramContentComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    // Get programId from route or @Input
-    if (!this.programId) {
-      this.programId = Number(this.route.snapshot.paramMap.get('programId'));
-    }
+    this.programId = Number(this.route.snapshot.paramMap.get('programId'));
     if (isNaN(this.programId)) {
       this.snackBar.open('Invalid program ID', 'Close', { duration: 3000 });
       this.router.navigate(['/programs']);

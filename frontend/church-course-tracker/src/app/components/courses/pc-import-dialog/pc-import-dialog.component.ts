@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit, ViewChild, AfterViewInit, ElementRef } from '@angular/core';
+import { Component, Inject, OnInit, AfterViewInit, ElementRef, viewChild } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogTitle, MatDialogContent, MatDialogActions } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -75,8 +75,8 @@ export class PCImportDialogComponent implements OnInit, AfterViewInit {
   // Threshold for switching between select and autocomplete
   readonly SELECT_THRESHOLD = 20;
 
-  @ViewChild('eventAutoTrigger') eventAutoTrigger!: MatAutocompleteTrigger;
-  @ViewChild('listAutoTrigger') listAutoTrigger!: MatAutocompleteTrigger;
+  readonly eventAutoTrigger = viewChild<MatAutocompleteTrigger>('eventAutoTrigger');
+  readonly listAutoTrigger = viewChild<MatAutocompleteTrigger>('listAutoTrigger');
 
   constructor(
     private fb: FormBuilder,
@@ -351,7 +351,7 @@ export class PCImportDialogComponent implements OnInit, AfterViewInit {
   scrollToFirstVisibleGroup(type: 'event' | 'list'): void {
     try {
       // Get the autocomplete trigger
-      const trigger = type === 'event' ? this.eventAutoTrigger : this.listAutoTrigger;
+      const trigger = type === 'event' ? this.eventAutoTrigger() : this.listAutoTrigger();
       
       if (!trigger || !trigger.panelOpen) {
         return;

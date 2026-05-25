@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, viewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { MatPaginator } from '@angular/material/paginator';
@@ -38,8 +38,8 @@ export class CoursesComponent implements OnInit {
   selectedCourses = new Set<number>();
   isDeleting = false;
 
-  @ViewChild(MatPaginator) paginator!: MatPaginator;
-  @ViewChild(MatSort) sort!: MatSort;
+  readonly paginator = viewChild(MatPaginator);
+  readonly sort = viewChild(MatSort);
 
   constructor(
     private courseService: CourseService,
@@ -55,8 +55,8 @@ export class CoursesComponent implements OnInit {
   }
 
   ngAfterViewInit(): void {
-    this.dataSource.paginator = this.paginator;
-    this.dataSource.sort = this.sort;
+    this.dataSource.paginator = this.paginator();
+    this.dataSource.sort = this.sort();
   }
 
   loadCourses(): void {
@@ -221,11 +221,12 @@ export class CoursesComponent implements OnInit {
   }
 
   getCurrentPageData(): Course[] {
-    if (!this.paginator) {
+    const paginator = this.paginator();
+    if (!paginator) {
       return this.dataSource.filteredData;
     }
-    const startIndex = this.paginator.pageIndex * this.paginator.pageSize;
-    const endIndex = startIndex + this.paginator.pageSize;
+    const startIndex = paginator.pageIndex * paginator.pageSize;
+    const endIndex = startIndex + paginator.pageSize;
     return this.dataSource.filteredData.slice(startIndex, endIndex);
   }
 

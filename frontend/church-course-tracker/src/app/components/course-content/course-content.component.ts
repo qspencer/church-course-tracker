@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, Input } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -36,7 +36,7 @@ import { JsonPipe, KeyValuePipe } from '@angular/common';
     imports: [MatTabGroup, MatTab, MatButton, MatIcon, MatList, MatListItem, MatListItemIcon, MatListItemTitle, MatListItemLine, MatProgressSpinner, JsonPipe, KeyValuePipe]
 })
 export class CourseContentComponent implements OnInit, OnDestroy {
-  @Input() courseId!: number;
+  courseId!: number;
 
   // Data
   course: Course | null = null;
