@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { User, UserCreate, UserUpdate } from '../../models';
 import { UserService } from '../../services/user.service';
@@ -29,18 +29,16 @@ export interface PCUserImportData {
     imports: [MatButton, MatIcon, MatProgressSpinner, MatTable, MatColumnDef, MatHeaderCellDef, MatHeaderCell, MatCellDef, MatCell, NgClass, MatChip, MatIconButton, MatMenuTrigger, MatMenu, MatMenuContent, MatMenuItem, MatHeaderRowDef, MatHeaderRow, MatRowDef, MatRow, TitleCasePipe]
 })
 export class UsersComponent implements OnInit {
+  private userService = inject(UserService);
+  private authService = inject(AuthService);
+  private router = inject(Router);
+  private dialog = inject(MatDialog);
+  private snackBar = inject(MatSnackBar);
+  private logger = inject(LoggerService);
+
   users: User[] = [];
   isLoading = true;
   displayedColumns: string[] = ['full_name', 'email', 'username', 'role', 'is_active', 'created_at', 'actions'];
-
-  constructor(
-    private userService: UserService,
-    private authService: AuthService,
-    private router: Router,
-    private dialog: MatDialog,
-    private snackBar: MatSnackBar,
-    private logger: LoggerService
-  ) {}
 
   ngOnInit(): void {
     // Double-check admin access (additional security layer)

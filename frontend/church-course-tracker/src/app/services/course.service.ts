@@ -1,4 +1,4 @@
-import { Injectable, isDevMode } from '@angular/core';
+import { Injectable, isDevMode, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
@@ -15,9 +15,11 @@ export interface BulkDeleteResponse {
   providedIn: 'root'
 })
 export class CourseService {
+  private http = inject(HttpClient);
+
   private readonly API_URL = `${environment.apiUrl}/courses`;
 
-  constructor(private http: HttpClient) {
+  constructor() {
     // Only log errors in development mode - reduce console noise
     if (isDevMode() && !this.API_URL.startsWith('https://') && !this.API_URL.includes('localhost')) {
       console.error('❌ CourseService API_URL is NOT HTTPS!', this.API_URL);

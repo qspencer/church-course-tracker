@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { UserService } from '../../services/user.service';
 import { AuthService } from '../../services/auth.service';
@@ -21,6 +21,12 @@ import { MatSlideToggle } from '@angular/material/slide-toggle';
     imports: [MatCard, MatCardHeader, MatCardTitle, MatIcon, MatCardContent, MatTabGroup, MatTab, ReactiveFormsModule, MatFormField, MatLabel, MatInput, MatSuffix, MatError, MatButton, MatProgressSpinner, MatIconButton, MatPrefix, MatSlideToggle]
 })
 export class ProfileComponent implements OnInit {
+  private fb = inject(FormBuilder);
+  private userService = inject(UserService);
+  private authService = inject(AuthService);
+  private snackBar = inject(MatSnackBar);
+  private logger = inject(LoggerService);
+
   profileForm: FormGroup;
   passwordForm: FormGroup;
   preferencesForm: FormGroup;
@@ -39,13 +45,7 @@ export class ProfileComponent implements OnInit {
   
   selectedTab = 0;
 
-  constructor(
-    private fb: FormBuilder,
-    private userService: UserService,
-    private authService: AuthService,
-    private snackBar: MatSnackBar,
-    private logger: LoggerService
-  ) {
+  constructor() {
     this.profileForm = this.fb.group({
       username: ['', [Validators.required, Validators.minLength(3)]],
       email: ['', [Validators.required, Validators.email]],

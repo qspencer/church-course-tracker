@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogTitle, MatDialogContent, MatDialogActions } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -30,6 +30,13 @@ export interface SessionDialogData {
     imports: [MatDialogTitle, CdkScrollable, MatDialogContent, ReactiveFormsModule, MatFormField, MatLabel, MatInput, MatDatepickerInput, MatDatepickerToggle, MatSuffix, MatDatepicker, MatError, MatSelect, MatOption, MatHint, MatIcon, MatDialogActions, MatButton, MatProgressSpinner, TitleCasePipe, DatePipe]
 })
 export class SessionDialogComponent implements OnInit {
+  private fb = inject(FormBuilder);
+  private programService = inject(ProgramService);
+  private snackBar = inject(MatSnackBar);
+  dialogRef = inject<MatDialogRef<SessionDialogComponent>>(MatDialogRef);
+  data = inject<SessionDialogData>(MAT_DIALOG_DATA);
+  private logger = inject(LoggerService);
+
   sessionForm: FormGroup;
   isEditing: boolean;
   viewMode = false;
@@ -46,14 +53,9 @@ export class SessionDialogComponent implements OnInit {
     { value: 'hybrid', label: 'Hybrid' }
   ];
 
-  constructor(
-    private fb: FormBuilder,
-    private programService: ProgramService,
-    private snackBar: MatSnackBar,
-    public dialogRef: MatDialogRef<SessionDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: SessionDialogData,
-    private logger: LoggerService
-  ) {
+  constructor() {
+    const data = this.data;
+
     this.viewMode = !!data.viewMode;
     this.isEditing = !this.viewMode && !!data.session;
     this.program = data.program;

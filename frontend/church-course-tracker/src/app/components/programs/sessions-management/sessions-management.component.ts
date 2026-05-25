@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit, viewChild } from '@angular/core';
+import { Component, OnInit, viewChild, inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort, MatSortHeader } from '@angular/material/sort';
@@ -30,6 +30,16 @@ import { TitleCasePipe, DatePipe } from '@angular/common';
     imports: [MatIconButton, MatIcon, MatButton, MatFormField, MatLabel, MatSelect, ReactiveFormsModule, FormsModule, MatOption, MatInput, MatSuffix, MatProgressSpinner, MatTable, MatSort, MatColumnDef, MatHeaderCellDef, MatHeaderCell, MatSortHeader, MatCellDef, MatCell, MatChip, MatTooltip, MatHeaderRowDef, MatHeaderRow, MatRowDef, MatRow, MatPaginator, TitleCasePipe, DatePipe]
 })
 export class SessionsManagementComponent implements OnInit {
+  private dialogRef = inject<MatDialogRef<SessionsManagementComponent>>(MatDialogRef);
+  data = inject<{
+    program: Program;
+}>(MAT_DIALOG_DATA);
+  private programService = inject(ProgramService);
+  private memberService = inject(MemberService);
+  private dialog = inject(MatDialog);
+  private snackBar = inject(MatSnackBar);
+  private logger = inject(LoggerService);
+
   displayedColumns: string[] = ['session_date', 'duration', 'location', 'session_type', 'participants', 'actions'];
   dataSource = new MatTableDataSource<ProgramSession>();
   isLoading = true;
@@ -43,15 +53,9 @@ export class SessionsManagementComponent implements OnInit {
   readonly paginator = viewChild(MatPaginator);
   readonly sort = viewChild(MatSort);
 
-  constructor(
-    private dialogRef: MatDialogRef<SessionsManagementComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: { program: Program },
-    private programService: ProgramService,
-    private memberService: MemberService,
-    private dialog: MatDialog,
-    private snackBar: MatSnackBar,
-    private logger: LoggerService
-  ) {
+  constructor() {
+    const data = this.data;
+
     this.program = data.program;
   }
 

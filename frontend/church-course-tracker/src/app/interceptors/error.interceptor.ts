@@ -1,4 +1,4 @@
-import { Injectable, isDevMode } from '@angular/core';
+import { Injectable, isDevMode, inject } from '@angular/core';
 import { HttpInterceptor, HttpRequest, HttpHandler, HttpEvent, HttpErrorResponse } from '@angular/common/http';
 import { Observable, catchError, throwError } from 'rxjs';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -6,11 +6,9 @@ import { LoggerService } from '../services/logger.service';
 
 @Injectable()
 export class ErrorInterceptor implements HttpInterceptor {
+  private snackBar = inject(MatSnackBar);
+  private logger = inject(LoggerService);
 
-  constructor(
-    private snackBar: MatSnackBar,
-    private logger: LoggerService
-  ) {}
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     // Log HTTPS warnings in development mode

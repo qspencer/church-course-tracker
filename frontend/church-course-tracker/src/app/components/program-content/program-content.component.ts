@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -38,6 +38,15 @@ import { MatProgressSpinner } from '@angular/material/progress-spinner';
     imports: [MatTabGroup, MatTab, MatButton, MatIcon, MatProgressSpinner]
 })
 export class ProgramContentComponent implements OnInit, OnDestroy {
+  private programContentService = inject(ProgramContentService);
+  private programService = inject(ProgramService);
+  private logger = inject(LoggerService);
+  private authService = inject(AuthService);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private dialog = inject(MatDialog);
+  private snackBar = inject(MatSnackBar);
+
   programId!: number;
 
   // Data
@@ -54,17 +63,6 @@ export class ProgramContentComponent implements OnInit, OnDestroy {
   ContentType = ContentType;
 
   private destroy$ = new Subject<void>();
-
-  constructor(
-    private programContentService: ProgramContentService,
-    private programService: ProgramService,
-    private logger: LoggerService,
-    private authService: AuthService,
-    private route: ActivatedRoute,
-    private router: Router,
-    private dialog: MatDialog,
-    private snackBar: MatSnackBar
-  ) {}
 
   ngOnInit(): void {
     this.programId = Number(this.route.snapshot.paramMap.get('programId'));

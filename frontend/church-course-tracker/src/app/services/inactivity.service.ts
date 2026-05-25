@@ -1,4 +1,4 @@
-import { Injectable, OnDestroy } from '@angular/core';
+import { Injectable, OnDestroy, inject } from '@angular/core';
 import { Subject, Observable, fromEvent, merge } from 'rxjs';
 import { debounceTime, takeUntil } from 'rxjs/operators';
 import { AuthService } from './auth.service';
@@ -10,6 +10,10 @@ import { LoggerService } from './logger.service';
   providedIn: 'root'
 })
 export class InactivityService implements OnDestroy {
+  private authService = inject(AuthService);
+  private dialog = inject(MatDialog);
+  private logger = inject(LoggerService);
+
   private readonly INACTIVITY_TIMEOUT = 30 * 60 * 1000; // 30 minutes in milliseconds
   private readonly WARNING_TIME = 2 * 60 * 1000; // Show warning 2 minutes before logout
   private readonly ACTIVITY_DEBOUNCE = 1000; // Debounce activity events by 1 second
@@ -19,12 +23,6 @@ export class InactivityService implements OnDestroy {
   private warningDialogRef: MatDialogRef<InactivityWarningDialogComponent> | null = null;
   private destroy$ = new Subject<void>();
   private lastActivityTime: number = Date.now();
-
-  constructor(
-    private authService: AuthService,
-    private dialog: MatDialog,
-    private logger: LoggerService
-  ) {}
 
   /**
    * Start monitoring user activity

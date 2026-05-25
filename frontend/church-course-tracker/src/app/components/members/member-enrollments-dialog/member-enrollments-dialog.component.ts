@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogTitle, MatDialogContent, MatDialogActions } from '@angular/material/dialog';
 import { Enrollment } from '../../../models';
 import { Person } from '../../../models';
@@ -19,13 +19,15 @@ export interface MemberEnrollmentsDialogData {
     imports: [MatDialogTitle, MatIcon, CdkScrollable, MatDialogContent, MatChip, MatDialogActions, MatButton]
 })
 export class MemberEnrollmentsDialogComponent implements OnInit {
+  dialogRef = inject<MatDialogRef<MemberEnrollmentsDialogComponent>>(MatDialogRef);
+  data = inject<MemberEnrollmentsDialogData>(MAT_DIALOG_DATA);
+
   member: Person;
   enrollments: Enrollment[];
 
-  constructor(
-    public dialogRef: MatDialogRef<MemberEnrollmentsDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: MemberEnrollmentsDialogData
-  ) {
+  constructor() {
+    const data = this.data;
+
     this.member = data.member;
     this.enrollments = data.enrollments || [];
   }

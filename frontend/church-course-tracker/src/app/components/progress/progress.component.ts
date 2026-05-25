@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ProgressService } from '../../services/progress.service';
@@ -25,6 +25,13 @@ import { DecimalPipe, DatePipe } from '@angular/common';
     imports: [MatButton, MatIcon, MatCard, MatCardHeader, MatCardTitle, MatCardContent, MatFormField, MatLabel, MatSelect, ReactiveFormsModule, MatOption, MatCardSubtitle, MatProgressSpinner, MatChip, MatProgressBar, MatIconButton, MatTooltip, DecimalPipe, DatePipe]
 })
 export class ProgressComponent implements OnInit {
+  private progressService = inject(ProgressService);
+  private enrollmentService = inject(EnrollmentService);
+  private courseService = inject(CourseService);
+  private memberService = inject(MemberService);
+  private snackBar = inject(MatSnackBar);
+  private logger = inject(LoggerService);
+
   enrollments: Enrollment[] = [];
   courses: Course[] = [];
   members: Person[] = [];
@@ -45,15 +52,6 @@ export class ProgressComponent implements OnInit {
     { value: 'completed', label: 'Completed' },
     { value: 'dropped', label: 'Dropped' }
   ];
-
-  constructor(
-    private progressService: ProgressService,
-    private enrollmentService: EnrollmentService,
-    private courseService: CourseService,
-    private memberService: MemberService,
-    private snackBar: MatSnackBar,
-    private logger: LoggerService
-  ) {}
 
   ngOnInit(): void {
     this.loadData();

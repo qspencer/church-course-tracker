@@ -1,4 +1,4 @@
-import { Component, OnInit, viewChild } from '@angular/core';
+import { Component, OnInit, viewChild, inject } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort, MatSortHeader } from '@angular/material/sort';
@@ -33,6 +33,14 @@ import { DecimalPipe, DatePipe } from '@angular/common';
     imports: [MatButtonToggleGroup, MatButtonToggle, MatButton, MatIcon, MatCard, MatCardHeader, MatCardTitle, MatCardSubtitle, MatCardContent, MatFormField, MatLabel, MatInput, MatSuffix, MatProgressSpinner, MatTable, MatSort, MatColumnDef, MatHeaderCellDef, MatHeaderCell, MatSortHeader, MatCellDef, MatCell, MatChip, MatProgressBar, MatIconButton, MatTooltip, MatHeaderRowDef, MatHeaderRow, MatRowDef, MatRow, MatPaginator, DecimalPipe, DatePipe]
 })
 export class EnrollmentsComponent implements OnInit {
+  private enrollmentService = inject(EnrollmentService);
+  private programService = inject(ProgramService);
+  private courseService = inject(CourseService);
+  private memberService = inject(MemberService);
+  private dialog = inject(MatDialog);
+  private snackBar = inject(MatSnackBar);
+  private logger = inject(LoggerService);
+
   viewMode: 'courses' | 'programs' = 'courses';
   displayedColumns: string[] = ['person_name', 'course_title', 'status', 'progress_percentage', 'enrolled_at', 'actions'];
   dataSource = new MatTableDataSource<any>();
@@ -44,15 +52,7 @@ export class EnrollmentsComponent implements OnInit {
   readonly paginator = viewChild(MatPaginator);
   readonly sort = viewChild(MatSort);
 
-  constructor(
-    private enrollmentService: EnrollmentService,
-    private programService: ProgramService,
-    private courseService: CourseService,
-    private memberService: MemberService,
-    private dialog: MatDialog,
-    private snackBar: MatSnackBar,
-    private logger: LoggerService
-  ) {
+  constructor() {
     this.logger.debug('EnrollmentsComponent constructor called', {
       component: 'EnrollmentsComponent',
       route: window.location.pathname

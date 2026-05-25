@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogTitle, MatDialogContent, MatDialogActions } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -27,6 +27,14 @@ export interface MemberDialogData {
     imports: [MatDialogTitle, CdkScrollable, MatDialogContent, MatChip, MatButton, MatIcon, ReactiveFormsModule, MatFormField, MatLabel, MatInput, MatError, MatSuffix, MatDialogActions, MatProgressSpinner]
 })
 export class MemberDialogComponent implements OnInit {
+  private fb = inject(FormBuilder);
+  private memberService = inject(MemberService);
+  private userService = inject(UserService);
+  private logger = inject(LoggerService);
+  private snackBar = inject(MatSnackBar);
+  dialogRef = inject<MatDialogRef<MemberDialogComponent>>(MatDialogRef);
+  data = inject<MemberDialogData>(MAT_DIALOG_DATA);
+
   memberForm: FormGroup;
   isEditing: boolean;
   viewMode: boolean;
@@ -36,15 +44,9 @@ export class MemberDialogComponent implements OnInit {
   hasUserAccount = false;
   isCreatingUser = false;
 
-         constructor(
-           private fb: FormBuilder,
-           private memberService: MemberService,
-           private userService: UserService,
-    private logger: LoggerService,
-           private snackBar: MatSnackBar,
-           public dialogRef: MatDialogRef<MemberDialogComponent>,
-           @Inject(MAT_DIALOG_DATA) public data: MemberDialogData
-         ) {
+         constructor() {
+           const data = this.data;
+
            this.viewMode = data.viewMode || false;
            this.isEditing = !!data.member && !this.viewMode;
            this.member = data.member || null;

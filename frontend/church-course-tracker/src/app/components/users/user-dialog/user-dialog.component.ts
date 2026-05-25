@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogTitle, MatDialogContent, MatDialogActions } from '@angular/material/dialog';
 import { finalize } from 'rxjs/operators';
@@ -27,19 +27,19 @@ export interface UserDialogData {
     imports: [MatDialogTitle, CdkScrollable, MatDialogContent, ReactiveFormsModule, MatFormField, MatLabel, MatInput, MatError, MatHint, MatSelect, MatOption, MatIconButton, MatSuffix, MatIcon, MatCheckbox, MatDialogActions, MatButton, MatProgressSpinner]
 })
 export class UserDialogComponent implements OnInit {
+  private fb = inject(FormBuilder);
+  private userService = inject(UserService);
+  private snackBar = inject(MatSnackBar);
+  dialogRef = inject<MatDialogRef<UserDialogComponent>>(MatDialogRef);
+  data = inject<UserDialogData>(MAT_DIALOG_DATA);
+  private logger = inject(LoggerService);
+
   userForm: FormGroup;
   isSubmitting = false;
   isSubmitted = false; // Track if form has been submitted
   hidePassword = true;
 
-  constructor(
-    private fb: FormBuilder,
-    private userService: UserService,
-    private snackBar: MatSnackBar,
-    public dialogRef: MatDialogRef<UserDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: UserDialogData,
-    private logger: LoggerService
-  ) {
+  constructor() {
     this.userForm = this.createForm();
   }
 

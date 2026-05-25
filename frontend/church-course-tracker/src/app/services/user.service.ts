@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
@@ -8,9 +8,9 @@ import { User, UserCreate, UserUpdate, UserProfileUpdate, ChangePasswordRequest,
   providedIn: 'root'
 })
 export class UserService {
-  private readonly API_URL = `${environment.apiUrl}/users`;
+  private http = inject(HttpClient);
 
-  constructor(private http: HttpClient) {}
+  private readonly API_URL = `${environment.apiUrl}/users`;
 
   getUsers(skip: number = 0, limit: number = 100, role?: string): Observable<User[]> {
     let httpParams = new HttpParams()

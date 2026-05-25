@@ -1,4 +1,4 @@
-import { Component, Inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogTitle, MatDialogContent, MatDialogActions } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -27,19 +27,19 @@ export interface ResetPasswordDialogData {
     imports: [MatDialogTitle, MatIcon, CdkScrollable, MatDialogContent, ReactiveFormsModule, MatFormField, MatLabel, MatInput, MatIconButton, MatSuffix, MatHint, MatError, MatDialogActions, MatButton, MatProgressSpinner]
 })
 export class ResetPasswordDialogComponent {
+  private fb = inject(FormBuilder);
+  private dialogRef = inject<MatDialogRef<ResetPasswordDialogComponent>>(MatDialogRef);
+  private userService = inject(UserService);
+  private snackBar = inject(MatSnackBar);
+  data = inject<ResetPasswordDialogData>(MAT_DIALOG_DATA);
+  private logger = inject(LoggerService);
+
   passwordForm: FormGroup;
   isSubmitting = false;
   hidePassword = true;
   hideConfirmPassword = true;
 
-  constructor(
-    private fb: FormBuilder,
-    private dialogRef: MatDialogRef<ResetPasswordDialogComponent>,
-    private userService: UserService,
-    private snackBar: MatSnackBar,
-    @Inject(MAT_DIALOG_DATA) public data: ResetPasswordDialogData,
-    private logger: LoggerService
-  ) {
+  constructor() {
     this.passwordForm = this.fb.group({
       password: ['', [Validators.required, Validators.minLength(8)]],
       confirmPassword: ['', [Validators.required]]

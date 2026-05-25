@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogTitle, MatDialogContent, MatDialogActions } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -30,6 +30,13 @@ export interface ProgressDialogData {
     imports: [MatDialogTitle, CdkScrollable, MatDialogContent, MatChip, ReactiveFormsModule, MatFormField, MatLabel, MatSelect, MatOption, MatError, MatInput, MatHint, MatDatepickerInput, MatDatepickerToggle, MatSuffix, MatDatepicker, MatDialogActions, MatButton, MatProgressSpinner, TitleCasePipe, DatePipe]
 })
 export class ProgressDialogComponent implements OnInit {
+  private fb = inject(FormBuilder);
+  private programService = inject(ProgramService);
+  private snackBar = inject(MatSnackBar);
+  dialogRef = inject<MatDialogRef<ProgressDialogComponent>>(MatDialogRef);
+  data = inject<ProgressDialogData>(MAT_DIALOG_DATA);
+  private logger = inject(LoggerService);
+
   progressForm: FormGroup;
   isEditing: boolean;
   viewMode = false;
@@ -44,14 +51,9 @@ export class ProgressDialogComponent implements OnInit {
     { value: 'milestone', label: 'Milestone' }
   ];
 
-  constructor(
-    private fb: FormBuilder,
-    private programService: ProgramService,
-    private snackBar: MatSnackBar,
-    public dialogRef: MatDialogRef<ProgressDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: ProgressDialogData,
-    private logger: LoggerService
-  ) {
+  constructor() {
+    const data = this.data;
+
     this.viewMode = !!data.viewMode;
     this.isEditing = !this.viewMode && !!data.progress;
     this.program = data.program;

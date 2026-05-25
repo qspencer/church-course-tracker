@@ -162,7 +162,7 @@ describe('AuthService', () => {
     it('should detect authentication state from stored token', () => {
       localStorage.setItem('access_token', 'test-token');
 
-      const newService = new AuthService(TestBed.inject(HttpClient), routerSpy, TestBed.inject(LoggerService));
+      const newService = TestBed.runInInjectionContext(() => new AuthService());
 
       let isAuthenticated = false;
       newService.isAuthenticated$.subscribe(auth => isAuthenticated = auth);

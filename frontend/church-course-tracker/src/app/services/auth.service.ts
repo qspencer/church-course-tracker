@@ -1,4 +1,4 @@
-import { Injectable, isDevMode } from '@angular/core';
+import { Injectable, isDevMode, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { Router } from '@angular/router';
@@ -10,6 +10,10 @@ import { LoggerService } from './logger.service';
   providedIn: 'root'
 })
 export class AuthService {
+  private http = inject(HttpClient);
+  private router = inject(Router);
+  private logger = inject(LoggerService);
+
   private readonly API_URL = environment.apiUrl;
   private readonly TOKEN_KEY = 'access_token';
   private readonly USER_KEY = 'current_user';
@@ -19,12 +23,6 @@ export class AuthService {
 
   public isAuthenticated$ = this.isAuthenticatedSubject.asObservable();
   public currentUser$ = this.currentUserSubject.asObservable();
-
-  constructor(
-    private http: HttpClient,
-    private router: Router,
-    private logger: LoggerService
-  ) {}
 
   login(credentials: LoginRequest): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(`${this.API_URL}/auth/login`, credentials)

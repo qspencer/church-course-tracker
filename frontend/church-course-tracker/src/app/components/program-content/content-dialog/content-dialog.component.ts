@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogTitle, MatDialogContent, MatDialogActions } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -26,6 +26,13 @@ export interface ContentDialogData {
     imports: [MatDialogTitle, CdkScrollable, MatDialogContent, ReactiveFormsModule, MatFormField, MatLabel, MatInput, MatError, MatSelect, MatOption, MatHint, MatDialogActions, MatButton, MatProgressSpinner]
 })
 export class ContentDialogComponent implements OnInit {
+  private fb = inject(FormBuilder);
+  private programContentService = inject(ProgramContentService);
+  private logger = inject(LoggerService);
+  private snackBar = inject(MatSnackBar);
+  dialogRef = inject<MatDialogRef<ContentDialogComponent>>(MatDialogRef);
+  data = inject<ContentDialogData>(MAT_DIALOG_DATA);
+
   contentForm: FormGroup;
   isEditing: boolean;
   isLoading = false;
@@ -35,14 +42,9 @@ export class ContentDialogComponent implements OnInit {
   ContentType = ContentType;
   contentTypes = Object.values(ContentType);
 
-  constructor(
-    private fb: FormBuilder,
-    private programContentService: ProgramContentService,
-    private logger: LoggerService,
-    private snackBar: MatSnackBar,
-    public dialogRef: MatDialogRef<ContentDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: ContentDialogData
-  ) {
+  constructor() {
+    const data = this.data;
+
     this.isEditing = !!data.content;
     
     this.contentForm = this.fb.group({

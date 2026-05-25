@@ -1,4 +1,4 @@
-import { Component, OnInit, Inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -46,6 +46,13 @@ export interface AttributeMappingDialogData {
     standalone: false
 })
 export class AttributeMappingDialogComponent implements OnInit {
+  private dialogRef = inject<MatDialogRef<AttributeMappingDialogComponent>>(MatDialogRef);
+  data = inject<AttributeMappingDialogData>(MAT_DIALOG_DATA);
+  private http = inject(HttpClient);
+  private fb = inject(FormBuilder);
+  private snackBar = inject(MatSnackBar);
+  private logger = inject(LoggerService);
+
   review: AttributeMappingReview | null = null;
   isLoading = false;
   isSaving = false;
@@ -60,15 +67,6 @@ export class AttributeMappingDialogComponent implements OnInit {
     { value: 'custom', label: 'Save as Custom Attribute', icon: 'add_circle', availableFor: ['matched', 'unmatched'] as ('matched' | 'unmatched')[] },
     { value: 'ignore', label: 'Ignore (Don\'t Import)', icon: 'block', availableFor: ['matched', 'unmatched'] as ('matched' | 'unmatched')[] }
   ];
-
-  constructor(
-    private dialogRef: MatDialogRef<AttributeMappingDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: AttributeMappingDialogData,
-    private http: HttpClient,
-    private fb: FormBuilder,
-    private snackBar: MatSnackBar,
-    private logger: LoggerService
-  ) {}
 
   ngOnInit(): void {
     this.loadAttributeMappings();

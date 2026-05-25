@@ -1,4 +1,4 @@
-import { Component, Inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogContent, MatDialogActions } from '@angular/material/dialog';
 import { CdkScrollable } from '@angular/cdk/scrolling';
 import { MatButton } from '@angular/material/button';
@@ -17,10 +17,10 @@ export interface ConfirmDialogData {
     imports: [CdkScrollable, MatDialogContent, MatDialogActions, MatButton]
 })
 export class ConfirmDialogComponent {
-  constructor(
-    public dialogRef: MatDialogRef<ConfirmDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: ConfirmDialogData
-  ) {
+  dialogRef = inject<MatDialogRef<ConfirmDialogComponent>>(MatDialogRef);
+  data = inject<ConfirmDialogData>(MAT_DIALOG_DATA);
+
+  constructor() {
     // Set default texts if not provided
     this.data.confirmText = this.data.confirmText || 'Confirm';
     this.data.cancelText = this.data.cancelText || 'Cancel';

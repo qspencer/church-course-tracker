@@ -1,4 +1,4 @@
-import { Injectable, isDevMode } from '@angular/core';
+import { Injectable, isDevMode, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
@@ -29,12 +29,12 @@ import {
   providedIn: 'root'
 })
 export class ProgramService {
+  private http = inject(HttpClient);
+  private logger = inject(LoggerService);
+
   private readonly API_URL = `${environment.apiUrl}/programs`;
 
-  constructor(
-    private http: HttpClient,
-    private logger: LoggerService
-  ) {
+  constructor() {
     if (isDevMode()) {
       this.logger.debug('ProgramService API_URL', { apiUrl: this.API_URL });
     }

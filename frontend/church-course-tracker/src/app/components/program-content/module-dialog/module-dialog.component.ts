@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogTitle, MatDialogContent, MatDialogActions } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -25,19 +25,21 @@ export interface ModuleDialogData {
     imports: [MatDialogTitle, CdkScrollable, MatDialogContent, ReactiveFormsModule, MatFormField, MatLabel, MatInput, MatIcon, MatSuffix, MatError, MatHint, MatDialogActions, MatButton, MatProgressSpinner]
 })
 export class ModuleDialogComponent implements OnInit {
+  private fb = inject(FormBuilder);
+  private programContentService = inject(ProgramContentService);
+  private logger = inject(LoggerService);
+  private snackBar = inject(MatSnackBar);
+  dialogRef = inject<MatDialogRef<ModuleDialogComponent>>(MatDialogRef);
+  data = inject<ModuleDialogData>(MAT_DIALOG_DATA);
+
   moduleForm: FormGroup;
   isEditing: boolean;
   isSubmitting = false;
   isSubmitted = false; // Track if form has been submitted
 
-  constructor(
-    private fb: FormBuilder,
-    private programContentService: ProgramContentService,
-    private logger: LoggerService,
-    private snackBar: MatSnackBar,
-    public dialogRef: MatDialogRef<ModuleDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: ModuleDialogData
-  ) {
+  constructor() {
+    const data = this.data;
+
     this.isEditing = !!data.module;
     
     this.moduleForm = this.fb.group({

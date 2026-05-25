@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogTitle, MatDialogContent, MatDialogActions } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -31,6 +31,14 @@ export interface ParticipantDialogData {
     imports: [MatDialogTitle, CdkScrollable, MatDialogContent, MatChip, ReactiveFormsModule, MatFormField, MatLabel, MatSelect, MatOption, MatError, MatProgressSpinner, MatSuffix, MatInput, MatHint, MatDialogActions, MatButton, TitleCasePipe, DatePipe]
 })
 export class ParticipantDialogComponent implements OnInit {
+  private fb = inject(FormBuilder);
+  private programService = inject(ProgramService);
+  private memberService = inject(MemberService);
+  private snackBar = inject(MatSnackBar);
+  private logger = inject(LoggerService);
+  dialogRef = inject<MatDialogRef<ParticipantDialogComponent>>(MatDialogRef);
+  data = inject<ParticipantDialogData>(MAT_DIALOG_DATA);
+
   participantForm: FormGroup;
   isEditing: boolean;
   viewMode = false;
@@ -46,15 +54,9 @@ export class ParticipantDialogComponent implements OnInit {
     { value: 'ended', label: 'Ended' }
   ];
 
-  constructor(
-    private fb: FormBuilder,
-    private programService: ProgramService,
-    private memberService: MemberService,
-    private snackBar: MatSnackBar,
-    private logger: LoggerService,
-    public dialogRef: MatDialogRef<ParticipantDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: ParticipantDialogData
-  ) {
+  constructor() {
+    const data = this.data;
+
     this.viewMode = !!data.viewMode;
     this.isEditing = !this.viewMode && !!data.participant;
     this.program = data.program;

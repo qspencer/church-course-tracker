@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { PageEvent, MatPaginator } from '@angular/material/paginator';
@@ -42,6 +42,13 @@ import { KeyValuePipe } from '@angular/common';
     imports: [MatCard, MatCardHeader, MatCardTitle, MatCardContent, MatFormField, MatLabel, MatSelect, MatOption, MatInput, ReactiveFormsModule, FormsModule, MatButton, MatIcon, MatTable, MatColumnDef, MatHeaderCellDef, MatHeaderCell, MatCellDef, MatCell, MatChip, MatChipAvatar, MatIconButton, MatTooltip, MatHeaderRowDef, MatHeaderRow, MatRowDef, MatRow, MatProgressSpinner, MatPaginator, KeyValuePipe]
 })
 export class AuditComponent implements OnInit, OnDestroy {
+  private auditService = inject(AuditService);
+  private authService = inject(AuthService);
+  private userService = inject(UserService);
+  private dialog = inject(MatDialog);
+  private snackBar = inject(MatSnackBar);
+  private logger = inject(LoggerService);
+
   auditLogs: AuditLog[] = [];
   summary: AuditSummary | null = null;
   isLoading = false;
@@ -69,15 +76,6 @@ export class AuditComponent implements OnInit, OnDestroy {
   formatAuditValues = formatAuditValues;
   
   private destroy$ = new Subject<void>();
-
-  constructor(
-    private auditService: AuditService,
-    private authService: AuthService,
-    private userService: UserService,
-    private dialog: MatDialog,
-    private snackBar: MatSnackBar,
-    private logger: LoggerService
-  ) {}
 
   ngOnInit(): void {
     this.loadAuditLogs();

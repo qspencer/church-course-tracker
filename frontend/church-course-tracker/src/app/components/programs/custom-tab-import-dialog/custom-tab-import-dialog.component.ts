@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogTitle, MatDialogContent, MatDialogActions } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ProgramService } from '../../../services/program.service';
@@ -24,6 +24,11 @@ export interface CustomTabImportDialogData {
     imports: [MatDialogTitle, CdkScrollable, MatDialogContent, MatProgressBar, MatCard, MatCardContent, MatIcon, MatFormField, MatLabel, MatInput, ReactiveFormsModule, FormsModule, MatHint, MatList, MatListItem, MatListItemIcon, MatListItemTitle, MatListItemLine, MatDialogActions, MatButton]
 })
 export class CustomTabImportDialogComponent implements OnInit {
+  dialogRef = inject<MatDialogRef<CustomTabImportDialogComponent>>(MatDialogRef);
+  data = inject<CustomTabImportDialogData>(MAT_DIALOG_DATA);
+  private programService = inject(ProgramService);
+  private snackBar = inject(MatSnackBar);
+
   loading = false;
   listId = '';
   defaultRole = '';
@@ -44,13 +49,6 @@ export class CustomTabImportDialogComponent implements OnInit {
       error: string;
     }>;
   };
-
-  constructor(
-    public dialogRef: MatDialogRef<CustomTabImportDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: CustomTabImportDialogData,
-    private programService: ProgramService,
-    private snackBar: MatSnackBar
-  ) {}
 
   ngOnInit(): void {
     // Set default role from program if available

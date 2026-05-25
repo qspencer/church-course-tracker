@@ -1,4 +1,4 @@
-import { Injectable, isDevMode } from '@angular/core';
+import { Injectable, isDevMode, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
@@ -40,12 +40,12 @@ export interface PlanningCenterList {
   providedIn: 'root'
 })
 export class PlanningCenterService {
+  private http = inject(HttpClient);
+  private logger = inject(LoggerService);
+
   private readonly API_URL = `${environment.apiUrl}/planning-center`;
 
-  constructor(
-    private http: HttpClient,
-    private logger: LoggerService
-  ) { 
+  constructor() { 
     // Only log in development mode
     if (isDevMode()) {
       this.logger.debug('PlanningCenterService API_URL', { apiUrl: this.API_URL });

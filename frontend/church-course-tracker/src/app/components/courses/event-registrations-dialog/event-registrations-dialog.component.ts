@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogTitle, MatDialogContent, MatDialogActions } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTableDataSource, MatTable, MatColumnDef, MatHeaderCellDef, MatHeaderCell, MatCellDef, MatCell, MatHeaderRowDef, MatHeaderRow, MatRowDef, MatRow } from '@angular/material/table';
@@ -28,21 +28,19 @@ export interface EventRegistrationsDialogData {
     imports: [MatDialogTitle, CdkScrollable, MatDialogContent, MatProgressSpinner, MatButton, MatIcon, MatTable, MatColumnDef, MatHeaderCellDef, MatHeaderCell, MatCheckbox, MatCellDef, MatCell, MatChip, MatIconButton, MatTooltip, MatHeaderRowDef, MatHeaderRow, MatRowDef, MatRow, MatDialogActions]
 })
 export class EventRegistrationsDialogComponent implements OnInit {
+  private planningCenterService = inject(PlanningCenterService);
+  private enrollmentService = inject(EnrollmentService);
+  private logger = inject(LoggerService);
+  private memberService = inject(MemberService);
+  private snackBar = inject(MatSnackBar);
+  dialogRef = inject<MatDialogRef<EventRegistrationsDialogComponent>>(MatDialogRef);
+  data = inject<EventRegistrationsDialogData>(MAT_DIALOG_DATA);
+
   registrations: PlanningCenterRegistration[] = [];
   dataSource = new MatTableDataSource<PlanningCenterRegistration>([]);
   isLoading = false;
   displayedColumns: string[] = ['select', 'person_name', 'status', 'registration_date', 'actions'];
   selectedRegistrations: Set<string> = new Set();
-
-  constructor(
-    private planningCenterService: PlanningCenterService,
-    private enrollmentService: EnrollmentService,
-    private logger: LoggerService,
-    private memberService: MemberService,
-    private snackBar: MatSnackBar,
-    public dialogRef: MatDialogRef<EventRegistrationsDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: EventRegistrationsDialogData
-  ) {}
 
   ngOnInit(): void {
     this.loadRegistrations();

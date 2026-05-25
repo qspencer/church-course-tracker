@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, FormArray, FormControl, AbstractControl, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogTitle, MatDialogContent, MatDialogActions } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -33,6 +33,21 @@ import { DatePipe } from '@angular/common';
     imports: [MatDialogTitle, CdkScrollable, MatDialogContent, MatChip, MatButton, MatIcon, ReactiveFormsModule, MatFormField, MatLabel, MatInput, MatError, MatCheckbox, MatIconButton, MatSelect, MatOption, MatChipListbox, MatChipRemove, FormsModule, MatHint, MatDialogActions, MatProgressSpinner, DatePipe]
 })
 export class ProgramDialogComponent implements OnInit {
+  private fb = inject(FormBuilder);
+  private dialogRef = inject<MatDialogRef<ProgramDialogComponent>>(MatDialogRef);
+  data = inject<{
+    program: Program | null;
+    viewMode?: boolean;
+    importData?: PlanningCenterImportData;
+}>(MAT_DIALOG_DATA);
+  private programService = inject(ProgramService);
+  private courseService = inject(CourseService);
+  private autocompleteService = inject(AutocompleteSuggestionService);
+  private snackBar = inject(MatSnackBar);
+  private dialog = inject(MatDialog);
+  private router = inject(Router);
+  private logger = inject(LoggerService);
+
   programForm: FormGroup;
   isEditMode = false;
   viewMode = false;
@@ -54,18 +69,9 @@ export class ProgramDialogComponent implements OnInit {
   availableCourses: Course[] = [];
   loadingCourses = false;
 
-  constructor(
-    private fb: FormBuilder,
-    private dialogRef: MatDialogRef<ProgramDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: { program: Program | null; viewMode?: boolean; importData?: PlanningCenterImportData },
-    private programService: ProgramService,
-    private courseService: CourseService,
-    private autocompleteService: AutocompleteSuggestionService,
-    private snackBar: MatSnackBar,
-    private dialog: MatDialog,
-    private router: Router,
-    private logger: LoggerService
-  ) {
+  constructor() {
+    const data = this.data;
+
     this.program = data.program;
     this.viewMode = data.viewMode || false;
     this.isEditMode = !!data.program && !this.viewMode;

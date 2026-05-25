@@ -5,7 +5,7 @@
  * modules (categories) and content items (lessons).
  */
 
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
@@ -18,9 +18,9 @@ import {
   providedIn: 'root'
 })
 export class ProgramContentService {
-  private readonly API_URL = `${environment.apiUrl}/program-content`;
+  private http = inject(HttpClient);
 
-  constructor(private http: HttpClient) {}
+  private readonly API_URL = `${environment.apiUrl}/program-content`;
 
   // Program Module Methods (Categories)
 

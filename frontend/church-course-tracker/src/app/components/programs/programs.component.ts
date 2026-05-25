@@ -1,4 +1,4 @@
-import { Component, OnInit, viewChild } from '@angular/core';
+import { Component, OnInit, viewChild, inject } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort, MatSortHeader } from '@angular/material/sort';
@@ -36,22 +36,18 @@ import { SlicePipe, DatePipe } from '@angular/common';
     imports: [MatButton, MatIcon, MatCard, MatCardHeader, MatCardTitle, MatCardSubtitle, MatCardContent, MatFormField, MatLabel, MatInput, MatSuffix, MatProgressSpinner, MatTable, MatSort, MatColumnDef, MatHeaderCellDef, MatHeaderCell, MatSortHeader, MatCellDef, MatCell, MatChip, MatIconButton, MatTooltip, MatHeaderRowDef, MatHeaderRow, MatRowDef, MatRow, MatPaginator, SlicePipe, DatePipe]
 })
 export class ProgramsComponent implements OnInit {
+  private programService = inject(ProgramService);
+  private authService = inject(AuthService);
+  private dialog = inject(MatDialog);
+  private snackBar = inject(MatSnackBar);
+  private logger = inject(LoggerService);
+
   displayedColumns: string[] = ['title', 'description', 'is_active', 'created_at', 'actions'];
   dataSource = new MatTableDataSource<Program>();
   isLoading = true;
 
   readonly paginator = viewChild(MatPaginator);
   readonly sort = viewChild(MatSort);
-
-  constructor(
-    private programService: ProgramService,
-    private authService: AuthService,
-    private dialog: MatDialog,
-    private snackBar: MatSnackBar,
-    private logger: LoggerService
-  ) {
-    // Removed console.log statements - use logger if needed
-  }
 
   ngOnInit(): void {
     // Removed console.log statements - use logger if needed

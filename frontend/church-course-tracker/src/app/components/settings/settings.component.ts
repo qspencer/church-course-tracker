@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { SettingsService } from '../../services/settings.service';
@@ -22,6 +22,13 @@ import { MatProgressSpinner } from '@angular/material/progress-spinner';
     imports: [MatTabGroup, MatTab, ReactiveFormsModule, MatFormField, MatLabel, MatInput, MatHint, MatSelect, MatOption, MatCheckbox, MatButton, MatIcon, MatIconButton, MatSuffix, MatProgressSpinner]
 })
 export class SettingsComponent implements OnInit {
+  private settingsService = inject(SettingsService);
+  private fb = inject(FormBuilder);
+  private snackBar = inject(MatSnackBar);
+  private authService = inject(AuthService);
+  private router = inject(Router);
+  private logger = inject(LoggerService);
+
   settings: SystemSettingsByCategory = {};
   categories = ['system', 'planning_center', 'security', 'backup'];
   activeCategory = 'system';
@@ -39,14 +46,7 @@ export class SettingsComponent implements OnInit {
   planningCenterConfig: PlanningCenterConfig | null = null;
   showPlanningCenterSecrets = false;
 
-  constructor(
-    private settingsService: SettingsService,
-    private fb: FormBuilder,
-    private snackBar: MatSnackBar,
-    private authService: AuthService,
-    private router: Router,
-    private logger: LoggerService
-  ) {
+  constructor() {
     this.initializeForms();
   }
 

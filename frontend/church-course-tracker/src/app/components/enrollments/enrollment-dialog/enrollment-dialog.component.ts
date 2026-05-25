@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogTitle, MatDialogContent, MatDialogActions } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -32,6 +32,15 @@ export interface EnrollmentDialogData {
     imports: [MatDialogTitle, CdkScrollable, MatDialogContent, MatProgressSpinner, MatCard, MatCardContent, MatIcon, MatChip, MatProgressBar, ReactiveFormsModule, MatFormField, MatLabel, MatSelect, MatOption, MatSuffix, MatError, MatDialogActions, MatButton, DecimalPipe]
 })
 export class EnrollmentDialogComponent implements OnInit {
+  private fb = inject(FormBuilder);
+  private enrollmentService = inject(EnrollmentService);
+  private courseService = inject(CourseService);
+  private memberService = inject(MemberService);
+  private snackBar = inject(MatSnackBar);
+  dialogRef = inject<MatDialogRef<EnrollmentDialogComponent>>(MatDialogRef);
+  data = inject<EnrollmentDialogData>(MAT_DIALOG_DATA);
+  private logger = inject(LoggerService);
+
   enrollmentForm: FormGroup;
   isEditing: boolean;
   viewMode = false;
@@ -46,16 +55,9 @@ export class EnrollmentDialogComponent implements OnInit {
     { value: EnrollmentStatus.DROPPED, label: 'Dropped' }
   ];
 
-  constructor(
-    private fb: FormBuilder,
-    private enrollmentService: EnrollmentService,
-    private courseService: CourseService,
-    private memberService: MemberService,
-    private snackBar: MatSnackBar,
-    public dialogRef: MatDialogRef<EnrollmentDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: EnrollmentDialogData,
-    private logger: LoggerService
-  ) {
+  constructor() {
+    const data = this.data;
+
     this.viewMode = !!data.viewMode;
     this.isEditing = !this.viewMode && !!data.enrollment;
     

@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit, AfterViewInit, ElementRef, viewChild } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ElementRef, viewChild, inject } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogTitle, MatDialogContent, MatDialogActions } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -55,6 +55,15 @@ export interface GroupedList {
     imports: [MatDialogTitle, CdkScrollable, MatDialogContent, ReactiveFormsModule, MatRadioGroup, MatRadioButton, MatProgressSpinner, MatFormField, MatLabel, MatSelect, MatOption, MatInput, MatAutocompleteTrigger, MatAutocomplete, MatOptgroup, MatError, MatIcon, MatDialogActions, MatButton, AsyncPipe, DatePipe]
 })
 export class PCImportDialogComponent implements OnInit, AfterViewInit {
+  private fb = inject(FormBuilder);
+  private dialogRef = inject<MatDialogRef<PCImportDialogComponent>>(MatDialogRef);
+  data = inject<PCImportDialogData>(MAT_DIALOG_DATA);
+  private planningCenterService = inject(PlanningCenterService);
+  private courseService = inject(CourseService);
+  private logger = inject(LoggerService);
+  private programService = inject(ProgramService);
+  private snackBar = inject(MatSnackBar);
+
   importForm: FormGroup;
   sourceType: 'event' | 'list' = 'event';
   events: PlanningCenterEvent[] = [];
@@ -78,16 +87,7 @@ export class PCImportDialogComponent implements OnInit, AfterViewInit {
   readonly eventAutoTrigger = viewChild<MatAutocompleteTrigger>('eventAutoTrigger');
   readonly listAutoTrigger = viewChild<MatAutocompleteTrigger>('listAutoTrigger');
 
-  constructor(
-    private fb: FormBuilder,
-    private dialogRef: MatDialogRef<PCImportDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: PCImportDialogData,
-    private planningCenterService: PlanningCenterService,
-    private courseService: CourseService,
-    private logger: LoggerService,
-    private programService: ProgramService,
-    private snackBar: MatSnackBar
-  ) {
+  constructor() {
     this.importForm = this.fb.group({
       source_type: ['event', Validators.required],
       pc_event_id: ['', Validators.required], // Required initially since event is default

@@ -1,4 +1,4 @@
-import { Component, OnInit, Inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogTitle, MatDialogContent, MatDialogActions } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
@@ -28,6 +28,16 @@ export interface BulkImportDialogData {
     imports: [MatDialogTitle, CdkScrollable, MatDialogContent, ReactiveFormsModule, MatRadioGroup, MatRadioButton, MatFormField, MatLabel, MatSelect, MatOption, MatHint, MatError, MatCheckbox, MatDialogActions, MatButton, DatePipe]
 })
 export class BulkEnrollmentDialogComponent implements OnInit {
+  private dialogRef = inject<MatDialogRef<BulkEnrollmentDialogComponent>>(MatDialogRef);
+  data = inject<BulkImportDialogData>(MAT_DIALOG_DATA) ?? {};
+  private fb = inject(FormBuilder);
+  private planningCenterService = inject(PlanningCenterService);
+  private courseService = inject(CourseService);
+  private programService = inject(ProgramService);
+  private enrollmentService = inject(EnrollmentService);
+  private snackBar = inject(MatSnackBar);
+  private logger = inject(LoggerService);
+
   form: FormGroup;
   events: PlanningCenterEvent[] = [];
   lists: PlanningCenterList[] = [];
@@ -41,17 +51,9 @@ export class BulkEnrollmentDialogComponent implements OnInit {
   sourceType: 'event' | 'list' = 'event';
   targetType: 'course' | 'program' = 'course';
 
-  constructor(
-    private dialogRef: MatDialogRef<BulkEnrollmentDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: BulkImportDialogData = {},
-    private fb: FormBuilder,
-    private planningCenterService: PlanningCenterService,
-    private courseService: CourseService,
-    private programService: ProgramService,
-    private enrollmentService: EnrollmentService,
-    private snackBar: MatSnackBar,
-    private logger: LoggerService
-  ) {
+  constructor() {
+    const data = this.data;
+
     // Set target type from data or default to 'course'
     this.targetType = data?.targetType || 'course';
     

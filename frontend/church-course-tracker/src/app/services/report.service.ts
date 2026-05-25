@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
@@ -8,9 +8,9 @@ import { DashboardStats, ProgressReport, ReportFilters, CompletionTrendsResponse
   providedIn: 'root'
 })
 export class ReportService {
-  private readonly API_URL = `${environment.apiUrl}/reports`;
+  private http = inject(HttpClient);
 
-  constructor(private http: HttpClient) {}
+  private readonly API_URL = `${environment.apiUrl}/reports`;
 
   getDashboardStats(): Observable<DashboardStats> {
     return this.http.get<DashboardStats>(`${this.API_URL}/dashboard`);

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { MatCard, MatCardContent } from '@angular/material/card';
 import { MatIcon } from '@angular/material/icon';
@@ -11,7 +11,8 @@ import { MatButton } from '@angular/material/button';
     imports: [MatCard, MatCardContent, MatIcon, MatButton]
 })
 export class NotFoundComponent {
-  constructor(private router: Router) {}
+  private router = inject(Router);
+
 
   goHome(): void {
     this.router.navigate(['/dashboard']);

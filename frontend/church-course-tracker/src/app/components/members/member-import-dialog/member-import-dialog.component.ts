@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { MatDialogRef, MatDialogTitle, MatDialogContent, MatDialogActions } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -23,6 +23,13 @@ import { AsyncPipe } from '@angular/common';
     imports: [MatDialogTitle, CdkScrollable, MatDialogContent, ReactiveFormsModule, MatFormField, MatLabel, MatInput, MatAutocompleteTrigger, MatAutocomplete, MatOption, MatProgressSpinner, MatSuffix, MatHint, MatDialogActions, MatButton, AsyncPipe]
 })
 export class MemberImportDialogComponent implements OnInit {
+  private fb = inject(FormBuilder);
+  private planningCenterService = inject(PlanningCenterService);
+  private memberService = inject(MemberService);
+  private logger = inject(LoggerService);
+  private snackBar = inject(MatSnackBar);
+  dialogRef = inject<MatDialogRef<MemberImportDialogComponent>>(MatDialogRef);
+
   searchForm: FormGroup;
   searchControl: FormControl;
   searchResults: PlanningCenterPerson[] = [];
@@ -32,14 +39,7 @@ export class MemberImportDialogComponent implements OnInit {
   // Filtered results for autocomplete
   filteredResults!: Observable<PlanningCenterPerson[]>;
 
-  constructor(
-    private fb: FormBuilder,
-    private planningCenterService: PlanningCenterService,
-    private memberService: MemberService,
-    private logger: LoggerService,
-    private snackBar: MatSnackBar,
-    public dialogRef: MatDialogRef<MemberImportDialogComponent>
-  ) {
+  constructor() {
     this.searchControl = new FormControl('', [Validators.required]);
     
     this.searchForm = this.fb.group({

@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, viewChild } from '@angular/core';
+import { Component, OnInit, OnDestroy, viewChild, inject } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthService } from './services/auth.service';
 import { InactivityService } from './services/inactivity.service';
@@ -16,17 +16,15 @@ import { MatNavList, MatListItem, MatListItemIcon, MatListItemTitle, MatDivider 
     imports: [MatToolbar, MatIconButton, MatIcon, MatSidenavContainer, MatSidenav, MatNavList, MatListItem, RouterLink, RouterLinkActive, MatListItemIcon, MatListItemTitle, MatDivider, MatSidenavContent, RouterOutlet]
 })
 export class AppComponent implements OnInit, OnDestroy {
+  private authService = inject(AuthService);
+  private router = inject(Router);
+  private inactivityService = inject(InactivityService);
+
   readonly sidenav = viewChild<MatSidenav>('sidenav');
   title = 'Church Course Tracker'; // Triggering frontend tests
   appVersion = environment.version || '0.01';
   isAuthenticated = false;
   currentUser: any = null;
-
-  constructor(
-    private authService: AuthService,
-    private router: Router,
-    private inactivityService: InactivityService
-  ) {}
 
   ngOnInit(): void {
     this.authService.isAuthenticated$.subscribe(isAuth => {

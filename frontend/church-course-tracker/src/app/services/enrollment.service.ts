@@ -1,4 +1,4 @@
-import { Injectable, isDevMode } from '@angular/core';
+import { Injectable, isDevMode, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
@@ -9,12 +9,12 @@ import { Enrollment, EnrollmentCreate, EnrollmentUpdate } from '../models';
   providedIn: 'root'
 })
 export class EnrollmentService {
+  private http = inject(HttpClient);
+  private logger = inject(LoggerService);
+
   private readonly API_URL = `${environment.apiUrl}/enrollments`;
 
-  constructor(
-    private http: HttpClient,
-    private logger: LoggerService
-  ) {
+  constructor() {
     // Only log errors in development mode - reduce console noise
     if (isDevMode() && !this.API_URL.startsWith('https://') && !this.API_URL.includes('localhost')) {
       this.logger.error('EnrollmentService API_URL is NOT HTTPS!', { url: this.API_URL });

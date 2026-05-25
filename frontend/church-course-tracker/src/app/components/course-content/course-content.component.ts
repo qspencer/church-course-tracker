@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -36,6 +36,16 @@ import { JsonPipe, KeyValuePipe } from '@angular/common';
     imports: [MatTabGroup, MatTab, MatButton, MatIcon, MatList, MatListItem, MatListItemIcon, MatListItemTitle, MatListItemLine, MatProgressSpinner, JsonPipe, KeyValuePipe]
 })
 export class CourseContentComponent implements OnInit, OnDestroy {
+  private courseContentService = inject(CourseContentService);
+  private courseService = inject(CourseService);
+  private authService = inject(AuthService);
+  private auditService = inject(AuditService);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private dialog = inject(MatDialog);
+  private snackBar = inject(MatSnackBar);
+  private logger = inject(LoggerService);
+
   courseId!: number;
 
   // Data
@@ -55,18 +65,6 @@ export class CourseContentComponent implements OnInit, OnDestroy {
   StorageType = StorageType;
 
   private destroy$ = new Subject<void>();
-
-  constructor(
-    private courseContentService: CourseContentService,
-    private courseService: CourseService,
-    private authService: AuthService,
-    private auditService: AuditService,
-    private route: ActivatedRoute,
-    private router: Router,
-    private dialog: MatDialog,
-    private snackBar: MatSnackBar,
-    private logger: LoggerService
-  ) {}
 
   ngOnInit(): void {
     this.courseId = Number(this.route.snapshot.paramMap.get('courseId'));

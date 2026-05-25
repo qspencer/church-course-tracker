@@ -1,4 +1,4 @@
-import { Component, OnInit, viewChild } from '@angular/core';
+import { Component, OnInit, viewChild, inject } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort, MatSortHeader } from '@angular/material/sort';
@@ -27,19 +27,17 @@ import { DatePipe } from '@angular/common';
     imports: [MatButton, MatIcon, MatCard, MatCardHeader, MatCardTitle, MatCardSubtitle, MatCardContent, MatFormField, MatLabel, MatInput, MatSuffix, MatProgressSpinner, MatTable, MatSort, MatColumnDef, MatHeaderCellDef, MatHeaderCell, MatSortHeader, MatCellDef, MatCell, MatIconButton, MatTooltip, MatHeaderRowDef, MatHeaderRow, MatRowDef, MatRow, MatPaginator, DatePipe]
 })
 export class MembersComponent implements OnInit {
+  private memberService = inject(MemberService);
+  private dialog = inject(MatDialog);
+  private snackBar = inject(MatSnackBar);
+  private logger = inject(LoggerService);
+
   displayedColumns: string[] = ['full_name', 'email', 'phone', 'created_at', 'actions'];
   dataSource = new MatTableDataSource<Person>();
   isLoading = true;
 
   readonly paginator = viewChild(MatPaginator);
   readonly sort = viewChild(MatSort);
-
-  constructor(
-    private memberService: MemberService,
-    private dialog: MatDialog,
-    private snackBar: MatSnackBar,
-    private logger: LoggerService
-  ) {}
 
   ngOnInit(): void {
     this.loadMembers();

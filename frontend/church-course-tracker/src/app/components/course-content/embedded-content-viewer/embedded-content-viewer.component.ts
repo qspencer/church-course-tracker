@@ -1,4 +1,4 @@
-import { Component, Inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogTitle, MatDialogContent, MatDialogActions } from '@angular/material/dialog';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { MatIcon } from '@angular/material/icon';
@@ -17,13 +17,15 @@ export interface EmbeddedContentViewerData {
     imports: [MatDialogTitle, MatIcon, CdkScrollable, MatDialogContent, MatDialogActions, MatButton]
 })
 export class EmbeddedContentViewerComponent {
+  dialogRef = inject<MatDialogRef<EmbeddedContentViewerComponent>>(MatDialogRef);
+  data = inject<EmbeddedContentViewerData>(MAT_DIALOG_DATA);
+  private sanitizer = inject(DomSanitizer);
+
   safeContent: SafeHtml;
 
-  constructor(
-    public dialogRef: MatDialogRef<EmbeddedContentViewerComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: EmbeddedContentViewerData,
-    private sanitizer: DomSanitizer
-  ) {
+  constructor() {
+    const data = this.data;
+
     // Use bypassSecurityTrustHtml for embedded content (iframes, videos, etc.)
     // This is safe because content is stored in the database and only admins/staff can create it
     // In production, you may want to add additional validation or whitelisting

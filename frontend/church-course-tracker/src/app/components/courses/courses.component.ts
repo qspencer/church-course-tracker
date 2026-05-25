@@ -1,4 +1,4 @@
-import { Component, OnInit, viewChild } from '@angular/core';
+import { Component, OnInit, viewChild, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { MatPaginator } from '@angular/material/paginator';
@@ -30,6 +30,13 @@ import { SlicePipe, DatePipe } from '@angular/common';
     imports: [MatButton, MatIcon, MatCard, MatCardHeader, MatCardTitle, MatCardSubtitle, MatCardContent, MatFormField, MatLabel, MatInput, MatSuffix, MatProgressSpinner, MatTable, MatSort, MatColumnDef, MatHeaderCellDef, MatHeaderCell, MatCheckbox, MatCellDef, MatCell, MatSortHeader, MatChip, MatIconButton, MatTooltip, MatHeaderRowDef, MatHeaderRow, MatRowDef, MatRow, MatPaginator, SlicePipe, DatePipe]
 })
 export class CoursesComponent implements OnInit {
+  private courseService = inject(CourseService);
+  private authService = inject(AuthService);
+  private dialog = inject(MatDialog);
+  private snackBar = inject(MatSnackBar);
+  private logger = inject(LoggerService);
+  private router = inject(Router);
+
   displayedColumns: string[] = ['title', 'description', 'duration_weeks', 'is_active', 'created_at', 'actions'];
   dataSource = new MatTableDataSource<Course>();
   isLoading = true;
@@ -40,15 +47,6 @@ export class CoursesComponent implements OnInit {
 
   readonly paginator = viewChild(MatPaginator);
   readonly sort = viewChild(MatSort);
-
-  constructor(
-    private courseService: CourseService,
-    private authService: AuthService,
-    private dialog: MatDialog,
-    private snackBar: MatSnackBar,
-    private logger: LoggerService,
-    private router: Router
-  ) {}
 
   ngOnInit(): void {
     this.loadCourses();

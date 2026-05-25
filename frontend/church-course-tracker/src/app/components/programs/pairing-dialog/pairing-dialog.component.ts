@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogTitle, MatDialogContent, MatDialogActions } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -31,6 +31,14 @@ export interface PairingDialogData {
     imports: [MatDialogTitle, CdkScrollable, MatDialogContent, MatChip, ReactiveFormsModule, MatFormField, MatLabel, MatSelect, MatOption, MatError, MatHint, MatInput, MatIcon, MatDialogActions, MatButton, MatProgressSpinner, TitleCasePipe, DatePipe]
 })
 export class PairingDialogComponent implements OnInit {
+  private fb = inject(FormBuilder);
+  private programService = inject(ProgramService);
+  private memberService = inject(MemberService);
+  private snackBar = inject(MatSnackBar);
+  dialogRef = inject<MatDialogRef<PairingDialogComponent>>(MatDialogRef);
+  data = inject<PairingDialogData>(MAT_DIALOG_DATA);
+  private logger = inject(LoggerService);
+
   pairingForm: FormGroup;
   isEditing: boolean;
   viewMode = false;
@@ -48,15 +56,9 @@ export class PairingDialogComponent implements OnInit {
     { value: 'ended', label: 'Ended' }
   ];
 
-  constructor(
-    private fb: FormBuilder,
-    private programService: ProgramService,
-    private memberService: MemberService,
-    private snackBar: MatSnackBar,
-    public dialogRef: MatDialogRef<PairingDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: PairingDialogData,
-    private logger: LoggerService
-  ) {
+  constructor() {
+    const data = this.data;
+
     this.viewMode = !!data.viewMode;
     this.isEditing = !this.viewMode && !!data.pairing;
     this.program = data.program;

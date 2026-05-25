@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { PageEvent, MatPaginator } from '@angular/material/paginator';
 import { AuditService } from '../../services/audit.service';
@@ -30,6 +30,11 @@ import { MatChip } from '@angular/material/chips';
     imports: [MatCard, MatCardHeader, MatCardTitle, MatIcon, MatCardSubtitle, MatCardContent, MatFormField, MatLabel, MatInput, MatDatepickerInput, ReactiveFormsModule, FormsModule, MatDatepickerToggle, MatSuffix, MatDatepicker, MatButton, MatProgressSpinner, MatTable, MatColumnDef, MatHeaderCellDef, MatHeaderCell, MatCellDef, MatCell, MatChip, MatHeaderRowDef, MatHeaderRow, MatRowDef, MatRow, MatPaginator]
 })
 export class ActivityLogsComponent implements OnInit {
+  private auditService = inject(AuditService);
+  private authService = inject(AuthService);
+  private snackBar = inject(MatSnackBar);
+  private logger = inject(LoggerService);
+
   activityLogs: AuditLog[] = [];
   isLoading = false;
   totalCount = 0;
@@ -47,13 +52,6 @@ export class ActivityLogsComponent implements OnInit {
   getTableDisplayName = getTableDisplayName;
   
   displayedColumns: string[] = ['timestamp', 'table', 'action', 'record_id', 'changed_by'];
-
-  constructor(
-    private auditService: AuditService,
-    private authService: AuthService,
-    private snackBar: MatSnackBar,
-    private logger: LoggerService
-  ) {}
 
   ngOnInit(): void {
     // Check if user has permission (staff or admin)

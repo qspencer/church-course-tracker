@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit, AfterViewInit, viewChild } from '@angular/core';
+import { Component, OnInit, AfterViewInit, viewChild, inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { MatPaginator, PageEvent } from '@angular/material/paginator';
 import { MatSort, MatSortHeader } from '@angular/material/sort';
@@ -32,6 +32,17 @@ import { TitleCasePipe, DatePipe } from '@angular/common';
     imports: [MatIconButton, MatIcon, MatButton, MatFormField, MatLabel, MatSelect, ReactiveFormsModule, FormsModule, MatOption, MatInput, MatSuffix, MatProgressSpinner, MatTable, MatSort, MatColumnDef, MatHeaderCellDef, MatHeaderCell, MatSortHeader, MatCellDef, MatCell, MatChip, MatProgressBar, MatTooltip, MatHeaderRowDef, MatHeaderRow, MatRowDef, MatRow, MatPaginator, TitleCasePipe, DatePipe]
 })
 export class ParticipantsManagementComponent implements OnInit, AfterViewInit {
+  private dialogRef = inject<MatDialogRef<ParticipantsManagementComponent>>(MatDialogRef);
+  data = inject<{
+    program: Program;
+}>(MAT_DIALOG_DATA);
+  private programService = inject(ProgramService);
+  private memberService = inject(MemberService);
+  private dialog = inject(MatDialog);
+  private snackBar = inject(MatSnackBar);
+  private searchFilterService = inject(SearchFilterService);
+  private logger = inject(LoggerService);
+
   displayedColumns: string[] = ['member_name', 'role_name', 'status', 'progress_percentage', 'start_date', 'actions'];
   dataSource = new MatTableDataSource<ProgramParticipant>();
   isLoading = true;
@@ -51,16 +62,9 @@ export class ParticipantsManagementComponent implements OnInit, AfterViewInit {
   readonly paginator = viewChild(MatPaginator);
   readonly sort = viewChild(MatSort);
 
-  constructor(
-    private dialogRef: MatDialogRef<ParticipantsManagementComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: { program: Program },
-    private programService: ProgramService,
-    private memberService: MemberService,
-    private dialog: MatDialog,
-    private snackBar: MatSnackBar,
-    private searchFilterService: SearchFilterService,
-    private logger: LoggerService
-  ) {
+  constructor() {
+    const data = this.data;
+
     this.program = data.program;
   }
 

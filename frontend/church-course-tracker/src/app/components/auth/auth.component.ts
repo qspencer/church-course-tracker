@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -19,6 +19,12 @@ import { DatePipe } from '@angular/common';
     imports: [MatCard, MatCardHeader, MatCardTitle, MatIcon, MatCardSubtitle, MatCardContent, ReactiveFormsModule, MatFormField, MatLabel, MatInput, MatSuffix, MatError, MatIconButton, MatButton, MatProgressSpinner, MatCardActions, DatePipe]
 })
 export class AuthComponent implements OnInit {
+  private fb = inject(FormBuilder);
+  private authService = inject(AuthService);
+  private router = inject(Router);
+  private snackBar = inject(MatSnackBar);
+  private logger = inject(LoggerService);
+
   loginForm: FormGroup;
   registerForm: FormGroup;
   isLoginMode = true;
@@ -29,13 +35,7 @@ export class AuthComponent implements OnInit {
   isAccountLocked = false;
   lockoutUntil: Date | null = null;
 
-  constructor(
-    private fb: FormBuilder,
-    private authService: AuthService,
-    private router: Router,
-    private snackBar: MatSnackBar,
-    private logger: LoggerService
-  ) {
+  constructor() {
     this.loginForm = this.fb.group({
       username: ['', [Validators.required]],
       password: ['', [Validators.required, Validators.minLength(6)]]

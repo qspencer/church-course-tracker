@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
@@ -8,9 +8,9 @@ import { Progress, ProgressStatus, ProgressQueryParams } from '../models';
   providedIn: 'root'
 })
 export class ProgressService {
-  private readonly API_URL = `${environment.apiUrl}/progress`;
+  private http = inject(HttpClient);
 
-  constructor(private http: HttpClient) {}
+  private readonly API_URL = `${environment.apiUrl}/progress`;
 
   getProgress(params?: ProgressQueryParams): Observable<Progress[]> {
     let httpParams = new HttpParams();

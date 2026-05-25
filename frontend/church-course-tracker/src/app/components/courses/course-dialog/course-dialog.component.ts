@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, FormArray, FormControl, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialog, MatDialogTitle, MatDialogContent, MatDialogActions } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -31,6 +31,16 @@ export interface CourseDialogData {
     imports: [MatDialogTitle, CdkScrollable, MatDialogContent, MatChip, MatButton, MatIcon, ReactiveFormsModule, MatFormField, MatLabel, MatInput, MatError, MatHint, MatSelect, MatOption, MatProgressSpinner, MatSuffix, MatChipListbox, MatChipRemove, FormsModule, MatDialogActions]
 })
 export class CourseDialogComponent implements OnInit {
+  private fb = inject(FormBuilder);
+  private courseService = inject(CourseService);
+  private userService = inject(UserService);
+  private autocompleteService = inject(AutocompleteSuggestionService);
+  private snackBar = inject(MatSnackBar);
+  private dialog = inject(MatDialog);
+  private logger = inject(LoggerService);
+  dialogRef = inject<MatDialogRef<CourseDialogComponent>>(MatDialogRef);
+  data = inject<CourseDialogData>(MAT_DIALOG_DATA);
+
   courseForm: FormGroup;
   isEditing: boolean;
   viewMode: boolean;
@@ -52,17 +62,9 @@ export class CourseDialogComponent implements OnInit {
   filteredLocationSuggestions: string[] = [];
   filteredDeliveryModeSuggestions: string[] = [];
 
-  constructor(
-    private fb: FormBuilder,
-    private courseService: CourseService,
-    private userService: UserService,
-    private autocompleteService: AutocompleteSuggestionService,
-    private snackBar: MatSnackBar,
-    private dialog: MatDialog,
-    private logger: LoggerService,
-    public dialogRef: MatDialogRef<CourseDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: CourseDialogData
-  ) {
+  constructor() {
+    const data = this.data;
+
     this.viewMode = data.viewMode || false;
     this.isEditing = !!data.course && !this.viewMode;
     this.course = data.course || null;

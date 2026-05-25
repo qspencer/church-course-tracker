@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogTitle, MatDialogContent, MatDialogActions } from '@angular/material/dialog';
 import { Subject, interval } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
@@ -18,14 +18,16 @@ export interface InactivityWarningData {
     imports: [MatDialogTitle, MatIcon, CdkScrollable, MatDialogContent, MatDialogActions, MatButton]
 })
 export class InactivityWarningDialogComponent implements OnInit, OnDestroy {
+  dialogRef = inject<MatDialogRef<InactivityWarningDialogComponent>>(MatDialogRef);
+  data = inject<InactivityWarningData>(MAT_DIALOG_DATA);
+
   timeRemaining: number;
   message: string;
   private destroy$ = new Subject<void>();
 
-  constructor(
-    public dialogRef: MatDialogRef<InactivityWarningDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: InactivityWarningData
-  ) {
+  constructor() {
+    const data = this.data;
+
     this.timeRemaining = data.timeRemaining;
     this.message = data.message;
   }

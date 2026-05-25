@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -27,6 +27,13 @@ import { DecimalPipe } from '@angular/common';
     imports: [MatButton, MatIcon, MatCard, MatCardHeader, MatCardTitle, MatCardSubtitle, MatCardContent, ReactiveFormsModule, MatFormField, MatLabel, MatInput, MatDatepickerInput, MatDatepickerToggle, MatSuffix, MatDatepicker, MatSelect, MatOption, MatProgressSpinner, NgChartsModule, MatTable, MatColumnDef, MatHeaderCellDef, MatHeaderCell, MatCellDef, MatCell, MatProgressBar, MatHeaderRowDef, MatHeaderRow, MatRowDef, MatRow, DecimalPipe]
 })
 export class ReportsComponent implements OnInit {
+  private fb = inject(FormBuilder);
+  private router = inject(Router);
+  private reportService = inject(ReportService);
+  private courseService = inject(CourseService);
+  private logger = inject(LoggerService);
+  private snackBar = inject(MatSnackBar);
+
   dashboardStats: DashboardStats | null = null;
   progressReport: ProgressReport | null = null;
   courses: Course[] = [];
@@ -110,14 +117,7 @@ export class ReportsComponent implements OnInit {
     }
   };
 
-  constructor(
-    private fb: FormBuilder,
-    private router: Router,
-    private reportService: ReportService,
-    private courseService: CourseService,
-    private logger: LoggerService,
-    private snackBar: MatSnackBar
-  ) {
+  constructor() {
     this.filterForm = this.fb.group({
       start_date: [''],
       end_date: [''],

@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogTitle, MatDialogContent, MatDialogActions } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ProgramService } from '../../../services/program.service';
@@ -36,6 +36,12 @@ export interface CustomTabConfigDialogData {
     imports: [MatDialogTitle, CdkScrollable, MatDialogContent, MatProgressBar, MatFormField, MatLabel, MatInput, ReactiveFormsModule, FormsModule, MatHint, MatButton, MatList, MatListItem, MatListItemTitle, MatListItemLine, MatIconButton, MatListItemMeta, MatIcon, MatCard, MatCardHeader, MatCardTitle, MatCardSubtitle, MatCardContent, MatSelect, MatOption, MatDivider, MatChipSet, MatChip, MatCheckbox, MatDialogActions]
 })
 export class CustomTabConfigDialogComponent implements OnInit {
+  dialogRef = inject<MatDialogRef<CustomTabConfigDialogComponent>>(MatDialogRef);
+  data = inject<CustomTabConfigDialogData>(MAT_DIALOG_DATA);
+  private programService = inject(ProgramService);
+  private pcService = inject(PlanningCenterService);
+  private snackBar = inject(MatSnackBar);
+
   loading = false;
   step: 'discover' | 'select-tab' | 'configure-mappings' | 'review' = 'discover';
 
@@ -69,13 +75,9 @@ export class CustomTabConfigDialogComponent implements OnInit {
     { value: 'ignore', label: 'Ignore Field' }
   ];
 
-  constructor(
-    public dialogRef: MatDialogRef<CustomTabConfigDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: CustomTabConfigDialogData,
-    private programService: ProgramService,
-    private pcService: PlanningCenterService,
-    private snackBar: MatSnackBar
-  ) {
+  constructor() {
+    const data = this.data;
+
     if (data.currentConfig) {
       this.config = { ...data.currentConfig };
       this.step = 'review';

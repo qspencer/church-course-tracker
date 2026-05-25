@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { Router, RouterLink } from '@angular/router';
@@ -26,6 +26,13 @@ import { SlicePipe, DecimalPipe, DatePipe } from '@angular/common';
     imports: [MatButtonToggleGroup, MatButtonToggle, MatIcon, MatButton, MatProgressSpinner, MatCard, MatCardContent, MatCardHeader, MatCardTitle, NgChartsModule, MatCardSubtitle, MatChip, MatCardActions, RouterLink, MatProgressBar, SlicePipe, DecimalPipe, DatePipe]
 })
 export class DashboardComponent implements OnInit, OnDestroy {
+  private router = inject(Router);
+  private reportService = inject(ReportService);
+  private courseService = inject(CourseService);
+  private enrollmentService = inject(EnrollmentService);
+  private programService = inject(ProgramService);
+  private logger = inject(LoggerService);
+
   private destroy$ = new Subject<void>();
   viewMode: 'courses' | 'programs' = 'courses';
   stats: DashboardStats | null = null;
@@ -149,15 +156,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
       }
     ]
   };
-
-  constructor(
-    private router: Router,
-    private reportService: ReportService,
-    private courseService: CourseService,
-    private enrollmentService: EnrollmentService,
-    private programService: ProgramService,
-    private logger: LoggerService
-  ) {}
 
   ngOnInit(): void {
     // Load dashboard data on initialization

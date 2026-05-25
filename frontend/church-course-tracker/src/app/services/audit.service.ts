@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
@@ -9,9 +9,10 @@ import { LoggerService } from './logger.service';
   providedIn: 'root'
 })
 export class AuditService {
-  private readonly API_URL = `${environment.apiUrl}/audit`;
+  private http = inject(HttpClient);
+  private logger = inject(LoggerService);
 
-  constructor(private http: HttpClient, private logger: LoggerService) {}
+  private readonly API_URL = `${environment.apiUrl}/audit`;
 
   /**
    * Get system-wide audit logs with filtering options

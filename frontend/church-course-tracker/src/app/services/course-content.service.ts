@@ -5,7 +5,7 @@
  * modules, content items, file uploads, and access tracking.
  */
 
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
@@ -22,12 +22,10 @@ import { LoggerService } from './logger.service';
   providedIn: 'root'
 })
 export class CourseContentService {
-  private readonly API_URL = `${environment.apiUrl}/content`;
+  private http = inject(HttpClient);
+  private logger = inject(LoggerService);
 
-  constructor(
-    private http: HttpClient,
-    private logger: LoggerService
-  ) {}
+  private readonly API_URL = `${environment.apiUrl}/content`;
 
   // Course Module Methods
 

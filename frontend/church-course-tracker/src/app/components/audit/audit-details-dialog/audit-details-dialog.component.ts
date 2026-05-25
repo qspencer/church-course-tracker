@@ -1,4 +1,4 @@
-import { Component, Inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogTitle, MatDialogContent, MatDialogActions } from '@angular/material/dialog';
 
 import {
@@ -32,14 +32,16 @@ interface AuditChangeEntry {
     imports: [MatDialogTitle, MatChip, MatIcon, MatChipAvatar, CdkScrollable, MatDialogContent, MatDialogActions, MatButton]
 })
 export class AuditDetailsDialogComponent {
+  dialogRef = inject<MatDialogRef<AuditDetailsDialogComponent>>(MatDialogRef);
+  data = inject<AuditDetailsDialogData>(MAT_DIALOG_DATA);
+
   readonly log: AuditLog;
   readonly userName: string;
   readonly changeEntries: AuditChangeEntry[];
 
-  constructor(
-    public dialogRef: MatDialogRef<AuditDetailsDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: AuditDetailsDialogData
-  ) {
+  constructor() {
+    const data = this.data;
+
     this.log = data.log;
     this.userName = data.userName || 'System';
     this.changeEntries = this.buildChangeEntries(this.log);
