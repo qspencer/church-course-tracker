@@ -31,7 +31,6 @@ describe('AppComponent', () => {
     const inactivitySpy = jasmine.createSpyObj('InactivityService', ['startMonitoring', 'stopMonitoring']);
 
     await TestBed.configureTestingModule({
-    declarations: [AppComponent],
     imports: [
         RouterTestingModule,
         BrowserAnimationsModule,
@@ -40,7 +39,8 @@ describe('AppComponent', () => {
         MatListModule,
         MatIconModule,
         MatButtonModule,
-        MatTooltipModule
+        MatTooltipModule,
+        AppComponent
     ],
     providers: [
         { provide: AuthService, useValue: authSpy },

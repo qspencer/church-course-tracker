@@ -21,33 +21,32 @@ import { CourseContentComponent } from './course-content.component';
 import { ContentDialogComponent } from './content-dialog/content-dialog.component';
 import { ModuleDialogComponent } from './module-dialog/module-dialog.component';
 import { EmbeddedContentViewerComponent } from './embedded-content-viewer/embedded-content-viewer.component';
-import { SharedModule } from '../../shared/shared.module';
+
 import { CourseContentRoutingModule } from './course-content-routing.module';
 
 @NgModule({
     imports: [
-        CommonModule,
-        ReactiveFormsModule,
-        CourseContentRoutingModule,
-        // Angular Material
-        MatCardModule,
-        MatButtonModule,
-        MatIconModule,
-        MatChipsModule,
-        MatProgressSpinnerModule,
-        MatTabsModule,
-        MatFormFieldModule,
-        MatInputModule,
-        MatSelectModule,
-        MatSnackBarModule,
-        MatListModule,
-        MatDialogModule,
-        SharedModule,
-        CourseContentComponent,
-        ContentDialogComponent,
-        ModuleDialogComponent,
-        EmbeddedContentViewerComponent
-    ],
+    CommonModule,
+    ReactiveFormsModule,
+    CourseContentRoutingModule,
+    // Angular Material
+    MatCardModule,
+    MatButtonModule,
+    MatIconModule,
+    MatChipsModule,
+    MatProgressSpinnerModule,
+    MatTabsModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatSnackBarModule,
+    MatListModule,
+    MatDialogModule,
+    CourseContentComponent,
+    ContentDialogComponent,
+    ModuleDialogComponent,
+    EmbeddedContentViewerComponent
+],
     exports: [
         CourseContentComponent
     ]

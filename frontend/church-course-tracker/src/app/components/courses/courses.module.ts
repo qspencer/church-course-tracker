@@ -23,8 +23,8 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { CoursesComponent } from './courses.component';
 import { CourseDialogComponent } from './course-dialog/course-dialog.component';
 import { EventRegistrationsDialogComponent } from './event-registrations-dialog/event-registrations-dialog.component';
-import { SharedModule } from '../../shared/shared.module';
-import { PCImportDialogModule } from './pc-import-dialog/pc-import-dialog.module';
+
+
 
 const routes: Routes = [
   { path: '', component: CoursesComponent }
@@ -32,30 +32,28 @@ const routes: Routes = [
 
 @NgModule({
     imports: [
-        CommonModule,
-        ReactiveFormsModule,
-        FormsModule,
-        RouterModule.forChild(routes),
-        MatCardModule,
-        MatButtonModule,
-        MatIconModule,
-        MatTableModule,
-        MatPaginatorModule,
-        MatSortModule,
-        MatFormFieldModule,
-        MatInputModule,
-        MatDialogModule,
-        MatProgressSpinnerModule,
-        MatChipsModule,
-        MatTooltipModule,
-        MatSelectModule,
-        MatAutocompleteModule,
-        MatCheckboxModule,
-        SharedModule,
-        PCImportDialogModule,
-        CoursesComponent,
-        CourseDialogComponent,
-        EventRegistrationsDialogComponent
-    ]
+    CommonModule,
+    ReactiveFormsModule,
+    FormsModule,
+    RouterModule.forChild(routes),
+    MatCardModule,
+    MatButtonModule,
+    MatIconModule,
+    MatTableModule,
+    MatPaginatorModule,
+    MatSortModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatDialogModule,
+    MatProgressSpinnerModule,
+    MatChipsModule,
+    MatTooltipModule,
+    MatSelectModule,
+    MatAutocompleteModule,
+    MatCheckboxModule,
+    CoursesComponent,
+    CourseDialogComponent,
+    EventRegistrationsDialogComponent
+]
 })
 export class CoursesModule { }

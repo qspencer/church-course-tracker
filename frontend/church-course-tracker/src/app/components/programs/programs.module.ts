@@ -37,8 +37,8 @@ import { ProgressDialogComponent } from './progress-dialog/progress-dialog.compo
 import { ProgressManagementComponent } from './progress-management/progress-management.component';
 import { CustomTabConfigDialogComponent } from './custom-tab-config-dialog/custom-tab-config-dialog.component';
 import { CustomTabImportDialogComponent } from './custom-tab-import-dialog/custom-tab-import-dialog.component';
-import { SharedModule } from '../../shared/shared.module';
-import { PCImportDialogModule } from '../courses/pc-import-dialog/pc-import-dialog.module';
+
+
 
 const routes: Routes = [
   { path: '', component: ProgramsComponent }
@@ -46,46 +46,44 @@ const routes: Routes = [
 
 @NgModule({
     imports: [
-        CommonModule,
-        ReactiveFormsModule,
-        FormsModule,
-        RouterModule.forChild(routes),
-        MatCardModule,
-        MatButtonModule,
-        MatIconModule,
-        MatTableModule,
-        MatPaginatorModule,
-        MatSortModule,
-        MatFormFieldModule,
-        MatInputModule,
-        MatDialogModule,
-        MatProgressSpinnerModule,
-        MatChipsModule,
-        MatTooltipModule,
-        MatSelectModule,
-        MatCheckboxModule,
-        MatSnackBarModule,
-        MatChipsModule,
-        MatProgressBarModule,
-        MatDatepickerModule,
-        MatNativeDateModule,
-        MatAutocompleteModule,
-        MatListModule,
-        SharedModule,
-        PCImportDialogModule,
-        ProgramsComponent,
-        ProgramDialogComponent,
-        ParticipantDialogComponent,
-        ParticipantsManagementComponent,
-        PairingDialogComponent,
-        PairingsManagementComponent,
-        SessionDialogComponent,
-        SessionsManagementComponent,
-        ProgressDialogComponent,
-        ProgressManagementComponent,
-        CustomTabConfigDialogComponent,
-        CustomTabImportDialogComponent
-    ]
+    CommonModule,
+    ReactiveFormsModule,
+    FormsModule,
+    RouterModule.forChild(routes),
+    MatCardModule,
+    MatButtonModule,
+    MatIconModule,
+    MatTableModule,
+    MatPaginatorModule,
+    MatSortModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatDialogModule,
+    MatProgressSpinnerModule,
+    MatChipsModule,
+    MatTooltipModule,
+    MatSelectModule,
+    MatCheckboxModule,
+    MatSnackBarModule,
+    MatChipsModule,
+    MatProgressBarModule,
+    MatDatepickerModule,
+    MatNativeDateModule,
+    MatAutocompleteModule,
+    MatListModule,
+    ProgramsComponent,
+    ProgramDialogComponent,
+    ParticipantDialogComponent,
+    ParticipantsManagementComponent,
+    PairingDialogComponent,
+    PairingsManagementComponent,
+    SessionDialogComponent,
+    SessionsManagementComponent,
+    ProgressDialogComponent,
+    ProgressManagementComponent,
+    CustomTabConfigDialogComponent,
+    CustomTabImportDialogComponent
+]
 })
 export class ProgramsModule { }
 

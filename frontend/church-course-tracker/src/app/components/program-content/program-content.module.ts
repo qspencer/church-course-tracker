@@ -17,29 +17,28 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { ProgramContentComponent } from './program-content.component';
 import { ContentDialogComponent } from './content-dialog/content-dialog.component';
 import { ModuleDialogComponent } from './module-dialog/module-dialog.component';
-import { SharedModule } from '../../shared/shared.module';
+
 import { ProgramContentRoutingModule } from './program-content-routing.module';
 
 @NgModule({
     imports: [
-        CommonModule,
-        ReactiveFormsModule,
-        ProgramContentRoutingModule,
-        // Angular Material
-        MatButtonModule,
-        MatIconModule,
-        MatProgressSpinnerModule,
-        MatTabsModule,
-        MatFormFieldModule,
-        MatInputModule,
-        MatSelectModule,
-        MatSnackBarModule,
-        MatDialogModule,
-        SharedModule,
-        ProgramContentComponent,
-        ContentDialogComponent,
-        ModuleDialogComponent
-    ],
+    CommonModule,
+    ReactiveFormsModule,
+    ProgramContentRoutingModule,
+    // Angular Material
+    MatButtonModule,
+    MatIconModule,
+    MatProgressSpinnerModule,
+    MatTabsModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatSnackBarModule,
+    MatDialogModule,
+    ProgramContentComponent,
+    ContentDialogComponent,
+    ModuleDialogComponent
+],
     exports: [
         ProgramContentComponent
     ]

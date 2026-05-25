@@ -24,7 +24,7 @@ import { MatButtonToggleModule } from '@angular/material/button-toggle';
 
 import { EnrollmentsComponent } from './enrollments.component';
 import { EnrollmentDialogComponent } from './enrollment-dialog/enrollment-dialog.component';
-import { BulkEnrollmentDialogModule } from './bulk-enrollment-dialog.module';
+
 
 const routes: Routes = [
   { path: '', component: EnrollmentsComponent }
@@ -32,33 +32,30 @@ const routes: Routes = [
 
 @NgModule({
     imports: [
-        CommonModule,
-        ReactiveFormsModule,
-        RouterModule.forChild(routes),
-        MatCardModule,
-        MatButtonModule,
-        MatIconModule,
-        MatTableModule,
-        MatPaginatorModule,
-        MatSortModule,
-        MatFormFieldModule,
-        MatInputModule,
-        MatSelectModule,
-        MatDialogModule,
-        MatProgressSpinnerModule,
-        MatProgressBarModule,
-        MatChipsModule,
-        MatTooltipModule,
-        MatCheckboxModule,
-        MatRadioModule,
-        MatButtonToggleModule,
-        BulkEnrollmentDialogModule,
-        EnrollmentsComponent,
-        EnrollmentDialogComponent
-        // BulkEnrollmentDialogComponent is now in BulkEnrollmentDialogModule
-    ],
-    exports: [
-        BulkEnrollmentDialogModule
-    ]
+    CommonModule,
+    ReactiveFormsModule,
+    RouterModule.forChild(routes),
+    MatCardModule,
+    MatButtonModule,
+    MatIconModule,
+    MatTableModule,
+    MatPaginatorModule,
+    MatSortModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatDialogModule,
+    MatProgressSpinnerModule,
+    MatProgressBarModule,
+    MatChipsModule,
+    MatTooltipModule,
+    MatCheckboxModule,
+    MatRadioModule,
+    MatButtonToggleModule,
+    EnrollmentsComponent,
+    EnrollmentDialogComponent
+    // BulkEnrollmentDialogComponent is now in BulkEnrollmentDialogModule
+],
+    exports: []
 })
 export class EnrollmentsModule { }
