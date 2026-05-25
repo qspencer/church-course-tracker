@@ -86,7 +86,8 @@ frontend/church-course-tracker/node_modules/
 infrastructure/.terraform/modules/
 # Terraform
 infrastructure/.terraform/
-infrastructure/.terraform.lock.hcl
+# NOTE: terraform.lock.hcl is intentionally NOT ignored - it pins provider
+# versions for reproducible builds and is standard practice to commit.
 infrastructure/terraform.tfstate*
 infrastructure/tfplan
 *.tfplan
@@ -100,4 +101,5 @@ tests/e2e/test-results/
 playwright-report/
 test-results/
 backend/venv_lint/
+backend/.coverage
 .env.e2e
