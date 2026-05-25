@@ -325,12 +325,18 @@ class UserService:
                 record_id = db_user.id
 
                 if soft_delete:
-                    # Soft delete - deactivate instead of delete
+                    # Soft delete - deactivate (is_active=False), keep the row.
+                    # Audit-logged as "update" because AuditLogCreate's action
+                    # field enforces the pattern ^(insert|update|delete)$; the
+                    # previous "soft_delete" string was rejected by pydantic
+                    # validation and silently failed (same bug fixed in
+                    # enrollment_service.bulk_delete_enrollments at the same
+                    # time, 2026-05-18).
                     db_user.is_active = False
                     self.db.commit()
-                    action = "soft_delete"
+                    action = "update"
                 else:
-                    # Hard delete
+                    # Hard delete - row removed.
                     self.db.delete(db_user)
                     self.db.commit()
                     action = "delete"
