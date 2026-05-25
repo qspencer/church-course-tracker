@@ -1,7 +1,11 @@
 import { Component, Inject, OnInit } from '@angular/core';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogRef, MatDialogTitle, MatDialogContent, MatDialogActions } from '@angular/material/dialog';
 import { Enrollment } from '../../../models';
 import { Person } from '../../../models';
+import { MatIcon } from '@angular/material/icon';
+import { CdkScrollable } from '@angular/cdk/scrolling';
+import { MatChip } from '@angular/material/chips';
+import { MatButton } from '@angular/material/button';
 
 export interface MemberEnrollmentsDialogData {
   member: Person;
@@ -12,7 +16,7 @@ export interface MemberEnrollmentsDialogData {
     selector: 'app-member-enrollments-dialog',
     templateUrl: './member-enrollments-dialog.component.html',
     styleUrls: ['./member-enrollments-dialog.component.scss'],
-    standalone: false
+    imports: [MatDialogTitle, MatIcon, CdkScrollable, MatDialogContent, MatChip, MatDialogActions, MatButton]
 })
 export class MemberEnrollmentsDialogComponent implements OnInit {
   member: Person;

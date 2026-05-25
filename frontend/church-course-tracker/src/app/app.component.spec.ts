@@ -31,8 +31,8 @@ describe('AppComponent', () => {
     const inactivitySpy = jasmine.createSpyObj('InactivityService', ['startMonitoring', 'stopMonitoring']);
 
     await TestBed.configureTestingModule({
-      declarations: [AppComponent],
-      imports: [
+    declarations: [AppComponent],
+    imports: [
         RouterTestingModule,
         BrowserAnimationsModule,
         MatToolbarModule,
@@ -41,13 +41,13 @@ describe('AppComponent', () => {
         MatIconModule,
         MatButtonModule,
         MatTooltipModule
-      ],
-      providers: [
+    ],
+    providers: [
         { provide: AuthService, useValue: authSpy },
         { provide: Router, useValue: routerSpyObj },
         { provide: InactivityService, useValue: inactivitySpy }
-      ]
-    }).compileComponents();
+    ]
+}).compileComponents();
 
     fixture = TestBed.createComponent(AppComponent);
     component = fixture.componentInstance;

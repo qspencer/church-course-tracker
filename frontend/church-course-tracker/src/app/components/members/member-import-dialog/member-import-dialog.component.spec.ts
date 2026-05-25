@@ -25,8 +25,7 @@ describe('MemberImportDialogComponent', () => {
     mockDialogRef = jasmine.createSpyObj('MatDialogRef', ['close']);
 
     await TestBed.configureTestingModule({
-      declarations: [MemberImportDialogComponent],
-      imports: [
+    imports: [
         ReactiveFormsModule,
         MatDialogModule,
         MatAutocompleteModule,
@@ -34,14 +33,15 @@ describe('MemberImportDialogComponent', () => {
         MatInputModule,
         MatButtonModule,
         MatSnackBarModule,
-        NoopAnimationsModule
-      ],
-      providers: [
+        NoopAnimationsModule,
+        MemberImportDialogComponent
+    ],
+    providers: [
         { provide: PlanningCenterService, useValue: mockPlanningCenterService },
         { provide: MemberService, useValue: mockMemberService },
         { provide: MatDialogRef, useValue: mockDialogRef }
-      ]
-    }).compileComponents();
+    ]
+}).compileComponents();
 
     fixture = TestBed.createComponent(MemberImportDialogComponent);
     component = fixture.componentInstance;

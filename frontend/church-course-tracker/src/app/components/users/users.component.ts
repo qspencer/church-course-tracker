@@ -9,6 +9,13 @@ import { UserImportDialogComponent } from './user-import-dialog/user-import-dial
 import { ResetPasswordDialogComponent } from './reset-password-dialog/reset-password-dialog.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { LoggerService } from '../../services/logger.service';
+import { MatButton, MatIconButton } from '@angular/material/button';
+import { MatIcon } from '@angular/material/icon';
+import { MatProgressSpinner } from '@angular/material/progress-spinner';
+import { MatTable, MatColumnDef, MatHeaderCellDef, MatHeaderCell, MatCellDef, MatCell, MatHeaderRowDef, MatHeaderRow, MatRowDef, MatRow } from '@angular/material/table';
+import { NgClass, TitleCasePipe } from '@angular/common';
+import { MatChip } from '@angular/material/chips';
+import { MatMenuTrigger, MatMenu, MatMenuContent, MatMenuItem } from '@angular/material/menu';
 
 export interface PCUserImportData {
   planning_center_person_id: string;
@@ -19,7 +26,7 @@ export interface PCUserImportData {
     selector: 'app-users',
     templateUrl: './users.component.html',
     styleUrls: ['./users.component.scss'],
-    standalone: false
+    imports: [MatButton, MatIcon, MatProgressSpinner, MatTable, MatColumnDef, MatHeaderCellDef, MatHeaderCell, MatCellDef, MatCell, NgClass, MatChip, MatIconButton, MatMenuTrigger, MatMenu, MatMenuContent, MatMenuItem, MatHeaderRowDef, MatHeaderRow, MatRowDef, MatRow, TitleCasePipe]
 })
 export class UsersComponent implements OnInit {
   users: User[] = [];

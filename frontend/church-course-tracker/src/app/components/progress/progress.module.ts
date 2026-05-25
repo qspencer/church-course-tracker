@@ -21,22 +21,20 @@ const routes: Routes = [
 ];
 
 @NgModule({
-  declarations: [
-    ProgressComponent
-  ],
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    RouterModule.forChild(routes),
-    MatCardModule,
-    MatButtonModule,
-    MatIconModule,
-    MatFormFieldModule,
-    MatSelectModule,
-    MatProgressSpinnerModule,
-    MatProgressBarModule,
-    MatChipsModule,
-    MatTooltipModule
-  ]
+    imports: [
+        CommonModule,
+        ReactiveFormsModule,
+        RouterModule.forChild(routes),
+        MatCardModule,
+        MatButtonModule,
+        MatIconModule,
+        MatFormFieldModule,
+        MatSelectModule,
+        MatProgressSpinnerModule,
+        MatProgressBarModule,
+        MatChipsModule,
+        MatTooltipModule,
+        ProgressComponent
+    ]
 })
 export class ProgressModule { }

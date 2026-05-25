@@ -55,8 +55,7 @@ describe('MembersComponent', () => {
     const matSnackBarSpy = jasmine.createSpyObj('MatSnackBar', ['open']);
 
     await TestBed.configureTestingModule({
-      declarations: [MembersComponent],
-      imports: [
+    imports: [
         BrowserAnimationsModule,
         MatCardModule,
         MatButtonModule,
@@ -67,14 +66,15 @@ describe('MembersComponent', () => {
         MatFormFieldModule,
         MatInputModule,
         MatProgressSpinnerModule,
-        MatTooltipModule
-      ],
-      providers: [
+        MatTooltipModule,
+        MembersComponent
+    ],
+    providers: [
         { provide: MemberService, useValue: memberSpy },
         { provide: MatDialog, useValue: matDialogSpy },
         { provide: MatSnackBar, useValue: matSnackBarSpy }
-      ]
-    }).compileComponents();
+    ]
+}).compileComponents();
 
     fixture = TestBed.createComponent(MembersComponent);
     component = fixture.componentInstance;

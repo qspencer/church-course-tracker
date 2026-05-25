@@ -25,34 +25,31 @@ import { SharedModule } from '../../shared/shared.module';
 import { CourseContentRoutingModule } from './course-content-routing.module';
 
 @NgModule({
-  declarations: [
-    CourseContentComponent,
-    ContentDialogComponent,
-    ModuleDialogComponent,
-    EmbeddedContentViewerComponent
-  ],
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    CourseContentRoutingModule,
-    
-    // Angular Material
-    MatCardModule,
-    MatButtonModule,
-    MatIconModule,
-    MatChipsModule,
-    MatProgressSpinnerModule,
-    MatTabsModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-    MatSnackBarModule,
-    MatListModule,
-    MatDialogModule,
-    SharedModule
-  ],
-  exports: [
-    CourseContentComponent
-  ]
+    imports: [
+        CommonModule,
+        ReactiveFormsModule,
+        CourseContentRoutingModule,
+        // Angular Material
+        MatCardModule,
+        MatButtonModule,
+        MatIconModule,
+        MatChipsModule,
+        MatProgressSpinnerModule,
+        MatTabsModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatSelectModule,
+        MatSnackBarModule,
+        MatListModule,
+        MatDialogModule,
+        SharedModule,
+        CourseContentComponent,
+        ContentDialogComponent,
+        ModuleDialogComponent,
+        EmbeddedContentViewerComponent
+    ],
+    exports: [
+        CourseContentComponent
+    ]
 })
 export class CourseContentModule { }

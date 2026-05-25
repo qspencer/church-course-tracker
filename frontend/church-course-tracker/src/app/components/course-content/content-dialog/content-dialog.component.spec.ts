@@ -80,8 +80,7 @@ describe('ContentDialogComponent', () => {
     courseContentSpy.uploadFile.and.returnValue(of(mockUploadResponse));
 
     await TestBed.configureTestingModule({
-      declarations: [ContentDialogComponent],
-      imports: [
+    imports: [
         ReactiveFormsModule,
         BrowserAnimationsModule,
         MatDialogModule,
@@ -90,18 +89,19 @@ describe('ContentDialogComponent', () => {
         MatButtonModule,
         MatIconModule,
         MatProgressSpinnerModule,
-        MatSelectModule
-      ],
-      providers: [
+        MatSelectModule,
+        ContentDialogComponent
+    ],
+    providers: [
         { provide: CourseContentService, useValue: courseContentSpy },
         { provide: MatDialogRef, useValue: matDialogRefSpy },
         { provide: MAT_DIALOG_DATA, useValue: mockDialogData },
         { provide: MatSnackBar, useValue: matSnackBarSpy },
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting()
-      ],
-      schemas: [NO_ERRORS_SCHEMA]
-    }).compileComponents();
+    ],
+    schemas: [NO_ERRORS_SCHEMA]
+}).compileComponents();
 
     fixture = TestBed.createComponent(ContentDialogComponent);
     component = fixture.componentInstance;
@@ -134,28 +134,28 @@ describe('ContentDialogComponent', () => {
       courseContentSpy.uploadFile.and.returnValue(of(mockUploadResponse));
 
       TestBed.configureTestingModule({
-        declarations: [ContentDialogComponent],
-        imports: [
-          ReactiveFormsModule,
-          BrowserAnimationsModule,
-          MatDialogModule,
-          MatFormFieldModule,
-          MatInputModule,
-          MatButtonModule,
-          MatIconModule,
-          MatProgressSpinnerModule,
-          MatSelectModule
-        ],
-        providers: [
-          { provide: CourseContentService, useValue: courseContentSpy },
-          { provide: MatDialogRef, useValue: matDialogRefSpy },
-          { provide: MAT_DIALOG_DATA, useValue: { courseId: 1, modules: [mockModule], content: mockContent } },
-          { provide: MatSnackBar, useValue: matSnackBarSpy },
-          provideHttpClient(withInterceptorsFromDi()),
-          provideHttpClientTesting()
-        ],
-        schemas: [NO_ERRORS_SCHEMA]
-      }).compileComponents();
+    imports: [
+        ReactiveFormsModule,
+        BrowserAnimationsModule,
+        MatDialogModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatButtonModule,
+        MatIconModule,
+        MatProgressSpinnerModule,
+        MatSelectModule,
+        ContentDialogComponent
+    ],
+    providers: [
+        { provide: CourseContentService, useValue: courseContentSpy },
+        { provide: MatDialogRef, useValue: matDialogRefSpy },
+        { provide: MAT_DIALOG_DATA, useValue: { courseId: 1, modules: [mockModule], content: mockContent } },
+        { provide: MatSnackBar, useValue: matSnackBarSpy },
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting()
+    ],
+    schemas: [NO_ERRORS_SCHEMA]
+}).compileComponents();
 
       const newFixture = TestBed.createComponent(ContentDialogComponent);
       const newComponent = newFixture.componentInstance;
@@ -176,28 +176,28 @@ describe('ContentDialogComponent', () => {
       const matSnackBarSpy = jasmine.createSpyObj('MatSnackBar', ['open']);
 
       TestBed.configureTestingModule({
-        declarations: [ContentDialogComponent],
-        imports: [
-          ReactiveFormsModule,
-          BrowserAnimationsModule,
-          MatDialogModule,
-          MatFormFieldModule,
-          MatInputModule,
-          MatButtonModule,
-          MatIconModule,
-          MatProgressSpinnerModule,
-          MatSelectModule
-        ],
-        providers: [
-          { provide: CourseContentService, useValue: courseContentSpy },
-          { provide: MatDialogRef, useValue: matDialogRefSpy },
-          { provide: MAT_DIALOG_DATA, useValue: { courseId: 1, modules: [mockModule], content: mockContent } },
-          { provide: MatSnackBar, useValue: matSnackBarSpy },
-          provideHttpClient(withInterceptorsFromDi()),
-          provideHttpClientTesting()
-        ],
-        schemas: [NO_ERRORS_SCHEMA]
-      }).compileComponents();
+    imports: [
+        ReactiveFormsModule,
+        BrowserAnimationsModule,
+        MatDialogModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatButtonModule,
+        MatIconModule,
+        MatProgressSpinnerModule,
+        MatSelectModule,
+        ContentDialogComponent
+    ],
+    providers: [
+        { provide: CourseContentService, useValue: courseContentSpy },
+        { provide: MatDialogRef, useValue: matDialogRefSpy },
+        { provide: MAT_DIALOG_DATA, useValue: { courseId: 1, modules: [mockModule], content: mockContent } },
+        { provide: MatSnackBar, useValue: matSnackBarSpy },
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting()
+    ],
+    schemas: [NO_ERRORS_SCHEMA]
+}).compileComponents();
 
       const newFixture = TestBed.createComponent(ContentDialogComponent);
       const newComponent = newFixture.componentInstance;
@@ -396,8 +396,8 @@ describe('ContentDialogComponent', () => {
       courseContentSpy.updateContent.and.returnValue(of(mockContent));
 
       await TestBed.resetTestingModule().configureTestingModule({
-        declarations: [ContentDialogComponent],
         imports: [
+          ContentDialogComponent,
           ReactiveFormsModule,
           BrowserAnimationsModule,
           MatDialogModule,
@@ -443,8 +443,8 @@ describe('ContentDialogComponent', () => {
       courseContentSpy.uploadFile.and.returnValue(of(mockUploadResponse));
 
       await TestBed.resetTestingModule().configureTestingModule({
-        declarations: [ContentDialogComponent],
         imports: [
+          ContentDialogComponent,
           ReactiveFormsModule,
           BrowserAnimationsModule,
           MatDialogModule,
@@ -495,8 +495,8 @@ describe('ContentDialogComponent', () => {
       courseContentSpy.uploadFile.and.returnValue(throwError(() => ({ error: { detail: 'Upload failed' } })));
 
       await TestBed.resetTestingModule().configureTestingModule({
-        declarations: [ContentDialogComponent],
         imports: [
+          ContentDialogComponent,
           ReactiveFormsModule,
           BrowserAnimationsModule,
           MatDialogModule,
@@ -550,8 +550,8 @@ describe('ContentDialogComponent', () => {
       courseContentSpy.updateContent.and.returnValue(throwError(() => error));
 
       await TestBed.resetTestingModule().configureTestingModule({
-        declarations: [ContentDialogComponent],
         imports: [
+          ContentDialogComponent,
           ReactiveFormsModule,
           BrowserAnimationsModule,
           MatDialogModule,

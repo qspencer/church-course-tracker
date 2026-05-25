@@ -21,31 +21,28 @@ import { SharedModule } from '../../shared/shared.module';
 import { ProgramContentRoutingModule } from './program-content-routing.module';
 
 @NgModule({
-  declarations: [
-    ProgramContentComponent,
-    ContentDialogComponent,
-    ModuleDialogComponent
-  ],
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    ProgramContentRoutingModule,
-    
-    // Angular Material
-    MatButtonModule,
-    MatIconModule,
-    MatProgressSpinnerModule,
-    MatTabsModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-    MatSnackBarModule,
-    MatDialogModule,
-    SharedModule
-  ],
-  exports: [
-    ProgramContentComponent
-  ]
+    imports: [
+        CommonModule,
+        ReactiveFormsModule,
+        ProgramContentRoutingModule,
+        // Angular Material
+        MatButtonModule,
+        MatIconModule,
+        MatProgressSpinnerModule,
+        MatTabsModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatSelectModule,
+        MatSnackBarModule,
+        MatDialogModule,
+        SharedModule,
+        ProgramContentComponent,
+        ContentDialogComponent,
+        ModuleDialogComponent
+    ],
+    exports: [
+        ProgramContentComponent
+    ]
 })
 export class ProgramContentModule { }
 

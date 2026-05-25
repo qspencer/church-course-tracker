@@ -8,19 +8,17 @@ import { ConfirmDialogComponent } from './confirm-dialog/confirm-dialog.componen
 import { BulkEnrollmentDialogModule } from '../components/enrollments/bulk-enrollment-dialog.module';
 
 @NgModule({
-  declarations: [
-    ConfirmDialogComponent
-  ],
-  imports: [
-    CommonModule,
-    MatDialogModule,
-    MatButtonModule,
-    BulkEnrollmentDialogModule
-  ],
-  exports: [
-    ConfirmDialogComponent,
-    BulkEnrollmentDialogModule  // Re-export so modules importing SharedModule can use BulkEnrollmentDialogComponent
-  ]
+    imports: [
+        CommonModule,
+        MatDialogModule,
+        MatButtonModule,
+        BulkEnrollmentDialogModule,
+        ConfirmDialogComponent
+    ],
+    exports: [
+        ConfirmDialogComponent,
+        BulkEnrollmentDialogModule // Re-export so modules importing SharedModule can use BulkEnrollmentDialogComponent
+    ]
 })
 export class SharedModule { }
 

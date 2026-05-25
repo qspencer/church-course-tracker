@@ -32,31 +32,28 @@ const routes: Routes = [
 ];
 
 @NgModule({
-  declarations: [
-    UsersComponent,
-    UserDialogComponent,
-    UserImportDialogComponent,
-    ResetPasswordDialogComponent
-  ],
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    RouterModule.forChild(routes),
-    
-    // Angular Material modules
-    MatTableModule,
-    MatButtonModule,
-    MatIconModule,
-    MatDialogModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-    MatCheckboxModule,
-    MatSnackBarModule,
-    MatMenuModule,
-    MatChipsModule,
-    MatProgressSpinnerModule,
-    MatAutocompleteModule
-  ]
+    imports: [
+        CommonModule,
+        ReactiveFormsModule,
+        RouterModule.forChild(routes),
+        // Angular Material modules
+        MatTableModule,
+        MatButtonModule,
+        MatIconModule,
+        MatDialogModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatSelectModule,
+        MatCheckboxModule,
+        MatSnackBarModule,
+        MatMenuModule,
+        MatChipsModule,
+        MatProgressSpinnerModule,
+        MatAutocompleteModule,
+        UsersComponent,
+        UserDialogComponent,
+        UserImportDialogComponent,
+        ResetPasswordDialogComponent
+    ]
 })
 export class UsersModule { }

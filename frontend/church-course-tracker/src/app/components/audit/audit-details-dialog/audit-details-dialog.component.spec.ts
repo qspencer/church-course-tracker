@@ -35,14 +35,13 @@ describe('AuditDetailsDialogComponent (smoke)', () => {
     };
 
     await TestBed.configureTestingModule({
-      declarations: [AuditDetailsDialogComponent],
-      imports: [BrowserAnimationsModule, MatDialogModule],
-      schemas: [NO_ERRORS_SCHEMA],
-      providers: [
+    imports: [BrowserAnimationsModule, MatDialogModule, AuditDetailsDialogComponent],
+    schemas: [NO_ERRORS_SCHEMA],
+    providers: [
         { provide: MatDialogRef, useValue: dialogRefSpy },
         { provide: MAT_DIALOG_DATA, useValue: mockData },
-      ],
-    }).compileComponents();
+    ],
+}).compileComponents();
 
     fixture = TestBed.createComponent(AuditDetailsDialogComponent);
     component = fixture.componentInstance;

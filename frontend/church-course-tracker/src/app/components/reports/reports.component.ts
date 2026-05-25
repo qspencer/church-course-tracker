@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ReportService } from '../../services/report.service';
@@ -7,12 +7,24 @@ import { CourseService } from '../../services/course.service';
 import { LoggerService } from '../../services/logger.service';
 import { DashboardStats, ProgressReport, Course, ReportFilters } from '../../models';
 import { ChartConfiguration, ChartData } from 'chart.js';
+import { MatButton } from '@angular/material/button';
+import { MatIcon } from '@angular/material/icon';
+import { MatCard, MatCardHeader, MatCardTitle, MatCardSubtitle, MatCardContent } from '@angular/material/card';
+import { MatFormField, MatLabel, MatSuffix } from '@angular/material/form-field';
+import { MatInput } from '@angular/material/input';
+import { MatDatepickerInput, MatDatepickerToggle, MatDatepicker } from '@angular/material/datepicker';
+import { MatSelect, MatOption } from '@angular/material/select';
+import { MatProgressSpinner } from '@angular/material/progress-spinner';
+import { NgChartsModule } from 'ng2-charts';
+import { MatTable, MatColumnDef, MatHeaderCellDef, MatHeaderCell, MatCellDef, MatCell, MatHeaderRowDef, MatHeaderRow, MatRowDef, MatRow } from '@angular/material/table';
+import { MatProgressBar } from '@angular/material/progress-bar';
+import { DecimalPipe } from '@angular/common';
 
 @Component({
     selector: 'app-reports',
     templateUrl: './reports.component.html',
     styleUrls: ['./reports.component.scss'],
-    standalone: false
+    imports: [MatButton, MatIcon, MatCard, MatCardHeader, MatCardTitle, MatCardSubtitle, MatCardContent, ReactiveFormsModule, MatFormField, MatLabel, MatInput, MatDatepickerInput, MatDatepickerToggle, MatSuffix, MatDatepicker, MatSelect, MatOption, MatProgressSpinner, NgChartsModule, MatTable, MatColumnDef, MatHeaderCellDef, MatHeaderCell, MatCellDef, MatCell, MatProgressBar, MatHeaderRowDef, MatHeaderRow, MatRowDef, MatRow, DecimalPipe]
 })
 export class ReportsComponent implements OnInit {
   dashboardStats: DashboardStats | null = null;

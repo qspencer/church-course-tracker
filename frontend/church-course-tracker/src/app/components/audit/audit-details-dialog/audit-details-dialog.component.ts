@@ -1,5 +1,5 @@
 import { Component, Inject } from '@angular/core';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogRef, MatDialogTitle, MatDialogContent, MatDialogActions } from '@angular/material/dialog';
 
 import {
   AuditLog,
@@ -9,6 +9,10 @@ import {
   getActionIcon,
   getTableDisplayName
 } from '../../../models';
+import { MatChip, MatChipAvatar } from '@angular/material/chips';
+import { MatIcon } from '@angular/material/icon';
+import { CdkScrollable } from '@angular/cdk/scrolling';
+import { MatButton } from '@angular/material/button';
 
 export interface AuditDetailsDialogData {
   log: AuditLog;
@@ -25,7 +29,7 @@ interface AuditChangeEntry {
     selector: 'app-audit-details-dialog',
     templateUrl: './audit-details-dialog.component.html',
     styleUrls: ['./audit-details-dialog.component.scss'],
-    standalone: false
+    imports: [MatDialogTitle, MatChip, MatIcon, MatChipAvatar, CdkScrollable, MatDialogContent, MatDialogActions, MatButton]
 })
 export class AuditDetailsDialogComponent {
   readonly log: AuditLog;

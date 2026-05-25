@@ -48,18 +48,17 @@ describe('ProfileComponent (smoke)', () => {
     const snackBarSpy = jasmine.createSpyObj('MatSnackBar', ['open']);
 
     await TestBed.configureTestingModule({
-      declarations: [ProfileComponent],
-      imports: [BrowserAnimationsModule, ReactiveFormsModule, FormsModule],
-      schemas: [NO_ERRORS_SCHEMA],
-      providers: [
+    imports: [BrowserAnimationsModule, ReactiveFormsModule, FormsModule, ProfileComponent],
+    schemas: [NO_ERRORS_SCHEMA],
+    providers: [
         { provide: UserService, useValue: userSpy },
         { provide: AuthService, useValue: authSpy },
         { provide: LoggerService, useValue: loggerSpy },
         { provide: MatSnackBar, useValue: snackBarSpy },
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
-      ],
-    }).compileComponents();
+    ],
+}).compileComponents();
 
     fixture = TestBed.createComponent(ProfileComponent);
     component = fixture.componentInstance;

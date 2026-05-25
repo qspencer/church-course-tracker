@@ -41,8 +41,7 @@ describe('BulkEnrollmentDialogComponent', () => {
     const snackBarSpy = jasmine.createSpyObj('MatSnackBar', ['open']);
 
     await TestBed.configureTestingModule({
-      declarations: [BulkEnrollmentDialogComponent],
-      imports: [
+    imports: [
         ReactiveFormsModule,
         BrowserAnimationsModule,
         MatDialogModule,
@@ -51,9 +50,10 @@ describe('BulkEnrollmentDialogComponent', () => {
         MatRadioModule,
         MatButtonModule,
         MatProgressSpinnerModule,
-        MatCheckboxModule
-      ],
-      providers: [
+        MatCheckboxModule,
+        BulkEnrollmentDialogComponent
+    ],
+    providers: [
         { provide: PlanningCenterService, useValue: planningCenterSpy },
         { provide: CourseService, useValue: courseSpy },
         { provide: EnrollmentService, useValue: enrollmentSpy },
@@ -63,8 +63,8 @@ describe('BulkEnrollmentDialogComponent', () => {
         { provide: MatSnackBar, useValue: snackBarSpy },
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting()
-      ]
-    })
+    ]
+})
     .compileComponents();
     
     fixture = TestBed.createComponent(BulkEnrollmentDialogComponent);

@@ -48,11 +48,7 @@ import { LoggerService } from './services/logger.service';
 import { AuthInterceptor } from './interceptors/auth.interceptor';
 import { ErrorInterceptor } from './interceptors/error.interceptor';
 
-@NgModule({ declarations: [
-        AppComponent,
-        InactivityWarningDialogComponent
-    ],
-    bootstrap: [AppComponent], imports: [BrowserModule,
+@NgModule({ declarations: [AppComponent], bootstrap: [AppComponent], imports: [BrowserModule,
         AppRoutingModule,
         BrowserAnimationsModule,
         ReactiveFormsModule,
@@ -78,7 +74,7 @@ import { ErrorInterceptor } from './interceptors/error.interceptor';
         MatNativeDateModule,
         MatTabsModule,
         MatExpansionModule,
-        MatDividerModule], providers: [
+        MatDividerModule, InactivityWarningDialogComponent], providers: [
         AuthService,
         InactivityService,
         CourseService,

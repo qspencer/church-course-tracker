@@ -101,8 +101,7 @@ describe('PCImportDialogComponent', () => {
     mockDialogRef = jasmine.createSpyObj('MatDialogRef', ['close']);
 
     await TestBed.configureTestingModule({
-      declarations: [PCImportDialogComponent],
-      imports: [
+    imports: [
         ReactiveFormsModule,
         MatDialogModule,
         MatSnackBarModule,
@@ -113,17 +112,18 @@ describe('PCImportDialogComponent', () => {
         MatRadioModule,
         MatProgressSpinnerModule,
         MatIconModule,
-        BrowserAnimationsModule
-      ],
-      providers: [
+        BrowserAnimationsModule,
+        PCImportDialogComponent
+    ],
+    providers: [
         FormBuilder,
         { provide: MatDialogRef, useValue: mockDialogRef },
         { provide: MAT_DIALOG_DATA, useValue: { entityType: 'course' } as PCImportDialogData },
         { provide: PlanningCenterService, useValue: mockPlanningCenterService },
         { provide: CourseService, useValue: mockCourseService },
         { provide: ProgramService, useValue: mockProgramService }
-      ]
-    }).compileComponents();
+    ]
+}).compileComponents();
 
     fixture = TestBed.createComponent(PCImportDialogComponent);
     component = fixture.componentInstance;

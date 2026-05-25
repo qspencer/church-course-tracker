@@ -1,10 +1,19 @@
 import { Component, Inject, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { MAT_DIALOG_DATA, MatDialogRef, MatDialogTitle, MatDialogContent, MatDialogActions } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ProgramService } from '../../../services/program.service';
 import { LoggerService } from '../../../services/logger.service';
 import { Program, ProgramSession, ProgramSessionCreate, ProgramSessionUpdate, ProgramPairing, ProgramParticipant } from '../../../models/program.model';
+import { CdkScrollable } from '@angular/cdk/scrolling';
+import { MatFormField, MatLabel, MatSuffix, MatError, MatHint } from '@angular/material/form-field';
+import { MatInput } from '@angular/material/input';
+import { MatDatepickerInput, MatDatepickerToggle, MatDatepicker } from '@angular/material/datepicker';
+import { MatSelect, MatOption } from '@angular/material/select';
+import { MatIcon } from '@angular/material/icon';
+import { MatButton } from '@angular/material/button';
+import { MatProgressSpinner } from '@angular/material/progress-spinner';
+import { TitleCasePipe, DatePipe } from '@angular/common';
 
 export interface SessionDialogData {
   session: ProgramSession | null;
@@ -18,7 +27,7 @@ export interface SessionDialogData {
     selector: 'app-session-dialog',
     templateUrl: './session-dialog.component.html',
     styleUrls: ['./session-dialog.component.scss'],
-    standalone: false
+    imports: [MatDialogTitle, CdkScrollable, MatDialogContent, ReactiveFormsModule, MatFormField, MatLabel, MatInput, MatDatepickerInput, MatDatepickerToggle, MatSuffix, MatDatepicker, MatError, MatSelect, MatOption, MatHint, MatIcon, MatDialogActions, MatButton, MatProgressSpinner, TitleCasePipe, DatePipe]
 })
 export class SessionDialogComponent implements OnInit {
   sessionForm: FormGroup;

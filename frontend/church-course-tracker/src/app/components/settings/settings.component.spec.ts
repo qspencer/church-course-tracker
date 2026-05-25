@@ -98,8 +98,7 @@ describe('SettingsComponent', () => {
     const snackBarSpy = jasmine.createSpyObj('MatSnackBar', ['open']);
 
     await TestBed.configureTestingModule({
-      declarations: [SettingsComponent],
-      imports: [
+    imports: [
         ReactiveFormsModule,
         MatTabsModule,
         MatFormFieldModule,
@@ -109,15 +108,16 @@ describe('SettingsComponent', () => {
         MatSelectModule,
         MatCheckboxModule,
         MatProgressSpinnerModule,
-        NoopAnimationsModule
-      ],
-      providers: [
+        NoopAnimationsModule,
+        SettingsComponent
+    ],
+    providers: [
         { provide: SettingsService, useValue: settingsServiceSpy },
         { provide: AuthService, useValue: authServiceSpy },
         { provide: Router, useValue: routerSpy },
         { provide: MatSnackBar, useValue: snackBarSpy }
-      ]
-    }).compileComponents();
+    ]
+}).compileComponents();
 
     fixture = TestBed.createComponent(SettingsComponent);
     component = fixture.componentInstance;

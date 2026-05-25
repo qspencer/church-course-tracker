@@ -26,30 +26,28 @@ import { BulkEnrollmentDialogComponent } from './bulk-enrollment-dialog/bulk-enr
  * by other modules without causing route conflicts.
  */
 @NgModule({
-  declarations: [
-    BulkEnrollmentDialogComponent
-  ],
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    MatCardModule,
-    MatButtonModule,
-    MatIconModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-    MatDialogModule,
-    MatProgressSpinnerModule,
-    MatProgressBarModule,
-    MatChipsModule,
-    MatTooltipModule,
-    MatCheckboxModule,
-    MatRadioModule,
-    MatButtonToggleModule
-  ],
-  exports: [
-    BulkEnrollmentDialogComponent
-  ]
+    imports: [
+        CommonModule,
+        ReactiveFormsModule,
+        MatCardModule,
+        MatButtonModule,
+        MatIconModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatSelectModule,
+        MatDialogModule,
+        MatProgressSpinnerModule,
+        MatProgressBarModule,
+        MatChipsModule,
+        MatTooltipModule,
+        MatCheckboxModule,
+        MatRadioModule,
+        MatButtonToggleModule,
+        BulkEnrollmentDialogComponent
+    ],
+    exports: [
+        BulkEnrollmentDialogComponent
+    ]
 })
 export class BulkEnrollmentDialogModule { }
 

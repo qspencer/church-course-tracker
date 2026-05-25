@@ -1,8 +1,17 @@
 import { Component, Inject, OnInit } from '@angular/core';
-import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MatDialogRef, MAT_DIALOG_DATA, MatDialogTitle, MatDialogContent, MatDialogActions } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ProgramService } from '../../../services/program.service';
 import { Program } from '../../../models/program.model';
+import { CdkScrollable } from '@angular/cdk/scrolling';
+import { MatProgressBar } from '@angular/material/progress-bar';
+import { MatCard, MatCardContent } from '@angular/material/card';
+import { MatIcon } from '@angular/material/icon';
+import { MatFormField, MatLabel, MatHint } from '@angular/material/form-field';
+import { MatInput } from '@angular/material/input';
+import { ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { MatList, MatListItem, MatListItemIcon, MatListItemTitle, MatListItemLine } from '@angular/material/list';
+import { MatButton } from '@angular/material/button';
 
 export interface CustomTabImportDialogData {
   program: Program;
@@ -12,7 +21,7 @@ export interface CustomTabImportDialogData {
     selector: 'app-custom-tab-import-dialog',
     templateUrl: './custom-tab-import-dialog.component.html',
     styleUrls: ['./custom-tab-import-dialog.component.scss'],
-    standalone: false
+    imports: [MatDialogTitle, CdkScrollable, MatDialogContent, MatProgressBar, MatCard, MatCardContent, MatIcon, MatFormField, MatLabel, MatInput, ReactiveFormsModule, FormsModule, MatHint, MatList, MatListItem, MatListItemIcon, MatListItemTitle, MatListItemLine, MatDialogActions, MatButton]
 })
 export class CustomTabImportDialogComponent implements OnInit {
   loading = false;

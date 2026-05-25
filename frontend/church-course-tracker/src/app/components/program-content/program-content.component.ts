@@ -26,12 +26,16 @@ import {
   formatFileSize,
   formatDuration
 } from '../../models/program-content.model';
+import { MatTabGroup, MatTab } from '@angular/material/tabs';
+import { MatButton } from '@angular/material/button';
+import { MatIcon } from '@angular/material/icon';
+import { MatProgressSpinner } from '@angular/material/progress-spinner';
 
 @Component({
     selector: 'app-program-content',
     templateUrl: './program-content.component.html',
     styleUrls: ['./program-content.component.scss'],
-    standalone: false
+    imports: [MatTabGroup, MatTab, MatButton, MatIcon, MatProgressSpinner]
 })
 export class ProgramContentComponent implements OnInit, OnDestroy {
   @Input() programId!: number;

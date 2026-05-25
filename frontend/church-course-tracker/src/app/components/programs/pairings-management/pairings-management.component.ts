@@ -1,8 +1,8 @@
 import { Component, Inject, OnInit, ViewChild } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { MatPaginator } from '@angular/material/paginator';
-import { MatSort } from '@angular/material/sort';
-import { MatTableDataSource } from '@angular/material/table';
+import { MatSort, MatSortHeader } from '@angular/material/sort';
+import { MatTableDataSource, MatTable, MatColumnDef, MatHeaderCellDef, MatHeaderCell, MatCellDef, MatCell, MatHeaderRowDef, MatHeaderRow, MatRowDef, MatRow } from '@angular/material/table';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { forkJoin } from 'rxjs';
 import { ProgramService } from '../../../services/program.service';
@@ -13,12 +13,22 @@ import { Person } from '../../../models';
 import { PairingDialogComponent } from '../pairing-dialog/pairing-dialog.component';
 import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-dialog.component';
 import { SearchFilterService } from '../../../shared/search-filter.service';
+import { MatIconButton, MatButton } from '@angular/material/button';
+import { MatIcon } from '@angular/material/icon';
+import { MatFormField, MatLabel, MatSuffix } from '@angular/material/form-field';
+import { MatSelect, MatOption } from '@angular/material/select';
+import { ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { MatInput } from '@angular/material/input';
+import { MatProgressSpinner } from '@angular/material/progress-spinner';
+import { MatChip } from '@angular/material/chips';
+import { MatTooltip } from '@angular/material/tooltip';
+import { TitleCasePipe, DatePipe } from '@angular/common';
 
 @Component({
     selector: 'app-pairings-management',
     templateUrl: './pairings-management.component.html',
     styleUrls: ['./pairings-management.component.scss'],
-    standalone: false
+    imports: [MatIconButton, MatIcon, MatButton, MatFormField, MatLabel, MatSelect, ReactiveFormsModule, FormsModule, MatOption, MatInput, MatSuffix, MatProgressSpinner, MatTable, MatSort, MatColumnDef, MatHeaderCellDef, MatHeaderCell, MatSortHeader, MatCellDef, MatCell, MatChip, MatTooltip, MatHeaderRowDef, MatHeaderRow, MatRowDef, MatRow, MatPaginator, TitleCasePipe, DatePipe]
 })
 export class PairingsManagementComponent implements OnInit {
   displayedColumns: string[] = ['primary_participant', 'secondary_participant', 'status', 'start_date', 'actions'];

@@ -88,8 +88,7 @@ describe('ProgramDialogComponent', () => {
     const matSnackBarSpy = jasmine.createSpyObj('MatSnackBar', ['open']);
 
     await TestBed.configureTestingModule({
-      declarations: [ProgramDialogComponent],
-      imports: [
+    imports: [
         ReactiveFormsModule,
         FormsModule,
         BrowserAnimationsModule,
@@ -103,9 +102,10 @@ describe('ProgramDialogComponent', () => {
         MatIconModule,
         MatAutocompleteModule,
         MatCheckboxModule,
-        MatSnackBarModule
-      ],
-      providers: [
+        MatSnackBarModule,
+        ProgramDialogComponent
+    ],
+    providers: [
         { provide: ProgramService, useValue: programSpy },
         { provide: CourseService, useValue: courseSpy },
         { provide: AutocompleteSuggestionService, useValue: autocompleteSpy },
@@ -114,9 +114,9 @@ describe('ProgramDialogComponent', () => {
         { provide: MatSnackBar, useValue: matSnackBarSpy },
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting()
-      ],
-      schemas: [NO_ERRORS_SCHEMA]
-    }).compileComponents();
+    ],
+    schemas: [NO_ERRORS_SCHEMA]
+}).compileComponents();
 
     fixture = TestBed.createComponent(ProgramDialogComponent);
     component = fixture.componentInstance;
@@ -148,8 +148,7 @@ describe('ProgramDialogComponent', () => {
     autocompleteSpy.addSuggestion.and.returnValue(of({}));
 
     TestBed.configureTestingModule({
-      declarations: [ProgramDialogComponent],
-      imports: [
+    imports: [
         ReactiveFormsModule,
         FormsModule,
         BrowserAnimationsModule,
@@ -163,9 +162,10 @@ describe('ProgramDialogComponent', () => {
         MatIconModule,
         MatAutocompleteModule,
         MatCheckboxModule,
-        MatSnackBarModule
-      ],
-      providers: [
+        MatSnackBarModule,
+        ProgramDialogComponent
+    ],
+    providers: [
         { provide: ProgramService, useValue: programSpy },
         { provide: CourseService, useValue: courseSpy },
         { provide: AutocompleteSuggestionService, useValue: autocompleteSpy },
@@ -174,9 +174,9 @@ describe('ProgramDialogComponent', () => {
         { provide: MatSnackBar, useValue: snackBarSpy },
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting()
-      ],
-      schemas: [NO_ERRORS_SCHEMA]
-    }).compileComponents();
+    ],
+    schemas: [NO_ERRORS_SCHEMA]
+}).compileComponents();
 
     const editFixture = TestBed.createComponent(ProgramDialogComponent);
     const editComponent = editFixture.componentInstance;
@@ -236,35 +236,35 @@ describe('ProgramDialogComponent', () => {
       const matSnackBarSpy = jasmine.createSpyObj('MatSnackBar', ['open']);
 
       TestBed.configureTestingModule({
-        declarations: [ProgramDialogComponent],
-        imports: [
-          ReactiveFormsModule,
-          FormsModule,
-          BrowserAnimationsModule,
-          MatDialogModule,
-          MatFormFieldModule,
-          MatInputModule,
-          MatButtonModule,
-          MatProgressSpinnerModule,
-          MatSelectModule,
-          MatChipsModule,
-          MatIconModule,
-          MatAutocompleteModule,
-          MatCheckboxModule,
-          MatSnackBarModule
-        ],
-        providers: [
-          { provide: ProgramService, useValue: importProgramServiceSpy },
-          { provide: CourseService, useValue: courseSpy },
-          { provide: AutocompleteSuggestionService, useValue: autocompleteSpy },
-          { provide: MatDialogRef, useValue: matDialogRefSpy },
-          { provide: MAT_DIALOG_DATA, useValue: importDialogData },
-          { provide: MatSnackBar, useValue: matSnackBarSpy },
-          provideHttpClient(withInterceptorsFromDi()),
-          provideHttpClientTesting()
-        ],
-        schemas: [NO_ERRORS_SCHEMA]
-      }).compileComponents();
+    imports: [
+        ReactiveFormsModule,
+        FormsModule,
+        BrowserAnimationsModule,
+        MatDialogModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatButtonModule,
+        MatProgressSpinnerModule,
+        MatSelectModule,
+        MatChipsModule,
+        MatIconModule,
+        MatAutocompleteModule,
+        MatCheckboxModule,
+        MatSnackBarModule,
+        ProgramDialogComponent
+    ],
+    providers: [
+        { provide: ProgramService, useValue: importProgramServiceSpy },
+        { provide: CourseService, useValue: courseSpy },
+        { provide: AutocompleteSuggestionService, useValue: autocompleteSpy },
+        { provide: MatDialogRef, useValue: matDialogRefSpy },
+        { provide: MAT_DIALOG_DATA, useValue: importDialogData },
+        { provide: MatSnackBar, useValue: matSnackBarSpy },
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting()
+    ],
+    schemas: [NO_ERRORS_SCHEMA]
+}).compileComponents();
 
       importFixture = TestBed.createComponent(ProgramDialogComponent);
       importComponent = importFixture.componentInstance;
@@ -324,35 +324,35 @@ describe('ProgramDialogComponent', () => {
       const matSnackBarSpy = jasmine.createSpyObj('MatSnackBar', ['open']);
 
       TestBed.configureTestingModule({
-        declarations: [ProgramDialogComponent],
-        imports: [
-          ReactiveFormsModule,
-          FormsModule,
-          BrowserAnimationsModule,
-          MatDialogModule,
-          MatFormFieldModule,
-          MatInputModule,
-          MatButtonModule,
-          MatProgressSpinnerModule,
-          MatSelectModule,
-          MatChipsModule,
-          MatIconModule,
-          MatAutocompleteModule,
-          MatCheckboxModule,
-          MatSnackBarModule
-        ],
-        providers: [
-          { provide: ProgramService, useValue: eventProgramSpy },
-          { provide: CourseService, useValue: courseSpy },
-          { provide: AutocompleteSuggestionService, useValue: autocompleteSpy },
-          { provide: MatDialogRef, useValue: matDialogRefSpy },
-          { provide: MAT_DIALOG_DATA, useValue: eventDialogData },
-          { provide: MatSnackBar, useValue: matSnackBarSpy },
-          provideHttpClient(withInterceptorsFromDi()),
-          provideHttpClientTesting()
-        ],
-        schemas: [NO_ERRORS_SCHEMA]
-      }).compileComponents();
+    imports: [
+        ReactiveFormsModule,
+        FormsModule,
+        BrowserAnimationsModule,
+        MatDialogModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatButtonModule,
+        MatProgressSpinnerModule,
+        MatSelectModule,
+        MatChipsModule,
+        MatIconModule,
+        MatAutocompleteModule,
+        MatCheckboxModule,
+        MatSnackBarModule,
+        ProgramDialogComponent
+    ],
+    providers: [
+        { provide: ProgramService, useValue: eventProgramSpy },
+        { provide: CourseService, useValue: courseSpy },
+        { provide: AutocompleteSuggestionService, useValue: autocompleteSpy },
+        { provide: MatDialogRef, useValue: matDialogRefSpy },
+        { provide: MAT_DIALOG_DATA, useValue: eventDialogData },
+        { provide: MatSnackBar, useValue: matSnackBarSpy },
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting()
+    ],
+    schemas: [NO_ERRORS_SCHEMA]
+}).compileComponents();
 
       const eventFixture = TestBed.createComponent(ProgramDialogComponent);
       const eventComponent = eventFixture.componentInstance;
@@ -432,35 +432,35 @@ describe('ProgramDialogComponent', () => {
       autocompleteSpy.addSuggestion.and.returnValue(of({}));
 
       TestBed.configureTestingModule({
-        declarations: [ProgramDialogComponent],
-        imports: [
-          ReactiveFormsModule,
-          FormsModule,
-          BrowserAnimationsModule,
-          MatDialogModule,
-          MatFormFieldModule,
-          MatInputModule,
-          MatButtonModule,
-          MatProgressSpinnerModule,
-          MatSelectModule,
-          MatChipsModule,
-          MatIconModule,
-          MatAutocompleteModule,
-          MatCheckboxModule,
-          MatSnackBarModule
-        ],
-        providers: [
-          { provide: ProgramService, useValue: editProgramSpy },
-          { provide: CourseService, useValue: courseSpy },
-          { provide: AutocompleteSuggestionService, useValue: autocompleteSpy },
-          { provide: MatDialogRef, useValue: dialogRefSpy },
-          { provide: MAT_DIALOG_DATA, useValue: editDialogData },
-          { provide: MatSnackBar, useValue: snackBarSpy },
-          provideHttpClient(withInterceptorsFromDi()),
-          provideHttpClientTesting()
-        ],
-        schemas: [NO_ERRORS_SCHEMA]
-      }).compileComponents();
+    imports: [
+        ReactiveFormsModule,
+        FormsModule,
+        BrowserAnimationsModule,
+        MatDialogModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatButtonModule,
+        MatProgressSpinnerModule,
+        MatSelectModule,
+        MatChipsModule,
+        MatIconModule,
+        MatAutocompleteModule,
+        MatCheckboxModule,
+        MatSnackBarModule,
+        ProgramDialogComponent
+    ],
+    providers: [
+        { provide: ProgramService, useValue: editProgramSpy },
+        { provide: CourseService, useValue: courseSpy },
+        { provide: AutocompleteSuggestionService, useValue: autocompleteSpy },
+        { provide: MatDialogRef, useValue: dialogRefSpy },
+        { provide: MAT_DIALOG_DATA, useValue: editDialogData },
+        { provide: MatSnackBar, useValue: snackBarSpy },
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting()
+    ],
+    schemas: [NO_ERRORS_SCHEMA]
+}).compileComponents();
 
       const editFixture = TestBed.createComponent(ProgramDialogComponent);
       const editComponent = editFixture.componentInstance;

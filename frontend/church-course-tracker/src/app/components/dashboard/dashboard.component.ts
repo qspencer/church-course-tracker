@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { ReportService } from '../../services/report.service';
 import { CourseService } from '../../services/course.service';
 import { EnrollmentService } from '../../services/enrollment.service';
@@ -9,12 +9,21 @@ import { ProgramService } from '../../services/program.service';
 import { LoggerService } from '../../services/logger.service';
 import { DashboardStats, ProgramStats, Course, Enrollment, Program, ProgramParticipant, ProgramPairing, ProgramSession, CompletionTrendsResponse } from '../../models';
 import { ChartConfiguration, ChartData, ChartType } from 'chart.js';
+import { MatButtonToggleGroup, MatButtonToggle } from '@angular/material/button-toggle';
+import { MatIcon } from '@angular/material/icon';
+import { MatButton } from '@angular/material/button';
+import { MatProgressSpinner } from '@angular/material/progress-spinner';
+import { MatCard, MatCardContent, MatCardHeader, MatCardTitle, MatCardSubtitle, MatCardActions } from '@angular/material/card';
+import { NgChartsModule } from 'ng2-charts';
+import { MatChip } from '@angular/material/chips';
+import { MatProgressBar } from '@angular/material/progress-bar';
+import { SlicePipe, DecimalPipe, DatePipe } from '@angular/common';
 
 @Component({
     selector: 'app-dashboard',
     templateUrl: './dashboard.component.html',
     styleUrls: ['./dashboard.component.scss'],
-    standalone: false
+    imports: [MatButtonToggleGroup, MatButtonToggle, MatIcon, MatButton, MatProgressSpinner, MatCard, MatCardContent, MatCardHeader, MatCardTitle, NgChartsModule, MatCardSubtitle, MatChip, MatCardActions, RouterLink, MatProgressBar, SlicePipe, DecimalPipe, DatePipe]
 })
 export class DashboardComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();

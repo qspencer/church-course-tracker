@@ -96,15 +96,15 @@ describe('ProgramContentComponent', () => {
     };
 
     await TestBed.configureTestingModule({
-      declarations: [ProgramContentComponent],
-      imports: [
+    imports: [
         MatTabsModule,
         MatIconModule,
         MatButtonModule,
         MatProgressSpinnerModule,
-        NoopAnimationsModule
-      ],
-      providers: [
+        NoopAnimationsModule,
+        ProgramContentComponent
+    ],
+    providers: [
         { provide: ProgramContentService, useValue: programContentServiceSpy },
         { provide: ProgramService, useValue: programServiceSpy },
         { provide: AuthService, useValue: authServiceSpy },
@@ -112,8 +112,8 @@ describe('ProgramContentComponent', () => {
         { provide: MatDialog, useValue: dialogSpy },
         { provide: MatSnackBar, useValue: snackBarSpy },
         { provide: ActivatedRoute, useValue: activatedRouteSpy }
-      ]
-    }).compileComponents();
+    ]
+}).compileComponents();
 
     programContentService = TestBed.inject(ProgramContentService) as jasmine.SpyObj<ProgramContentService>;
     programService = TestBed.inject(ProgramService) as jasmine.SpyObj<ProgramService>;

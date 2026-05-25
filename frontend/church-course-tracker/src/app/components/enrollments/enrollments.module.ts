@@ -31,36 +31,34 @@ const routes: Routes = [
 ];
 
 @NgModule({
-  declarations: [
-    EnrollmentsComponent,
-    EnrollmentDialogComponent
-    // BulkEnrollmentDialogComponent is now in BulkEnrollmentDialogModule
-  ],
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    RouterModule.forChild(routes),
-    MatCardModule,
-    MatButtonModule,
-    MatIconModule,
-    MatTableModule,
-    MatPaginatorModule,
-    MatSortModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-    MatDialogModule,
-    MatProgressSpinnerModule,
-    MatProgressBarModule,
-    MatChipsModule,
-    MatTooltipModule,
-    MatCheckboxModule,
-    MatRadioModule,
-    MatButtonToggleModule,
-    BulkEnrollmentDialogModule
-  ],
-  exports: [
-    BulkEnrollmentDialogModule
-  ]
+    imports: [
+        CommonModule,
+        ReactiveFormsModule,
+        RouterModule.forChild(routes),
+        MatCardModule,
+        MatButtonModule,
+        MatIconModule,
+        MatTableModule,
+        MatPaginatorModule,
+        MatSortModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatSelectModule,
+        MatDialogModule,
+        MatProgressSpinnerModule,
+        MatProgressBarModule,
+        MatChipsModule,
+        MatTooltipModule,
+        MatCheckboxModule,
+        MatRadioModule,
+        MatButtonToggleModule,
+        BulkEnrollmentDialogModule,
+        EnrollmentsComponent,
+        EnrollmentDialogComponent
+        // BulkEnrollmentDialogComponent is now in BulkEnrollmentDialogModule
+    ],
+    exports: [
+        BulkEnrollmentDialogModule
+    ]
 })
 export class EnrollmentsModule { }

@@ -95,8 +95,7 @@ describe('PairingDialogComponent', () => {
     memberSpy.getMembers.and.returnValue(of([mockMember]));
 
     await TestBed.configureTestingModule({
-      declarations: [PairingDialogComponent],
-      imports: [
+    imports: [
         ReactiveFormsModule,
         BrowserAnimationsModule,
         MatDialogModule,
@@ -105,9 +104,10 @@ describe('PairingDialogComponent', () => {
         MatButtonModule,
         MatIconModule,
         MatProgressSpinnerModule,
-        MatSelectModule
-      ],
-      providers: [
+        MatSelectModule,
+        PairingDialogComponent
+    ],
+    providers: [
         { provide: ProgramService, useValue: programSpy },
         { provide: MemberService, useValue: memberSpy },
         { provide: MatDialogRef, useValue: matDialogRefSpy },
@@ -115,8 +115,8 @@ describe('PairingDialogComponent', () => {
         { provide: MatSnackBar, useValue: matSnackBarSpy },
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting()
-      ]
-    }).compileComponents();
+    ]
+}).compileComponents();
 
     fixture = TestBed.createComponent(PairingDialogComponent);
     component = fixture.componentInstance;
@@ -147,8 +147,8 @@ describe('PairingDialogComponent', () => {
       memberSpy.getMembers.and.returnValue(of([mockMember]));
 
       await TestBed.resetTestingModule().configureTestingModule({
-        declarations: [PairingDialogComponent],
         imports: [
+          PairingDialogComponent,
           ReactiveFormsModule,
           BrowserAnimationsModule,
           MatDialogModule,
@@ -184,8 +184,8 @@ describe('PairingDialogComponent', () => {
       const matSnackBarSpy = jasmine.createSpyObj('MatSnackBar', ['open']);
 
       await TestBed.resetTestingModule().configureTestingModule({
-        declarations: [PairingDialogComponent],
         imports: [
+          PairingDialogComponent,
           ReactiveFormsModule,
           BrowserAnimationsModule,
           MatDialogModule,
@@ -230,8 +230,8 @@ describe('PairingDialogComponent', () => {
       memberSpy.getMembers.and.returnValue(of([mockMember]));
 
       await TestBed.resetTestingModule().configureTestingModule({
-        declarations: [PairingDialogComponent],
         imports: [
+          PairingDialogComponent,
           ReactiveFormsModule,
           BrowserAnimationsModule,
           MatDialogModule,
@@ -304,8 +304,8 @@ describe('PairingDialogComponent', () => {
       memberSpy.getMembers.and.returnValue(of([mockMember]));
 
       await TestBed.resetTestingModule().configureTestingModule({
-        declarations: [PairingDialogComponent],
         imports: [
+          PairingDialogComponent,
           ReactiveFormsModule,
           BrowserAnimationsModule,
           MatDialogModule,
@@ -408,8 +408,8 @@ describe('PairingDialogComponent', () => {
       memberSpy.getMembers.and.returnValue(of([mockMember]));
 
       await TestBed.resetTestingModule().configureTestingModule({
-        declarations: [PairingDialogComponent],
         imports: [
+          PairingDialogComponent,
           ReactiveFormsModule,
           BrowserAnimationsModule,
           MatDialogModule,
@@ -475,8 +475,8 @@ describe('PairingDialogComponent', () => {
       memberSpy.getMembers.and.returnValue(of([mockMember]));
 
       await TestBed.resetTestingModule().configureTestingModule({
-        declarations: [PairingDialogComponent],
         imports: [
+          PairingDialogComponent,
           ReactiveFormsModule,
           BrowserAnimationsModule,
           MatDialogModule,

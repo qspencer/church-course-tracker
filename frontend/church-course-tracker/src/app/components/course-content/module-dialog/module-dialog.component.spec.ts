@@ -52,8 +52,7 @@ describe('ModuleDialogComponent', () => {
     const snackBarSpy = jasmine.createSpyObj('MatSnackBar', ['open']);
 
     await TestBed.configureTestingModule({
-      declarations: [ModuleDialogComponent],
-      imports: [
+    imports: [
         ReactiveFormsModule,
         MatDialogModule,
         MatFormFieldModule,
@@ -61,16 +60,17 @@ describe('ModuleDialogComponent', () => {
         MatButtonModule,
         MatIconModule,
         MatSnackBarModule,
-        NoopAnimationsModule
-      ],
-      providers: [
+        NoopAnimationsModule,
+        ModuleDialogComponent
+    ],
+    providers: [
         FormBuilder,
         { provide: CourseContentService, useValue: courseContentServiceSpy },
         { provide: MatDialogRef, useValue: dialogRefSpy },
         { provide: MAT_DIALOG_DATA, useValue: mockDialogData },
         { provide: MatSnackBar, useValue: snackBarSpy }
-      ]
-    }).compileComponents();
+    ]
+}).compileComponents();
 
     fixture = TestBed.createComponent(ModuleDialogComponent);
     component = fixture.componentInstance;
@@ -88,25 +88,25 @@ describe('ModuleDialogComponent', () => {
       // Recreate component with create mode data
       TestBed.resetTestingModule();
       TestBed.configureTestingModule({
-        declarations: [ModuleDialogComponent],
-        imports: [
-          ReactiveFormsModule,
-          MatDialogModule,
-          MatFormFieldModule,
-          MatInputModule,
-          MatButtonModule,
-          MatIconModule,
-          MatSnackBarModule,
-          NoopAnimationsModule
-        ],
-        providers: [
-          FormBuilder,
-          { provide: CourseContentService, useValue: courseContentService },
-          { provide: MatDialogRef, useValue: dialogRef },
-          { provide: MAT_DIALOG_DATA, useValue: mockDialogData },
-          { provide: MatSnackBar, useValue: snackBar }
-        ]
-      }).compileComponents();
+    imports: [
+        ReactiveFormsModule,
+        MatDialogModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatButtonModule,
+        MatIconModule,
+        MatSnackBarModule,
+        NoopAnimationsModule,
+        ModuleDialogComponent
+    ],
+    providers: [
+        FormBuilder,
+        { provide: CourseContentService, useValue: courseContentService },
+        { provide: MatDialogRef, useValue: dialogRef },
+        { provide: MAT_DIALOG_DATA, useValue: mockDialogData },
+        { provide: MatSnackBar, useValue: snackBar }
+    ]
+}).compileComponents();
       
       fixture = TestBed.createComponent(ModuleDialogComponent);
       component = fixture.componentInstance;
@@ -121,25 +121,25 @@ describe('ModuleDialogComponent', () => {
       // Recreate component with edit mode data
       TestBed.resetTestingModule();
       TestBed.configureTestingModule({
-        declarations: [ModuleDialogComponent],
-        imports: [
-          ReactiveFormsModule,
-          MatDialogModule,
-          MatFormFieldModule,
-          MatInputModule,
-          MatButtonModule,
-          MatIconModule,
-          MatSnackBarModule,
-          NoopAnimationsModule
-        ],
-        providers: [
-          FormBuilder,
-          { provide: CourseContentService, useValue: courseContentService },
-          { provide: MatDialogRef, useValue: dialogRef },
-          { provide: MAT_DIALOG_DATA, useValue: mockEditDialogData },
-          { provide: MatSnackBar, useValue: snackBar }
-        ]
-      }).compileComponents();
+    imports: [
+        ReactiveFormsModule,
+        MatDialogModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatButtonModule,
+        MatIconModule,
+        MatSnackBarModule,
+        NoopAnimationsModule,
+        ModuleDialogComponent
+    ],
+    providers: [
+        FormBuilder,
+        { provide: CourseContentService, useValue: courseContentService },
+        { provide: MatDialogRef, useValue: dialogRef },
+        { provide: MAT_DIALOG_DATA, useValue: mockEditDialogData },
+        { provide: MatSnackBar, useValue: snackBar }
+    ]
+}).compileComponents();
       
       fixture = TestBed.createComponent(ModuleDialogComponent);
       component = fixture.componentInstance;
@@ -225,25 +225,25 @@ describe('ModuleDialogComponent', () => {
       // Recreate component with edit mode data
       TestBed.resetTestingModule();
       TestBed.configureTestingModule({
-        declarations: [ModuleDialogComponent],
-        imports: [
-          ReactiveFormsModule,
-          MatDialogModule,
-          MatFormFieldModule,
-          MatInputModule,
-          MatButtonModule,
-          MatIconModule,
-          MatSnackBarModule,
-          NoopAnimationsModule
-        ],
-        providers: [
-          FormBuilder,
-          { provide: CourseContentService, useValue: courseContentService },
-          { provide: MatDialogRef, useValue: dialogRef },
-          { provide: MAT_DIALOG_DATA, useValue: mockEditDialogData },
-          { provide: MatSnackBar, useValue: snackBar }
-        ]
-      }).compileComponents();
+    imports: [
+        ReactiveFormsModule,
+        MatDialogModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatButtonModule,
+        MatIconModule,
+        MatSnackBarModule,
+        NoopAnimationsModule,
+        ModuleDialogComponent
+    ],
+    providers: [
+        FormBuilder,
+        { provide: CourseContentService, useValue: courseContentService },
+        { provide: MatDialogRef, useValue: dialogRef },
+        { provide: MAT_DIALOG_DATA, useValue: mockEditDialogData },
+        { provide: MatSnackBar, useValue: snackBar }
+    ]
+}).compileComponents();
       
       fixture = TestBed.createComponent(ModuleDialogComponent);
       component = fixture.componentInstance;

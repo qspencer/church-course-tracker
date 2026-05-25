@@ -77,23 +77,23 @@ describe('UsersComponent', () => {
     const snackBarSpy = jasmine.createSpyObj('MatSnackBar', ['open']);
 
     await TestBed.configureTestingModule({
-      imports: [
+    imports: [
         NoopAnimationsModule,
         MatTableModule,
         MatButtonModule,
         MatIconModule,
         MatChipsModule,
-        MatProgressSpinnerModule
-      ],
-      declarations: [UsersComponent],
-      providers: [
+        MatProgressSpinnerModule,
+        UsersComponent
+    ],
+    providers: [
         { provide: UserService, useValue: userServiceSpy },
         { provide: AuthService, useValue: authServiceSpy },
         { provide: Router, useValue: routerSpy },
         { provide: MatDialog, useValue: dialogSpy },
         { provide: MatSnackBar, useValue: snackBarSpy }
-      ]
-    }).compileComponents();
+    ]
+}).compileComponents();
 
     fixture = TestBed.createComponent(UsersComponent);
     component = fixture.componentInstance;

@@ -1,6 +1,6 @@
 import { Component, Inject, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { MAT_DIALOG_DATA, MatDialogRef, MatDialogTitle, MatDialogContent, MatDialogActions } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { forkJoin } from 'rxjs';
 import { finalize } from 'rxjs/operators';
@@ -9,6 +9,16 @@ import { CourseService } from '../../../services/course.service';
 import { MemberService } from '../../../services/member.service';
 import { LoggerService } from '../../../services/logger.service';
 import { Enrollment, Course, Person, EnrollmentStatus } from '../../../models';
+import { CdkScrollable } from '@angular/cdk/scrolling';
+import { MatProgressSpinner } from '@angular/material/progress-spinner';
+import { MatCard, MatCardContent } from '@angular/material/card';
+import { MatIcon } from '@angular/material/icon';
+import { MatChip } from '@angular/material/chips';
+import { MatProgressBar } from '@angular/material/progress-bar';
+import { MatFormField, MatLabel, MatSuffix, MatError } from '@angular/material/form-field';
+import { MatSelect, MatOption } from '@angular/material/select';
+import { MatButton } from '@angular/material/button';
+import { DecimalPipe } from '@angular/common';
 
 export interface EnrollmentDialogData {
   enrollment: Enrollment | null;
@@ -19,7 +29,7 @@ export interface EnrollmentDialogData {
     selector: 'app-enrollment-dialog',
     templateUrl: './enrollment-dialog.component.html',
     styleUrls: ['./enrollment-dialog.component.scss'],
-    standalone: false
+    imports: [MatDialogTitle, CdkScrollable, MatDialogContent, MatProgressSpinner, MatCard, MatCardContent, MatIcon, MatChip, MatProgressBar, ReactiveFormsModule, MatFormField, MatLabel, MatSelect, MatOption, MatSuffix, MatError, MatDialogActions, MatButton, DecimalPipe]
 })
 export class EnrollmentDialogComponent implements OnInit {
   enrollmentForm: FormGroup;

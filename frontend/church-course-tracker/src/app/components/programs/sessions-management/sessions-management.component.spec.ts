@@ -51,10 +51,9 @@ describe('SessionsManagementComponent (smoke)', () => {
     const snackBarSpy = jasmine.createSpyObj('MatSnackBar', ['open']);
 
     await TestBed.configureTestingModule({
-      declarations: [SessionsManagementComponent],
-      imports: [BrowserAnimationsModule, MatDialogModule],
-      schemas: [NO_ERRORS_SCHEMA],
-      providers: [
+    imports: [BrowserAnimationsModule, MatDialogModule, SessionsManagementComponent],
+    schemas: [NO_ERRORS_SCHEMA],
+    providers: [
         { provide: ProgramService, useValue: programSpy },
         { provide: MemberService, useValue: memberSpy },
         { provide: LoggerService, useValue: loggerSpy },
@@ -63,8 +62,8 @@ describe('SessionsManagementComponent (smoke)', () => {
         { provide: MatSnackBar, useValue: snackBarSpy },
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
-      ],
-    }).compileComponents();
+    ],
+}).compileComponents();
 
     fixture = TestBed.createComponent(SessionsManagementComponent);
     component = fixture.componentInstance;

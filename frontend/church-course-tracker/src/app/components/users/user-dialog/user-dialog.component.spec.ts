@@ -44,7 +44,7 @@ describe('UserDialogComponent', () => {
     const snackBarSpy = jasmine.createSpyObj('MatSnackBar', ['open']);
 
     await TestBed.configureTestingModule({
-      imports: [
+    imports: [
         ReactiveFormsModule,
         NoopAnimationsModule,
         MatDialogModule,
@@ -53,16 +53,16 @@ describe('UserDialogComponent', () => {
         MatSelectModule,
         MatButtonModule,
         MatCheckboxModule,
-        MatIconModule
-      ],
-      declarations: [UserDialogComponent],
-      providers: [
+        MatIconModule,
+        UserDialogComponent
+    ],
+    providers: [
         { provide: UserService, useValue: userServiceSpy },
         { provide: MatDialogRef, useValue: dialogRefSpy },
         { provide: MatSnackBar, useValue: snackBarSpy },
         { provide: MAT_DIALOG_DATA, useValue: createDialogData('create') }
-      ]
-    }).compileComponents();
+    ]
+}).compileComponents();
 
     fixture = TestBed.createComponent(UserDialogComponent);
     component = fixture.componentInstance;

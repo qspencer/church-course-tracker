@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { PageEvent } from '@angular/material/paginator';
+import { PageEvent, MatPaginator } from '@angular/material/paginator';
 import { Subject, takeUntil } from 'rxjs';
 
 import { AuditService } from '../../services/audit.service';
@@ -22,12 +22,24 @@ import {
   formatAuditValues
 } from '../../models';
 import { AuditDetailsDialogComponent } from './audit-details-dialog/audit-details-dialog.component';
+import { MatCard, MatCardHeader, MatCardTitle, MatCardContent } from '@angular/material/card';
+import { MatFormField, MatLabel } from '@angular/material/form-field';
+import { MatSelect, MatOption } from '@angular/material/select';
+import { MatInput } from '@angular/material/input';
+import { ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { MatButton, MatIconButton } from '@angular/material/button';
+import { MatIcon } from '@angular/material/icon';
+import { MatTable, MatColumnDef, MatHeaderCellDef, MatHeaderCell, MatCellDef, MatCell, MatHeaderRowDef, MatHeaderRow, MatRowDef, MatRow } from '@angular/material/table';
+import { MatChip, MatChipAvatar } from '@angular/material/chips';
+import { MatTooltip } from '@angular/material/tooltip';
+import { MatProgressSpinner } from '@angular/material/progress-spinner';
+import { KeyValuePipe } from '@angular/common';
 
 @Component({
     selector: 'app-audit',
     templateUrl: './audit.component.html',
     styleUrls: ['./audit.component.scss'],
-    standalone: false
+    imports: [MatCard, MatCardHeader, MatCardTitle, MatCardContent, MatFormField, MatLabel, MatSelect, MatOption, MatInput, ReactiveFormsModule, FormsModule, MatButton, MatIcon, MatTable, MatColumnDef, MatHeaderCellDef, MatHeaderCell, MatCellDef, MatCell, MatChip, MatChipAvatar, MatIconButton, MatTooltip, MatHeaderRowDef, MatHeaderRow, MatRowDef, MatRow, MatProgressSpinner, MatPaginator, KeyValuePipe]
 })
 export class AuditComponent implements OnInit, OnDestroy {
   auditLogs: AuditLog[] = [];

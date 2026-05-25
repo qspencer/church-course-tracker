@@ -29,30 +29,28 @@ const routes: Routes = [
 ];
 
 @NgModule({
-  declarations: [
-    MembersComponent,
-    MemberDialogComponent,
-    MemberEnrollmentsDialogComponent,
-    MemberImportDialogComponent
-  ],
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    RouterModule.forChild(routes),
-    MatCardModule,
-    MatButtonModule,
-    MatIconModule,
-    MatTableModule,
-    MatPaginatorModule,
-    MatSortModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatDialogModule,
-    MatProgressSpinnerModule,
-    MatTooltipModule,
-    MatChipsModule,
-    MatAutocompleteModule,
-    MatSnackBarModule
-  ]
+    imports: [
+        CommonModule,
+        ReactiveFormsModule,
+        RouterModule.forChild(routes),
+        MatCardModule,
+        MatButtonModule,
+        MatIconModule,
+        MatTableModule,
+        MatPaginatorModule,
+        MatSortModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatDialogModule,
+        MatProgressSpinnerModule,
+        MatTooltipModule,
+        MatChipsModule,
+        MatAutocompleteModule,
+        MatSnackBarModule,
+        MembersComponent,
+        MemberDialogComponent,
+        MemberEnrollmentsDialogComponent,
+        MemberImportDialogComponent
+    ]
 })
 export class MembersModule { }

@@ -1,6 +1,9 @@
 import { Component, Inject } from '@angular/core';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogRef, MatDialogTitle, MatDialogContent, MatDialogActions } from '@angular/material/dialog';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { MatIcon } from '@angular/material/icon';
+import { CdkScrollable } from '@angular/cdk/scrolling';
+import { MatButton } from '@angular/material/button';
 
 export interface EmbeddedContentViewerData {
   title: string;
@@ -11,7 +14,7 @@ export interface EmbeddedContentViewerData {
     selector: 'app-embedded-content-viewer',
     templateUrl: './embedded-content-viewer.component.html',
     styleUrls: ['./embedded-content-viewer.component.scss'],
-    standalone: false
+    imports: [MatDialogTitle, MatIcon, CdkScrollable, MatDialogContent, MatDialogActions, MatButton]
 })
 export class EmbeddedContentViewerComponent {
   safeContent: SafeHtml;

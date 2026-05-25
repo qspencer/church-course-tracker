@@ -31,33 +31,31 @@ const routes: Routes = [
 ];
 
 @NgModule({
-  declarations: [
-    CoursesComponent,
-    CourseDialogComponent,
-    EventRegistrationsDialogComponent
-  ],
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    FormsModule,
-    RouterModule.forChild(routes),
-    MatCardModule,
-    MatButtonModule,
-    MatIconModule,
-    MatTableModule,
-    MatPaginatorModule,
-    MatSortModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatDialogModule,
-    MatProgressSpinnerModule,
-    MatChipsModule,
-    MatTooltipModule,
-    MatSelectModule,
-    MatAutocompleteModule,
-    MatCheckboxModule,
-    SharedModule,
-    PCImportDialogModule
-  ]
+    imports: [
+        CommonModule,
+        ReactiveFormsModule,
+        FormsModule,
+        RouterModule.forChild(routes),
+        MatCardModule,
+        MatButtonModule,
+        MatIconModule,
+        MatTableModule,
+        MatPaginatorModule,
+        MatSortModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatDialogModule,
+        MatProgressSpinnerModule,
+        MatChipsModule,
+        MatTooltipModule,
+        MatSelectModule,
+        MatAutocompleteModule,
+        MatCheckboxModule,
+        SharedModule,
+        PCImportDialogModule,
+        CoursesComponent,
+        CourseDialogComponent,
+        EventRegistrationsDialogComponent
+    ]
 })
 export class CoursesModule { }

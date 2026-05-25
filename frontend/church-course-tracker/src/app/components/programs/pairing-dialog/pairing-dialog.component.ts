@@ -1,12 +1,21 @@
 import { Component, Inject, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { MAT_DIALOG_DATA, MatDialogRef, MatDialogTitle, MatDialogContent, MatDialogActions } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ProgramService } from '../../../services/program.service';
 import { MemberService } from '../../../services/member.service';
 import { LoggerService } from '../../../services/logger.service';
 import { Program, ProgramPairing, ProgramPairingCreate, ProgramPairingUpdate, ProgramParticipant } from '../../../models/program.model';
 import { Person } from '../../../models';
+import { CdkScrollable } from '@angular/cdk/scrolling';
+import { MatChip } from '@angular/material/chips';
+import { MatFormField, MatLabel, MatError, MatHint } from '@angular/material/form-field';
+import { MatSelect, MatOption } from '@angular/material/select';
+import { MatInput } from '@angular/material/input';
+import { MatIcon } from '@angular/material/icon';
+import { MatButton } from '@angular/material/button';
+import { MatProgressSpinner } from '@angular/material/progress-spinner';
+import { TitleCasePipe, DatePipe } from '@angular/common';
 
 export interface PairingDialogData {
   pairing: ProgramPairing | null;
@@ -19,7 +28,7 @@ export interface PairingDialogData {
     selector: 'app-pairing-dialog',
     templateUrl: './pairing-dialog.component.html',
     styleUrls: ['./pairing-dialog.component.scss'],
-    standalone: false
+    imports: [MatDialogTitle, CdkScrollable, MatDialogContent, MatChip, ReactiveFormsModule, MatFormField, MatLabel, MatSelect, MatOption, MatError, MatHint, MatInput, MatIcon, MatDialogActions, MatButton, MatProgressSpinner, TitleCasePipe, DatePipe]
 })
 export class PairingDialogComponent implements OnInit {
   pairingForm: FormGroup;

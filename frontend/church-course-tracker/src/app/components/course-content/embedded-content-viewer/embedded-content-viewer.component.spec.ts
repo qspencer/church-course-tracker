@@ -22,18 +22,18 @@ describe('EmbeddedContentViewerComponent', () => {
     const dialogRefSpy = jasmine.createSpyObj('MatDialogRef', ['close']);
 
     await TestBed.configureTestingModule({
-      declarations: [EmbeddedContentViewerComponent],
-      imports: [
+    imports: [
         BrowserModule,
         MatDialogModule,
         MatButtonModule,
-        MatIconModule
-      ],
-      providers: [
+        MatIconModule,
+        EmbeddedContentViewerComponent
+    ],
+    providers: [
         { provide: MatDialogRef, useValue: dialogRefSpy },
         { provide: MAT_DIALOG_DATA, useValue: mockDialogData }
-      ]
-    }).compileComponents();
+    ]
+}).compileComponents();
 
     fixture = TestBed.createComponent(EmbeddedContentViewerComponent);
     component = fixture.componentInstance;

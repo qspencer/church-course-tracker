@@ -46,20 +46,20 @@ describe('MemberEnrollmentsDialogComponent', () => {
     const matDialogRefSpy = jasmine.createSpyObj('MatDialogRef', ['close']);
 
     await TestBed.configureTestingModule({
-      declarations: [MemberEnrollmentsDialogComponent],
-      imports: [
+    imports: [
         BrowserAnimationsModule,
         MatDialogModule,
         MatButtonModule,
         MatIconModule,
         MatChipsModule,
-        MatCardModule
-      ],
-      providers: [
+        MatCardModule,
+        MemberEnrollmentsDialogComponent
+    ],
+    providers: [
         { provide: MatDialogRef, useValue: matDialogRefSpy },
         { provide: MAT_DIALOG_DATA, useValue: { member: mockMember, enrollments: [mockEnrollment] } }
-      ]
-    }).compileComponents();
+    ]
+}).compileComponents();
 
     fixture = TestBed.createComponent(MemberEnrollmentsDialogComponent);
     component = fixture.componentInstance;
@@ -82,20 +82,20 @@ describe('MemberEnrollmentsDialogComponent', () => {
     const matDialogRefSpy = jasmine.createSpyObj('MatDialogRef', ['close']);
     
     TestBed.configureTestingModule({
-      declarations: [MemberEnrollmentsDialogComponent],
-      imports: [
+    imports: [
         BrowserAnimationsModule,
         MatDialogModule,
         MatButtonModule,
         MatIconModule,
         MatChipsModule,
-        MatCardModule
-      ],
-      providers: [
+        MatCardModule,
+        MemberEnrollmentsDialogComponent
+    ],
+    providers: [
         { provide: MatDialogRef, useValue: matDialogRefSpy },
         { provide: MAT_DIALOG_DATA, useValue: { member: mockMember, enrollments: [] } }
-      ]
-    }).compileComponents();
+    ]
+}).compileComponents();
 
     const newFixture = TestBed.createComponent(MemberEnrollmentsDialogComponent);
     const newComponent = newFixture.componentInstance;

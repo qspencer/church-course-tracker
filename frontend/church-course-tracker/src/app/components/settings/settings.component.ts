@@ -1,17 +1,25 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { SettingsService } from '../../services/settings.service';
 import { SystemSetting, SystemSettingsByCategory, PlanningCenterConfig } from '../../models/settings.model';
 import { AuthService } from '../../services/auth.service';
 import { Router } from '@angular/router';
 import { LoggerService } from '../../services/logger.service';
+import { MatTabGroup, MatTab } from '@angular/material/tabs';
+import { MatFormField, MatLabel, MatHint, MatSuffix } from '@angular/material/form-field';
+import { MatInput } from '@angular/material/input';
+import { MatSelect, MatOption } from '@angular/material/select';
+import { MatCheckbox } from '@angular/material/checkbox';
+import { MatButton, MatIconButton } from '@angular/material/button';
+import { MatIcon } from '@angular/material/icon';
+import { MatProgressSpinner } from '@angular/material/progress-spinner';
 
 @Component({
     selector: 'app-settings',
     templateUrl: './settings.component.html',
     styleUrls: ['./settings.component.scss'],
-    standalone: false
+    imports: [MatTabGroup, MatTab, ReactiveFormsModule, MatFormField, MatLabel, MatInput, MatHint, MatSelect, MatOption, MatCheckbox, MatButton, MatIcon, MatIconButton, MatSuffix, MatProgressSpinner]
 })
 export class SettingsComponent implements OnInit {
   settings: SystemSettingsByCategory = {};

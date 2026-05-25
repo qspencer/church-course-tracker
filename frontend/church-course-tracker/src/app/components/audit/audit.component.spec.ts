@@ -45,10 +45,9 @@ describe('AuditComponent (smoke)', () => {
     const snackBarSpy = jasmine.createSpyObj('MatSnackBar', ['open']);
 
     await TestBed.configureTestingModule({
-      declarations: [AuditComponent],
-      imports: [BrowserAnimationsModule, ReactiveFormsModule, FormsModule, MatDialogModule],
-      schemas: [NO_ERRORS_SCHEMA],
-      providers: [
+    imports: [BrowserAnimationsModule, ReactiveFormsModule, FormsModule, MatDialogModule, AuditComponent],
+    schemas: [NO_ERRORS_SCHEMA],
+    providers: [
         { provide: AuditService, useValue: auditSpy },
         { provide: AuthService, useValue: authSpy },
         { provide: UserService, useValue: userSpy },
@@ -56,8 +55,8 @@ describe('AuditComponent (smoke)', () => {
         { provide: MatSnackBar, useValue: snackBarSpy },
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
-      ],
-    }).compileComponents();
+    ],
+}).compileComponents();
 
     fixture = TestBed.createComponent(AuditComponent);
     component = fixture.componentInstance;

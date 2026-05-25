@@ -1,8 +1,8 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatPaginator } from '@angular/material/paginator';
-import { MatSort } from '@angular/material/sort';
-import { MatTableDataSource } from '@angular/material/table';
+import { MatSort, MatSortHeader } from '@angular/material/sort';
+import { MatTableDataSource, MatTable, MatColumnDef, MatHeaderCellDef, MatHeaderCell, MatCellDef, MatCell, MatHeaderRowDef, MatHeaderRow, MatRowDef, MatRow } from '@angular/material/table';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ProgramService } from '../../services/program.service';
 import { AuthService } from '../../services/auth.service';
@@ -19,12 +19,21 @@ import { BulkEnrollmentDialogComponent } from '../enrollments/bulk-enrollment-di
 import { PCImportDialogComponent, PCImportDialogData } from '../courses/pc-import-dialog/pc-import-dialog.component';
 import { CustomTabConfigDialogComponent } from './custom-tab-config-dialog/custom-tab-config-dialog.component';
 import { CustomTabImportDialogComponent } from './custom-tab-import-dialog/custom-tab-import-dialog.component';
+import { MatButton, MatIconButton } from '@angular/material/button';
+import { MatIcon } from '@angular/material/icon';
+import { MatCard, MatCardHeader, MatCardTitle, MatCardSubtitle, MatCardContent } from '@angular/material/card';
+import { MatFormField, MatLabel, MatSuffix } from '@angular/material/form-field';
+import { MatInput } from '@angular/material/input';
+import { MatProgressSpinner } from '@angular/material/progress-spinner';
+import { MatChip } from '@angular/material/chips';
+import { MatTooltip } from '@angular/material/tooltip';
+import { SlicePipe, DatePipe } from '@angular/common';
 
 @Component({
     selector: 'app-programs',
     templateUrl: './programs.component.html',
     styleUrls: ['./programs.component.scss'],
-    standalone: false
+    imports: [MatButton, MatIcon, MatCard, MatCardHeader, MatCardTitle, MatCardSubtitle, MatCardContent, MatFormField, MatLabel, MatInput, MatSuffix, MatProgressSpinner, MatTable, MatSort, MatColumnDef, MatHeaderCellDef, MatHeaderCell, MatSortHeader, MatCellDef, MatCell, MatChip, MatIconButton, MatTooltip, MatHeaderRowDef, MatHeaderRow, MatRowDef, MatRow, MatPaginator, SlicePipe, DatePipe]
 })
 export class ProgramsComponent implements OnInit {
   displayedColumns: string[] = ['title', 'description', 'is_active', 'created_at', 'actions'];

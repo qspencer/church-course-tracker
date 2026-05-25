@@ -1,12 +1,19 @@
 import { Component, Inject, OnInit } from '@angular/core';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogRef, MatDialogTitle, MatDialogContent, MatDialogActions } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { MatTableDataSource } from '@angular/material/table';
+import { MatTableDataSource, MatTable, MatColumnDef, MatHeaderCellDef, MatHeaderCell, MatCellDef, MatCell, MatHeaderRowDef, MatHeaderRow, MatRowDef, MatRow } from '@angular/material/table';
 import { finalize } from 'rxjs/operators';
 import { PlanningCenterService, PlanningCenterRegistration } from '../../../services/planning-center.service';
 import { EnrollmentService } from '../../../services/enrollment.service';
 import { MemberService } from '../../../services/member.service';
 import { LoggerService } from '../../../services/logger.service';
+import { CdkScrollable } from '@angular/cdk/scrolling';
+import { MatProgressSpinner } from '@angular/material/progress-spinner';
+import { MatButton, MatIconButton } from '@angular/material/button';
+import { MatIcon } from '@angular/material/icon';
+import { MatCheckbox } from '@angular/material/checkbox';
+import { MatChip } from '@angular/material/chips';
+import { MatTooltip } from '@angular/material/tooltip';
 
 export interface EventRegistrationsDialogData {
   eventId: string;
@@ -18,7 +25,7 @@ export interface EventRegistrationsDialogData {
     selector: 'app-event-registrations-dialog',
     templateUrl: './event-registrations-dialog.component.html',
     styleUrls: ['./event-registrations-dialog.component.scss'],
-    standalone: false
+    imports: [MatDialogTitle, CdkScrollable, MatDialogContent, MatProgressSpinner, MatButton, MatIcon, MatTable, MatColumnDef, MatHeaderCellDef, MatHeaderCell, MatCheckbox, MatCellDef, MatCell, MatChip, MatIconButton, MatTooltip, MatHeaderRowDef, MatHeaderRow, MatRowDef, MatRow, MatDialogActions]
 })
 export class EventRegistrationsDialogComponent implements OnInit {
   registrations: PlanningCenterRegistration[] = [];

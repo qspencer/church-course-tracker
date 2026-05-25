@@ -1,10 +1,16 @@
 import { Component, Inject } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { MatDialogRef, MAT_DIALOG_DATA, MatDialogTitle, MatDialogContent, MatDialogActions } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { finalize } from 'rxjs/operators';
 import { UserService } from '../../../services/user.service';
 import { LoggerService } from '../../../services/logger.service';
+import { MatIcon } from '@angular/material/icon';
+import { CdkScrollable } from '@angular/cdk/scrolling';
+import { MatFormField, MatLabel, MatSuffix, MatHint, MatError } from '@angular/material/form-field';
+import { MatInput } from '@angular/material/input';
+import { MatIconButton, MatButton } from '@angular/material/button';
+import { MatProgressSpinner } from '@angular/material/progress-spinner';
 
 export interface ResetPasswordDialogData {
   user: {
@@ -18,7 +24,7 @@ export interface ResetPasswordDialogData {
     selector: 'app-reset-password-dialog',
     templateUrl: './reset-password-dialog.component.html',
     styleUrls: ['./reset-password-dialog.component.scss'],
-    standalone: false
+    imports: [MatDialogTitle, MatIcon, CdkScrollable, MatDialogContent, ReactiveFormsModule, MatFormField, MatLabel, MatInput, MatIconButton, MatSuffix, MatHint, MatError, MatDialogActions, MatButton, MatProgressSpinner]
 })
 export class ResetPasswordDialogComponent {
   passwordForm: FormGroup;

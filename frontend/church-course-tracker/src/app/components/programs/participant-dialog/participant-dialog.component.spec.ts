@@ -83,8 +83,7 @@ describe('ParticipantDialogComponent', () => {
     memberSpy.getMembers.and.returnValue(of([mockMember]));
 
     await TestBed.configureTestingModule({
-      declarations: [ParticipantDialogComponent],
-      imports: [
+    imports: [
         ReactiveFormsModule,
         BrowserAnimationsModule,
         MatDialogModule,
@@ -94,9 +93,10 @@ describe('ParticipantDialogComponent', () => {
         MatIconModule,
         MatProgressSpinnerModule,
         MatSelectModule,
-        MatChipsModule
-      ],
-      providers: [
+        MatChipsModule,
+        ParticipantDialogComponent
+    ],
+    providers: [
         { provide: ProgramService, useValue: programSpy },
         { provide: MemberService, useValue: memberSpy },
         { provide: MatDialogRef, useValue: matDialogRefSpy },
@@ -104,8 +104,8 @@ describe('ParticipantDialogComponent', () => {
         { provide: MatSnackBar, useValue: matSnackBarSpy },
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting()
-      ]
-    }).compileComponents();
+    ]
+}).compileComponents();
 
     fixture = TestBed.createComponent(ParticipantDialogComponent);
     component = fixture.componentInstance;
@@ -124,29 +124,29 @@ describe('ParticipantDialogComponent', () => {
     it('should initialize in create mode', () => {
       TestBed.resetTestingModule();
       TestBed.configureTestingModule({
-        declarations: [ParticipantDialogComponent],
-        imports: [
-          ReactiveFormsModule,
-          BrowserAnimationsModule,
-          MatDialogModule,
-          MatFormFieldModule,
-          MatInputModule,
-          MatButtonModule,
-          MatIconModule,
-          MatProgressSpinnerModule,
-          MatSelectModule,
-          MatChipsModule
-        ],
-        providers: [
-          { provide: ProgramService, useValue: programServiceSpy },
-          { provide: MemberService, useValue: memberServiceSpy },
-          { provide: MatDialogRef, useValue: dialogRefSpy },
-          { provide: MAT_DIALOG_DATA, useValue: { participant: null, program: mockProgram, viewMode: false } },
-          { provide: MatSnackBar, useValue: snackBarSpy },
-          provideHttpClient(withInterceptorsFromDi()),
-          provideHttpClientTesting()
-        ]
-      }).compileComponents();
+    imports: [
+        ReactiveFormsModule,
+        BrowserAnimationsModule,
+        MatDialogModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatButtonModule,
+        MatIconModule,
+        MatProgressSpinnerModule,
+        MatSelectModule,
+        MatChipsModule,
+        ParticipantDialogComponent
+    ],
+    providers: [
+        { provide: ProgramService, useValue: programServiceSpy },
+        { provide: MemberService, useValue: memberServiceSpy },
+        { provide: MatDialogRef, useValue: dialogRefSpy },
+        { provide: MAT_DIALOG_DATA, useValue: { participant: null, program: mockProgram, viewMode: false } },
+        { provide: MatSnackBar, useValue: snackBarSpy },
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting()
+    ]
+}).compileComponents();
       
       const newFixture = TestBed.createComponent(ParticipantDialogComponent);
       const newComponent = newFixture.componentInstance;
@@ -159,29 +159,29 @@ describe('ParticipantDialogComponent', () => {
     it('should initialize in edit mode', () => {
       TestBed.resetTestingModule();
       TestBed.configureTestingModule({
-        declarations: [ParticipantDialogComponent],
-        imports: [
-          ReactiveFormsModule,
-          BrowserAnimationsModule,
-          MatDialogModule,
-          MatFormFieldModule,
-          MatInputModule,
-          MatButtonModule,
-          MatIconModule,
-          MatProgressSpinnerModule,
-          MatSelectModule,
-          MatChipsModule
-        ],
-        providers: [
-          { provide: ProgramService, useValue: programServiceSpy },
-          { provide: MemberService, useValue: memberServiceSpy },
-          { provide: MatDialogRef, useValue: dialogRefSpy },
-          { provide: MAT_DIALOG_DATA, useValue: { participant: mockParticipant, program: mockProgram, viewMode: false } },
-          { provide: MatSnackBar, useValue: snackBarSpy },
-          provideHttpClient(withInterceptorsFromDi()),
-          provideHttpClientTesting()
-        ]
-      }).compileComponents();
+    imports: [
+        ReactiveFormsModule,
+        BrowserAnimationsModule,
+        MatDialogModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatButtonModule,
+        MatIconModule,
+        MatProgressSpinnerModule,
+        MatSelectModule,
+        MatChipsModule,
+        ParticipantDialogComponent
+    ],
+    providers: [
+        { provide: ProgramService, useValue: programServiceSpy },
+        { provide: MemberService, useValue: memberServiceSpy },
+        { provide: MatDialogRef, useValue: dialogRefSpy },
+        { provide: MAT_DIALOG_DATA, useValue: { participant: mockParticipant, program: mockProgram, viewMode: false } },
+        { provide: MatSnackBar, useValue: snackBarSpy },
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting()
+    ]
+}).compileComponents();
       
       const newFixture = TestBed.createComponent(ParticipantDialogComponent);
       const newComponent = newFixture.componentInstance;
@@ -193,29 +193,29 @@ describe('ParticipantDialogComponent', () => {
     it('should initialize in view mode', () => {
       TestBed.resetTestingModule();
       TestBed.configureTestingModule({
-        declarations: [ParticipantDialogComponent],
-        imports: [
-          ReactiveFormsModule,
-          BrowserAnimationsModule,
-          MatDialogModule,
-          MatFormFieldModule,
-          MatInputModule,
-          MatButtonModule,
-          MatIconModule,
-          MatProgressSpinnerModule,
-          MatSelectModule,
-          MatChipsModule
-        ],
-        providers: [
-          { provide: ProgramService, useValue: programServiceSpy },
-          { provide: MemberService, useValue: memberServiceSpy },
-          { provide: MatDialogRef, useValue: dialogRefSpy },
-          { provide: MAT_DIALOG_DATA, useValue: { participant: mockParticipant, program: mockProgram, viewMode: true } },
-          { provide: MatSnackBar, useValue: snackBarSpy },
-          provideHttpClient(withInterceptorsFromDi()),
-          provideHttpClientTesting()
-        ]
-      }).compileComponents();
+    imports: [
+        ReactiveFormsModule,
+        BrowserAnimationsModule,
+        MatDialogModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatButtonModule,
+        MatIconModule,
+        MatProgressSpinnerModule,
+        MatSelectModule,
+        MatChipsModule,
+        ParticipantDialogComponent
+    ],
+    providers: [
+        { provide: ProgramService, useValue: programServiceSpy },
+        { provide: MemberService, useValue: memberServiceSpy },
+        { provide: MatDialogRef, useValue: dialogRefSpy },
+        { provide: MAT_DIALOG_DATA, useValue: { participant: mockParticipant, program: mockProgram, viewMode: true } },
+        { provide: MatSnackBar, useValue: snackBarSpy },
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting()
+    ]
+}).compileComponents();
       
       const newFixture = TestBed.createComponent(ParticipantDialogComponent);
       const newComponent = newFixture.componentInstance;
@@ -233,29 +233,29 @@ describe('ParticipantDialogComponent', () => {
       const programWithoutRoles = { ...mockProgram, role_definitions: undefined };
       TestBed.resetTestingModule();
       TestBed.configureTestingModule({
-        declarations: [ParticipantDialogComponent],
-        imports: [
-          ReactiveFormsModule,
-          BrowserAnimationsModule,
-          MatDialogModule,
-          MatFormFieldModule,
-          MatInputModule,
-          MatButtonModule,
-          MatIconModule,
-          MatProgressSpinnerModule,
-          MatSelectModule,
-          MatChipsModule
-        ],
-        providers: [
-          { provide: ProgramService, useValue: programServiceSpy },
-          { provide: MemberService, useValue: memberServiceSpy },
-          { provide: MatDialogRef, useValue: dialogRefSpy },
-          { provide: MAT_DIALOG_DATA, useValue: { participant: null, program: programWithoutRoles, viewMode: false } },
-          { provide: MatSnackBar, useValue: snackBarSpy },
-          provideHttpClient(withInterceptorsFromDi()),
-          provideHttpClientTesting()
-        ]
-      }).compileComponents();
+    imports: [
+        ReactiveFormsModule,
+        BrowserAnimationsModule,
+        MatDialogModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatButtonModule,
+        MatIconModule,
+        MatProgressSpinnerModule,
+        MatSelectModule,
+        MatChipsModule,
+        ParticipantDialogComponent
+    ],
+    providers: [
+        { provide: ProgramService, useValue: programServiceSpy },
+        { provide: MemberService, useValue: memberServiceSpy },
+        { provide: MatDialogRef, useValue: dialogRefSpy },
+        { provide: MAT_DIALOG_DATA, useValue: { participant: null, program: programWithoutRoles, viewMode: false } },
+        { provide: MatSnackBar, useValue: snackBarSpy },
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting()
+    ]
+}).compileComponents();
       
       const newFixture = TestBed.createComponent(ParticipantDialogComponent);
       const newComponent = newFixture.componentInstance;
@@ -271,29 +271,29 @@ describe('ParticipantDialogComponent', () => {
     it('should patch form values when editing', () => {
       TestBed.resetTestingModule();
       TestBed.configureTestingModule({
-        declarations: [ParticipantDialogComponent],
-        imports: [
-          ReactiveFormsModule,
-          BrowserAnimationsModule,
-          MatDialogModule,
-          MatFormFieldModule,
-          MatInputModule,
-          MatButtonModule,
-          MatIconModule,
-          MatProgressSpinnerModule,
-          MatSelectModule,
-          MatChipsModule
-        ],
-        providers: [
-          { provide: ProgramService, useValue: programServiceSpy },
-          { provide: MemberService, useValue: memberServiceSpy },
-          { provide: MatDialogRef, useValue: dialogRefSpy },
-          { provide: MAT_DIALOG_DATA, useValue: { participant: mockParticipant, program: mockProgram, viewMode: false } },
-          { provide: MatSnackBar, useValue: snackBarSpy },
-          provideHttpClient(withInterceptorsFromDi()),
-          provideHttpClientTesting()
-        ]
-      }).compileComponents();
+    imports: [
+        ReactiveFormsModule,
+        BrowserAnimationsModule,
+        MatDialogModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatButtonModule,
+        MatIconModule,
+        MatProgressSpinnerModule,
+        MatSelectModule,
+        MatChipsModule,
+        ParticipantDialogComponent
+    ],
+    providers: [
+        { provide: ProgramService, useValue: programServiceSpy },
+        { provide: MemberService, useValue: memberServiceSpy },
+        { provide: MatDialogRef, useValue: dialogRefSpy },
+        { provide: MAT_DIALOG_DATA, useValue: { participant: mockParticipant, program: mockProgram, viewMode: false } },
+        { provide: MatSnackBar, useValue: snackBarSpy },
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting()
+    ]
+}).compileComponents();
       
       const newFixture = TestBed.createComponent(ParticipantDialogComponent);
       const newComponent = newFixture.componentInstance;
@@ -390,29 +390,29 @@ describe('ParticipantDialogComponent', () => {
       memberSpy.getMembers.and.returnValue(of([mockMember]));
 
       TestBed.configureTestingModule({
-        declarations: [ParticipantDialogComponent],
-        imports: [
-          ReactiveFormsModule,
-          BrowserAnimationsModule,
-          MatDialogModule,
-          MatFormFieldModule,
-          MatInputModule,
-          MatButtonModule,
-          MatIconModule,
-          MatProgressSpinnerModule,
-          MatSelectModule,
-          MatChipsModule
-        ],
-        providers: [
-          { provide: ProgramService, useValue: updateSpy },
-          { provide: MemberService, useValue: memberSpy },
-          { provide: MatDialogRef, useValue: matDialogRefSpy },
-          { provide: MAT_DIALOG_DATA, useValue: { participant: mockParticipant, program: mockProgram, viewMode: false } },
-          { provide: MatSnackBar, useValue: matSnackBarSpy },
-          provideHttpClient(withInterceptorsFromDi()),
-          provideHttpClientTesting()
-        ]
-      }).compileComponents();
+    imports: [
+        ReactiveFormsModule,
+        BrowserAnimationsModule,
+        MatDialogModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatButtonModule,
+        MatIconModule,
+        MatProgressSpinnerModule,
+        MatSelectModule,
+        MatChipsModule,
+        ParticipantDialogComponent
+    ],
+    providers: [
+        { provide: ProgramService, useValue: updateSpy },
+        { provide: MemberService, useValue: memberSpy },
+        { provide: MatDialogRef, useValue: matDialogRefSpy },
+        { provide: MAT_DIALOG_DATA, useValue: { participant: mockParticipant, program: mockProgram, viewMode: false } },
+        { provide: MatSnackBar, useValue: matSnackBarSpy },
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting()
+    ]
+}).compileComponents();
       
       const newFixture = TestBed.createComponent(ParticipantDialogComponent);
       const newComponent = newFixture.componentInstance;
@@ -463,29 +463,29 @@ describe('ParticipantDialogComponent', () => {
       memberSpy.getMembers.and.returnValue(of([mockMember]));
 
       TestBed.configureTestingModule({
-        declarations: [ParticipantDialogComponent],
-        imports: [
-          ReactiveFormsModule,
-          BrowserAnimationsModule,
-          MatDialogModule,
-          MatFormFieldModule,
-          MatInputModule,
-          MatButtonModule,
-          MatIconModule,
-          MatProgressSpinnerModule,
-          MatSelectModule,
-          MatChipsModule
-        ],
-        providers: [
-          { provide: ProgramService, useValue: updateSpy },
-          { provide: MemberService, useValue: memberSpy },
-          { provide: MatDialogRef, useValue: matDialogRefSpy },
-          { provide: MAT_DIALOG_DATA, useValue: { participant: mockParticipant, program: mockProgram, viewMode: false } },
-          { provide: MatSnackBar, useValue: matSnackBarSpy },
-          provideHttpClient(withInterceptorsFromDi()),
-          provideHttpClientTesting()
-        ]
-      }).compileComponents();
+    imports: [
+        ReactiveFormsModule,
+        BrowserAnimationsModule,
+        MatDialogModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatButtonModule,
+        MatIconModule,
+        MatProgressSpinnerModule,
+        MatSelectModule,
+        MatChipsModule,
+        ParticipantDialogComponent
+    ],
+    providers: [
+        { provide: ProgramService, useValue: updateSpy },
+        { provide: MemberService, useValue: memberSpy },
+        { provide: MatDialogRef, useValue: matDialogRefSpy },
+        { provide: MAT_DIALOG_DATA, useValue: { participant: mockParticipant, program: mockProgram, viewMode: false } },
+        { provide: MatSnackBar, useValue: matSnackBarSpy },
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting()
+    ]
+}).compileComponents();
       
       const newFixture = TestBed.createComponent(ParticipantDialogComponent);
       const newComponent = newFixture.componentInstance;

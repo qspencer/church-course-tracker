@@ -17,26 +17,24 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { PCImportDialogComponent } from './pc-import-dialog.component';
 
 @NgModule({
-  declarations: [
-    PCImportDialogComponent
-  ],
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    MatDialogModule,
-    MatButtonModule,
-    MatSelectModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatProgressSpinnerModule,
-    MatSnackBarModule,
-    MatIconModule,
-    MatRadioModule,
-    MatAutocompleteModule
-  ],
-  exports: [
-    PCImportDialogComponent
-  ]
+    imports: [
+        CommonModule,
+        ReactiveFormsModule,
+        MatDialogModule,
+        MatButtonModule,
+        MatSelectModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatProgressSpinnerModule,
+        MatSnackBarModule,
+        MatIconModule,
+        MatRadioModule,
+        MatAutocompleteModule,
+        PCImportDialogComponent
+    ],
+    exports: [
+        PCImportDialogComponent
+    ]
 })
 export class PCImportDialogModule { }
 

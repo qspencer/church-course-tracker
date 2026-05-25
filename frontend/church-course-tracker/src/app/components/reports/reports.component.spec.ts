@@ -71,8 +71,7 @@ describe('ReportsComponent', () => {
     router.navigate.and.returnValue(Promise.resolve(true));
 
     await TestBed.configureTestingModule({
-      declarations: [ReportsComponent],
-      imports: [
+    imports: [
         BrowserAnimationsModule,
         ReactiveFormsModule,
         MatCardModule,
@@ -85,16 +84,17 @@ describe('ReportsComponent', () => {
         MatDatepickerModule,
         MatNativeDateModule,
         MatSnackBarModule,
-        NgChartsModule
-      ],
-      providers: [
+        NgChartsModule,
+        ReportsComponent
+    ],
+    providers: [
         { provide: ReportService, useValue: reportSpy },
         { provide: CourseService, useValue: courseSpy },
         { provide: Router, useValue: router },
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting()
-      ]
-    }).compileComponents();
+    ]
+}).compileComponents();
 
     fixture = TestBed.createComponent(ReportsComponent);
     component = fixture.componentInstance;

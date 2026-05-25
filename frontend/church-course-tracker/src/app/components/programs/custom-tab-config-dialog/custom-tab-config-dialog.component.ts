@@ -1,5 +1,5 @@
 import { Component, Inject, OnInit } from '@angular/core';
-import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MatDialogRef, MAT_DIALOG_DATA, MatDialogTitle, MatDialogContent, MatDialogActions } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ProgramService } from '../../../services/program.service';
 import { PlanningCenterService } from '../../../services/planning-center.service';
@@ -11,6 +11,18 @@ import {
   PlanningCenterTab,
   PlanningCenterFieldDefinition
 } from '../../../models/program.model';
+import { CdkScrollable } from '@angular/cdk/scrolling';
+import { MatProgressBar } from '@angular/material/progress-bar';
+import { MatFormField, MatLabel, MatHint } from '@angular/material/form-field';
+import { MatInput } from '@angular/material/input';
+import { ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { MatButton, MatIconButton } from '@angular/material/button';
+import { MatList, MatListItem, MatListItemTitle, MatListItemLine, MatListItemMeta, MatDivider } from '@angular/material/list';
+import { MatIcon } from '@angular/material/icon';
+import { MatCard, MatCardHeader, MatCardTitle, MatCardSubtitle, MatCardContent } from '@angular/material/card';
+import { MatSelect, MatOption } from '@angular/material/select';
+import { MatChipSet, MatChip } from '@angular/material/chips';
+import { MatCheckbox } from '@angular/material/checkbox';
 
 export interface CustomTabConfigDialogData {
   programId: number;
@@ -21,7 +33,7 @@ export interface CustomTabConfigDialogData {
     selector: 'app-custom-tab-config-dialog',
     templateUrl: './custom-tab-config-dialog.component.html',
     styleUrls: ['./custom-tab-config-dialog.component.scss'],
-    standalone: false
+    imports: [MatDialogTitle, CdkScrollable, MatDialogContent, MatProgressBar, MatFormField, MatLabel, MatInput, ReactiveFormsModule, FormsModule, MatHint, MatButton, MatList, MatListItem, MatListItemTitle, MatListItemLine, MatIconButton, MatListItemMeta, MatIcon, MatCard, MatCardHeader, MatCardTitle, MatCardSubtitle, MatCardContent, MatSelect, MatOption, MatDivider, MatChipSet, MatChip, MatCheckbox, MatDialogActions]
 })
 export class CustomTabConfigDialogComponent implements OnInit {
   loading = false;

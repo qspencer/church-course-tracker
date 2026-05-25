@@ -22,12 +22,18 @@ import {
   ConfirmDialogComponent,
   ConfirmDialogData
 } from '../../shared/confirm-dialog/confirm-dialog.component';
+import { MatTabGroup, MatTab } from '@angular/material/tabs';
+import { MatButton } from '@angular/material/button';
+import { MatIcon } from '@angular/material/icon';
+import { MatList, MatListItem, MatListItemIcon, MatListItemTitle, MatListItemLine } from '@angular/material/list';
+import { MatProgressSpinner } from '@angular/material/progress-spinner';
+import { JsonPipe, KeyValuePipe } from '@angular/common';
 
 @Component({
     selector: 'app-course-content',
     templateUrl: './course-content.component.html',
     styleUrls: ['./course-content.component.scss'],
-    standalone: false
+    imports: [MatTabGroup, MatTab, MatButton, MatIcon, MatList, MatListItem, MatListItemIcon, MatListItemTitle, MatListItemLine, MatProgressSpinner, JsonPipe, KeyValuePipe]
 })
 export class CourseContentComponent implements OnInit, OnDestroy {
   @Input() courseId!: number;

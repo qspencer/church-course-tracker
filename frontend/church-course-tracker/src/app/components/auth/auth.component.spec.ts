@@ -51,8 +51,7 @@ describe('AuthComponent', () => {
     const snackBarSpyObj = jasmine.createSpyObj('MatSnackBar', ['open']);
 
     await TestBed.configureTestingModule({
-      declarations: [AuthComponent],
-      imports: [
+    imports: [
         ReactiveFormsModule,
         BrowserAnimationsModule,
         MatCardModule,
@@ -60,14 +59,15 @@ describe('AuthComponent', () => {
         MatInputModule,
         MatButtonModule,
         MatIconModule,
-        MatProgressSpinnerModule
-      ],
-      providers: [
+        MatProgressSpinnerModule,
+        AuthComponent
+    ],
+    providers: [
         { provide: AuthService, useValue: authSpy },
         { provide: Router, useValue: routerSpyObj },
         { provide: MatSnackBar, useValue: snackBarSpyObj }
-      ]
-    }).compileComponents();
+    ]
+}).compileComponents();
 
     fixture = TestBed.createComponent(AuthComponent);
     component = fixture.componentInstance;

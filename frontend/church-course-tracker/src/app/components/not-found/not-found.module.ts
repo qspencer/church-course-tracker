@@ -16,16 +16,14 @@ const routes: Routes = [
 ];
 
 @NgModule({
-  declarations: [
-    NotFoundComponent
-  ],
-  imports: [
-    CommonModule,
-    RouterModule.forChild(routes),
-    MatCardModule,
-    MatButtonModule,
-    MatIconModule
-  ]
+    imports: [
+        CommonModule,
+        RouterModule.forChild(routes),
+        MatCardModule,
+        MatButtonModule,
+        MatIconModule,
+        NotFoundComponent
+    ]
 })
 export class NotFoundModule { }
 

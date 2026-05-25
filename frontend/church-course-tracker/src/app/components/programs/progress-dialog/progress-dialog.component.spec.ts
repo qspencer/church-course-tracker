@@ -83,8 +83,7 @@ describe('ProgressDialogComponent', () => {
     programSpy.updateProgramProgress.and.returnValue(of(mockProgress));
 
     await TestBed.configureTestingModule({
-      declarations: [ProgressDialogComponent],
-      imports: [
+    imports: [
         ReactiveFormsModule,
         BrowserAnimationsModule,
         MatDialogModule,
@@ -95,17 +94,18 @@ describe('ProgressDialogComponent', () => {
         MatProgressSpinnerModule,
         MatSelectModule,
         MatDatepickerModule,
-        MatNativeDateModule
-      ],
-      providers: [
+        MatNativeDateModule,
+        ProgressDialogComponent
+    ],
+    providers: [
         { provide: ProgramService, useValue: programSpy },
         { provide: MatDialogRef, useValue: matDialogRefSpy },
         { provide: MAT_DIALOG_DATA, useValue: { progress: null, program: mockProgram, participant: mockParticipant, sessions: [mockSession], viewMode: false } },
         { provide: MatSnackBar, useValue: matSnackBarSpy },
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting()
-      ]
-    }).compileComponents();
+    ]
+}).compileComponents();
 
     fixture = TestBed.createComponent(ProgressDialogComponent);
     component = fixture.componentInstance;
@@ -131,30 +131,30 @@ describe('ProgressDialogComponent', () => {
       // Create a new component instance with progress data
       TestBed.resetTestingModule();
       TestBed.configureTestingModule({
-        declarations: [ProgressDialogComponent],
-        imports: [
-          ReactiveFormsModule,
-          BrowserAnimationsModule,
-          MatDialogModule,
-          MatFormFieldModule,
-          MatInputModule,
-          MatButtonModule,
-          MatIconModule,
-          MatProgressSpinnerModule,
-          MatSelectModule,
-          MatDatepickerModule,
-          MatNativeDateModule,
-          MatChipsModule
-        ],
-        providers: [
-          { provide: ProgramService, useValue: programServiceSpy },
-          { provide: MatDialogRef, useValue: dialogRefSpy },
-          { provide: MAT_DIALOG_DATA, useValue: { progress: mockProgress, program: mockProgram, participant: mockParticipant, sessions: [mockSession], viewMode: false } },
-          { provide: MatSnackBar, useValue: snackBarSpy },
-          provideHttpClient(withInterceptorsFromDi()),
-          provideHttpClientTesting()
-        ]
-      }).compileComponents();
+    imports: [
+        ReactiveFormsModule,
+        BrowserAnimationsModule,
+        MatDialogModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatButtonModule,
+        MatIconModule,
+        MatProgressSpinnerModule,
+        MatSelectModule,
+        MatDatepickerModule,
+        MatNativeDateModule,
+        MatChipsModule,
+        ProgressDialogComponent
+    ],
+    providers: [
+        { provide: ProgramService, useValue: programServiceSpy },
+        { provide: MatDialogRef, useValue: dialogRefSpy },
+        { provide: MAT_DIALOG_DATA, useValue: { progress: mockProgress, program: mockProgram, participant: mockParticipant, sessions: [mockSession], viewMode: false } },
+        { provide: MatSnackBar, useValue: snackBarSpy },
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting()
+    ]
+}).compileComponents();
       
       const newFixture = TestBed.createComponent(ProgressDialogComponent);
       const newComponent = newFixture.componentInstance;
@@ -167,30 +167,30 @@ describe('ProgressDialogComponent', () => {
       // Create a new component instance with viewMode: true
       TestBed.resetTestingModule();
       TestBed.configureTestingModule({
-        declarations: [ProgressDialogComponent],
-        imports: [
-          ReactiveFormsModule,
-          BrowserAnimationsModule,
-          MatDialogModule,
-          MatFormFieldModule,
-          MatInputModule,
-          MatButtonModule,
-          MatIconModule,
-          MatProgressSpinnerModule,
-          MatSelectModule,
-          MatDatepickerModule,
-          MatNativeDateModule,
-          MatChipsModule
-        ],
-        providers: [
-          { provide: ProgramService, useValue: programServiceSpy },
-          { provide: MatDialogRef, useValue: dialogRefSpy },
-          { provide: MAT_DIALOG_DATA, useValue: { progress: mockProgress, program: mockProgram, participant: mockParticipant, sessions: [mockSession], viewMode: true } },
-          { provide: MatSnackBar, useValue: snackBarSpy },
-          provideHttpClient(withInterceptorsFromDi()),
-          provideHttpClientTesting()
-        ]
-      }).compileComponents();
+    imports: [
+        ReactiveFormsModule,
+        BrowserAnimationsModule,
+        MatDialogModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatButtonModule,
+        MatIconModule,
+        MatProgressSpinnerModule,
+        MatSelectModule,
+        MatDatepickerModule,
+        MatNativeDateModule,
+        MatChipsModule,
+        ProgressDialogComponent
+    ],
+    providers: [
+        { provide: ProgramService, useValue: programServiceSpy },
+        { provide: MatDialogRef, useValue: dialogRefSpy },
+        { provide: MAT_DIALOG_DATA, useValue: { progress: mockProgress, program: mockProgram, participant: mockParticipant, sessions: [mockSession], viewMode: true } },
+        { provide: MatSnackBar, useValue: snackBarSpy },
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting()
+    ]
+}).compileComponents();
       
       const newFixture = TestBed.createComponent(ProgressDialogComponent);
       const newComponent = newFixture.componentInstance;
@@ -204,30 +204,30 @@ describe('ProgressDialogComponent', () => {
       // Create a new component instance with progress data
       TestBed.resetTestingModule();
       TestBed.configureTestingModule({
-        declarations: [ProgressDialogComponent],
-        imports: [
-          ReactiveFormsModule,
-          BrowserAnimationsModule,
-          MatDialogModule,
-          MatFormFieldModule,
-          MatInputModule,
-          MatButtonModule,
-          MatIconModule,
-          MatProgressSpinnerModule,
-          MatSelectModule,
-          MatDatepickerModule,
-          MatNativeDateModule,
-          MatChipsModule
-        ],
-        providers: [
-          { provide: ProgramService, useValue: programServiceSpy },
-          { provide: MatDialogRef, useValue: dialogRefSpy },
-          { provide: MAT_DIALOG_DATA, useValue: { progress: mockProgress, program: mockProgram, participant: mockParticipant, sessions: [mockSession], viewMode: false } },
-          { provide: MatSnackBar, useValue: snackBarSpy },
-          provideHttpClient(withInterceptorsFromDi()),
-          provideHttpClientTesting()
-        ]
-      }).compileComponents();
+    imports: [
+        ReactiveFormsModule,
+        BrowserAnimationsModule,
+        MatDialogModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatButtonModule,
+        MatIconModule,
+        MatProgressSpinnerModule,
+        MatSelectModule,
+        MatDatepickerModule,
+        MatNativeDateModule,
+        MatChipsModule,
+        ProgressDialogComponent
+    ],
+    providers: [
+        { provide: ProgramService, useValue: programServiceSpy },
+        { provide: MatDialogRef, useValue: dialogRefSpy },
+        { provide: MAT_DIALOG_DATA, useValue: { progress: mockProgress, program: mockProgram, participant: mockParticipant, sessions: [mockSession], viewMode: false } },
+        { provide: MatSnackBar, useValue: snackBarSpy },
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting()
+    ]
+}).compileComponents();
       
       const newFixture = TestBed.createComponent(ProgressDialogComponent);
       const newComponent = newFixture.componentInstance;
@@ -328,30 +328,30 @@ describe('ProgressDialogComponent', () => {
       // Create a new component instance with progress data
       TestBed.resetTestingModule();
       TestBed.configureTestingModule({
-        declarations: [ProgressDialogComponent],
-        imports: [
-          ReactiveFormsModule,
-          BrowserAnimationsModule,
-          MatDialogModule,
-          MatFormFieldModule,
-          MatInputModule,
-          MatButtonModule,
-          MatIconModule,
-          MatProgressSpinnerModule,
-          MatSelectModule,
-          MatDatepickerModule,
-          MatNativeDateModule,
-          MatChipsModule
-        ],
-        providers: [
-          { provide: ProgramService, useValue: programServiceSpy },
-          { provide: MatDialogRef, useValue: dialogRefSpy },
-          { provide: MAT_DIALOG_DATA, useValue: { progress: mockProgress, program: mockProgram, participant: mockParticipant, sessions: [mockSession], viewMode: false } },
-          { provide: MatSnackBar, useValue: snackBarSpy },
-          provideHttpClient(withInterceptorsFromDi()),
-          provideHttpClientTesting()
-        ]
-      }).compileComponents();
+    imports: [
+        ReactiveFormsModule,
+        BrowserAnimationsModule,
+        MatDialogModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatButtonModule,
+        MatIconModule,
+        MatProgressSpinnerModule,
+        MatSelectModule,
+        MatDatepickerModule,
+        MatNativeDateModule,
+        MatChipsModule,
+        ProgressDialogComponent
+    ],
+    providers: [
+        { provide: ProgramService, useValue: programServiceSpy },
+        { provide: MatDialogRef, useValue: dialogRefSpy },
+        { provide: MAT_DIALOG_DATA, useValue: { progress: mockProgress, program: mockProgram, participant: mockParticipant, sessions: [mockSession], viewMode: false } },
+        { provide: MatSnackBar, useValue: snackBarSpy },
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting()
+    ]
+}).compileComponents();
       
       const newFixture = TestBed.createComponent(ProgressDialogComponent);
       const newComponent = newFixture.componentInstance;
@@ -402,30 +402,30 @@ describe('ProgressDialogComponent', () => {
       // Create a new component instance with progress data
       TestBed.resetTestingModule();
       TestBed.configureTestingModule({
-        declarations: [ProgressDialogComponent],
-        imports: [
-          ReactiveFormsModule,
-          BrowserAnimationsModule,
-          MatDialogModule,
-          MatFormFieldModule,
-          MatInputModule,
-          MatButtonModule,
-          MatIconModule,
-          MatProgressSpinnerModule,
-          MatSelectModule,
-          MatDatepickerModule,
-          MatNativeDateModule,
-          MatChipsModule
-        ],
-        providers: [
-          { provide: ProgramService, useValue: programServiceSpy },
-          { provide: MatDialogRef, useValue: dialogRefSpy },
-          { provide: MAT_DIALOG_DATA, useValue: { progress: mockProgress, program: mockProgram, participant: mockParticipant, sessions: [mockSession], viewMode: false } },
-          { provide: MatSnackBar, useValue: snackBarSpy },
-          provideHttpClient(withInterceptorsFromDi()),
-          provideHttpClientTesting()
-        ]
-      }).compileComponents();
+    imports: [
+        ReactiveFormsModule,
+        BrowserAnimationsModule,
+        MatDialogModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatButtonModule,
+        MatIconModule,
+        MatProgressSpinnerModule,
+        MatSelectModule,
+        MatDatepickerModule,
+        MatNativeDateModule,
+        MatChipsModule,
+        ProgressDialogComponent
+    ],
+    providers: [
+        { provide: ProgramService, useValue: programServiceSpy },
+        { provide: MatDialogRef, useValue: dialogRefSpy },
+        { provide: MAT_DIALOG_DATA, useValue: { progress: mockProgress, program: mockProgram, participant: mockParticipant, sessions: [mockSession], viewMode: false } },
+        { provide: MatSnackBar, useValue: snackBarSpy },
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting()
+    ]
+}).compileComponents();
       
       const newFixture = TestBed.createComponent(ProgressDialogComponent);
       const newComponent = newFixture.componentInstance;

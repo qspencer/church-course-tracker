@@ -1,6 +1,6 @@
 import { Component, Inject, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, FormArray, FormControl } from '@angular/forms';
-import { MAT_DIALOG_DATA, MatDialogRef, MatDialog } from '@angular/material/dialog';
+import { FormBuilder, FormGroup, Validators, FormArray, FormControl, ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { MAT_DIALOG_DATA, MatDialogRef, MatDialog, MatDialogTitle, MatDialogContent, MatDialogActions } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { finalize } from 'rxjs/operators';
 import { CourseService } from '../../../services/course.service';
@@ -9,6 +9,14 @@ import { AutocompleteSuggestionService } from '../../../services/autocomplete-su
 import { LoggerService } from '../../../services/logger.service';
 import { Course, CourseCreate, CourseUpdate, User, PlanningCenterImportData } from '../../../models';
 import { EventRegistrationsDialogComponent } from '../event-registrations-dialog/event-registrations-dialog.component';
+import { CdkScrollable } from '@angular/cdk/scrolling';
+import { MatChip, MatChipListbox, MatChipRemove } from '@angular/material/chips';
+import { MatButton } from '@angular/material/button';
+import { MatIcon } from '@angular/material/icon';
+import { MatFormField, MatLabel, MatError, MatHint, MatSuffix } from '@angular/material/form-field';
+import { MatInput } from '@angular/material/input';
+import { MatSelect, MatOption } from '@angular/material/select';
+import { MatProgressSpinner } from '@angular/material/progress-spinner';
 
 export interface CourseDialogData {
   course: Course | null;
@@ -20,7 +28,7 @@ export interface CourseDialogData {
     selector: 'app-course-dialog',
     templateUrl: './course-dialog.component.html',
     styleUrls: ['./course-dialog.component.scss'],
-    standalone: false
+    imports: [MatDialogTitle, CdkScrollable, MatDialogContent, MatChip, MatButton, MatIcon, ReactiveFormsModule, MatFormField, MatLabel, MatInput, MatError, MatHint, MatSelect, MatOption, MatProgressSpinner, MatSuffix, MatChipListbox, MatChipRemove, FormsModule, MatDialogActions]
 })
 export class CourseDialogComponent implements OnInit {
   courseForm: FormGroup;

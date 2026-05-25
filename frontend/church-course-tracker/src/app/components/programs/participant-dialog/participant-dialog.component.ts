@@ -1,6 +1,6 @@
 import { Component, Inject, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { MAT_DIALOG_DATA, MatDialogRef, MatDialogTitle, MatDialogContent, MatDialogActions } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { forkJoin } from 'rxjs';
 import { finalize } from 'rxjs/operators';
@@ -9,6 +9,14 @@ import { MemberService } from '../../../services/member.service';
 import { Program, ProgramParticipant, ProgramParticipantCreate, ProgramParticipantUpdate, RoleDefinition } from '../../../models/program.model';
 import { Person } from '../../../models';
 import { LoggerService } from '../../../services/logger.service';
+import { CdkScrollable } from '@angular/cdk/scrolling';
+import { MatChip } from '@angular/material/chips';
+import { MatFormField, MatLabel, MatError, MatSuffix, MatHint } from '@angular/material/form-field';
+import { MatSelect, MatOption } from '@angular/material/select';
+import { MatProgressSpinner } from '@angular/material/progress-spinner';
+import { MatInput } from '@angular/material/input';
+import { MatButton } from '@angular/material/button';
+import { TitleCasePipe, DatePipe } from '@angular/common';
 
 export interface ParticipantDialogData {
   participant: ProgramParticipant | null;
@@ -20,7 +28,7 @@ export interface ParticipantDialogData {
     selector: 'app-participant-dialog',
     templateUrl: './participant-dialog.component.html',
     styleUrls: ['./participant-dialog.component.scss'],
-    standalone: false
+    imports: [MatDialogTitle, CdkScrollable, MatDialogContent, MatChip, ReactiveFormsModule, MatFormField, MatLabel, MatSelect, MatOption, MatError, MatProgressSpinner, MatSuffix, MatInput, MatHint, MatDialogActions, MatButton, TitleCasePipe, DatePipe]
 })
 export class ParticipantDialogComponent implements OnInit {
   participantForm: FormGroup;

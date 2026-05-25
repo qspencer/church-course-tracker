@@ -147,16 +147,16 @@ describe('CourseContentComponent', () => {
     });
 
     await TestBed.configureTestingModule({
-      declarations: [CourseContentComponent],
-      imports: [
+    imports: [
         NoopAnimationsModule,
         MatTabsModule,
         MatListModule,
         MatIconModule,
         MatButtonModule,
-        MatProgressSpinnerModule
-      ],
-      providers: [
+        MatProgressSpinnerModule,
+        CourseContentComponent
+    ],
+    providers: [
         { provide: CourseContentService, useValue: courseContentServiceSpy },
         { provide: CourseService, useValue: courseServiceSpy },
         { provide: AuthService, useValue: authServiceSpy },
@@ -165,8 +165,8 @@ describe('CourseContentComponent', () => {
         { provide: MatDialog, useValue: dialogSpy },
         { provide: MatSnackBar, useValue: snackBarSpy },
         { provide: ActivatedRoute, useValue: activatedRouteSpy }
-      ]
-    }).compileComponents();
+    ]
+}).compileComponents();
 
     fixture = TestBed.createComponent(CourseContentComponent);
     component = fixture.componentInstance;

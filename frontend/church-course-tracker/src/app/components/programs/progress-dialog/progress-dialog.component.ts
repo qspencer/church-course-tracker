@@ -1,10 +1,19 @@
 import { Component, Inject, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { MAT_DIALOG_DATA, MatDialogRef, MatDialogTitle, MatDialogContent, MatDialogActions } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ProgramService } from '../../../services/program.service';
 import { LoggerService } from '../../../services/logger.service';
 import { Program, ProgramProgress, ProgramProgressCreate, ProgramProgressUpdate, ProgramParticipant, ProgramSession } from '../../../models/program.model';
+import { CdkScrollable } from '@angular/cdk/scrolling';
+import { MatChip } from '@angular/material/chips';
+import { MatFormField, MatLabel, MatError, MatHint, MatSuffix } from '@angular/material/form-field';
+import { MatSelect, MatOption } from '@angular/material/select';
+import { MatInput } from '@angular/material/input';
+import { MatDatepickerInput, MatDatepickerToggle, MatDatepicker } from '@angular/material/datepicker';
+import { MatButton } from '@angular/material/button';
+import { MatProgressSpinner } from '@angular/material/progress-spinner';
+import { TitleCasePipe, DatePipe } from '@angular/common';
 
 export interface ProgressDialogData {
   progress: ProgramProgress | null;
@@ -18,7 +27,7 @@ export interface ProgressDialogData {
     selector: 'app-progress-dialog',
     templateUrl: './progress-dialog.component.html',
     styleUrls: ['./progress-dialog.component.scss'],
-    standalone: false
+    imports: [MatDialogTitle, CdkScrollable, MatDialogContent, MatChip, ReactiveFormsModule, MatFormField, MatLabel, MatSelect, MatOption, MatError, MatInput, MatHint, MatDatepickerInput, MatDatepickerToggle, MatSuffix, MatDatepicker, MatDialogActions, MatButton, MatProgressSpinner, TitleCasePipe, DatePipe]
 })
 export class ProgressDialogComponent implements OnInit {
   progressForm: FormGroup;

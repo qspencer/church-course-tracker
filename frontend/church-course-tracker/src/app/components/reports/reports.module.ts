@@ -26,25 +26,23 @@ const routes: Routes = [
 ];
 
 @NgModule({
-  declarations: [
-    ReportsComponent
-  ],
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    RouterModule.forChild(routes),
-    MatCardModule,
-    MatButtonModule,
-    MatIconModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-    MatDatepickerModule,
-    MatNativeDateModule,
-    MatTableModule,
-    MatProgressSpinnerModule,
-    MatProgressBarModule,
-    NgChartsModule
-  ]
+    imports: [
+        CommonModule,
+        ReactiveFormsModule,
+        RouterModule.forChild(routes),
+        MatCardModule,
+        MatButtonModule,
+        MatIconModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatSelectModule,
+        MatDatepickerModule,
+        MatNativeDateModule,
+        MatTableModule,
+        MatProgressSpinnerModule,
+        MatProgressBarModule,
+        NgChartsModule,
+        ReportsComponent
+    ]
 })
 export class ReportsModule { }

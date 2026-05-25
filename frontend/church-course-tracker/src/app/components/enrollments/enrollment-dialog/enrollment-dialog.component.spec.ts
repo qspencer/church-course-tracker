@@ -84,8 +84,7 @@ describe('EnrollmentDialogComponent', () => {
     memberSpy.getMembers.and.returnValue(of([mockMember]));
 
     await TestBed.configureTestingModule({
-      declarations: [EnrollmentDialogComponent],
-      imports: [
+    imports: [
         ReactiveFormsModule,
         BrowserAnimationsModule,
         MatDialogModule,
@@ -97,9 +96,10 @@ describe('EnrollmentDialogComponent', () => {
         MatSelectModule,
         MatChipsModule,
         MatProgressBarModule,
-        MatCardModule
-      ],
-      providers: [
+        MatCardModule,
+        EnrollmentDialogComponent
+    ],
+    providers: [
         { provide: EnrollmentService, useValue: enrollmentSpy },
         { provide: CourseService, useValue: courseSpy },
         { provide: MemberService, useValue: memberSpy },
@@ -108,8 +108,8 @@ describe('EnrollmentDialogComponent', () => {
         { provide: MatSnackBar, useValue: matSnackBarSpy },
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting()
-      ]
-    }).compileComponents();
+    ]
+}).compileComponents();
 
     fixture = TestBed.createComponent(EnrollmentDialogComponent);
     component = fixture.componentInstance;
@@ -145,32 +145,32 @@ describe('EnrollmentDialogComponent', () => {
       memberSpy.getMembers.and.returnValue(of([mockMember]));
 
       TestBed.configureTestingModule({
-        declarations: [EnrollmentDialogComponent],
-        imports: [
-          ReactiveFormsModule,
-          BrowserAnimationsModule,
-          MatDialogModule,
-          MatFormFieldModule,
-          MatInputModule,
-          MatButtonModule,
-          MatIconModule,
-          MatProgressSpinnerModule,
-          MatSelectModule,
-          MatChipsModule,
-          MatProgressBarModule,
-          MatCardModule
-        ],
-        providers: [
-          { provide: EnrollmentService, useValue: enrollmentSpy },
-          { provide: CourseService, useValue: courseSpy },
-          { provide: MemberService, useValue: memberSpy },
-          { provide: MatDialogRef, useValue: matDialogRefSpy },
-          { provide: MAT_DIALOG_DATA, useValue: { enrollment: mockEnrollment, viewMode: false } },
-          { provide: MatSnackBar, useValue: matSnackBarSpy },
-          provideHttpClient(withInterceptorsFromDi()),
-          provideHttpClientTesting()
-        ]
-      }).compileComponents();
+    imports: [
+        ReactiveFormsModule,
+        BrowserAnimationsModule,
+        MatDialogModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatButtonModule,
+        MatIconModule,
+        MatProgressSpinnerModule,
+        MatSelectModule,
+        MatChipsModule,
+        MatProgressBarModule,
+        MatCardModule,
+        EnrollmentDialogComponent
+    ],
+    providers: [
+        { provide: EnrollmentService, useValue: enrollmentSpy },
+        { provide: CourseService, useValue: courseSpy },
+        { provide: MemberService, useValue: memberSpy },
+        { provide: MatDialogRef, useValue: matDialogRefSpy },
+        { provide: MAT_DIALOG_DATA, useValue: { enrollment: mockEnrollment, viewMode: false } },
+        { provide: MatSnackBar, useValue: matSnackBarSpy },
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting()
+    ]
+}).compileComponents();
 
       const newFixture = TestBed.createComponent(EnrollmentDialogComponent);
       const newComponent = newFixture.componentInstance;
@@ -189,32 +189,32 @@ describe('EnrollmentDialogComponent', () => {
       const matSnackBarSpy = jasmine.createSpyObj('MatSnackBar', ['open']);
 
       TestBed.configureTestingModule({
-        declarations: [EnrollmentDialogComponent],
-        imports: [
-          ReactiveFormsModule,
-          BrowserAnimationsModule,
-          MatDialogModule,
-          MatFormFieldModule,
-          MatInputModule,
-          MatButtonModule,
-          MatIconModule,
-          MatProgressSpinnerModule,
-          MatSelectModule,
-          MatChipsModule,
-          MatProgressBarModule,
-          MatCardModule
-        ],
-        providers: [
-          { provide: EnrollmentService, useValue: enrollmentSpy },
-          { provide: CourseService, useValue: courseSpy },
-          { provide: MemberService, useValue: memberSpy },
-          { provide: MatDialogRef, useValue: matDialogRefSpy },
-          { provide: MAT_DIALOG_DATA, useValue: { enrollment: mockEnrollment, viewMode: true } },
-          { provide: MatSnackBar, useValue: matSnackBarSpy },
-          provideHttpClient(withInterceptorsFromDi()),
-          provideHttpClientTesting()
-        ]
-      }).compileComponents();
+    imports: [
+        ReactiveFormsModule,
+        BrowserAnimationsModule,
+        MatDialogModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatButtonModule,
+        MatIconModule,
+        MatProgressSpinnerModule,
+        MatSelectModule,
+        MatChipsModule,
+        MatProgressBarModule,
+        MatCardModule,
+        EnrollmentDialogComponent
+    ],
+    providers: [
+        { provide: EnrollmentService, useValue: enrollmentSpy },
+        { provide: CourseService, useValue: courseSpy },
+        { provide: MemberService, useValue: memberSpy },
+        { provide: MatDialogRef, useValue: matDialogRefSpy },
+        { provide: MAT_DIALOG_DATA, useValue: { enrollment: mockEnrollment, viewMode: true } },
+        { provide: MatSnackBar, useValue: matSnackBarSpy },
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting()
+    ]
+}).compileComponents();
 
       const newFixture = TestBed.createComponent(EnrollmentDialogComponent);
       const newComponent = newFixture.componentInstance;
@@ -243,32 +243,32 @@ describe('EnrollmentDialogComponent', () => {
       const matSnackBarSpy = jasmine.createSpyObj('MatSnackBar', ['open']);
 
       TestBed.configureTestingModule({
-        declarations: [EnrollmentDialogComponent],
-        imports: [
-          ReactiveFormsModule,
-          BrowserAnimationsModule,
-          MatDialogModule,
-          MatFormFieldModule,
-          MatInputModule,
-          MatButtonModule,
-          MatIconModule,
-          MatProgressSpinnerModule,
-          MatSelectModule,
-          MatChipsModule,
-          MatProgressBarModule,
-          MatCardModule
-        ],
-        providers: [
-          { provide: EnrollmentService, useValue: enrollmentSpy },
-          { provide: CourseService, useValue: courseSpy },
-          { provide: MemberService, useValue: memberSpy },
-          { provide: MatDialogRef, useValue: matDialogRefSpy },
-          { provide: MAT_DIALOG_DATA, useValue: { enrollment: mockEnrollment, viewMode: true } },
-          { provide: MatSnackBar, useValue: matSnackBarSpy },
-          provideHttpClient(withInterceptorsFromDi()),
-          provideHttpClientTesting()
-        ]
-      }).compileComponents();
+    imports: [
+        ReactiveFormsModule,
+        BrowserAnimationsModule,
+        MatDialogModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatButtonModule,
+        MatIconModule,
+        MatProgressSpinnerModule,
+        MatSelectModule,
+        MatChipsModule,
+        MatProgressBarModule,
+        MatCardModule,
+        EnrollmentDialogComponent
+    ],
+    providers: [
+        { provide: EnrollmentService, useValue: enrollmentSpy },
+        { provide: CourseService, useValue: courseSpy },
+        { provide: MemberService, useValue: memberSpy },
+        { provide: MatDialogRef, useValue: matDialogRefSpy },
+        { provide: MAT_DIALOG_DATA, useValue: { enrollment: mockEnrollment, viewMode: true } },
+        { provide: MatSnackBar, useValue: matSnackBarSpy },
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting()
+    ]
+}).compileComponents();
 
       const newFixture = TestBed.createComponent(EnrollmentDialogComponent);
       newFixture.detectChanges();
@@ -289,32 +289,32 @@ describe('EnrollmentDialogComponent', () => {
       memberSpy.getMembers.and.returnValue(of([mockMember]));
 
       TestBed.configureTestingModule({
-        declarations: [EnrollmentDialogComponent],
-        imports: [
-          ReactiveFormsModule,
-          BrowserAnimationsModule,
-          MatDialogModule,
-          MatFormFieldModule,
-          MatInputModule,
-          MatButtonModule,
-          MatIconModule,
-          MatProgressSpinnerModule,
-          MatSelectModule,
-          MatChipsModule,
-          MatProgressBarModule,
-          MatCardModule
-        ],
-        providers: [
-          { provide: EnrollmentService, useValue: enrollmentSpy },
-          { provide: CourseService, useValue: courseSpy },
-          { provide: MemberService, useValue: memberSpy },
-          { provide: MatDialogRef, useValue: matDialogRefSpy },
-          { provide: MAT_DIALOG_DATA, useValue: { enrollment: mockEnrollment, viewMode: false } },
-          { provide: MatSnackBar, useValue: matSnackBarSpy },
-          provideHttpClient(withInterceptorsFromDi()),
-          provideHttpClientTesting()
-        ]
-      }).compileComponents();
+    imports: [
+        ReactiveFormsModule,
+        BrowserAnimationsModule,
+        MatDialogModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatButtonModule,
+        MatIconModule,
+        MatProgressSpinnerModule,
+        MatSelectModule,
+        MatChipsModule,
+        MatProgressBarModule,
+        MatCardModule,
+        EnrollmentDialogComponent
+    ],
+    providers: [
+        { provide: EnrollmentService, useValue: enrollmentSpy },
+        { provide: CourseService, useValue: courseSpy },
+        { provide: MemberService, useValue: memberSpy },
+        { provide: MatDialogRef, useValue: matDialogRefSpy },
+        { provide: MAT_DIALOG_DATA, useValue: { enrollment: mockEnrollment, viewMode: false } },
+        { provide: MatSnackBar, useValue: matSnackBarSpy },
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting()
+    ]
+}).compileComponents();
 
       const newFixture = TestBed.createComponent(EnrollmentDialogComponent);
       const newComponent = newFixture.componentInstance;
@@ -349,32 +349,32 @@ describe('EnrollmentDialogComponent', () => {
       memberSpy.getMembers.and.returnValue(throwError(() => error));
 
       TestBed.configureTestingModule({
-        declarations: [EnrollmentDialogComponent],
-        imports: [
-          ReactiveFormsModule,
-          BrowserAnimationsModule,
-          MatDialogModule,
-          MatFormFieldModule,
-          MatInputModule,
-          MatButtonModule,
-          MatIconModule,
-          MatProgressSpinnerModule,
-          MatSelectModule,
-          MatChipsModule,
-          MatProgressBarModule,
-          MatCardModule
-        ],
-        providers: [
-          { provide: EnrollmentService, useValue: enrollmentSpy },
-          { provide: CourseService, useValue: courseSpy },
-          { provide: MemberService, useValue: memberSpy },
-          { provide: MatDialogRef, useValue: matDialogRefSpy },
-          { provide: MAT_DIALOG_DATA, useValue: { enrollment: null, viewMode: false } },
-          { provide: MatSnackBar, useValue: matSnackBarSpy },
-          provideHttpClient(withInterceptorsFromDi()),
-          provideHttpClientTesting()
-        ]
-      }).compileComponents();
+    imports: [
+        ReactiveFormsModule,
+        BrowserAnimationsModule,
+        MatDialogModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatButtonModule,
+        MatIconModule,
+        MatProgressSpinnerModule,
+        MatSelectModule,
+        MatChipsModule,
+        MatProgressBarModule,
+        MatCardModule,
+        EnrollmentDialogComponent
+    ],
+    providers: [
+        { provide: EnrollmentService, useValue: enrollmentSpy },
+        { provide: CourseService, useValue: courseSpy },
+        { provide: MemberService, useValue: memberSpy },
+        { provide: MatDialogRef, useValue: matDialogRefSpy },
+        { provide: MAT_DIALOG_DATA, useValue: { enrollment: null, viewMode: false } },
+        { provide: MatSnackBar, useValue: matSnackBarSpy },
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting()
+    ]
+}).compileComponents();
 
       const newFixture = TestBed.createComponent(EnrollmentDialogComponent);
       const newComponent = newFixture.componentInstance;
@@ -446,32 +446,32 @@ describe('EnrollmentDialogComponent', () => {
       memberSpy.getMembers.and.returnValue(of([mockMember]));
 
       TestBed.configureTestingModule({
-        declarations: [EnrollmentDialogComponent],
-        imports: [
-          ReactiveFormsModule,
-          BrowserAnimationsModule,
-          MatDialogModule,
-          MatFormFieldModule,
-          MatInputModule,
-          MatButtonModule,
-          MatIconModule,
-          MatProgressSpinnerModule,
-          MatSelectModule,
-          MatChipsModule,
-          MatProgressBarModule,
-          MatCardModule
-        ],
-        providers: [
-          { provide: EnrollmentService, useValue: enrollmentSpy },
-          { provide: CourseService, useValue: courseSpy },
-          { provide: MemberService, useValue: memberSpy },
-          { provide: MatDialogRef, useValue: matDialogRefSpy },
-          { provide: MAT_DIALOG_DATA, useValue: { enrollment: mockEnrollment, viewMode: false } },
-          { provide: MatSnackBar, useValue: matSnackBarSpy },
-          provideHttpClient(withInterceptorsFromDi()),
-          provideHttpClientTesting()
-        ]
-      }).compileComponents();
+    imports: [
+        ReactiveFormsModule,
+        BrowserAnimationsModule,
+        MatDialogModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatButtonModule,
+        MatIconModule,
+        MatProgressSpinnerModule,
+        MatSelectModule,
+        MatChipsModule,
+        MatProgressBarModule,
+        MatCardModule,
+        EnrollmentDialogComponent
+    ],
+    providers: [
+        { provide: EnrollmentService, useValue: enrollmentSpy },
+        { provide: CourseService, useValue: courseSpy },
+        { provide: MemberService, useValue: memberSpy },
+        { provide: MatDialogRef, useValue: matDialogRefSpy },
+        { provide: MAT_DIALOG_DATA, useValue: { enrollment: mockEnrollment, viewMode: false } },
+        { provide: MatSnackBar, useValue: matSnackBarSpy },
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting()
+    ]
+}).compileComponents();
 
       const newFixture = TestBed.createComponent(EnrollmentDialogComponent);
       const newComponent = newFixture.componentInstance;

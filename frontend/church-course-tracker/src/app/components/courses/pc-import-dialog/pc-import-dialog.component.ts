@@ -1,14 +1,23 @@
 import { Component, Inject, OnInit, ViewChild, AfterViewInit, ElementRef } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, FormControl } from '@angular/forms';
-import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { FormBuilder, FormGroup, Validators, FormControl, ReactiveFormsModule } from '@angular/forms';
+import { MatDialogRef, MAT_DIALOG_DATA, MatDialogTitle, MatDialogContent, MatDialogActions } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
+import { MatAutocompleteTrigger, MatAutocomplete } from '@angular/material/autocomplete';
 import { Observable } from 'rxjs';
 import { map, startWith, tap, finalize } from 'rxjs/operators';
 import { PlanningCenterService, PlanningCenterEvent, PlanningCenterList } from '../../../services/planning-center.service';
 import { CourseService } from '../../../services/course.service';
 import { ProgramService } from '../../../services/program.service';
 import { LoggerService } from '../../../services/logger.service';
+import { CdkScrollable } from '@angular/cdk/scrolling';
+import { MatRadioGroup, MatRadioButton } from '@angular/material/radio';
+import { MatProgressSpinner } from '@angular/material/progress-spinner';
+import { MatFormField, MatLabel, MatError } from '@angular/material/form-field';
+import { MatSelect, MatOption, MatOptgroup } from '@angular/material/select';
+import { MatInput } from '@angular/material/input';
+import { MatIcon } from '@angular/material/icon';
+import { MatButton } from '@angular/material/button';
+import { AsyncPipe, DatePipe } from '@angular/common';
 
 export interface PCImportDialogData {
   entityType: 'course' | 'program';
@@ -43,7 +52,7 @@ export interface GroupedList {
     selector: 'app-pc-import-dialog',
     templateUrl: './pc-import-dialog.component.html',
     styleUrls: ['./pc-import-dialog.component.scss'],
-    standalone: false
+    imports: [MatDialogTitle, CdkScrollable, MatDialogContent, ReactiveFormsModule, MatRadioGroup, MatRadioButton, MatProgressSpinner, MatFormField, MatLabel, MatSelect, MatOption, MatInput, MatAutocompleteTrigger, MatAutocomplete, MatOptgroup, MatError, MatIcon, MatDialogActions, MatButton, AsyncPipe, DatePipe]
 })
 export class PCImportDialogComponent implements OnInit, AfterViewInit {
   importForm: FormGroup;

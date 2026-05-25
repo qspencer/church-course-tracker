@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { FormControl } from '@angular/forms';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ProgressService } from '../../services/progress.service';
 import { EnrollmentService } from '../../services/enrollment.service';
@@ -7,12 +7,22 @@ import { CourseService } from '../../services/course.service';
 import { MemberService } from '../../services/member.service';
 import { Progress, Enrollment, Course, Person, ProgressStatus } from '../../models';
 import { LoggerService } from '../../services/logger.service';
+import { MatButton, MatIconButton } from '@angular/material/button';
+import { MatIcon } from '@angular/material/icon';
+import { MatCard, MatCardHeader, MatCardTitle, MatCardContent, MatCardSubtitle } from '@angular/material/card';
+import { MatFormField, MatLabel } from '@angular/material/form-field';
+import { MatSelect, MatOption } from '@angular/material/select';
+import { MatProgressSpinner } from '@angular/material/progress-spinner';
+import { MatChip } from '@angular/material/chips';
+import { MatProgressBar } from '@angular/material/progress-bar';
+import { MatTooltip } from '@angular/material/tooltip';
+import { DecimalPipe, DatePipe } from '@angular/common';
 
 @Component({
     selector: 'app-progress',
     templateUrl: './progress.component.html',
     styleUrls: ['./progress.component.scss'],
-    standalone: false
+    imports: [MatButton, MatIcon, MatCard, MatCardHeader, MatCardTitle, MatCardContent, MatFormField, MatLabel, MatSelect, ReactiveFormsModule, MatOption, MatCardSubtitle, MatProgressSpinner, MatChip, MatProgressBar, MatIconButton, MatTooltip, DecimalPipe, DatePipe]
 })
 export class ProgressComponent implements OnInit {
   enrollments: Enrollment[] = [];

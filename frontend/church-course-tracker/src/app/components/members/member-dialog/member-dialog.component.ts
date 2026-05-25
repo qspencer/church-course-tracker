@@ -1,12 +1,19 @@
 import { Component, Inject, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { MAT_DIALOG_DATA, MatDialogRef, MatDialogTitle, MatDialogContent, MatDialogActions } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { finalize } from 'rxjs/operators';
 import { MemberService } from '../../../services/member.service';
 import { UserService } from '../../../services/user.service';
 import { LoggerService } from '../../../services/logger.service';
 import { Person } from '../../../models';
+import { CdkScrollable } from '@angular/cdk/scrolling';
+import { MatChip } from '@angular/material/chips';
+import { MatButton } from '@angular/material/button';
+import { MatIcon } from '@angular/material/icon';
+import { MatFormField, MatLabel, MatError, MatSuffix } from '@angular/material/form-field';
+import { MatInput } from '@angular/material/input';
+import { MatProgressSpinner } from '@angular/material/progress-spinner';
 
 export interface MemberDialogData {
   member: Person | null;
@@ -17,7 +24,7 @@ export interface MemberDialogData {
     selector: 'app-member-dialog',
     templateUrl: './member-dialog.component.html',
     styleUrls: ['./member-dialog.component.scss'],
-    standalone: false
+    imports: [MatDialogTitle, CdkScrollable, MatDialogContent, MatChip, MatButton, MatIcon, ReactiveFormsModule, MatFormField, MatLabel, MatInput, MatError, MatSuffix, MatDialogActions, MatProgressSpinner]
 })
 export class MemberDialogComponent implements OnInit {
   memberForm: FormGroup;

@@ -1,16 +1,24 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { UserService } from '../../services/user.service';
 import { AuthService } from '../../services/auth.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { User, UserProfileUpdate, ChangePasswordRequest, UserPreference } from '../../models';
 import { LoggerService } from '../../services/logger.service';
+import { MatCard, MatCardHeader, MatCardTitle, MatCardContent } from '@angular/material/card';
+import { MatIcon } from '@angular/material/icon';
+import { MatTabGroup, MatTab } from '@angular/material/tabs';
+import { MatFormField, MatLabel, MatSuffix, MatError, MatPrefix } from '@angular/material/form-field';
+import { MatInput } from '@angular/material/input';
+import { MatButton, MatIconButton } from '@angular/material/button';
+import { MatProgressSpinner } from '@angular/material/progress-spinner';
+import { MatSlideToggle } from '@angular/material/slide-toggle';
 
 @Component({
     selector: 'app-profile',
     templateUrl: './profile.component.html',
     styleUrls: ['./profile.component.scss'],
-    standalone: false
+    imports: [MatCard, MatCardHeader, MatCardTitle, MatIcon, MatCardContent, MatTabGroup, MatTab, ReactiveFormsModule, MatFormField, MatLabel, MatInput, MatSuffix, MatError, MatButton, MatProgressSpinner, MatIconButton, MatPrefix, MatSlideToggle]
 })
 export class ProfileComponent implements OnInit {
   profileForm: FormGroup;

@@ -1,7 +1,10 @@
 import { Component, Inject, OnInit, OnDestroy } from '@angular/core';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogRef, MatDialogTitle, MatDialogContent, MatDialogActions } from '@angular/material/dialog';
 import { Subject, interval } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { MatIcon } from '@angular/material/icon';
+import { CdkScrollable } from '@angular/cdk/scrolling';
+import { MatButton } from '@angular/material/button';
 
 export interface InactivityWarningData {
   timeRemaining: number;
@@ -12,7 +15,7 @@ export interface InactivityWarningData {
     selector: 'app-inactivity-warning-dialog',
     templateUrl: './inactivity-warning-dialog.component.html',
     styleUrls: ['./inactivity-warning-dialog.component.scss'],
-    standalone: false
+    imports: [MatDialogTitle, MatIcon, CdkScrollable, MatDialogContent, MatDialogActions, MatButton]
 })
 export class InactivityWarningDialogComponent implements OnInit, OnDestroy {
   timeRemaining: number;

@@ -1,6 +1,6 @@
 import { Component, Inject, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, FormArray, FormControl, AbstractControl } from '@angular/forms';
-import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { FormBuilder, FormGroup, Validators, FormArray, FormControl, AbstractControl, ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { MatDialogRef, MAT_DIALOG_DATA, MatDialogTitle, MatDialogContent, MatDialogActions } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
 import { finalize } from 'rxjs/operators';
@@ -15,12 +15,22 @@ import { ParticipantsManagementComponent } from '../participants-management/part
 import { PairingsManagementComponent } from '../pairings-management/pairings-management.component';
 import { SessionsManagementComponent } from '../sessions-management/sessions-management.component';
 import { ProgressManagementComponent } from '../progress-management/progress-management.component';
+import { CdkScrollable } from '@angular/cdk/scrolling';
+import { MatChip, MatChipListbox, MatChipRemove } from '@angular/material/chips';
+import { MatButton, MatIconButton } from '@angular/material/button';
+import { MatIcon } from '@angular/material/icon';
+import { MatFormField, MatLabel, MatError, MatHint } from '@angular/material/form-field';
+import { MatInput } from '@angular/material/input';
+import { MatCheckbox } from '@angular/material/checkbox';
+import { MatSelect, MatOption } from '@angular/material/select';
+import { MatProgressSpinner } from '@angular/material/progress-spinner';
+import { DatePipe } from '@angular/common';
 
 @Component({
     selector: 'app-program-dialog',
     templateUrl: './program-dialog.component.html',
     styleUrls: ['./program-dialog.component.scss'],
-    standalone: false
+    imports: [MatDialogTitle, CdkScrollable, MatDialogContent, MatChip, MatButton, MatIcon, ReactiveFormsModule, MatFormField, MatLabel, MatInput, MatError, MatCheckbox, MatIconButton, MatSelect, MatOption, MatChipListbox, MatChipRemove, FormsModule, MatHint, MatDialogActions, MatProgressSpinner, DatePipe]
 })
 export class ProgramDialogComponent implements OnInit {
   programForm: FormGroup;

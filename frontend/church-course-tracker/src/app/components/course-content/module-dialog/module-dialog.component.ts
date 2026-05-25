@@ -1,10 +1,16 @@
 import { Component, Inject, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { MAT_DIALOG_DATA, MatDialogRef, MatDialogTitle, MatDialogContent, MatDialogActions } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { CourseContentService } from '../../../services/course-content.service';
 import { CourseModule, CourseModuleCreate, CourseModuleUpdate } from '../../../models';
 import { LoggerService } from '../../../services/logger.service';
+import { CdkScrollable } from '@angular/cdk/scrolling';
+import { MatFormField, MatLabel, MatSuffix, MatError, MatHint } from '@angular/material/form-field';
+import { MatInput } from '@angular/material/input';
+import { MatIcon } from '@angular/material/icon';
+import { MatButton } from '@angular/material/button';
+import { MatProgressSpinner } from '@angular/material/progress-spinner';
 
 export interface ModuleDialogData {
   courseId: number;
@@ -15,7 +21,7 @@ export interface ModuleDialogData {
     selector: 'app-module-dialog',
     templateUrl: './module-dialog.component.html',
     styleUrls: ['./module-dialog.component.scss'],
-    standalone: false
+    imports: [MatDialogTitle, CdkScrollable, MatDialogContent, ReactiveFormsModule, MatFormField, MatLabel, MatInput, MatIcon, MatSuffix, MatError, MatHint, MatDialogActions, MatButton, MatProgressSpinner]
 })
 export class ModuleDialogComponent implements OnInit {
   moduleForm: FormGroup;

@@ -55,10 +55,9 @@ describe('PairingsManagementComponent (smoke)', () => {
     const snackBarSpy = jasmine.createSpyObj('MatSnackBar', ['open']);
 
     await TestBed.configureTestingModule({
-      declarations: [PairingsManagementComponent],
-      imports: [BrowserAnimationsModule, MatDialogModule],
-      schemas: [NO_ERRORS_SCHEMA],
-      providers: [
+    imports: [BrowserAnimationsModule, MatDialogModule, PairingsManagementComponent],
+    schemas: [NO_ERRORS_SCHEMA],
+    providers: [
         { provide: ProgramService, useValue: programSpy },
         { provide: MemberService, useValue: memberSpy },
         { provide: SearchFilterService, useValue: searchFilterSpy },
@@ -68,8 +67,8 @@ describe('PairingsManagementComponent (smoke)', () => {
         { provide: MatSnackBar, useValue: snackBarSpy },
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
-      ],
-    }).compileComponents();
+    ],
+}).compileComponents();
 
     fixture = TestBed.createComponent(PairingsManagementComponent);
     component = fixture.componentInstance;

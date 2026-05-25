@@ -24,18 +24,18 @@ describe('InactivityWarningDialogComponent', () => {
     const matDialogRefSpy = jasmine.createSpyObj('MatDialogRef', ['close']);
 
     await TestBed.configureTestingModule({
-      declarations: [InactivityWarningDialogComponent],
-      imports: [
+    imports: [
         BrowserAnimationsModule,
         MatDialogModule,
         MatButtonModule,
-        MatIconModule
-      ],
-      providers: [
+        MatIconModule,
+        InactivityWarningDialogComponent
+    ],
+    providers: [
         { provide: MatDialogRef, useValue: matDialogRefSpy },
         { provide: MAT_DIALOG_DATA, useValue: mockDialogData }
-      ]
-    }).compileComponents();
+    ]
+}).compileComponents();
 
     fixture = TestBed.createComponent(InactivityWarningDialogComponent);
     component = fixture.componentInstance;

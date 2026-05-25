@@ -7,6 +7,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { provideNativeDateAdapter } from '@angular/material/core';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { of } from 'rxjs';
@@ -31,18 +32,18 @@ describe('ActivityLogsComponent (smoke)', () => {
     const snackBarSpy = jasmine.createSpyObj('MatSnackBar', ['open']);
 
     await TestBed.configureTestingModule({
-      declarations: [ActivityLogsComponent],
-      imports: [BrowserAnimationsModule, ReactiveFormsModule, FormsModule],
-      schemas: [NO_ERRORS_SCHEMA],
-      providers: [
+    imports: [BrowserAnimationsModule, ReactiveFormsModule, FormsModule, ActivityLogsComponent],
+    schemas: [NO_ERRORS_SCHEMA],
+    providers: [
         { provide: AuditService, useValue: auditSpy },
         { provide: AuthService, useValue: authSpy },
         { provide: LoggerService, useValue: loggerSpy },
         { provide: MatSnackBar, useValue: snackBarSpy },
+        provideNativeDateAdapter(),
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
-      ],
-    }).compileComponents();
+    ],
+}).compileComponents();
 
     fixture = TestBed.createComponent(ActivityLogsComponent);
     component = fixture.componentInstance;

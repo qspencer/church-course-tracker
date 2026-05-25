@@ -1,11 +1,17 @@
 import { Component, Inject, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { MAT_DIALOG_DATA, MatDialogRef, MatDialogTitle, MatDialogContent, MatDialogActions } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { finalize } from 'rxjs/operators';
 import { ProgramContentService } from '../../../services/program-content.service';
 import { LoggerService } from '../../../services/logger.service';
 import { ProgramContent, ProgramContentCreate, ProgramContentUpdate, ContentType, ProgramModule, getContentTypeDisplayName } from '../../../models/program-content.model';
+import { CdkScrollable } from '@angular/cdk/scrolling';
+import { MatFormField, MatLabel, MatError, MatHint } from '@angular/material/form-field';
+import { MatInput } from '@angular/material/input';
+import { MatSelect, MatOption } from '@angular/material/select';
+import { MatButton } from '@angular/material/button';
+import { MatProgressSpinner } from '@angular/material/progress-spinner';
 
 export interface ContentDialogData {
   programId: number;
@@ -17,7 +23,7 @@ export interface ContentDialogData {
     selector: 'app-program-content-dialog',
     templateUrl: './content-dialog.component.html',
     styleUrls: ['./content-dialog.component.scss'],
-    standalone: false
+    imports: [MatDialogTitle, CdkScrollable, MatDialogContent, ReactiveFormsModule, MatFormField, MatLabel, MatInput, MatError, MatSelect, MatOption, MatHint, MatDialogActions, MatButton, MatProgressSpinner]
 })
 export class ContentDialogComponent implements OnInit {
   contentForm: FormGroup;

@@ -25,24 +25,21 @@ const routes: Routes = [
 ];
 
 @NgModule({
-  declarations: [
-    SettingsComponent
-  ],
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    RouterModule.forChild(routes),
-    
-    // Angular Material modules
-    MatTabsModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatButtonModule,
-    MatIconModule,
-    MatSelectModule,
-    MatCheckboxModule,
-    MatSnackBarModule,
-    MatProgressSpinnerModule
-  ]
+    imports: [
+        CommonModule,
+        ReactiveFormsModule,
+        RouterModule.forChild(routes),
+        // Angular Material modules
+        MatTabsModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatButtonModule,
+        MatIconModule,
+        MatSelectModule,
+        MatCheckboxModule,
+        MatSnackBarModule,
+        MatProgressSpinnerModule,
+        SettingsComponent
+    ]
 })
 export class SettingsModule { }

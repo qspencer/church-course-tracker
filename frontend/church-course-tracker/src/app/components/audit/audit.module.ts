@@ -35,31 +35,28 @@ const routes: Routes = [
 ];
 
 @NgModule({
-  declarations: [
-    AuditComponent,
-    AuditDetailsDialogComponent
-  ],
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    FormsModule,
-    RouterModule.forChild(routes),
-    
-    // Angular Material
-    MatCardModule,
-    MatTableModule,
-    MatButtonModule,
-    MatIconModule,
-    MatChipsModule,
-    MatProgressSpinnerModule,
-    MatFormFieldModule,
-    MatSelectModule,
-    MatInputModule,
-    MatPaginatorModule,
-    MatTooltipModule,
-    MatSnackBarModule,
-    MatDialogModule
-  ]
+    imports: [
+        CommonModule,
+        ReactiveFormsModule,
+        FormsModule,
+        RouterModule.forChild(routes),
+        // Angular Material
+        MatCardModule,
+        MatTableModule,
+        MatButtonModule,
+        MatIconModule,
+        MatChipsModule,
+        MatProgressSpinnerModule,
+        MatFormFieldModule,
+        MatSelectModule,
+        MatInputModule,
+        MatPaginatorModule,
+        MatTooltipModule,
+        MatSnackBarModule,
+        MatDialogModule,
+        AuditComponent,
+        AuditDetailsDialogComponent
+    ]
 })
 export class AuditModule { }
 

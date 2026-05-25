@@ -86,8 +86,7 @@ describe('SessionDialogComponent', () => {
     programSpy.updateProgramSession.and.returnValue(of(mockSession));
 
     await TestBed.configureTestingModule({
-      declarations: [SessionDialogComponent],
-      imports: [
+    imports: [
         ReactiveFormsModule,
         BrowserAnimationsModule,
         MatDialogModule,
@@ -98,17 +97,18 @@ describe('SessionDialogComponent', () => {
         MatProgressSpinnerModule,
         MatSelectModule,
         MatDatepickerModule,
-        MatNativeDateModule
-      ],
-      providers: [
+        MatNativeDateModule,
+        SessionDialogComponent
+    ],
+    providers: [
         { provide: ProgramService, useValue: programSpy },
         { provide: MatDialogRef, useValue: matDialogRefSpy },
         { provide: MAT_DIALOG_DATA, useValue: { session: null, program: mockProgram, pairings: [mockPairing], participants: [mockParticipant], viewMode: false } },
         { provide: MatSnackBar, useValue: matSnackBarSpy },
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting()
-      ]
-    }).compileComponents();
+    ]
+}).compileComponents();
 
     fixture = TestBed.createComponent(SessionDialogComponent);
     component = fixture.componentInstance;
@@ -135,8 +135,8 @@ describe('SessionDialogComponent', () => {
       const matSnackBarSpy = jasmine.createSpyObj('MatSnackBar', ['open']);
 
       await TestBed.resetTestingModule().configureTestingModule({
-        declarations: [SessionDialogComponent],
         imports: [
+          SessionDialogComponent,
           ReactiveFormsModule,
           BrowserAnimationsModule,
           MatDialogModule,
@@ -172,8 +172,8 @@ describe('SessionDialogComponent', () => {
       const matSnackBarSpy = jasmine.createSpyObj('MatSnackBar', ['open']);
 
       await TestBed.resetTestingModule().configureTestingModule({
-        declarations: [SessionDialogComponent],
         imports: [
+          SessionDialogComponent,
           ReactiveFormsModule,
           BrowserAnimationsModule,
           MatDialogModule,
@@ -209,8 +209,8 @@ describe('SessionDialogComponent', () => {
       const matSnackBarSpy = jasmine.createSpyObj('MatSnackBar', ['open']);
 
       await TestBed.resetTestingModule().configureTestingModule({
-        declarations: [SessionDialogComponent],
         imports: [
+          SessionDialogComponent,
           ReactiveFormsModule,
           BrowserAnimationsModule,
           MatDialogModule,
@@ -301,8 +301,8 @@ describe('SessionDialogComponent', () => {
       programSpy.updateProgramSession.and.returnValue(of(mockSession));
 
       await TestBed.resetTestingModule().configureTestingModule({
-        declarations: [SessionDialogComponent],
         imports: [
+          SessionDialogComponent,
           ReactiveFormsModule,
           BrowserAnimationsModule,
           MatDialogModule,
@@ -375,8 +375,8 @@ describe('SessionDialogComponent', () => {
       programSpy.updateProgramSession.and.returnValue(throwError(() => error));
 
       await TestBed.resetTestingModule().configureTestingModule({
-        declarations: [SessionDialogComponent],
         imports: [
+          SessionDialogComponent,
           ReactiveFormsModule,
           BrowserAnimationsModule,
           MatDialogModule,

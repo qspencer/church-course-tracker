@@ -51,10 +51,9 @@ describe('ProgressManagementComponent (smoke)', () => {
     const snackBarSpy = jasmine.createSpyObj('MatSnackBar', ['open']);
 
     await TestBed.configureTestingModule({
-      declarations: [ProgressManagementComponent],
-      imports: [BrowserAnimationsModule, MatDialogModule],
-      schemas: [NO_ERRORS_SCHEMA],
-      providers: [
+    imports: [BrowserAnimationsModule, MatDialogModule, ProgressManagementComponent],
+    schemas: [NO_ERRORS_SCHEMA],
+    providers: [
         { provide: ProgramService, useValue: programSpy },
         { provide: MemberService, useValue: memberSpy },
         { provide: LoggerService, useValue: loggerSpy },
@@ -63,8 +62,8 @@ describe('ProgressManagementComponent (smoke)', () => {
         { provide: MatSnackBar, useValue: snackBarSpy },
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
-      ],
-    }).compileComponents();
+    ],
+}).compileComponents();
 
     fixture = TestBed.createComponent(ProgressManagementComponent);
     component = fixture.componentInstance;

@@ -72,8 +72,8 @@ describe('AttributeMappingDialogComponent', () => {
     const matSnackBarSpy = jasmine.createSpyObj('MatSnackBar', ['open']);
 
     await TestBed.configureTestingModule({
-      declarations: [AttributeMappingDialogComponent],
-      imports: [
+    declarations: [AttributeMappingDialogComponent],
+    imports: [
         ReactiveFormsModule,
         BrowserAnimationsModule,
         HttpClientTestingModule,
@@ -86,15 +86,15 @@ describe('AttributeMappingDialogComponent', () => {
         MatSelectModule,
         MatChipsModule,
         MatCardModule
-      ],
-      providers: [
+    ],
+    providers: [
         { provide: MatDialogRef, useValue: matDialogRefSpy },
         { provide: MAT_DIALOG_DATA, useValue: mockDialogData },
         { provide: MatSnackBar, useValue: matSnackBarSpy },
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting()
-      ]
-    }).compileComponents();
+    ]
+}).compileComponents();
 
     fixture = TestBed.createComponent(AttributeMappingDialogComponent);
     component = fixture.componentInstance;

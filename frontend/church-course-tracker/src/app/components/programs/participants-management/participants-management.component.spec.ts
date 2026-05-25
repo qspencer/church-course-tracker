@@ -60,11 +60,10 @@ describe('ParticipantsManagementComponent (smoke)', () => {
     const snackBarSpy = jasmine.createSpyObj('MatSnackBar', ['open']);
 
     await TestBed.configureTestingModule({
-      declarations: [ParticipantsManagementComponent],
-      imports: [BrowserAnimationsModule, MatDialogModule],
-      schemas: [NO_ERRORS_SCHEMA],  // template uses Material elements - we
-                                     // don't care for a boot-only smoke test
-      providers: [
+    imports: [BrowserAnimationsModule, MatDialogModule, ParticipantsManagementComponent],
+    schemas: [NO_ERRORS_SCHEMA], // template uses Material elements - we
+    // don't care for a boot-only smoke test
+    providers: [
         { provide: ProgramService, useValue: programSpy },
         { provide: MemberService, useValue: memberSpy },
         { provide: SearchFilterService, useValue: searchFilterSpy },
@@ -74,8 +73,8 @@ describe('ParticipantsManagementComponent (smoke)', () => {
         { provide: MatSnackBar, useValue: snackBarSpy },
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
-      ],
-    }).compileComponents();
+    ],
+}).compileComponents();
 
     fixture = TestBed.createComponent(ParticipantsManagementComponent);
     component = fixture.componentInstance;
