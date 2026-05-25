@@ -6,88 +6,110 @@ export const routes: Routes = [
   {
     path: '',
     redirectTo: '/dashboard',
-    pathMatch: 'full'
+    pathMatch: 'full',
   },
   {
     path: 'auth',
-    loadChildren: () => import('./components/auth/auth.module').then(m => m.AuthModule)
+    loadComponent: () =>
+      import('./components/auth/auth.component').then(m => m.AuthComponent),
   },
   {
     path: 'dashboard',
-    loadChildren: () => import('./components/dashboard/dashboard.module').then(m => m.DashboardModule),
-    canActivate: [AuthGuard]
+    loadComponent: () =>
+      import('./components/dashboard/dashboard.component').then(m => m.DashboardComponent),
+    canActivate: [AuthGuard],
   },
   {
     path: 'courses',
-    loadChildren: () => import('./components/courses/courses.module').then(m => m.CoursesModule),
-    canActivate: [AuthGuard]
+    loadComponent: () =>
+      import('./components/courses/courses.component').then(m => m.CoursesComponent),
+    canActivate: [AuthGuard],
   },
   {
     path: 'programs',
-    loadChildren: () => import('./components/programs/programs.module').then(m => m.ProgramsModule),
-    canActivate: [AuthGuard]
+    loadComponent: () =>
+      import('./components/programs/programs.component').then(m => m.ProgramsComponent),
+    canActivate: [AuthGuard],
   },
   {
     path: 'courses/:courseId/content',
-    loadChildren: () => import('./components/course-content/course-content.module').then(m => m.CourseContentModule),
-    canActivate: [AuthGuard]
+    loadComponent: () =>
+      import('./components/course-content/course-content.component').then(
+        m => m.CourseContentComponent,
+      ),
+    canActivate: [AuthGuard],
   },
   {
     path: 'programs/:programId/content',
-    loadChildren: () => import('./components/program-content/program-content.module').then(m => m.ProgramContentModule),
-    canActivate: [AuthGuard]
+    loadComponent: () =>
+      import('./components/program-content/program-content.component').then(
+        m => m.ProgramContentComponent,
+      ),
+    canActivate: [AuthGuard],
   },
   {
     path: 'enrollments',
-    loadChildren: () => import('./components/enrollments/enrollments.module').then(m => m.EnrollmentsModule),
-    canActivate: [AuthGuard]
+    loadComponent: () =>
+      import('./components/enrollments/enrollments.component').then(m => m.EnrollmentsComponent),
+    canActivate: [AuthGuard],
   },
   {
     path: 'progress',
-    loadChildren: () => import('./components/progress/progress.module').then(m => m.ProgressModule),
-    canActivate: [AuthGuard]
+    loadComponent: () =>
+      import('./components/progress/progress.component').then(m => m.ProgressComponent),
+    canActivate: [AuthGuard],
   },
   {
     path: 'reports',
-    loadChildren: () => import('./components/reports/reports.module').then(m => m.ReportsModule),
-    canActivate: [AuthGuard]
+    loadComponent: () =>
+      import('./components/reports/reports.component').then(m => m.ReportsComponent),
+    canActivate: [AuthGuard],
   },
   {
     path: 'members',
-    loadChildren: () => import('./components/members/members.module').then(m => m.MembersModule),
-    canActivate: [AuthGuard]
+    loadComponent: () =>
+      import('./components/members/members.component').then(m => m.MembersComponent),
+    canActivate: [AuthGuard],
   },
   {
     path: 'users',
-    loadChildren: () => import('./components/users/users.module').then(m => m.UsersModule),
-    canActivate: [AuthGuard, AdminGuard]
+    loadComponent: () =>
+      import('./components/users/users.component').then(m => m.UsersComponent),
+    canActivate: [AuthGuard, AdminGuard],
   },
   {
     path: 'audit',
-    loadChildren: () => import('./components/audit/audit.module').then(m => m.AuditModule),
-    canActivate: [AuthGuard, AdminGuard]
+    loadComponent: () =>
+      import('./components/audit/audit.component').then(m => m.AuditComponent),
+    canActivate: [AuthGuard, AdminGuard],
   },
   {
     path: 'settings',
-    loadChildren: () => import('./components/settings/settings.module').then(m => m.SettingsModule),
-    canActivate: [AuthGuard, AdminGuard]
+    loadComponent: () =>
+      import('./components/settings/settings.component').then(m => m.SettingsComponent),
+    canActivate: [AuthGuard, AdminGuard],
   },
   {
     path: 'profile',
-    loadChildren: () => import('./components/profile/profile.module').then(m => m.ProfileModule),
-    canActivate: [AuthGuard]
+    loadComponent: () =>
+      import('./components/profile/profile.component').then(m => m.ProfileComponent),
+    canActivate: [AuthGuard],
   },
   {
     path: 'activity-logs',
-    loadChildren: () => import('./components/activity-logs/activity-logs.module').then(m => m.ActivityLogsModule),
-    canActivate: [AuthGuard]
+    loadComponent: () =>
+      import('./components/activity-logs/activity-logs.component').then(
+        m => m.ActivityLogsComponent,
+      ),
+    canActivate: [AuthGuard],
   },
   {
     path: '404',
-    loadChildren: () => import('./components/not-found/not-found.module').then(m => m.NotFoundModule)
+    loadComponent: () =>
+      import('./components/not-found/not-found.component').then(m => m.NotFoundComponent),
   },
   {
     path: '**',
-    redirectTo: '/dashboard'
-  }
+    redirectTo: '/dashboard',
+  },
 ];
