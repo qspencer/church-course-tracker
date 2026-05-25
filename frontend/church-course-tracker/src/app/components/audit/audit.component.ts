@@ -24,9 +24,10 @@ import {
 import { AuditDetailsDialogComponent } from './audit-details-dialog/audit-details-dialog.component';
 
 @Component({
-  selector: 'app-audit',
-  templateUrl: './audit.component.html',
-  styleUrls: ['./audit.component.scss']
+    selector: 'app-audit',
+    templateUrl: './audit.component.html',
+    styleUrls: ['./audit.component.scss'],
+    standalone: false
 })
 export class AuditComponent implements OnInit, OnDestroy {
   auditLogs: AuditLog[] = [];

@@ -14,9 +14,10 @@ import { ProgressDialogComponent } from '../progress-dialog/progress-dialog.comp
 import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-dialog.component';
 
 @Component({
-  selector: 'app-progress-management',
-  templateUrl: './progress-management.component.html',
-  styleUrls: ['./progress-management.component.scss']
+    selector: 'app-progress-management',
+    templateUrl: './progress-management.component.html',
+    styleUrls: ['./progress-management.component.scss'],
+    standalone: false
 })
 export class ProgressManagementComponent implements OnInit {
   displayedColumns: string[] = ['progress_type', 'details', 'completion_date', 'participant', 'actions'];

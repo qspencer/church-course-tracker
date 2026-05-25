@@ -24,9 +24,10 @@ import {
 } from '../../shared/confirm-dialog/confirm-dialog.component';
 
 @Component({
-  selector: 'app-course-content',
-  templateUrl: './course-content.component.html',
-  styleUrls: ['./course-content.component.scss']
+    selector: 'app-course-content',
+    templateUrl: './course-content.component.html',
+    styleUrls: ['./course-content.component.scss'],
+    standalone: false
 })
 export class CourseContentComponent implements OnInit, OnDestroy {
   @Input() courseId!: number;

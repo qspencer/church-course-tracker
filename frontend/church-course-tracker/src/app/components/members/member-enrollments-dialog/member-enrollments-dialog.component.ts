@@ -9,9 +9,10 @@ export interface MemberEnrollmentsDialogData {
 }
 
 @Component({
-  selector: 'app-member-enrollments-dialog',
-  templateUrl: './member-enrollments-dialog.component.html',
-  styleUrls: ['./member-enrollments-dialog.component.scss']
+    selector: 'app-member-enrollments-dialog',
+    templateUrl: './member-enrollments-dialog.component.html',
+    styleUrls: ['./member-enrollments-dialog.component.scss'],
+    standalone: false
 })
 export class MemberEnrollmentsDialogComponent implements OnInit {
   member: Person;

@@ -22,9 +22,10 @@ interface AuditChangeEntry {
 }
 
 @Component({
-  selector: 'app-audit-details-dialog',
-  templateUrl: './audit-details-dialog.component.html',
-  styleUrls: ['./audit-details-dialog.component.scss']
+    selector: 'app-audit-details-dialog',
+    templateUrl: './audit-details-dialog.component.html',
+    styleUrls: ['./audit-details-dialog.component.scss'],
+    standalone: false
 })
 export class AuditDetailsDialogComponent {
   readonly log: AuditLog;

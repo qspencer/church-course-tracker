@@ -9,9 +9,10 @@ import { Observable, of } from 'rxjs';
 import { map, startWith, debounceTime, distinctUntilChanged, switchMap, catchError } from 'rxjs/operators';
 
 @Component({
-  selector: 'app-user-import-dialog',
-  templateUrl: './user-import-dialog.component.html',
-  styleUrls: ['./user-import-dialog.component.scss']
+    selector: 'app-user-import-dialog',
+    templateUrl: './user-import-dialog.component.html',
+    styleUrls: ['./user-import-dialog.component.scss'],
+    standalone: false
 })
 export class UserImportDialogComponent implements OnInit {
   searchForm: FormGroup;

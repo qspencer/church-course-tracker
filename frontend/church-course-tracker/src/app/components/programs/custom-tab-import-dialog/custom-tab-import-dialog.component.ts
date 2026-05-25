@@ -9,9 +9,10 @@ export interface CustomTabImportDialogData {
 }
 
 @Component({
-  selector: 'app-custom-tab-import-dialog',
-  templateUrl: './custom-tab-import-dialog.component.html',
-  styleUrls: ['./custom-tab-import-dialog.component.scss']
+    selector: 'app-custom-tab-import-dialog',
+    templateUrl: './custom-tab-import-dialog.component.html',
+    styleUrls: ['./custom-tab-import-dialog.component.scss'],
+    standalone: false
 })
 export class CustomTabImportDialogComponent implements OnInit {
   loading = false;

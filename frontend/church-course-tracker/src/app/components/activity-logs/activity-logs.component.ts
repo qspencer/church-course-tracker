@@ -14,9 +14,10 @@ import {
 } from '../../models';
 
 @Component({
-  selector: 'app-activity-logs',
-  templateUrl: './activity-logs.component.html',
-  styleUrls: ['./activity-logs.component.scss']
+    selector: 'app-activity-logs',
+    templateUrl: './activity-logs.component.html',
+    styleUrls: ['./activity-logs.component.scss'],
+    standalone: false
 })
 export class ActivityLogsComponent implements OnInit {
   activityLogs: AuditLog[] = [];

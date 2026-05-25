@@ -17,9 +17,10 @@ export interface ParticipantDialogData {
 }
 
 @Component({
-  selector: 'app-participant-dialog',
-  templateUrl: './participant-dialog.component.html',
-  styleUrls: ['./participant-dialog.component.scss']
+    selector: 'app-participant-dialog',
+    templateUrl: './participant-dialog.component.html',
+    styleUrls: ['./participant-dialog.component.scss'],
+    standalone: false
 })
 export class ParticipantDialogComponent implements OnInit {
   participantForm: FormGroup;

@@ -17,9 +17,10 @@ export interface CourseDialogData {
 }
 
 @Component({
-  selector: 'app-course-dialog',
-  templateUrl: './course-dialog.component.html',
-  styleUrls: ['./course-dialog.component.scss']
+    selector: 'app-course-dialog',
+    templateUrl: './course-dialog.component.html',
+    styleUrls: ['./course-dialog.component.scss'],
+    standalone: false
 })
 export class CourseDialogComponent implements OnInit {
   courseForm: FormGroup;

@@ -13,9 +13,10 @@ export interface ContentDialogData {
 }
 
 @Component({
-  selector: 'app-content-dialog',
-  templateUrl: './content-dialog.component.html',
-  styleUrls: ['./content-dialog.component.scss']
+    selector: 'app-content-dialog',
+    templateUrl: './content-dialog.component.html',
+    styleUrls: ['./content-dialog.component.scss'],
+    standalone: false
 })
 export class ContentDialogComponent implements OnInit {
   contentForm: FormGroup;

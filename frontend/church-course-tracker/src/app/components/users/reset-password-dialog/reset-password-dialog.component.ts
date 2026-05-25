@@ -15,9 +15,10 @@ export interface ResetPasswordDialogData {
 }
 
 @Component({
-  selector: 'app-reset-password-dialog',
-  templateUrl: './reset-password-dialog.component.html',
-  styleUrls: ['./reset-password-dialog.component.scss']
+    selector: 'app-reset-password-dialog',
+    templateUrl: './reset-password-dialog.component.html',
+    styleUrls: ['./reset-password-dialog.component.scss'],
+    standalone: false
 })
 export class ResetPasswordDialogComponent {
   passwordForm: FormGroup;

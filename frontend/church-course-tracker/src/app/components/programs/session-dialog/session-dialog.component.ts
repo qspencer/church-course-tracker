@@ -15,9 +15,10 @@ export interface SessionDialogData {
 }
 
 @Component({
-  selector: 'app-session-dialog',
-  templateUrl: './session-dialog.component.html',
-  styleUrls: ['./session-dialog.component.scss']
+    selector: 'app-session-dialog',
+    templateUrl: './session-dialog.component.html',
+    styleUrls: ['./session-dialog.component.scss'],
+    standalone: false
 })
 export class SessionDialogComponent implements OnInit {
   sessionForm: FormGroup;

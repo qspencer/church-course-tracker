@@ -12,9 +12,10 @@ export interface ModuleDialogData {
 }
 
 @Component({
-  selector: 'app-module-dialog',
-  templateUrl: './module-dialog.component.html',
-  styleUrls: ['./module-dialog.component.scss']
+    selector: 'app-module-dialog',
+    templateUrl: './module-dialog.component.html',
+    styleUrls: ['./module-dialog.component.scss'],
+    standalone: false
 })
 export class ModuleDialogComponent implements OnInit {
   moduleForm: FormGroup;

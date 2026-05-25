@@ -18,9 +18,10 @@ export interface CustomTabConfigDialogData {
 }
 
 @Component({
-  selector: 'app-custom-tab-config-dialog',
-  templateUrl: './custom-tab-config-dialog.component.html',
-  styleUrls: ['./custom-tab-config-dialog.component.scss']
+    selector: 'app-custom-tab-config-dialog',
+    templateUrl: './custom-tab-config-dialog.component.html',
+    styleUrls: ['./custom-tab-config-dialog.component.scss'],
+    standalone: false
 })
 export class CustomTabConfigDialogComponent implements OnInit {
   loading = false;

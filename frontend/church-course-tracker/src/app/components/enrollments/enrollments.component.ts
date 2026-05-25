@@ -16,9 +16,10 @@ import { ConfirmDialogComponent } from '../../shared/confirm-dialog/confirm-dial
 import { LoggerService } from '../../services/logger.service';
 
 @Component({
-  selector: 'app-enrollments',
-  templateUrl: './enrollments.component.html',
-  styleUrls: ['./enrollments.component.scss']
+    selector: 'app-enrollments',
+    templateUrl: './enrollments.component.html',
+    styleUrls: ['./enrollments.component.scss'],
+    standalone: false
 })
 export class EnrollmentsComponent implements OnInit {
   viewMode: 'courses' | 'programs' = 'courses';

@@ -17,9 +17,10 @@ import { SessionsManagementComponent } from '../sessions-management/sessions-man
 import { ProgressManagementComponent } from '../progress-management/progress-management.component';
 
 @Component({
-  selector: 'app-program-dialog',
-  templateUrl: './program-dialog.component.html',
-  styleUrls: ['./program-dialog.component.scss']
+    selector: 'app-program-dialog',
+    templateUrl: './program-dialog.component.html',
+    styleUrls: ['./program-dialog.component.scss'],
+    standalone: false
 })
 export class ProgramDialogComponent implements OnInit {
   programForm: FormGroup;

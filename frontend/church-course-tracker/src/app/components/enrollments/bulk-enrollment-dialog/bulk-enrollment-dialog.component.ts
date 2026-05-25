@@ -15,9 +15,10 @@ export interface BulkImportDialogData {
 }
 
 @Component({
-  selector: 'app-bulk-enrollment-dialog',
-  templateUrl: './bulk-enrollment-dialog.component.html',
-  styleUrls: ['./bulk-enrollment-dialog.component.scss']
+    selector: 'app-bulk-enrollment-dialog',
+    templateUrl: './bulk-enrollment-dialog.component.html',
+    styleUrls: ['./bulk-enrollment-dialog.component.scss'],
+    standalone: false
 })
 export class BulkEnrollmentDialogComponent implements OnInit {
   form: FormGroup;

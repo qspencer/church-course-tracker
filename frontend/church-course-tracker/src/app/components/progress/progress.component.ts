@@ -9,9 +9,10 @@ import { Progress, Enrollment, Course, Person, ProgressStatus } from '../../mode
 import { LoggerService } from '../../services/logger.service';
 
 @Component({
-  selector: 'app-progress',
-  templateUrl: './progress.component.html',
-  styleUrls: ['./progress.component.scss']
+    selector: 'app-progress',
+    templateUrl: './progress.component.html',
+    styleUrls: ['./progress.component.scss'],
+    standalone: false
 })
 export class ProgressComponent implements OnInit {
   enrollments: Enrollment[] = [];

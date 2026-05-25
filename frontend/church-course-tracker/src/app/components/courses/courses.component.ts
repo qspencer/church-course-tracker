@@ -14,9 +14,10 @@ import { ConfirmDialogComponent } from '../../shared/confirm-dialog/confirm-dial
 import { PCImportDialogComponent, PCImportDialogData } from './pc-import-dialog/pc-import-dialog.component';
 
 @Component({
-  selector: 'app-courses',
-  templateUrl: './courses.component.html',
-  styleUrls: ['./courses.component.scss']
+    selector: 'app-courses',
+    templateUrl: './courses.component.html',
+    styleUrls: ['./courses.component.scss'],
+    standalone: false
 })
 export class CoursesComponent implements OnInit {
   displayedColumns: string[] = ['title', 'description', 'duration_weeks', 'is_active', 'created_at', 'actions'];

@@ -21,9 +21,10 @@ import { CustomTabConfigDialogComponent } from './custom-tab-config-dialog/custo
 import { CustomTabImportDialogComponent } from './custom-tab-import-dialog/custom-tab-import-dialog.component';
 
 @Component({
-  selector: 'app-programs',
-  templateUrl: './programs.component.html',
-  styleUrls: ['./programs.component.scss']
+    selector: 'app-programs',
+    templateUrl: './programs.component.html',
+    styleUrls: ['./programs.component.scss'],
+    standalone: false
 })
 export class ProgramsComponent implements OnInit {
   displayedColumns: string[] = ['title', 'description', 'is_active', 'created_at', 'actions'];

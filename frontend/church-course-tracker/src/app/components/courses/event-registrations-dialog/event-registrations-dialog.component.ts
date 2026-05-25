@@ -15,9 +15,10 @@ export interface EventRegistrationsDialogData {
 }
 
 @Component({
-  selector: 'app-event-registrations-dialog',
-  templateUrl: './event-registrations-dialog.component.html',
-  styleUrls: ['./event-registrations-dialog.component.scss']
+    selector: 'app-event-registrations-dialog',
+    templateUrl: './event-registrations-dialog.component.html',
+    styleUrls: ['./event-registrations-dialog.component.scss'],
+    standalone: false
 })
 export class EventRegistrationsDialogComponent implements OnInit {
   registrations: PlanningCenterRegistration[] = [];

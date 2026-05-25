@@ -28,9 +28,10 @@ import {
 } from '../../models/program-content.model';
 
 @Component({
-  selector: 'app-program-content',
-  templateUrl: './program-content.component.html',
-  styleUrls: ['./program-content.component.scss']
+    selector: 'app-program-content',
+    templateUrl: './program-content.component.html',
+    styleUrls: ['./program-content.component.scss'],
+    standalone: false
 })
 export class ProgramContentComponent implements OnInit, OnDestroy {
   @Input() programId!: number;

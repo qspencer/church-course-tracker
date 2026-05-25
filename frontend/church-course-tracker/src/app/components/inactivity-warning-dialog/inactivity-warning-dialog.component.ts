@@ -9,9 +9,10 @@ export interface InactivityWarningData {
 }
 
 @Component({
-  selector: 'app-inactivity-warning-dialog',
-  templateUrl: './inactivity-warning-dialog.component.html',
-  styleUrls: ['./inactivity-warning-dialog.component.scss']
+    selector: 'app-inactivity-warning-dialog',
+    templateUrl: './inactivity-warning-dialog.component.html',
+    styleUrls: ['./inactivity-warning-dialog.component.scss'],
+    standalone: false
 })
 export class InactivityWarningDialogComponent implements OnInit, OnDestroy {
   timeRemaining: number;

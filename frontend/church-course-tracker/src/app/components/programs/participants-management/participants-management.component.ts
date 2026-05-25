@@ -15,9 +15,10 @@ import { SearchFilterService } from '../../../shared/search-filter.service';
 import { LoggerService } from '../../../services/logger.service';
 
 @Component({
-  selector: 'app-participants-management',
-  templateUrl: './participants-management.component.html',
-  styleUrls: ['./participants-management.component.scss']
+    selector: 'app-participants-management',
+    templateUrl: './participants-management.component.html',
+    styleUrls: ['./participants-management.component.scss'],
+    standalone: false
 })
 export class ParticipantsManagementComponent implements OnInit, AfterViewInit {
   displayedColumns: string[] = ['member_name', 'role_name', 'status', 'progress_percentage', 'start_date', 'actions'];

@@ -15,9 +15,10 @@ import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-d
 import { SearchFilterService } from '../../../shared/search-filter.service';
 
 @Component({
-  selector: 'app-pairings-management',
-  templateUrl: './pairings-management.component.html',
-  styleUrls: ['./pairings-management.component.scss']
+    selector: 'app-pairings-management',
+    templateUrl: './pairings-management.component.html',
+    styleUrls: ['./pairings-management.component.scss'],
+    standalone: false
 })
 export class PairingsManagementComponent implements OnInit {
   displayedColumns: string[] = ['primary_participant', 'secondary_participant', 'status', 'start_date', 'actions'];

@@ -8,9 +8,10 @@ export interface EmbeddedContentViewerData {
 }
 
 @Component({
-  selector: 'app-embedded-content-viewer',
-  templateUrl: './embedded-content-viewer.component.html',
-  styleUrls: ['./embedded-content-viewer.component.scss']
+    selector: 'app-embedded-content-viewer',
+    templateUrl: './embedded-content-viewer.component.html',
+    styleUrls: ['./embedded-content-viewer.component.scss'],
+    standalone: false
 })
 export class EmbeddedContentViewerComponent {
   safeContent: SafeHtml;

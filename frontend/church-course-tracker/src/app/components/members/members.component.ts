@@ -13,9 +13,10 @@ import { MemberImportDialogComponent } from './member-import-dialog/member-impor
 import { ConfirmDialogComponent } from '../../shared/confirm-dialog/confirm-dialog.component';
 
 @Component({
-  selector: 'app-members',
-  templateUrl: './members.component.html',
-  styleUrls: ['./members.component.scss']
+    selector: 'app-members',
+    templateUrl: './members.component.html',
+    styleUrls: ['./members.component.scss'],
+    standalone: false
 })
 export class MembersComponent implements OnInit {
   displayedColumns: string[] = ['full_name', 'email', 'phone', 'created_at', 'actions'];

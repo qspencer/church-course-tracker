@@ -14,9 +14,10 @@ export interface MemberDialogData {
 }
 
 @Component({
-  selector: 'app-member-dialog',
-  templateUrl: './member-dialog.component.html',
-  styleUrls: ['./member-dialog.component.scss']
+    selector: 'app-member-dialog',
+    templateUrl: './member-dialog.component.html',
+    styleUrls: ['./member-dialog.component.scss'],
+    standalone: false
 })
 export class MemberDialogComponent implements OnInit {
   memberForm: FormGroup;

@@ -14,9 +14,10 @@ import { SessionDialogComponent } from '../session-dialog/session-dialog.compone
 import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-dialog.component';
 
 @Component({
-  selector: 'app-sessions-management',
-  templateUrl: './sessions-management.component.html',
-  styleUrls: ['./sessions-management.component.scss']
+    selector: 'app-sessions-management',
+    templateUrl: './sessions-management.component.html',
+    styleUrls: ['./sessions-management.component.scss'],
+    standalone: false
 })
 export class SessionsManagementComponent implements OnInit {
   displayedColumns: string[] = ['session_date', 'duration', 'location', 'session_type', 'participants', 'actions'];

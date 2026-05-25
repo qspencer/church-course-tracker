@@ -40,9 +40,10 @@ export interface AttributeMappingDialogData {
 }
 
 @Component({
-  selector: 'app-attribute-mapping-dialog',
-  templateUrl: './attribute-mapping-dialog.component.html',
-  styleUrls: ['./attribute-mapping-dialog.component.scss']
+    selector: 'app-attribute-mapping-dialog',
+    templateUrl: './attribute-mapping-dialog.component.html',
+    styleUrls: ['./attribute-mapping-dialog.component.scss'],
+    standalone: false
 })
 export class AttributeMappingDialogComponent implements OnInit {
   review: AttributeMappingReview | null = null;

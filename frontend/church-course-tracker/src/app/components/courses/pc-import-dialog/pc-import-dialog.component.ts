@@ -40,9 +40,10 @@ export interface GroupedList {
 }
 
 @Component({
-  selector: 'app-pc-import-dialog',
-  templateUrl: './pc-import-dialog.component.html',
-  styleUrls: ['./pc-import-dialog.component.scss']
+    selector: 'app-pc-import-dialog',
+    templateUrl: './pc-import-dialog.component.html',
+    styleUrls: ['./pc-import-dialog.component.scss'],
+    standalone: false
 })
 export class PCImportDialogComponent implements OnInit, AfterViewInit {
   importForm: FormGroup;

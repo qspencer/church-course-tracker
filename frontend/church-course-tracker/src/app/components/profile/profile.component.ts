@@ -7,9 +7,10 @@ import { User, UserProfileUpdate, ChangePasswordRequest, UserPreference } from '
 import { LoggerService } from '../../services/logger.service';
 
 @Component({
-  selector: 'app-profile',
-  templateUrl: './profile.component.html',
-  styleUrls: ['./profile.component.scss']
+    selector: 'app-profile',
+    templateUrl: './profile.component.html',
+    styleUrls: ['./profile.component.scss'],
+    standalone: false
 })
 export class ProfileComponent implements OnInit {
   profileForm: FormGroup;

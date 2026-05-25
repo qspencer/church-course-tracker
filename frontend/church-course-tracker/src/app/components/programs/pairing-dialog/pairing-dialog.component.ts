@@ -16,9 +16,10 @@ export interface PairingDialogData {
 }
 
 @Component({
-  selector: 'app-pairing-dialog',
-  templateUrl: './pairing-dialog.component.html',
-  styleUrls: ['./pairing-dialog.component.scss']
+    selector: 'app-pairing-dialog',
+    templateUrl: './pairing-dialog.component.html',
+    styleUrls: ['./pairing-dialog.component.scss'],
+    standalone: false
 })
 export class PairingDialogComponent implements OnInit {
   pairingForm: FormGroup;
