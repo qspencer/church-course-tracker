@@ -107,23 +107,28 @@ async function getAuthToken(request: any, user: typeof testUsers.admin): Promise
 
 test.describe('Church Course Tracker - Comprehensive Test Suite', () => {
   test.describe('API Health and Connectivity', () => {
+    // These three tests probe API liveness, response time, and concurrency.
+    // They use /health (intentionally public) so the assertions are about
+    // the platform/middleware, not the auth gate on a particular data
+    // endpoint. Prior to the May 2026 hardening pass these used /courses/
+    // (then public) - the switch is semantic, not just convenience.
     test('API is accessible and responding', async ({ request }) => {
-      let response = await request.get(`${API_BASE_URL}/api/v1/courses/`);
+      let response = await request.get(`${API_BASE_URL}/api/v1/health`);
       let status = response.status();
-      
+
       // Handle rate limiting - retry once if needed
       if (status === 429) {
         await new Promise(resolve => setTimeout(resolve, 2000));
-        response = await request.get(`${API_BASE_URL}/api/v1/courses/`);
+        response = await request.get(`${API_BASE_URL}/api/v1/health`);
         status = response.status();
       }
-      
+
       expect([200, 429]).toContain(status);
-      
+
       if (status === 200) {
         const data = await response.json();
-        expect(Array.isArray(data)).toBeTruthy();
-        console.log(`✓ API is accessible and returned ${data.length} courses`);
+        expect(data.status).toBe('healthy');
+        console.log(`✓ API is accessible; health status: ${data.status}`);
       } else {
         console.log(`✓ API is accessible (rate limited: ${status})`);
       }
@@ -131,28 +136,27 @@ test.describe('Church Course Tracker - Comprehensive Test Suite', () => {
 
     test('API response times are acceptable', async ({ request }) => {
       const startTime = Date.now();
-      const response = await request.get(`${API_BASE_URL}/api/v1/courses/`);
+      const response = await request.get(`${API_BASE_URL}/api/v1/health`);
       const responseTime = Date.now() - startTime;
-      
+
       // Allow for rate limiting (429) - retry once if rate limited
       let status = response.status();
       if (status === 429) {
-        // Wait a bit and retry
         await new Promise(resolve => setTimeout(resolve, 2000));
-        const retryResponse = await request.get(`${API_BASE_URL}/api/v1/courses/`);
+        const retryResponse = await request.get(`${API_BASE_URL}/api/v1/health`);
         status = retryResponse.status();
       }
-      
+
       expect([200, 429]).toContain(status); // Accept 200 or 429 (rate limited)
       expect(responseTime).toBeLessThan(5000);
-      
+
       console.log(`✓ API response time: ${responseTime}ms (status: ${status})`);
     });
 
     test('API handles concurrent requests', async ({ request }) => {
       const requests = [];
       for (let i = 0; i < 5; i++) {
-        requests.push(request.get(`${API_BASE_URL}/api/v1/courses/`));
+        requests.push(request.get(`${API_BASE_URL}/api/v1/health`));
       }
       
       const responses = await Promise.all(requests);
@@ -404,12 +408,18 @@ test.describe('Church Course Tracker - Comprehensive Test Suite', () => {
 
   test.describe('Data Management', () => {
     test('Courses endpoint returns proper data structure', async ({ request }) => {
-      const response = await request.get(`${API_BASE_URL}/api/v1/courses/`);
+      // /courses requires auth as of May 2026 hardening pass.
+      const token = await getApiAuthToken(request, 'admin');
+      test.skip(!token, 'admin credentials not configured (or login failed)');
+
+      const response = await request.get(`${API_BASE_URL}/api/v1/courses/`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       expect(response.status()).toBe(200);
-      
+
       const data = await response.json();
       expect(Array.isArray(data)).toBeTruthy();
-      
+
       console.log(`✓ Courses endpoint returns ${data.length} courses`);
     });
 
@@ -430,21 +440,31 @@ test.describe('Church Course Tracker - Comprehensive Test Suite', () => {
     });
 
     test('API handles query parameters', async ({ request }) => {
-      const response = await request.get(`${API_BASE_URL}/api/v1/courses/?limit=5&offset=0`);
+      const token = await getApiAuthToken(request, 'admin');
+      test.skip(!token, 'admin credentials not configured (or login failed)');
+      const authHeaders = { Authorization: `Bearer ${token}` };
+
+      const response = await request.get(
+        `${API_BASE_URL}/api/v1/courses/?limit=5&offset=0`,
+        { headers: authHeaders },
+      );
       // Allow for rate limiting (429) - retry once if rate limited
       let status = response.status();
       if (status === 429) {
         await new Promise(resolve => setTimeout(resolve, 2000));
-        const retryResponse = await request.get(`${API_BASE_URL}/api/v1/courses/?limit=5&offset=0`);
+        const retryResponse = await request.get(
+          `${API_BASE_URL}/api/v1/courses/?limit=5&offset=0`,
+          { headers: authHeaders },
+        );
         status = retryResponse.status();
       }
       expect([200, 429]).toContain(status);
-      
+
       if (status === 200) {
         const data = await response.json();
         expect(Array.isArray(data)).toBeTruthy();
       }
-      
+
       console.log(`✓ API handles query parameters (status: ${status})`);
     });
   });
@@ -492,11 +512,13 @@ test.describe('Church Course Tracker - Comprehensive Test Suite', () => {
 
   test.describe('Performance and Reliability', () => {
     test('API maintains performance under load', async ({ request }) => {
+      // Load test uses /health (public) so it measures platform load,
+      // not the auth-dependency execution path.
       const startTime = Date.now();
       const requests = [];
-      
+
       for (let i = 0; i < 10; i++) {
-        requests.push(request.get(`${API_BASE_URL}/api/v1/courses/`));
+        requests.push(request.get(`${API_BASE_URL}/api/v1/health`));
       }
       
       const responses = await Promise.all(requests);
@@ -522,8 +544,9 @@ test.describe('Church Course Tracker - Comprehensive Test Suite', () => {
     });
 
     test('API handles different HTTP methods', async ({ request }, testInfo) => {
-      // Test GET
-      const getResponse = await request.get(`${API_BASE_URL}/api/v1/courses/`);
+      // Test GET on /health (public) - this test is verifying the GET
+      // verb works at all, not that /courses returns data.
+      const getResponse = await request.get(`${API_BASE_URL}/api/v1/health`);
       // Allow for rate limiting (429) and service unavailable (503)
       expect([200, 429, 503]).toContain(getResponse.status());
 
@@ -628,23 +651,24 @@ test.describe('Church Course Tracker - Comprehensive Test Suite', () => {
 
   test.describe('Integration Readiness', () => {
     test('API is ready for frontend integration', async ({ request }) => {
-      let response = await request.get(`${API_BASE_URL}/api/v1/courses/`);
+      // Probe /health to verify the API is reachable for frontend integration.
+      // Using a public endpoint keeps the test independent of auth state.
+      let response = await request.get(`${API_BASE_URL}/api/v1/health`);
       // Allow for rate limiting (429) - retry once if rate limited
       let status = response.status();
       if (status === 429) {
         await new Promise(resolve => setTimeout(resolve, 2000));
-        response = await request.get(`${API_BASE_URL}/api/v1/courses/`);
+        response = await request.get(`${API_BASE_URL}/api/v1/health`);
         status = response.status();
       }
       expect([200, 429]).toContain(status);
-      
+
       if (status === 200) {
         const data = await response.json();
-        // API may return array directly or a paginated object with items
-        const isValidResponse = Array.isArray(data) || (typeof data === 'object' && data !== null);
-        expect(isValidResponse).toBeTruthy();
+        expect(typeof data).toBe('object');
+        expect(data.status).toBe('healthy');
       }
-      
+
       console.log(`✓ API is ready for frontend integration (status: ${status})`);
     });
 

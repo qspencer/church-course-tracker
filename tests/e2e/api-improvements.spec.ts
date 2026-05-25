@@ -36,9 +36,10 @@ test.describe('API Improvements Verification', () => {
   });
 
   test('CORS headers are properly configured', async ({ request }) => {
-    // Check CORS headers on a regular GET request with Origin header
-    // CORS headers should be present when Origin header is sent
-    const response = await request.get(`${API_BASE_URL}/api/v1/courses/`, {
+    // Probe CORS on a public endpoint - we want to test the middleware,
+    // not the auth gate. /health is intentionally unauthenticated, which
+    // keeps this test independent of the auth posture on data endpoints.
+    const response = await request.get(`${API_BASE_URL}/api/v1/health`, {
       headers: {
         'Origin': 'http://localhost:4200'
       }
@@ -68,7 +69,7 @@ test.describe('API Improvements Verification', () => {
 
     // Also try OPTIONS preflight request
     if (corsHeadersFound === 0) {
-      const optionsResponse = await request.fetch(`${API_BASE_URL}/api/v1/courses/`, {
+      const optionsResponse = await request.fetch(`${API_BASE_URL}/api/v1/health`, {
         method: 'OPTIONS',
         headers: {
           'Origin': 'http://localhost:4200',
@@ -101,11 +102,13 @@ test.describe('API Improvements Verification', () => {
   });
 
   test('Security headers are properly configured', async ({ request }) => {
-    const response = await request.get(`${API_BASE_URL}/api/v1/courses/`);
+    // Probe security headers on /health (public endpoint) so the test is
+    // independent of any auth gate on data endpoints.
+    const response = await request.get(`${API_BASE_URL}/api/v1/health`);
     expect(response.status()).toBe(200);
-    
+
     const headers = response.headers();
-    
+
     // Check for security headers
     const securityHeaders = [
       'x-content-type-options',
@@ -134,11 +137,13 @@ test.describe('API Improvements Verification', () => {
   });
 
   test('Rate limiting headers are present', async ({ request }) => {
-    const response = await request.get(`${API_BASE_URL}/api/v1/courses/`);
+    // Rate-limit headers are added by middleware to every response - probe
+    // on /health to avoid the auth gate.
+    const response = await request.get(`${API_BASE_URL}/api/v1/health`);
     expect(response.status()).toBe(200);
-    
+
     const headers = response.headers();
-    
+
     // Check for rate limiting headers
     const rateLimitHeaders = [
       'x-rate-limit-limit',
@@ -159,10 +164,12 @@ test.describe('API Improvements Verification', () => {
   });
 
   test('Rate limiting functionality works', async ({ request }) => {
-    // Make multiple rapid requests to test rate limiting
+    // Make multiple rapid requests to test rate limiting. Use /health
+    // (public) so the test exercises the rate-limit middleware without
+    // also testing the auth gate on data endpoints.
   const requests: Promise<APIResponse>[] = [];
     for (let i = 0; i < 15; i++) {
-      requests.push(request.get(`${API_BASE_URL}/api/v1/courses/`));
+      requests.push(request.get(`${API_BASE_URL}/api/v1/health`));
     }
     
     const responses = await Promise.all(requests);
@@ -198,13 +205,15 @@ test.describe('API Improvements Verification', () => {
   });
 
   test('API performance is maintained with new features', async ({ request }) => {
+    // Use /health for the performance probe so the result reflects only
+    // app overhead, not also the auth-dependency execution path.
     const startTime = Date.now();
-    const response = await request.get(`${API_BASE_URL}/api/v1/courses/`);
+    const response = await request.get(`${API_BASE_URL}/api/v1/health`);
     const responseTime = Date.now() - startTime;
-    
+
     expect(response.status()).toBe(200);
     expect(responseTime).toBeLessThan(2000); // Should still be fast
-    
+
     console.log(`✓ API response time with new features: ${responseTime}ms`);
   });
 
@@ -216,7 +225,9 @@ test.describe('API Improvements Verification', () => {
     test.skip(!token, 'admin credentials not configured (or login failed)');
 
     const cases: Array<{ endpoint: string; auth: boolean }> = [
-      { endpoint: '/api/v1/courses/', auth: false },
+      // /api/v1/courses/ requires admin/staff/instructor as of the May 2026
+      // hardening pass; auth=true ensures we send the Bearer token.
+      { endpoint: '/api/v1/courses/', auth: true },
       { endpoint: '/api/v1/users/', auth: true },
       { endpoint: '/health', auth: false },
     ];

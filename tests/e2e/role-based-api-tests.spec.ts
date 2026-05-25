@@ -407,40 +407,61 @@ test.describe('Role-Based API Tests', () => {
     });
 
     test('API handles pagination parameters', async ({ request }) => {
-      const response = await request.get(`${API_BASE_URL}/api/v1/courses/?limit=5&offset=0`);
+      // /courses requires auth as of May 2026 hardening pass.
+      const token = await getAuthToken(request, testUsers.admin);
+      test.skip(!token, 'Admin credentials not configured or authentication failed');
+      const authHeaders = { Authorization: `Bearer ${token}` };
+
+      const response = await request.get(
+        `${API_BASE_URL}/api/v1/courses/?limit=5&offset=0`,
+        { headers: authHeaders },
+      );
       // Allow for rate limiting (429) - retry once if rate limited
       let status = response.status();
       if (status === 429) {
         await new Promise(resolve => setTimeout(resolve, 2000));
-        const retryResponse = await request.get(`${API_BASE_URL}/api/v1/courses/?limit=5&offset=0`);
+        const retryResponse = await request.get(
+          `${API_BASE_URL}/api/v1/courses/?limit=5&offset=0`,
+          { headers: authHeaders },
+        );
         status = retryResponse.status();
       }
       expect([200, 429]).toContain(status);
-      
+
       if (status === 200) {
         const data = await response.json();
         expect(Array.isArray(data)).toBeTruthy();
       }
-      
+
       console.log(`✓ API handles pagination parameters (status: ${status})`);
     });
 
     test('API handles filtering parameters', async ({ request }) => {
-      const response = await request.get(`${API_BASE_URL}/api/v1/courses/?active=true`);
+      const token = await getAuthToken(request, testUsers.admin);
+      test.skip(!token, 'Admin credentials not configured or authentication failed');
+      const authHeaders = { Authorization: `Bearer ${token}` };
+
+      const response = await request.get(
+        `${API_BASE_URL}/api/v1/courses/?active=true`,
+        { headers: authHeaders },
+      );
       // Allow for rate limiting (429) - retry once if rate limited
       let status = response.status();
       if (status === 429) {
         await new Promise(resolve => setTimeout(resolve, 2000));
-        const retryResponse = await request.get(`${API_BASE_URL}/api/v1/courses/?active=true`);
+        const retryResponse = await request.get(
+          `${API_BASE_URL}/api/v1/courses/?active=true`,
+          { headers: authHeaders },
+        );
         status = retryResponse.status();
       }
       expect([200, 429]).toContain(status);
-      
+
       if (status === 200) {
         const data = await response.json();
         expect(Array.isArray(data)).toBeTruthy();
       }
-      
+
       console.log(`✓ API handles filtering parameters (status: ${status})`);
     });
   });

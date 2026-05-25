@@ -26,9 +26,15 @@ test.describe('API Endpoint Tests', () => {
   });
 
   test('API courses endpoint responds', async ({ request }) => {
-    const response = await request.get(`${API_BASE_URL}/api/v1/courses/`);
+    // /courses requires auth as of May 2026 hardening pass.
+    const token = await getApiAuthToken(request, 'admin');
+    test.skip(!token, 'admin credentials not configured (or login failed)');
+
+    const response = await request.get(`${API_BASE_URL}/api/v1/courses/`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
     expect(response.status()).toBe(200);
-    
+
     const data = await response.json();
     expect(Array.isArray(data)).toBeTruthy();
   });

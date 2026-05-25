@@ -7,9 +7,15 @@ const adminUser = testUsers.admin;
 
 test.describe('Working API Tests', () => {
   test('API courses endpoint responds correctly', async ({ request }) => {
-    const response = await request.get(`${API_BASE_URL}/api/v1/courses/`);
+    // /courses requires auth as of May 2026 hardening pass.
+    const token = await getApiAuthToken(request, 'admin');
+    test.skip(!token, 'admin credentials not configured (or login failed)');
+
+    const response = await request.get(`${API_BASE_URL}/api/v1/courses/`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
     expect(response.status()).toBe(200);
-    
+
     const data = await response.json();
     expect(Array.isArray(data)).toBeTruthy();
     console.log(`✓ Courses endpoint returned ${data.length} courses`);
@@ -79,27 +85,29 @@ test.describe('Working API Tests', () => {
   });
 
   test('API response times are acceptable', async ({ request }) => {
+    // Probe /health (public) so the perf measurement is about the
+    // platform, not the auth-dependency execution path.
     const startTime = Date.now();
-    const response = await request.get(`${API_BASE_URL}/api/v1/courses/`);
+    const response = await request.get(`${API_BASE_URL}/api/v1/health`);
     const responseTime = Date.now() - startTime;
-    
+
     // Allow for rate limiting (429) - retry once if rate limited
     let status = response.status();
     if (status === 429) {
-      // Wait a bit and retry
       await new Promise(resolve => setTimeout(resolve, 2000));
-      const retryResponse = await request.get(`${API_BASE_URL}/api/v1/courses/`);
+      const retryResponse = await request.get(`${API_BASE_URL}/api/v1/health`);
       status = retryResponse.status();
     }
-    
+
     expect([200, 429]).toContain(status); // Accept 200 or 429 (rate limited)
     expect(responseTime).toBeLessThan(5000); // Should respond within 5 seconds
     console.log(`✓ API response time: ${responseTime}ms (status: ${status})`);
   });
 
   test('API handles different HTTP methods', async ({ request }) => {
-    // Test GET
-    const getResponse = await request.get(`${API_BASE_URL}/api/v1/courses/`);
+    // Test GET on /health (public) - this test verifies the GET verb
+    // works at all, not that /courses returns data.
+    const getResponse = await request.get(`${API_BASE_URL}/api/v1/health`);
     expect(getResponse.status()).toBe(200);
 
     // Test POST (login)
@@ -132,20 +140,29 @@ test.describe('Working API Tests', () => {
   });
 
   test('API returns proper JSON format', async ({ request }) => {
-    const response = await request.get(`${API_BASE_URL}/api/v1/courses/`);
+    // /courses requires auth and is the right endpoint here because this
+    // test validates that a data endpoint returns a JSON array shape.
+    const token = await getApiAuthToken(request, 'admin');
+    test.skip(!token, 'admin credentials not configured (or login failed)');
+
+    const response = await request.get(`${API_BASE_URL}/api/v1/courses/`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
     expect(response.status()).toBe(200);
-    
+
     const data = await response.json();
     expect(typeof data).toBe('object');
     expect(Array.isArray(data)).toBeTruthy();
-    
+
     console.log('✓ API returns proper JSON format');
   });
 
   test('API handles concurrent requests', async ({ request }) => {
+    // Concurrency test uses /health (public) so it exercises platform
+    // concurrency, not the auth-dependency execution path.
     const requests = [];
     for (let i = 0; i < 5; i++) {
-      requests.push(request.get(`${API_BASE_URL}/api/v1/courses/`));
+      requests.push(request.get(`${API_BASE_URL}/api/v1/health`));
     }
     
     const responses = await Promise.all(requests);
