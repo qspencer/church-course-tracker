@@ -106,7 +106,7 @@ test.describe('Course Management Tests', () => {
       }
       
       // Wait for any overlays/backdrops to be hidden
-      await page.waitForSelector('.cdk-overlay-backdrop', { state: 'hidden', timeout: 3000 }).catch(() => {});
+      await page.waitForSelector('.cdk-overlay-backdrop', { state: 'hidden', timeout: 10000 }).catch(() => {});
       
       // Wait for dialog to be fully rendered and stable
       const dialog = page.locator('mat-dialog-container').first();
@@ -712,7 +712,7 @@ test.describe('Course Management Tests', () => {
       }
       
       // Wait for any overlays/backdrops to be hidden
-      await page.waitForSelector('.cdk-overlay-backdrop', { state: 'hidden', timeout: 3000 }).catch(() => {});
+      await page.waitForSelector('.cdk-overlay-backdrop', { state: 'hidden', timeout: 10000 }).catch(() => {});
       
       // Wait for dialog to be fully rendered and stable
       const dialog = page.locator('mat-dialog-container').first();

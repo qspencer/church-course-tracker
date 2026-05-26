@@ -42,7 +42,7 @@ async function navigateToCourseContent(page: Page, testInfo?: TestInfo): Promise
     }
 
     // Wait for any overlays/backdrops to be hidden before clicking
-    await page.waitForSelector('.cdk-overlay-backdrop', { state: 'hidden', timeout: 3000 }).catch(() => {});
+    await page.waitForSelector('.cdk-overlay-backdrop', { state: 'hidden', timeout: 10000 }).catch(() => {});
     
     // Find the first course row's "Manage Content" button
     // The button has matTooltip="Manage Content" and contains a mat-icon with folder

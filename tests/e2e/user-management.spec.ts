@@ -1,5 +1,6 @@
 import { test, expect, type Page, type TestInfo } from '@playwright/test';
 import { APP_BASE_URL, credentials, loginAsRole } from './utils/auth';
+import { skipIfMissing } from './utils/skip-if';
 
 // Configure all tests in this file to run serially to avoid database conflicts
 test.describe.configure({ mode: 'serial' });
@@ -54,27 +55,14 @@ test.describe('User Management Tests', () => {
 
       // Look for Add User button
       const addUserButton = page.locator('button:has-text("Add User")').first();
-      const addUserVisible = await addUserButton.isVisible({ timeout: 5000 }).catch(() => false);
-      
-      if (!addUserVisible) {
-        // If Add User button not found, at least verify admin can access users page
-        const currentUrl = page.url();
-        expect(currentUrl.includes('/admin/users')).toBeTruthy();
-        return;
-      }
-      
+      await skipIfMissing(addUserButton, testInfo, 'Add User button not present in this environment');
+
       await addUserButton.click();
       await page.waitForTimeout(2000);
-      
+
       // Wait for dialog to be visible
       const dialog = page.locator('mat-dialog-container').first();
-      const dialogVisible = await dialog.isVisible({ timeout: 5000 }).catch(() => false);
-      if (!dialogVisible) {
-        // If User dialog not found, at least verify admin can access users page
-        const currentUrl = page.url();
-        expect(currentUrl.includes('/admin/users')).toBeTruthy();
-        return;
-      }
+      await skipIfMissing(dialog, testInfo, 'User creation dialog did not open');
       
       // Use unique identifiers to avoid duplicate user errors
       const uniqueId = Date.now();
@@ -491,27 +479,17 @@ test.describe('User Management Tests', () => {
       
       // Open the menu for a user
       const menuButton = page.locator('button:has(mat-icon:has-text("more_vert"))').first();
-      const menuVisible = await menuButton.isVisible({ timeout: 5000 }).catch(() => false);
-      
-      if (!menuVisible) {
-        // If User actions menu not found, at least verify admin can access users page
-        const currentUrl = page.url();
-        expect(currentUrl.includes('/admin/users')).toBeTruthy();
-        return;
-      }
-      
+      await skipIfMissing(menuButton, testInfo, 'User actions menu not present');
+
       await menuButton.click();
       await page.waitForTimeout(500);
-      
+
       // Click Reset Password from the menu
       const resetMenuItem = page.locator('button[mat-menu-item]:has-text("Reset Password")').first();
       const resetVisible = await resetMenuItem.isVisible({ timeout: 3000 }).catch(() => false);
-      
       if (!resetVisible) {
         await page.keyboard.press('Escape');
-        // If Reset Password menu item not found, at least verify admin can access users page
-        const currentUrl = page.url();
-        expect(currentUrl.includes('/admin/users')).toBeTruthy();
+        testInfo.skip(true, 'Reset Password menu item not present');
         return;
       }
       

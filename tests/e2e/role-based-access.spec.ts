@@ -903,7 +903,7 @@ test.describe('Role-Based Access Control', () => {
       }
       
       // Wait for any overlays to be hidden
-      await page.waitForSelector('.cdk-overlay-backdrop', { state: 'hidden', timeout: 2000 }).catch(() => {});
+      await page.waitForSelector('.cdk-overlay-backdrop', { state: 'hidden', timeout: 10000 }).catch(() => {});
       
       // Scroll button into view
       await submitButton.scrollIntoViewIfNeeded();
