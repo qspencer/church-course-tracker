@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
-import { AuthGuard } from './guards/auth.guard';
-import { AdminGuard } from './guards/admin.guard';
+import { authGuard } from './guards/auth.guard';
+import { adminGuard } from './guards/admin.guard';
 import { AdminLayoutComponent } from './components/admin-layout/admin-layout.component';
 import { AccountLayoutComponent } from './components/account-layout/account-layout.component';
 
@@ -19,19 +19,19 @@ export const routes: Routes = [
     path: 'dashboard',
     loadComponent: () =>
       import('./components/dashboard/dashboard.component').then(m => m.DashboardComponent),
-    canActivate: [AuthGuard],
+    canActivate: [authGuard],
   },
   {
     path: 'courses',
     loadComponent: () =>
       import('./components/courses/courses.component').then(m => m.CoursesComponent),
-    canActivate: [AuthGuard],
+    canActivate: [authGuard],
   },
   {
     path: 'programs',
     loadComponent: () =>
       import('./components/programs/programs.component').then(m => m.ProgramsComponent),
-    canActivate: [AuthGuard],
+    canActivate: [authGuard],
   },
   {
     path: 'courses/:courseId/content',
@@ -39,7 +39,7 @@ export const routes: Routes = [
       import('./components/course-content/course-content.component').then(
         m => m.CourseContentComponent,
       ),
-    canActivate: [AuthGuard],
+    canActivate: [authGuard],
   },
   {
     path: 'programs/:programId/content',
@@ -47,36 +47,36 @@ export const routes: Routes = [
       import('./components/program-content/program-content.component').then(
         m => m.ProgramContentComponent,
       ),
-    canActivate: [AuthGuard],
+    canActivate: [authGuard],
   },
   {
     path: 'enrollments',
     loadComponent: () =>
       import('./components/enrollments/enrollments.component').then(m => m.EnrollmentsComponent),
-    canActivate: [AuthGuard],
+    canActivate: [authGuard],
   },
   {
     path: 'progress',
     loadComponent: () =>
       import('./components/progress/progress.component').then(m => m.ProgressComponent),
-    canActivate: [AuthGuard],
+    canActivate: [authGuard],
   },
   {
     path: 'reports',
     loadComponent: () =>
       import('./components/reports/reports.component').then(m => m.ReportsComponent),
-    canActivate: [AuthGuard],
+    canActivate: [authGuard],
   },
   {
     path: 'members',
     loadComponent: () =>
       import('./components/members/members.component').then(m => m.MembersComponent),
-    canActivate: [AuthGuard],
+    canActivate: [authGuard],
   },
   {
     path: 'admin',
     component: AdminLayoutComponent,
-    canActivate: [AuthGuard, AdminGuard],
+    canActivate: [authGuard, adminGuard],
     children: [
       { path: '', redirectTo: 'users', pathMatch: 'full' },
       {
@@ -99,7 +99,7 @@ export const routes: Routes = [
   {
     path: 'account',
     component: AccountLayoutComponent,
-    canActivate: [AuthGuard],
+    canActivate: [authGuard],
     children: [
       { path: '', redirectTo: 'profile', pathMatch: 'full' },
       {

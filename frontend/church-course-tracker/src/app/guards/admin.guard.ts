@@ -1,36 +1,24 @@
-import { Injectable, inject } from '@angular/core';
-import { CanActivate, Router } from '@angular/router';
-import { Observable } from 'rxjs';
+import { inject } from '@angular/core';
+import { CanActivateFn, Router } from '@angular/router';
 import { map, take } from 'rxjs/operators';
 import { AuthService } from '../services/auth.service';
 
-@Injectable({
-  providedIn: 'root'
-})
-export class AdminGuard implements CanActivate {
-  private authService = inject(AuthService);
-  private router = inject(Router);
+export const adminGuard: CanActivateFn = () => {
+  const authService = inject(AuthService);
+  const router = inject(Router);
 
-
-  canActivate(): Observable<boolean> {
-    return this.authService.currentUser$.pipe(
-      take(1),
-      map(user => {
-        if (!user) {
-          // User not authenticated, redirect to login
-          this.router.navigate(['/auth']);
-          return false;
-        }
-
-        if (user.role !== 'admin') {
-          // User is authenticated but not admin, redirect to dashboard
-          this.router.navigate(['/dashboard']);
-          return false;
-        }
-
-        // User is admin, allow access
-        return true;
-      })
-    );
-  }
-}
+  return authService.currentUser$.pipe(
+    take(1),
+    map(user => {
+      if (!user) {
+        router.navigate(['/auth']);
+        return false;
+      }
+      if (user.role !== 'admin') {
+        router.navigate(['/dashboard']);
+        return false;
+      }
+      return true;
+    }),
+  );
+};

@@ -1,59 +1,48 @@
 import { TestBed } from '@angular/core/testing';
-import { Router } from '@angular/router';
-import { of, BehaviorSubject } from 'rxjs';
-import { AuthGuard } from './auth.guard';
+import { Router, UrlTree } from '@angular/router';
+import { BehaviorSubject, firstValueFrom, isObservable } from 'rxjs';
+import { authGuard } from './auth.guard';
 import { AuthService } from '../services/auth.service';
 
-describe('AuthGuard', () => {
-  let guard: AuthGuard;
-  let authServiceSpy: jasmine.SpyObj<AuthService>;
+describe('authGuard', () => {
   let routerSpy: jasmine.SpyObj<Router>;
   let isAuthenticatedSubject: BehaviorSubject<boolean>;
 
   beforeEach(() => {
     isAuthenticatedSubject = new BehaviorSubject<boolean>(true);
     const authSpy = jasmine.createSpyObj('AuthService', [], {
-      isAuthenticated$: isAuthenticatedSubject.asObservable()
+      isAuthenticated$: isAuthenticatedSubject.asObservable(),
     });
     const routerSpyObj = jasmine.createSpyObj('Router', ['createUrlTree']);
 
     TestBed.configureTestingModule({
       providers: [
-        AuthGuard,
         { provide: AuthService, useValue: authSpy },
-        { provide: Router, useValue: routerSpyObj }
-      ]
+        { provide: Router, useValue: routerSpyObj },
+      ],
     });
 
-    guard = TestBed.inject(AuthGuard);
-    authServiceSpy = TestBed.inject(AuthService) as jasmine.SpyObj<AuthService>;
     routerSpy = TestBed.inject(Router) as jasmine.SpyObj<Router>;
   });
 
-  it('should be created', () => {
-    expect(guard).toBeTruthy();
-  });
+  function run(): unknown {
+    return TestBed.runInInjectionContext(() => authGuard(null as never, null as never));
+  }
 
-  it('should allow access when authenticated', (done) => {
+  it('allows access when authenticated', async () => {
     isAuthenticatedSubject.next(true);
-
-    guard.canActivate().subscribe(result => {
-      expect(result).toBe(true);
-      done();
-    });
+    const result = run();
+    expect(isObservable(result)).toBe(true);
+    expect(await firstValueFrom(result as never)).toBe(true);
   });
 
-  it('should redirect to auth when not authenticated', (done) => {
-    const urlTree = {} as any;
+  it('redirects to /auth when not authenticated', async () => {
+    const urlTree = {} as UrlTree;
     routerSpy.createUrlTree.and.returnValue(urlTree);
-    
-    // Update the auth service to return unauthenticated state
     isAuthenticatedSubject.next(false);
 
-    guard.canActivate().subscribe(result => {
-      expect(result).toEqual(urlTree);
-      expect(routerSpy.createUrlTree).toHaveBeenCalledWith(['/auth']);
-      done();
-    });
+    const result = run();
+    expect(await firstValueFrom(result as never)).toBe(urlTree);
+    expect(routerSpy.createUrlTree).toHaveBeenCalledWith(['/auth']);
   });
 });

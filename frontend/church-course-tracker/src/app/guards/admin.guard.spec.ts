@@ -1,16 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
-import { AdminGuard } from './admin.guard';
+import { BehaviorSubject, firstValueFrom, isObservable, Observable, of } from 'rxjs';
+import { adminGuard } from './admin.guard';
 import { AuthService } from '../services/auth.service';
 import { User } from '../models';
-import { of } from 'rxjs';
 
-const ROUTE_PREFIX = '';
-
-describe('AdminGuard', () => {
-  let guard: AdminGuard;
-  let authService: jasmine.SpyObj<AuthService>;
-  let router: jasmine.SpyObj<Router>;
+describe('adminGuard', () => {
+  let routerSpy: jasmine.SpyObj<Router>;
+  let currentUserSubject: BehaviorSubject<User | null>;
 
   const mockAdminUser: User = {
     id: 1,
@@ -20,107 +17,58 @@ describe('AdminGuard', () => {
     role: 'admin',
     is_active: true,
     created_at: '2023-01-01T00:00:00Z',
-    updated_at: '2023-01-01T00:00:00Z'
+    updated_at: '2023-01-01T00:00:00Z',
   };
 
-  const mockStaffUser: User = {
-    id: 2,
-    username: 'staff',
-    email: 'staff@example.com',
-    full_name: 'Staff User',
-    role: 'staff',
-    is_active: true,
-    created_at: '2023-01-01T00:00:00Z',
-    updated_at: '2023-01-01T00:00:00Z'
-  };
+  const mockStaffUser: User = { ...mockAdminUser, id: 2, role: 'staff' };
+  const mockViewerUser: User = { ...mockAdminUser, id: 3, role: 'viewer' };
 
   beforeEach(() => {
+    currentUserSubject = new BehaviorSubject<User | null>(null);
     const authServiceSpy = jasmine.createSpyObj('AuthService', [], {
-      currentUser$: of(null)
+      currentUser$: currentUserSubject.asObservable(),
     });
-    const routerSpy = jasmine.createSpyObj('Router', ['navigate']);
+    const routerSpyObj = jasmine.createSpyObj('Router', ['navigate']);
 
     TestBed.configureTestingModule({
       providers: [
-        AdminGuard,
         { provide: AuthService, useValue: authServiceSpy },
-        { provide: Router, useValue: routerSpy }
-      ]
+        { provide: Router, useValue: routerSpyObj },
+      ],
     });
 
-    guard = TestBed.inject(AdminGuard);
-    authService = TestBed.inject(AuthService) as jasmine.SpyObj<AuthService>;
-    router = TestBed.inject(Router) as jasmine.SpyObj<Router>;
+    routerSpy = TestBed.inject(Router) as jasmine.SpyObj<Router>;
   });
 
-  it('should be created', () => {
-    expect(guard).toBeTruthy();
+  function run(): Observable<boolean> {
+    return TestBed.runInInjectionContext(
+      () => adminGuard(null as never, null as never) as Observable<boolean>,
+    );
+  }
+
+  it('allows admin', async () => {
+    currentUserSubject.next(mockAdminUser);
+    const result = run();
+    expect(isObservable(result)).toBe(true);
+    expect(await firstValueFrom(result)).toBe(true);
+    expect(routerSpy.navigate).not.toHaveBeenCalled();
   });
 
-  it('should allow access for admin users', (done) => {
-    // Mock admin user
-    Object.defineProperty(authService, 'currentUser$', {
-      value: of(mockAdminUser),
-      writable: true
-    });
-
-    guard.canActivate().subscribe(result => {
-      expect(result).toBe(true);
-      expect(router.navigate).not.toHaveBeenCalled();
-      done();
-    });
+  it('denies staff and redirects to /dashboard', async () => {
+    currentUserSubject.next(mockStaffUser);
+    expect(await firstValueFrom(run())).toBe(false);
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/dashboard']);
   });
 
-  it('should deny access for non-admin users and redirect to dashboard', (done) => {
-    // Mock staff user
-    Object.defineProperty(authService, 'currentUser$', {
-      value: of(mockStaffUser),
-      writable: true
-    });
-
-    guard.canActivate().subscribe(result => {
-      expect(result).toBe(false);
-      expect(router.navigate).toHaveBeenCalledWith([`${ROUTE_PREFIX}/dashboard`]);
-      done();
-    });
+  it('denies viewer and redirects to /dashboard', async () => {
+    currentUserSubject.next(mockViewerUser);
+    expect(await firstValueFrom(run())).toBe(false);
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/dashboard']);
   });
 
-  it('should deny access for unauthenticated users and redirect to auth', (done) => {
-    // Mock no user (null)
-    Object.defineProperty(authService, 'currentUser$', {
-      value: of(null),
-      writable: true
-    });
-
-    guard.canActivate().subscribe(result => {
-      expect(result).toBe(false);
-      expect(router.navigate).toHaveBeenCalledWith([`${ROUTE_PREFIX}/auth`]);
-      done();
-    });
-  });
-
-  it('should deny access for viewer users and redirect to dashboard', (done) => {
-    const mockViewerUser: User = {
-      id: 3,
-      username: 'viewer',
-      email: 'viewer@example.com',
-      full_name: 'Viewer User',
-      role: 'viewer',
-      is_active: true,
-      created_at: '2023-01-01T00:00:00Z',
-      updated_at: '2023-01-01T00:00:00Z'
-    };
-
-    // Mock viewer user
-    Object.defineProperty(authService, 'currentUser$', {
-      value: of(mockViewerUser),
-      writable: true
-    });
-
-    guard.canActivate().subscribe(result => {
-      expect(result).toBe(false);
-      expect(router.navigate).toHaveBeenCalledWith([`${ROUTE_PREFIX}/dashboard`]);
-      done();
-    });
+  it('denies unauthenticated and redirects to /auth', async () => {
+    currentUserSubject.next(null);
+    expect(await firstValueFrom(run())).toBe(false);
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/auth']);
   });
 });
