@@ -77,7 +77,6 @@ export const routes: Routes = [
     path: 'admin',
     component: AdminLayoutComponent,
     canActivate: [AuthGuard, AdminGuard],
-    canActivateChild: [AuthGuard, AdminGuard],
     children: [
       { path: '', redirectTo: 'users', pathMatch: 'full' },
       {
@@ -101,7 +100,6 @@ export const routes: Routes = [
     path: 'account',
     component: AccountLayoutComponent,
     canActivate: [AuthGuard],
-    canActivateChild: [AuthGuard],
     children: [
       { path: '', redirectTo: 'profile', pathMatch: 'full' },
       {
