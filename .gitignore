@@ -100,6 +100,10 @@ tests/e2e/playwright-report/
 tests/e2e/test-results/
 playwright-report/
 test-results/
+
+# Playwright debug screenshots emitted by spec files (regenerated each run)
+tests/e2e/*.png
+tests/e2e/*.webm
 backend/venv_lint/
 backend/.coverage
 .env.e2e

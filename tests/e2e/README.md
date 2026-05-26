@@ -202,4 +202,58 @@ This opens the Playwright Inspector for interactive debugging.
 3. **Error Handling**: Handle expected and unexpected errors
 4. **Performance**: Keep tests fast and efficient
 5. **Maintainability**: Write readable and maintainable tests
+
+## Serial mode and "did not run" counts
+
+Five spec files use `test.describe.configure({ mode: 'serial' })` to avoid
+database conflicts between tests in the same file (file uploads, user
+creation/deletion, course CRUD):
+  - course-content-advanced.spec.ts
+  - course-management.spec.ts
+  - progress-tracking.spec.ts
+  - role-based-access.spec.ts
+  - user-management.spec.ts
+
+In serial mode, **if an early test in a group fails, all subsequent
+tests in that group are reported as "did not run" rather than executed**.
+This is correct Playwright behavior — running 50 dependent tests that
+would all fail with the same root cause adds no diagnostic signal.
+
+When you see a large "did not run" count in a test run summary, treat
+it as a cascade: identify the first failing test in each serial group
+(use the HTML report rather than the line reporter — the line reporter
+doesn't surface cascade origins clearly), fix that test, and rerun.
+The cascade should resolve.
+
+If you want to make individual tests within these files independent
+(eliminating the cascade), you'd need to:
+- Make each test self-contained (create + clean up its own data)
+- Switch the file to `mode: 'parallel'` or default mode
+
+## Silent-fallback anti-pattern (use `skipIfMissing` for new tests)
+
+Older tests commonly use this pattern to handle missing features:
+
+```ts
+const buttonVisible = await button.isVisible({ timeout: 5000 }).catch(() => false);
+if (!buttonVisible) {
+  // "If button not found, at least verify we're on the page"
+  expect(url.includes('/X')).toBeTruthy();
+  return;   // ← test passes without verifying the actual feature claim
+}
+```
+
+This is dangerous: when the feature regresses (e.g., the button is
+removed), the test silently passes. For **new tests**, prefer:
+
+```ts
+import { skipIfMissing } from './utils/skip-if';
+
+await skipIfMissing(button, testInfo, 'Add User button not present');
+// test continues with the real assertion
+```
+
+The skip path is reported as SKIPPED (not PASSED), so the test count
+is honest. Existing tests with this pattern are tech debt and can
+migrate gradually.
 6. **Documentation**: Keep test documentation up to date
