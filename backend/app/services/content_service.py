@@ -24,6 +24,7 @@ except ImportError:
     BOTO3_AVAILABLE = False
 
 from app.core.config import settings
+from app.core.security import sanitize_filename
 from app.models.course import Course
 from app.models.course_content import (ContentAccessLog, ContentAuditLog,
                                        ContentType, CourseContent,
@@ -236,26 +237,53 @@ class ContentService:
                 status_code=status.HTTP_404_NOT_FOUND, detail="Content not found"
             )
 
-        # Check file size
-        file_size = 0
-        file_content = file.file.read()
-        file_size = len(file_content)
-        file.file.seek(0)  # Reset file pointer
-
-        max_size = content.course.max_file_size_mb * 1024 * 1024  # Convert MB to bytes
-        if file_size > max_size:
+        # Sanitize the client-supplied filename and validate the file type
+        # against the allowlist before reading any content. The stored MIME
+        # type is derived from the (sanitized) filename, never from the
+        # client-supplied Content-Type header.
+        safe_filename = sanitize_filename(file.filename or "")
+        if not safe_filename:
             raise HTTPException(
-                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-                detail=f"File size exceeds maximum allowed size of {content.course.max_file_size_mb}MB",
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="A filename is required",
+            )
+        mime_type, _ = mimetypes.guess_type(safe_filename)
+        if mime_type not in settings.ALLOWED_FILE_TYPES:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"File type not allowed. Accepted types: "
+                f"{', '.join(sorted(settings.ALLOWED_FILE_TYPES))}",
             )
 
-        # Determine storage type based on file size
+        # Read in chunks so the size cap is enforced while reading instead
+        # of after buffering an arbitrarily large body.
+        max_size = content.course.max_file_size_mb * 1024 * 1024  # Convert MB to bytes
+        chunks = []
+        file_size = 0
+        while True:
+            chunk = file.file.read(1024 * 1024)
+            if not chunk:
+                break
+            file_size += len(chunk)
+            if file_size > max_size:
+                raise HTTPException(
+                    status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                    detail=f"File size exceeds maximum allowed size of {content.course.max_file_size_mb}MB",
+                )
+            chunks.append(chunk)
+        file_content = b"".join(chunks)
+
+        # Store in S3 whenever it is configured: the container filesystem is
+        # ephemeral on Fargate, so files written locally are lost on every
+        # redeploy. Local disk is the dev-only fallback.
         storage_type = (
-            StorageType.DATABASE if file_size < 10 * 1024 * 1024 else StorageType.S3
-        )  # 10MB threshold
+            StorageType.S3
+            if self.s3_client and settings.AWS_S3_BUCKET
+            else StorageType.DATABASE
+        )
 
         # Generate unique filename
-        file_extension = os.path.splitext(file.filename)[1] if file.filename else ""
+        file_extension = os.path.splitext(safe_filename)[1]
         unique_filename = f"{uuid.uuid4()}{file_extension}"
 
         # Store file
@@ -263,14 +291,14 @@ class ContentService:
             file_path = self._store_file_in_database(unique_filename, file_content)
         else:
             file_path = self._store_file_in_s3(
-                unique_filename, file_content, file.content_type
+                unique_filename, file_content, mime_type
             )
 
         # Update content record
-        content.file_name = file.filename
+        content.file_name = safe_filename
         content.file_size = file_size
         content.file_path = file_path
-        content.mime_type = file.content_type or mimetypes.guess_type(file.filename)[0]
+        content.mime_type = mime_type
         content.storage_type = storage_type
         content.updated_by = user_id
         content.updated_at = datetime.now(timezone.utc)
@@ -278,24 +306,26 @@ class ContentService:
         self.db.commit()
         self.db.refresh(content)
 
-        # Log audit trail
+        # Log audit trail (sanitized/derived values, not raw client input)
         self._log_audit(
             content_id=content_id,
             user_id=user_id,
             action="update",
-            change_summary=f"Uploaded file: {file.filename}",
+            change_summary=f"Uploaded file: {safe_filename}",
             new_values={
-                "file_name": file.filename,
+                "file_name": safe_filename,
                 "file_size": file_size,
                 "file_path": file_path,
-                "mime_type": file.content_type,
+                "mime_type": mime_type,
             },
         )
 
         return {
             "content_id": content_id,
+            "file_name": safe_filename,
             "file_path": file_path,
             "file_size": file_size,
+            "mime_type": mime_type,
             "storage_type": storage_type,
             "message": "File uploaded successfully",
         }
@@ -548,10 +578,8 @@ class ContentService:
             return StorageType.DATABASE
 
     def _store_file_in_database(self, filename: str, file_content: bytes) -> str:
-        """Store file in database (for small files)"""
-        # For now, we'll store in a files directory
-        # In production, you might want to store in a dedicated file storage table
-        upload_dir = "uploads"
+        """Store file on local disk (dev-only fallback when S3 is not configured)"""
+        upload_dir = settings.UPLOAD_DIR
         os.makedirs(upload_dir, exist_ok=True)
 
         file_path = os.path.join(upload_dir, filename)

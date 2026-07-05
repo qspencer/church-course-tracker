@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session
 
 from app.api.v1.endpoints.auth import (get_current_active_user,
                                        get_current_admin_user)
+from app.core.config import settings
 from app.core.database import get_db
 from app.models.user import User
 from app.schemas.course_content import (ContentAccessLog,
@@ -279,13 +280,23 @@ async def download_content(
         content_id, current_user["id"], ip_address, user_agent
     )
 
+    from urllib.parse import quote
+
     from fastapi.responses import Response
+
+    # Serve only allowlisted MIME types (older records may predate upload
+    # validation) and RFC 5987-encode the filename so a crafted value can't
+    # inject header content.
+    mime_type = result["mime_type"]
+    if mime_type not in settings.ALLOWED_FILE_TYPES:
+        mime_type = "application/octet-stream"
+    encoded_filename = quote(result["filename"] or "download")
 
     return Response(
         content=result["content"],
-        media_type=result["mime_type"],
+        media_type=mime_type,
         headers={
-            "Content-Disposition": f"attachment; filename={result['filename']}",
+            "Content-Disposition": f"attachment; filename*=UTF-8''{encoded_filename}",
             "Content-Length": str(result["file_size"]),
         },
     )

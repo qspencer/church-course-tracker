@@ -6,7 +6,8 @@ import bcrypt
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
-from jose import JWTError, jwt
+import jwt
+from jwt import InvalidTokenError
 
 from app.core.config import settings
 
@@ -39,7 +40,7 @@ def verify_token(token: str) -> Optional[int]:
             logger.warning("Token payload missing 'sub' field")
             return None
         return int(user_id)
-    except JWTError as e:
+    except InvalidTokenError as e:
         logger.warning(f"JWT validation error: {type(e).__name__}: {str(e)}")
         return None
     except Exception as e:

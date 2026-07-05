@@ -190,7 +190,9 @@ class TestCourseContentFileOperations:
             
             assert response.status_code == 200
             assert response.headers["content-type"] == "application/pdf"
-            assert "attachment; filename=test.pdf" in response.headers.get("content-disposition", "")
+            # Filename is RFC 5987-encoded so crafted values can't inject
+            # header content
+            assert "attachment; filename*=UTF-8''test.pdf" in response.headers.get("content-disposition", "")
             assert response.content == b"test file content"
     
     def test_download_content_not_found(self, client: TestClient, admin_token):

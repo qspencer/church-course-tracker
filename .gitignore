@@ -110,3 +110,15 @@ backend/.coverage
 
 # AI/debug session notes - must never be committed (contained credentials once)
 session-logs/
+
+# Any virtualenv directory (venv_new was accidentally committed once, 212MB)
+venv*/
+.venv*/
+
+# All dotenv files (env.example / env.*.example remain tracked - different names)
+.env.*
+
+# Database backups and coverage/caches
+*.backup
+htmlcov/
+.pytest_cache/

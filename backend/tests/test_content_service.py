@@ -508,7 +508,8 @@ class TestContentServiceFileOperations:
         mock_file.filename = "test.pdf"
         mock_file.size = 1024
         mock_file.content_type = "application/pdf"
-        mock_file.read.return_value = b"file content"
+        # upload_file reads in 1MB chunks until EOF (empty bytes)
+        mock_file.read.side_effect = [b"file content", b""]
         mock_file.file = mock_file  # Make file.file point to itself
         
         # Execute
@@ -599,3 +600,74 @@ class TestContentServiceFileOperations:
         assert "Cannot download external content" in str(exc_info.value.detail)
 
 
+
+
+class TestUploadValidation:
+    """Regression tests for upload file-type validation (added July 2026).
+
+    Background: uploads previously accepted any file type, stored the
+    client-supplied Content-Type header verbatim, and did not sanitize
+    the filename.
+    """
+
+    def _make_content(self, db_session, sample_course_data, sample_user_data):
+        course = Course(**sample_course_data)
+        user = User(**sample_user_data)
+        db_session.add_all([course, user])
+        db_session.commit()
+        content = CourseContent(
+            course_id=course.id,
+            title="Validation Test Content",
+            content_type=ContentType.DOCUMENT,
+            storage_type=StorageType.DATABASE,
+            order_index=1,
+            created_by=user.id,
+        )
+        db_session.add(content)
+        db_session.commit()
+        return content, user
+
+    def _make_file(self, filename, payload=b"file content"):
+        mock_file = Mock()
+        mock_file.filename = filename
+        mock_file.content_type = "application/pdf"  # attacker-controlled, ignored
+        mock_file.read.side_effect = [payload, b""]
+        mock_file.file = mock_file
+        return mock_file
+
+    def test_upload_rejects_disallowed_extension(
+        self, db_session, sample_course_data, sample_user_data
+    ):
+        content, user = self._make_content(
+            db_session, sample_course_data, sample_user_data
+        )
+        service = ContentService(db_session)
+        with pytest.raises(HTTPException) as exc_info:
+            service.upload_file(content.id, self._make_file("payload.exe"), user.id)
+        assert exc_info.value.status_code == 400
+        assert "File type not allowed" in str(exc_info.value.detail)
+
+    def test_upload_ignores_client_content_type_header(
+        self, db_session, sample_course_data, sample_user_data
+    ):
+        """The stored MIME type must come from the filename, not the header."""
+        content, user = self._make_content(
+            db_session, sample_course_data, sample_user_data
+        )
+        service = ContentService(db_session)
+        mock_file = self._make_file("notes.txt")
+        mock_file.content_type = "text/html"  # spoofed; must not be stored
+        result = service.upload_file(content.id, mock_file, user.id)
+        assert result["mime_type"] == "text/plain"
+
+    def test_upload_sanitizes_path_traversal_filename(
+        self, db_session, sample_course_data, sample_user_data
+    ):
+        content, user = self._make_content(
+            db_session, sample_course_data, sample_user_data
+        )
+        service = ContentService(db_session)
+        result = service.upload_file(
+            content.id, self._make_file("../../../etc/evil.pdf"), user.id
+        )
+        assert result["file_name"] == "evil.pdf"
