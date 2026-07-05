@@ -114,11 +114,22 @@ async def add_security_headers(request: Request, call_next):
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=(), payment=(), usb=()"
     
-    # Content Security Policy
+    # Content Security Policy. This header is on API responses, not the SPA
+    # (which is served from CloudFront). In production the API serves only
+    # JSON - no script/style executes from these responses - so we omit the
+    # unsafe-inline/unsafe-eval that the dev-only Swagger UI needs.
+    if settings.ENVIRONMENT == "production":
+        script_src = "script-src 'self'"
+        style_src = "style-src 'self'"
+    else:
+        # Swagger UI / ReDoc (mounted only outside production) need inline
+        # script and style to render.
+        script_src = "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
+        style_src = "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com"
     csp_policy = (
         "default-src 'self'; "
-        "script-src 'self' 'unsafe-inline' 'unsafe-eval'; "
-        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+        f"{script_src}; "
+        f"{style_src}; "
         "font-src 'self' https://fonts.gstatic.com; "
         "img-src 'self' data: https:; "
         "connect-src 'self' https://api.quentinspencer.com https://api.planningcenteronline.com; "

@@ -19,6 +19,16 @@ terraform {
 
 provider "aws" {
   region = var.aws_region
+
+  # Applied to every taggable resource so tagging can't drift per-resource.
+  # Resources keep their explicit tags too (explicit wins on conflict).
+  default_tags {
+    tags = {
+      Environment = var.environment
+      Application = var.app_name
+      ManagedBy   = "terraform"
+    }
+  }
 }
 
 # Variables are defined in variables.tf
@@ -60,7 +70,9 @@ resource "aws_db_instance" "main" {
   
   allocated_storage     = 20
   max_allocated_storage = 50  # Reduced for cost optimization
-  storage_type         = "gp2"
+  # gp3 is cheaper than gp2 at this size and gives a fixed 3000 IOPS baseline
+  # instead of gp2's size-derived (20 GiB -> 60) IOPS.
+  storage_type         = "gp3"
   storage_encrypted    = true
   
   db_name  = "church_course_tracker"
@@ -105,10 +117,39 @@ resource "aws_db_instance" "main" {
 # S3 Bucket for file uploads
 resource "aws_s3_bucket" "uploads" {
   bucket = "${var.app_name}-uploads-${random_string.bucket_suffix.result}"
-  
+
   tags = {
     Environment = var.environment
     Application = var.app_name
+  }
+}
+
+# User-uploaded course content is never public - accessed only through the
+# authenticated backend. Match the hardening the static-website bucket has.
+resource "aws_s3_bucket_public_access_block" "uploads" {
+  bucket = aws_s3_bucket.uploads.id
+
+  block_public_acls       = true
+  block_public_policy      = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "uploads" {
+  bucket = aws_s3_bucket.uploads.id
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
+    }
+  }
+}
+
+resource "aws_s3_bucket_versioning" "uploads" {
+  bucket = aws_s3_bucket.uploads.id
+
+  versioning_configuration {
+    status = "Enabled"
   }
 }
 
