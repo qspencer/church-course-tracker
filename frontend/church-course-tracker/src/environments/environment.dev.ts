@@ -2,7 +2,7 @@ export const environment = {
   production: false,
   apiUrl: 'http://localhost:8000/api/v1',
   appName: 'Church Course Tracker',
-  version: '1.08', // Should match environment.prod.ts - updated by scripts/increment-version.sh
+  version: '1.09', // Should match environment.prod.ts - updated by scripts/increment-version.sh
   enableAnalytics: false,
   enableErrorReporting: false,  // Disabled in dev
   logLevel: 'debug',
