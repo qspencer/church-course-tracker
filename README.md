@@ -4,7 +4,7 @@ A comprehensive learning management system designed specifically for churches to
 
 ## 🌟 Live Application
 
-- **Production Frontend**: https://apps.quentinspencer.com
+- **Production Frontend**: https://apps.quentinspencer.com/churchcoursetracker
 - **Production API**: https://api.quentinspencer.com
 - **Admin Credentials**: contact the project maintainer (do not commit credentials to this repo)
 
@@ -46,10 +46,10 @@ The Church Course Tracker is a modern, cloud-native web application that enables
 ## 🏗️ Architecture
 
 ### Technology Stack
-- **Frontend**: Angular 17+ with TypeScript
+- **Frontend**: Angular 21 with TypeScript (standalone components)
 - **Backend**: Python FastAPI with SQLAlchemy
 - **Database**: PostgreSQL (RDS) with Alembic migrations
-- **Testing**: Playwright, Jest, Karma, Jasmine
+- **Testing**: Playwright (e2e), Karma/Jasmine (frontend unit), pytest (backend)
 - **Infrastructure**: AWS (ECS, RDS, S3, CloudFront, Route 53)
 - **Deployment**: Docker containers with Terraform
 - **CI/CD**: GitHub Actions
@@ -77,25 +77,24 @@ church-course-tracker/
 │       │   └── environments/      # Environment configurations
 │       └── dist/                 # Built application
 ├── infrastructure/          # Terraform infrastructure code
-│   ├── main.tf             # Main infrastructure
-│   ├── ecs.tf              # ECS configuration
-│   ├── rds.tf              # Database configuration
-│   └── cloudfront.tf       # CDN configuration
-├── tests/                  # End-to-end tests
-│   ├── auth.spec.ts        # Authentication tests
-│   ├── navigation.spec.ts  # Navigation tests
-│   ├── courses.spec.ts     # Course management tests
-│   ├── api.spec.ts         # API integration tests
-│   └── performance.spec.ts # Performance tests
+│   ├── main.tf             # VPC, RDS, S3, CloudFront, Route 53
+│   ├── ecs.tf              # ECS cluster/service/task definition
+│   ├── api_gateway.tf      # API Gateway HTTP API + VPC Link
+│   ├── iam.tf              # ECS task/execution roles
+│   ├── github_actions_oidc.tf  # CI deploy roles (OIDC)
+│   └── docs.tf             # Documentation site (S3 + CloudFront)
+├── tests/
+│   └── e2e/                # Playwright e2e suite (own package.json)
 ├── scripts/                # Deployment and utility scripts
-├── docs/                   # Documentation
+├── docs/                   # Engineering docs + runbooks
+├── docs-site/              # MkDocs source for docs.quentinspencer.com
 └── .github/workflows/      # CI/CD pipelines
 ```
 
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js 18+ and npm
+- Node.js 22+ and npm
 - Python 3.11+
 - Docker and Docker Compose
 - AWS CLI (for deployment)
@@ -178,7 +177,7 @@ cd ..
 ```
 
 ### Production Environment
-- **Frontend**: https://apps.quentinspencer.com
+- **Frontend**: https://apps.quentinspencer.com/churchcoursetracker
 - **API**: https://api.quentinspencer.com
 - **Database**: RDS PostgreSQL with encryption
 - **Storage**: S3 with CloudFront CDN
@@ -194,16 +193,14 @@ cd backend && pytest
 # Frontend tests
 cd frontend/church-course-tracker && npm test
 
-# End-to-end tests
-npm run test
-
-# Specific test suites
-npm run test:auth
-npm run test:navigation
-npm run test:courses
-npm run test:api
-npm run test:performance
+# End-to-end tests (Playwright; lives in tests/e2e with its own package.json)
+cd tests/e2e && npm ci && npm test
 ```
+
+The e2e suite runs against production by default and needs credentials via
+environment variables (`E2E_ADMIN_USERNAME`, `E2E_ADMIN_PASSWORD`, etc. —
+never hardcode credentials). See `tests/e2e/README.md` for setup and the
+full list of suites.
 
 ### Test Coverage (2026-05-18)
 - **Backend**: 574 tests / 56% coverage (`pytest --cov`)
@@ -328,7 +325,7 @@ See `.github/workflows/` for the active CI/CD configuration (5 workflows:
 - **API Health**: `/api/v1/health` endpoint
 - **Database Connectivity**: Automatic database health checks
 - **Frontend Availability**: CloudFront health monitoring
-- **Load Balancer**: ALB target group health checks
+- **Backend Routing**: API Gateway HTTP API with VPC Link to ECS (no ALB)
 
 ## 🔍 Error Tracking & Logging
 
@@ -353,11 +350,8 @@ The application uses comprehensive error tracking and structured logging to ensu
    # Copy DSN (Data Source Name)
    ```
 
-2. **Install Sentry SDK**:
-   ```bash
-   cd frontend/church-course-tracker
-   npm install --save @sentry/angular @sentry/tracing
-   ```
+2. **Sentry SDK** (`@sentry/angular`) is already installed and configured
+   in `src/main.ts` — no installation step needed for an existing checkout.
 
 3. **Configure Environment** (`environment.prod.ts`):
    ```typescript
@@ -562,7 +556,7 @@ alembic downgrade -1
 - Review environment variables
 
 **Frontend build fails:**
-- Ensure Node.js 18+ is installed
+- Ensure Node.js 22+ is installed
 - Clear npm cache: `npm cache clean --force`
 - Delete node_modules and reinstall
 - Check Angular CLI version
@@ -638,5 +632,5 @@ For support and questions:
 
 **🎉 The Church Course Tracker is now fully deployed and production-ready on AWS!**
 
-**Live Application**: https://apps.quentinspencer.com  
-**API Documentation**: https://api.quentinspencer.com/docs
+**Live Application**: https://apps.quentinspencer.com/churchcoursetracker  
+**API Schema**: https://api.quentinspencer.com/openapi.json (Swagger UI is disabled in production)

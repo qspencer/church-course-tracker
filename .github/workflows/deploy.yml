@@ -16,6 +16,8 @@ env:
   ECR_REPOSITORY: church-course-tracker-backend
   ECS_CLUSTER: church-course-tracker-cluster
   ECS_SERVICE: church-course-tracker-service
+  ECS_TASK_FAMILY: church-course-tracker-backend
+  CONTAINER_NAME: backend
   S3_BUCKET: ${{ secrets.S3_STATIC_BUCKET }}
   CLOUDFRONT_DISTRIBUTION_ID: ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}
   # OIDC role created by infrastructure/github_actions_oidc.tf
@@ -46,80 +48,71 @@ jobs:
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v2
     
+    # Immutable deploys: images are tagged with the commit SHA only (the ECR
+    # repo enforces tag immutability, so no more mutable :latest). The tag
+    # existing already means a workflow re-run after a successful push -
+    # skip the build rather than fail on the immutable-tag conflict.
     - name: Build, tag, and push image to Amazon ECR
       id: build-image
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         IMAGE_TAG: ${{ github.sha }}
       run: |
-        cd backend
-        docker build -f Dockerfile.prod -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-        docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+        if aws ecr describe-images --repository-name $ECR_REPOSITORY \
+             --image-ids imageTag=$IMAGE_TAG --region ${{ env.AWS_REGION }} >/dev/null 2>&1; then
+          echo "Image $IMAGE_TAG already in ECR (workflow re-run); skipping build/push"
+        else
+          cd backend
+          docker build -f Dockerfile.prod -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        fi
         echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
-    
-           # Database migrations will be handled by the ECS container startup
-    
-    - name: Update ECS service
+
+    # Register a new task definition revision pinned to the SHA-tagged image
+    # instead of force-redeploying whatever :latest happens to point at.
+    # Every deploy is now traceable to a commit and rollback is "deploy the
+    # previous revision". Terraform ignores these revisions (see ecs.tf
+    # lifecycle blocks). Database migrations still run at container startup.
+    - name: Download current task definition
       run: |
-        aws ecs update-service \
-          --cluster ${{ env.ECS_CLUSTER }} \
-          --service ${{ env.ECS_SERVICE }} \
-          --force-new-deployment
-    
-    - name: Wait for service to be stable
-      timeout-minutes: 15
-      run: |
-        echo "Waiting for ECS service to stabilize..."
-        aws ecs wait services-stable \
-          --cluster ${{ env.ECS_CLUSTER }} \
-          --services ${{ env.ECS_SERVICE }} \
-          --region ${{ env.AWS_REGION }} || {
-          echo "⚠️  Wait command timed out or failed. Checking service status..."
-          aws ecs describe-services \
-            --cluster ${{ env.ECS_CLUSTER }} \
-            --services ${{ env.ECS_SERVICE }} \
-            --region ${{ env.AWS_REGION }} \
-            --query 'services[0].{runningCount:runningCount,desiredCount:desiredCount,status:status}' || true
-          # Don't fail the workflow if wait times out but service is actually running
-          RUNNING=$(aws ecs describe-services \
-            --cluster ${{ env.ECS_CLUSTER }} \
-            --services ${{ env.ECS_SERVICE }} \
-            --region ${{ env.AWS_REGION }} \
-            --query 'services[0].runningCount' --output text 2>/dev/null || echo "0")
-          DESIRED=$(aws ecs describe-services \
-            --cluster ${{ env.ECS_CLUSTER }} \
-            --services ${{ env.ECS_SERVICE }} \
-            --region ${{ env.AWS_REGION }} \
-            --query 'services[0].desiredCount' --output text 2>/dev/null || echo "0")
-          if [ "$RUNNING" = "$DESIRED" ] && [ "$RUNNING" != "0" ]; then
-            echo "✅ Service is running ($RUNNING/$DESIRED tasks). Continuing..."
-            exit 0
-          else
-            echo "❌ Service is not stable (running: $RUNNING, desired: $DESIRED)"
-            exit 1
-          fi
-        }
-        echo "✅ Service is stable!"
+        aws ecs describe-task-definition \
+          --task-definition ${{ env.ECS_TASK_FAMILY }} \
+          --query taskDefinition > task-definition.json
+
+    - name: Render task definition with new image
+      id: render-task-def
+      uses: aws-actions/amazon-ecs-render-task-definition@v1
+      with:
+        task-definition: task-definition.json
+        container-name: ${{ env.CONTAINER_NAME }}
+        image: ${{ steps.build-image.outputs.image }}
+
+    - name: Deploy new task definition revision
+      uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+      with:
+        task-definition: ${{ steps.render-task-def.outputs.task-definition }}
+        service: ${{ env.ECS_SERVICE }}
+        cluster: ${{ env.ECS_CLUSTER }}
+        wait-for-service-stability: true
+        wait-for-minutes: 15
   
   deploy-frontend:
     name: Deploy Frontend to S3/CloudFront
     runs-on: ubuntu-latest
+    # Don't ship a frontend that may expect new API behavior when the
+    # backend deploy failed.
+    needs: deploy-backend
     permissions:
       id-token: write  # required for OIDC role assumption
       contents: write  # required to push version updates back to repo
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
       with:
         persist-credentials: true
         fetch-depth: 0
-    
-    - name: Install bc (for version calculation)
-      run: sudo apt-get update && sudo apt-get install -y bc
-    
+
     - name: Increment version
       id: increment-version
       run: |

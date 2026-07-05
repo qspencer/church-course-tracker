@@ -103,6 +103,16 @@ resource "aws_ecs_task_definition" "backend" {
     }
   ])
 
+  # deploy.yml registers a new revision of this family on every deploy,
+  # pinned to the SHA-tagged image (the :latest reference above is
+  # bootstrap-only and stale). Ignore drift so terraform apply doesn't
+  # register a competing revision. To change env vars/secrets/resources
+  # here: edit, temporarily comment out this lifecycle block, apply, then
+  # let the next CI deploy re-pin the image.
+  lifecycle {
+    ignore_changes = [container_definitions]
+  }
+
   tags = {
     Environment = var.environment
     Application = var.app_name
@@ -116,6 +126,13 @@ resource "aws_ecs_service" "backend" {
   task_definition = aws_ecs_task_definition.backend.arn
   desired_count   = var.min_capacity
   launch_type     = "FARGATE"
+
+  # CI (deploy.yml) points the service at each new SHA-pinned task
+  # definition revision; don't let terraform apply roll it back to the
+  # bootstrap revision.
+  lifecycle {
+    ignore_changes = [task_definition]
+  }
 
   # Moved to public subnets 2026-05-26 to eliminate the need for NAT egress
   # (private subnets had no working NAT) and the 4 interface VPC endpoints.

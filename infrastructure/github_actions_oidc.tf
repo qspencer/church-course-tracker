@@ -150,7 +150,8 @@ resource "aws_iam_role" "github_actions_app_deploy" {
 
 # Policy granting the minimum permissions the deploy.yml workflow needs:
 #   - ECR auth + push for the backend container image
-#   - ECS update-service + describe-services for the rolling deploy
+#   - ECS task-definition revision registration + service update for the
+#     immutable SHA-pinned deploy (plus iam:PassRole for the task roles)
 #   - S3 sync for the frontend static bundle
 #   - CloudFront create/get invalidation for the frontend cache bust
 resource "aws_iam_policy" "github_actions_app_deploy" {
@@ -169,7 +170,9 @@ resource "aws_iam_policy" "github_actions_app_deploy" {
         ]
         Resource = "*"
       },
-      # ECR: scoped image push/pull to the backend repo
+      # ECR: scoped image push/pull to the backend repo. DescribeImages is
+      # used by deploy.yml to skip the build on workflow re-runs (the repo
+      # is tag-immutable, so re-pushing an existing tag would fail).
       {
         Sid    = "EcrImagePush"
         Effect = "Allow"
@@ -177,6 +180,7 @@ resource "aws_iam_policy" "github_actions_app_deploy" {
           "ecr:BatchCheckLayerAvailability",
           "ecr:BatchGetImage",
           "ecr:CompleteLayerUpload",
+          "ecr:DescribeImages",
           "ecr:GetDownloadUrlForLayer",
           "ecr:InitiateLayerUpload",
           "ecr:PutImage",
@@ -196,6 +200,34 @@ resource "aws_iam_policy" "github_actions_app_deploy" {
           aws_ecs_service.backend.id,
           aws_ecs_cluster.main.arn,
         ]
+      },
+      # ECS: register the SHA-pinned task definition revision each deploy.
+      # Register/Describe on task definitions don't support resource-level
+      # scoping, so this must be "*".
+      {
+        Sid    = "EcsTaskDefinition"
+        Effect = "Allow"
+        Action = [
+          "ecs:DescribeTaskDefinition",
+          "ecs:RegisterTaskDefinition",
+        ]
+        Resource = "*"
+      },
+      # Registering a task definition that references the task/execution
+      # roles requires permission to pass exactly those roles to ECS.
+      {
+        Sid    = "PassEcsTaskRoles"
+        Effect = "Allow"
+        Action = ["iam:PassRole"]
+        Resource = [
+          aws_iam_role.ecs_task_role.arn,
+          aws_iam_role.ecs_execution_role.arn,
+        ]
+        Condition = {
+          StringEquals = {
+            "iam:PassedToService" = "ecs-tasks.amazonaws.com"
+          }
+        }
       },
       # S3: scoped to the static-website bucket for `aws s3 sync`
       {

@@ -169,17 +169,43 @@ resource "aws_s3_bucket_policy" "static_website" {
 
 # ECR Repository for backend
 resource "aws_ecr_repository" "backend" {
-  name                 = "${var.app_name}-backend"
-  image_tag_mutability = "MUTABLE"
-  
+  name = "${var.app_name}-backend"
+  # IMMUTABLE since 2026-07-05: deploys are pinned to SHA tags registered
+  # as task-definition revisions by deploy.yml; a tag can never be silently
+  # repointed. (The old :latest tag still exists but nothing deploys it.)
+  image_tag_mutability = "IMMUTABLE"
+
   image_scanning_configuration {
     scan_on_push = true
   }
-  
+
   tags = {
     Environment = var.environment
     Application = var.app_name
   }
+}
+
+# Every deploy pushes a new SHA tag; without expiry the repo grows forever.
+# 15 images ≈ 15 rollback points, plenty for this deploy cadence.
+resource "aws_ecr_lifecycle_policy" "backend" {
+  repository = aws_ecr_repository.backend.name
+
+  policy = jsonencode({
+    rules = [
+      {
+        rulePriority = 1
+        description  = "Keep only the 15 most recent images"
+        selection = {
+          tagStatus   = "any"
+          countType   = "imageCountMoreThan"
+          countNumber = 15
+        }
+        action = {
+          type = "expire"
+        }
+      }
+    ]
+  })
 }
 
 # CloudFront Distribution

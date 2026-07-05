@@ -27,7 +27,7 @@ scripts/                        # Deploy and utility scripts
 
 ## Traps — read before touching tests or docs
 
-- **e2e tests live in `tests/e2e/` only.** The root-level `tests/*.spec.ts` and root `playwright.config.ts` are broken legacy (mixed Playwright versions error out; hardcoded wrong credentials). Do not run or extend them; run `cd tests/e2e && npm ci && npm test`.
+- **e2e tests live in `tests/e2e/` only** (own package.json + config): `cd tests/e2e && npm ci && npm test`. A broken legacy Playwright layer at the repo root was deleted in July 2026 — don't recreate a root-level test setup or root package.json.
 - **e2e runs against production.** Never add destructive or data-mutating tests without explicit cleanup. Credentials come from `E2E_ADMIN_USERNAME` / `E2E_ADMIN_PASSWORD` env vars (locally via `tests/e2e/.env.e2e`, untracked) — never hardcode them.
 - **`docs/archive/` is historical.** It once contained committed credentials (removed 2026-07-05, password rotated). Never write credentials into any tracked file — this includes session notes, status reports, and test docs.
 - **Changing `ADMIN_PASSWORD` in Secrets Manager does not change the live admin password.** The seeding migration is idempotent and skips existing users. See `docs/RUNBOOKS/SECRETS_UPDATE.md`.
@@ -57,6 +57,7 @@ cd infrastructure && terraform plan   # remote state; never commit *.tfstate* or
 ## Conventions
 
 - **Versioning is automated**: `scripts/increment-version.sh` + `version.txt`; CI commits bumps with `[skip ci]`. Don't bump versions manually.
+- **Deploys are immutable**: deploy.yml pushes a SHA-tagged image (ECR is tag-immutable, no `:latest`) and registers a new ECS task-definition revision. Terraform ignores task-definition/service drift via `lifecycle` blocks in `ecs.tf` — to change container env vars or resources, edit `ecs.tf`, temporarily comment out the `ignore_changes` block, apply, then let the next CI deploy re-pin the image.
 - **Frontend**: standalone components only, `inject()` over constructor DI, functional guards, `@if`/`@for` control flow. New subscriptions should use `takeUntilDestroyed()` or the `async` pipe.
 - **Backend**: keep HTTP-client and business logic in `app/services/`, not endpoints. Role checks belong on the endpoint via dependencies. Never log or return raw exception text to clients.
 - **Secrets**: AWS Secrets Manager (`church-course-tracker-secrets`) injected via ECS task definition. GitHub Actions authenticates via OIDC — no long-lived AWS keys anywhere.
