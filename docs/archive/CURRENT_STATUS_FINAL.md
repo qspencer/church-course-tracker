@@ -21,7 +21,7 @@
 
 ### Admin Login Still Failing
 - **Error**: "Incorrect username or password"
-- **Credentials**: `Admin/Admin123!`
+- **Credentials**: `Admin/<REDACTED>`
 - **Status**: BCrypt fix deployed but login still failing
 
 ### Possible Causes

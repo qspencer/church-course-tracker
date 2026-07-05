@@ -89,7 +89,7 @@ npx playwright test user-management.spec.ts
 ## Environment Variables
 
 The tests use these credentials by default:
-- **Admin**: username=`Admin`, password=`Admin123!`
+- **Admin**: username=`Admin`, password=`<REDACTED>`
 - **Staff**: username=`staff`, password=`staff123` (currently inactive)
 - **Viewer**: username=`viewer`, password=`viewer123` (currently inactive)
 

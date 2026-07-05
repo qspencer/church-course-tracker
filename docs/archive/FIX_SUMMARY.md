@@ -45,7 +45,7 @@ hashed_password = pwd_context.hash(simple_password)
 
 After deployment:
 - ✅ Admin user will be created with passlib-formatted hash
-- ✅ Login will work with `Admin/Admin123!`
+- ✅ Login will work with `Admin/<REDACTED>`
 - ✅ Tests will pass
 
 ## Next Steps

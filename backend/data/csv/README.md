@@ -79,9 +79,13 @@ Main Campus,123 Church St,Anytown,CA,12345,555-1234,main@church.com,true
 
 ### users.csv
 ```csv
-username,email,password,full_name,role,is_active
-admin,admin@church.com,admin123,Administrator,admin,true
+username,email,full_name,role,is_active
+admin,admin@church.com,Administrator,admin,true
 ```
+
+Note: there is deliberately no password column. Seed passwords come from
+`SEED_PASSWORD_<USERNAME>` environment variables; users without one get a
+random unusable password until an admin resets it.
 
 ### courses.csv
 ```csv

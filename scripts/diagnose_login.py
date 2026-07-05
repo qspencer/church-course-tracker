@@ -114,4 +114,4 @@ def diagnose_login(username, password):
         db.close()
 
 if __name__ == "__main__":
-    diagnose_login("Admin", "Admin123!")
+    diagnose_login("Admin", "<REDACTED>")

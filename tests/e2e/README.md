@@ -89,7 +89,7 @@ The tests are configured to run against the production environment:
 ### Test Data
 
 The tests use predefined test users:
-- **Admin**: username: `Admin`, password: `Admin123!`
+- **Admin**: username: `Admin`, password: `<REDACTED>`
 - **Staff**: username: `staff`, password: `staff123`
 - **Viewer**: username: `viewer`, password: `viewer123`
 

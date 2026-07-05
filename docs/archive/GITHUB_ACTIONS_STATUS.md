@@ -33,7 +33,7 @@ Error: password cannot be longer than 72 bytes, truncate manually if necessary
 3. Admin user creation failing silently
 
 ### Recommended Fix
-1. Use shorter password (e.g., `Admin123!`)
+1. Use shorter password (e.g., `<REDACTED>`)
 2. Or truncate password to 72 bytes
 3. Or use a different hashing method for admin
 

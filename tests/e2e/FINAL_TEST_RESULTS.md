@@ -8,7 +8,7 @@
 ```bash
 curl -X POST 'https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/auth/login' \
   -H 'Content-Type: application/json' \
-  -d '{"username":"Admin","password":"Admin123!"}'
+  -d '{"username":"Admin","password":"<REDACTED>"}'
 ```
 **Result:** ✅ Returns 200 OK with access_token
 

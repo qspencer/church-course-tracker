@@ -21,10 +21,10 @@
 ## Expected Result
 After deployment (~15 minutes):
 - ✅ Admin user will be created with raw bcrypt hash
-- ✅ Login will work with `Admin/Admin123!`
+- ✅ Login will work with `Admin/<REDACTED>`
 - ✅ E2E tests should pass
 
 ## Test Credentials
 - **Username**: `Admin`
-- **Password**: `Admin123!`
+- **Password**: `<REDACTED>`
 

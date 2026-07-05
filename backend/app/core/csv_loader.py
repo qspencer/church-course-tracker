@@ -8,6 +8,7 @@ into the database when the application starts up.
 import csv
 import logging
 import os
+import secrets as py_secrets
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
@@ -151,10 +152,18 @@ class CSVDataLoader:
                     logger.warning(f"Role not found: {row['role']}")
                     continue
 
+                # Seed passwords must never live in the CSV (they were
+                # committed to git once). Take SEED_PASSWORD_<USERNAME> from
+                # the environment, else assign an unguessable throwaway - the
+                # account stays unusable until an admin resets it.
+                password = os.getenv(
+                    f"SEED_PASSWORD_{row['username'].upper()}"
+                ) or py_secrets.token_urlsafe(24)
+
                 user = User(
                     username=row["username"],
                     email=row["email"],
-                    hashed_password=get_password_hash(row["password"]),
+                    hashed_password=get_password_hash(password),
                     full_name=row.get("full_name", ""),
                     role=row["role"],
                     is_active=row.get("is_active", "true").lower() == "true",
@@ -463,27 +472,16 @@ def create_sample_csv_files(data_dir: str = "data/csv"):
         os.path.join(data_dir, "users.csv"), "w", newline="", encoding="utf-8"
     ) as file:
         writer = csv.writer(file)
+        writer.writerow(["username", "email", "full_name", "role", "is_active"])
         writer.writerow(
-            ["username", "email", "password", "full_name", "role", "is_active"]
+            ["admin", "admin@church.com", "Administrator", "admin", "true"]
+        )
+        writer.writerow(["staff", "staff@church.com", "Church Staff", "staff", "true"])
+        writer.writerow(
+            ["viewer", "viewer@church.com", "Course Viewer", "viewer", "true"]
         )
         writer.writerow(
-            ["admin", "admin@church.com", "admin123", "Administrator", "admin", "true"]
-        )
-        writer.writerow(
-            ["staff", "staff@church.com", "staff123", "Church Staff", "staff", "true"]
-        )
-        writer.writerow(
-            [
-                "viewer",
-                "viewer@church.com",
-                "viewer123",
-                "Course Viewer",
-                "viewer",
-                "true",
-            ]
-        )
-        writer.writerow(
-            ["pastor", "pastor@church.com", "pastor123", "Pastor John", "admin", "true"]
+            ["pastor", "pastor@church.com", "Pastor John", "admin", "true"]
         )
 
     # Create people CSV

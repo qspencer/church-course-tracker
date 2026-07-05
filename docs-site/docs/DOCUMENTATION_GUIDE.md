@@ -281,7 +281,7 @@ We have a script that automatically captures screenshots from the live applicati
 2. **Capture all screenshots (including authenticated pages):**
    ```bash
    cd docs-site
-   DOCS_USERNAME="Admin" DOCS_PASSWORD="Admin123!" node scripts/capture-screenshots.js
+   DOCS_USERNAME="Admin" DOCS_PASSWORD="<REDACTED>" node scripts/capture-screenshots.js
    ```
 
 #### Screenshot Locations

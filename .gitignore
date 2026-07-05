@@ -107,3 +107,6 @@ tests/e2e/*.webm
 backend/venv_lint/
 backend/.coverage
 .env.e2e
+
+# AI/debug session notes - must never be committed (contained credentials once)
+session-logs/

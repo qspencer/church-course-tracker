@@ -93,7 +93,7 @@ def test_login():
         
         # Test with the credentials used in tests
         response = requests.post('https://tinev5iszf.execute-api.us-east-1.amazonaws.com/api/v1/auth/login', 
-                               json={'username': 'Admin', 'password': 'Admin123!'}, 
+                               json={'username': 'Admin', 'password': '<REDACTED>'}, 
                                headers={'Content-Type': 'application/json'},
                                timeout=10)
         
@@ -144,7 +144,7 @@ if __name__ == "__main__":
         else:
             print("\n⚠️  User activated but login test failed")
             print("   This may be due to:")
-            print("   1. Password mismatch (tests use 'Admin123!' but DB may have different password)")
+            print("   1. Password mismatch (tests use '<REDACTED>' but DB may have different password)")
             print("   2. Changes not yet propagated")
             print("   3. API caching")
     else:
