@@ -21,15 +21,17 @@ export class EmbeddedContentViewerComponent {
   data = inject<EmbeddedContentViewerData>(MAT_DIALOG_DATA);
   private sanitizer = inject(DomSanitizer);
 
+  // Database-stored content is rendered into a sandboxed <iframe srcdoc>
+  // rather than the app's own DOM. The iframe's sandbox has no
+  // allow-same-origin, so the content runs in an opaque origin and cannot
+  // reach the parent's localStorage (where the auth token lives), cookies,
+  // or DOM - a malicious content record can no longer exfiltrate tokens.
+  // bypassSecurityTrustHtml is still required to bind arbitrary HTML to
+  // [srcdoc], but the sandbox is what contains it.
   safeContent: SafeHtml;
 
   constructor() {
-    const data = this.data;
-
-    // Use bypassSecurityTrustHtml for embedded content (iframes, videos, etc.)
-    // This is safe because content is stored in the database and only admins/staff can create it
-    // In production, you may want to add additional validation or whitelisting
-    this.safeContent = this.sanitizer.bypassSecurityTrustHtml(data.content);
+    this.safeContent = this.sanitizer.bypassSecurityTrustHtml(this.data.content);
   }
 
   onClose(): void {
@@ -40,4 +42,3 @@ export class EmbeddedContentViewerComponent {
     return this.safeContent;
   }
 }
-

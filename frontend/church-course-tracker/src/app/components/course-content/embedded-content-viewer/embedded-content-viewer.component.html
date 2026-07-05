@@ -3,15 +3,22 @@
     <mat-icon>code</mat-icon>
     <span>{{ data.title }}</span>
   </h2>
-  
+
   <mat-dialog-content>
-    <div class="content-container" [innerHTML]="getSafeHtml()"></div>
+    <!-- Sandboxed: allow-scripts (embeds like video players need it) but NOT
+         allow-same-origin, so the frame is an opaque origin with no access to
+         this app's localStorage/cookies/DOM. -->
+    <iframe
+      class="content-frame"
+      [srcdoc]="getSafeHtml()"
+      sandbox="allow-scripts allow-popups allow-forms"
+      referrerpolicy="no-referrer"
+      title="Embedded content"></iframe>
   </mat-dialog-content>
-  
+
   <mat-dialog-actions align="end">
     <button mat-button (click)="onClose()">
       Close
     </button>
   </mat-dialog-actions>
 </div>
-

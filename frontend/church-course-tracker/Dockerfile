@@ -10,7 +10,7 @@
 #     so the build step had no `ng` binary. Use `npm ci` (full install).
 #   - `npm run build --prod` passes `--prod` to npm (which is a no-op since
 #     npm 7) rather than to ng build. Use `-- --configuration=production`.
-FROM node:20-alpine AS build
+FROM node:22-alpine AS build
 
 WORKDIR /app
 

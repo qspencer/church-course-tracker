@@ -193,19 +193,39 @@ if settings.RATE_LIMIT_ENABLED:
     from collections import defaultdict
     import asyncio
     
-    # Simple in-memory rate limiter (use Redis in production)
+    # Simple in-memory rate limiter. Per-process only: with a single Fargate
+    # task this is exact; if desired_count ever grows, each task enforces the
+    # limit independently (move to Redis/ElastiCache at that point).
     rate_limit_storage = defaultdict(list)
-    
+    request_counter = {"n": 0}
+
     @app.middleware("http")
     async def rate_limit_middleware(request: Request, call_next):
         """Enhanced rate limiting middleware with proper headers"""
-        # Use X-Forwarded-For header if available (API Gateway/Load Balancer)
-        client_ip = request.headers.get("X-Forwarded-For", request.headers.get("X-Real-IP", request.client.host))
-        # If multiple IPs (proxy chain), use the first one
-        if "," in str(client_ip):
-            client_ip = str(client_ip).split(",")[0].strip()
+        # API Gateway appends the real client IP as the LAST entry of
+        # X-Forwarded-For. Never use the first entry: it is attacker-
+        # controlled (a client can send a fresh fake XFF per request and
+        # bypass the limiter entirely).
+        forwarded_for = request.headers.get("X-Forwarded-For")
+        if forwarded_for:
+            client_ip = forwarded_for.split(",")[-1].strip()
+        else:
+            client_ip = request.client.host if request.client else "unknown"
         current_time = time.time()
-        
+
+        # Periodically sweep the whole store so keys for one-off clients
+        # don't accumulate forever (previously a slow memory leak).
+        request_counter["n"] += 1
+        if request_counter["n"] % 1000 == 0:
+            stale = [
+                ip
+                for ip, timestamps in rate_limit_storage.items()
+                if not timestamps
+                or current_time - timestamps[-1] >= settings.RATE_LIMIT_WINDOW
+            ]
+            for ip in stale:
+                del rate_limit_storage[ip]
+
         # Clean old entries
         rate_limit_storage[client_ip] = [
             timestamp for timestamp in rate_limit_storage[client_ip]

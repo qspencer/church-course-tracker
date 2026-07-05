@@ -91,6 +91,38 @@ class TestProductionPasswordValidation:
         assert s.ADMIN_PASSWORD == "CHANGE_ME_DEV_ONLY"
 
 
+class TestLocalhostOriginsStrippedInProduction:
+    """In production, localhost/loopback CORS origins must be removed.
+
+    Background: with allow_credentials=True, any process serving on the
+    developer's (or a victim's) localhost:4200 could otherwise make
+    credentialed calls to the prod API from a browser. The validator drops
+    localhost/127.0.0.1 origins when ENVIRONMENT=production.
+    """
+
+    def test_localhost_origins_removed_in_production(self):
+        s = _make_prod_settings(
+            ADMIN_PASSWORD="real-strong-pass",
+            ALLOWED_ORIGINS=[
+                "https://apps.quentinspencer.com",
+                "http://localhost:4200",
+                "http://127.0.0.1:3000",
+            ],
+        )
+        assert s.ALLOWED_ORIGINS == ["https://apps.quentinspencer.com"]
+
+    def test_localhost_origins_preserved_in_development(self):
+        s = Settings(
+            ENVIRONMENT="development",
+            SECRET_KEY="x" * 64,
+            ALLOWED_ORIGINS=[
+                "https://apps.quentinspencer.com",
+                "http://localhost:4200",
+            ],
+        )
+        assert "http://localhost:4200" in s.ALLOWED_ORIGINS
+
+
 class TestDebugForcedOffInProduction:
     """In production, settings.DEBUG must be False regardless of input.
 

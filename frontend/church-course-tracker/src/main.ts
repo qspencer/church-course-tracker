@@ -10,7 +10,6 @@ import {
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { provideNativeDateAdapter } from '@angular/material/core';
 import * as Sentry from '@sentry/angular';
-import '@angular/compiler';
 
 import { environment } from './environments/environment';
 import { AppComponent } from './app/app.component';

@@ -20,7 +20,10 @@ resource "aws_apigatewayv2_api" "main" {
   description   = "API Gateway for Church Course Tracker Backend"
 
   cors_configuration {
-    allow_origins     = ["https://apps.quentinspencer.com", "http://localhost:4200"]
+    # Production only. Local dev talks to a local backend, not this API, so
+    # no localhost origin belongs here (it would let any localhost:4200
+    # process make credentialed calls to the prod API from a browser).
+    allow_origins     = ["https://apps.quentinspencer.com"]
     allow_methods     = ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"]
     allow_headers     = [
       "Content-Type",

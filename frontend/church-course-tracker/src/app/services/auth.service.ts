@@ -1,6 +1,6 @@
 import { Injectable, isDevMode, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable, tap } from 'rxjs';
+import { BehaviorSubject, Observable, tap, finalize, shareReplay } from 'rxjs';
 import { Router } from '@angular/router';
 import { environment } from '../../environments/environment';
 import { User, LoginRequest, LoginResponse, UserCreate } from '../models';
@@ -20,6 +20,11 @@ export class AuthService {
 
   private isAuthenticatedSubject = new BehaviorSubject<boolean>(this.hasToken());
   private currentUserSubject = new BehaviorSubject<User | null>(this.getCurrentUserFromStorage());
+
+  // Shared in-flight refresh: when several requests 401 at once they all
+  // subscribe to the same /auth/refresh call instead of each firing their
+  // own (which raced and could clobber a just-refreshed token).
+  private refresh$: Observable<LoginResponse> | null = null;
 
   public isAuthenticated$ = this.isAuthenticatedSubject.asObservable();
   public currentUser$ = this.currentUserSubject.asObservable();
@@ -110,7 +115,12 @@ export class AuthService {
   }
 
   refreshToken(): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(`${this.API_URL}/auth/refresh`, {}).pipe(
+    // Coalesce concurrent callers onto one request.
+    if (this.refresh$) {
+      return this.refresh$;
+    }
+
+    this.refresh$ = this.http.post<LoginResponse>(`${this.API_URL}/auth/refresh`, {}).pipe(
       tap({
         next: (response) => {
           this.setToken(response.access_token);
@@ -129,7 +139,12 @@ export class AuthService {
             this.logout();
           }
         }
-      })
+      }),
+      // Reset once the shared call settles so the next 401 starts fresh.
+      finalize(() => { this.refresh$ = null; }),
+      // Replay the single result/error to every concurrent subscriber.
+      shareReplay(1)
     );
+    return this.refresh$;
   }
 }

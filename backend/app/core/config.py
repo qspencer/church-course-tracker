@@ -193,6 +193,25 @@ class Settings(BaseSettings):
             if not self.ALLOWED_ORIGINS:
                 raise ValueError("ALLOWED_ORIGINS must be configured for production")
 
+            # Strip localhost/loopback origins in production: with
+            # allow_credentials=True, any process serving on the developer's
+            # (or a victim's) localhost:4200 could otherwise make credentialed
+            # calls to the prod API from a browser.
+            localhost_origins = [
+                o
+                for o in self.ALLOWED_ORIGINS
+                if "localhost" in o or "127.0.0.1" in o
+            ]
+            if localhost_origins:
+                logger.warning(
+                    "Removing localhost origins from ALLOWED_ORIGINS in "
+                    "production: %s",
+                    ", ".join(localhost_origins),
+                )
+                self.ALLOWED_ORIGINS = [
+                    o for o in self.ALLOWED_ORIGINS if o not in localhost_origins
+                ]
+
             # Hard-override DEBUG to False in production. Previously this was a
             # soft warning, but settings.DEBUG is publicly exposed via /health
             # (and any future code that gates on it expects truthful state),
