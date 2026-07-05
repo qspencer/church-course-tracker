@@ -29,7 +29,7 @@ Church Course Tracker is a web-based application designed specifically for churc
 
 The Church Course Tracker is available online at:
 
-**Main Application**: https://apps.quentinspencer.com
+**Main Application**: https://apps.quentinspencer.com/churchcoursetracker
 
 You can access it from any computer, tablet, or smartphone with an internet connection and a web browser.
 

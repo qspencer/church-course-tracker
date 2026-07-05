@@ -8,7 +8,7 @@ Welcome! This guide will help you get started with the Church Course Tracker. Wh
 ## 🌐 Accessing the Application
 
 1. Open your web browser (Chrome, Firefox, Safari, or Edge all work)
-2. Go to: **https://apps.quentinspencer.com**
+2. Go to: **https://apps.quentinspencer.com/churchcoursetracker**
 3. You'll see the login page
 
 ![Login Page](images/screenshots/getting-started/login-page.png)
@@ -47,28 +47,35 @@ After logging in, you'll see the **Dashboard**. This is your main starting point
 
 ## 🧭 Navigation Basics
 
-The main menu is typically located at the top or side of the screen. Here are the main sections you'll see:
+The navigation menu is a sidebar on the left of the screen. Items you don't have permission to use are hidden, so your menu may be shorter than the full list below.
 
 ![Navigation Menu](images/screenshots/getting-started/navigation-menu.png)
 *The navigation menu provides access to all major features of the application*
 
-### For All Users:
+### Main menu
+
 - **Dashboard** - Your home page with overview information
 - **Courses** - View and browse available courses
 - **Programs** - View and browse available mentoring and discipleship programs
-- **My Progress** - Track your own course and program progress
-- **Profile** - View and update your account information
+- **Enrollments** *(Staff & Administrators)* - Manage who is enrolled in courses
+- **Progress** - Track course and program progress
+- **Members** *(Staff & Administrators)* - View and manage church members
+- **Activity Logs** - View your account activity
+- **Reports** *(Staff & Administrators)* - Generate reports and analytics
 
-### For Staff and Administrators:
-- **Enrollments** - Manage who is enrolled in courses
-- **Members** - View and manage church members
-- **Reports** - Generate reports and analytics
-- **Activity Logs** - View system activity
+### Administration *(Administrators only)*
 
-### For Administrators Only:
+Grouped under an **Administration** heading near the bottom of the menu:
+
 - **Users** - Manage user accounts and permissions
 - **Audit Logs** - View detailed system audit information
 - **System Settings** - Configure system settings, Planning Center integration, security, and backup settings
+
+### Account
+
+Grouped under an **Account** heading:
+
+- **My Profile** - View and update your account information
 
 ## 📚 Your First Steps
 
@@ -86,7 +93,7 @@ The main menu is typically located at the top or side of the screen. Here are th
    - Confirm your enrollment
 
 3. **Access Course Content**
-   - Go to "My Progress" to see your enrolled courses and programs
+   - Go to "Progress" to see your enrolled courses and programs
    - Click on a course to access its content
    - Start working through the materials
 
@@ -119,13 +126,13 @@ The main menu is typically located at the top or side of the screen. Here are th
 ### As an Administrator:
 
 1. **Set Up Users**
-   - Go to "Users" in the menu
+   - Go to "Users" (under the Administration section)
    - Click "Add User" or "Create User"
    - Enter user information and assign a role
    - Save the user
 
 2. **Configure System Settings**
-   - Go to "System Settings" in the menu
+   - Go to "System Settings" (under the Administration section)
    - Configure system settings, Planning Center integration, security policies, and backup settings
    - Save your changes
 
@@ -159,7 +166,7 @@ The main menu is typically located at the top or side of the screen. Here are th
     - Make sure you're logged in
 
 !!! question "Where do I see my progress?"
-    - Click on "My Progress" in the main menu
+    - Click on "Progress" in the main menu
     - You'll see all your enrolled courses and your completion status
 
 ## 🎯 Next Steps

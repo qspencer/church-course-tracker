@@ -240,7 +240,7 @@ Progress tracking helps you see how members are doing in their courses.
 
 ### Viewing Your Own Progress (All Users)
 
-1. Click "My Progress" in the main menu
+1. Click "Progress" in the main menu
 2. You'll see all courses you're enrolled in
 3. Each course shows:
    - Completion percentage
