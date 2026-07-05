@@ -14,7 +14,11 @@ class PeopleCampus(Base):
 
     __tablename__ = "people_campus"
 
-    id = Column(Integer, primary_key=True, index=True)
+    # No index=True on this PK: it is already indexed as the primary key, and
+    # SQLAlchemy's auto-name ix_people_campus_id collided with the index that
+    # people.campus_id (index=True) generates - a database-global name clash
+    # that made Base.metadata.create_all() fail on the first test of each run.
+    id = Column(Integer, primary_key=True)
     people_id = Column(Integer, ForeignKey("people.id"), nullable=False, index=True)
     campus_id = Column(Integer, ForeignKey("campus.id"), nullable=False, index=True)
     assigned_date = Column(Date, nullable=False)
