@@ -34,11 +34,12 @@ resource "aws_iam_role" "github_actions_docs_deploy" {
         }
         Action = "sts:AssumeRoleWithWebIdentity"
         Condition = {
+          # Main branch only. deploy-docs.yml runs on push to main and
+          # workflow_dispatch; dispatching from main yields the same
+          # `ref:refs/heads/main` sub claim, so both are covered.
           StringEquals = {
             "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
-          }
-          StringLike = {
-            "token.actions.githubusercontent.com:sub" = "repo:qspencer/church-course-tracker:*"
+            "token.actions.githubusercontent.com:sub" = "repo:qspencer/church-course-tracker:ref:refs/heads/main"
           }
         }
       }
@@ -128,14 +129,12 @@ resource "aws_iam_role" "github_actions_app_deploy" {
         }
         Action = "sts:AssumeRoleWithWebIdentity"
         Condition = {
-          StringEquals = {
-            "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
-          }
           # Scope to the qspencer/church-course-tracker repo on the main
           # branch only. Workflow_dispatch runs are also covered because
           # the `sub` claim for those is `repo:.../...:ref:refs/heads/main`.
-          StringLike = {
-            "token.actions.githubusercontent.com:sub" = "repo:qspencer/church-course-tracker:*"
+          StringEquals = {
+            "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
+            "token.actions.githubusercontent.com:sub" = "repo:qspencer/church-course-tracker:ref:refs/heads/main"
           }
         }
       }

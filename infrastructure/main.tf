@@ -49,8 +49,13 @@ module "vpc" {
 resource "aws_db_instance" "main" {
   identifier = "${var.app_name}-db"
   
-  engine         = "postgres"
-  engine_version = "15.12"
+  engine = "postgres"
+  # RDS auto-applies minor upgrades, so the running minor version drifts
+  # ahead of any exact pin (a stale pin of 15.12 nearly caused a downgrade
+  # attempt in July 2026). Pin what is live and ignore minor-version drift;
+  # major upgrades are a deliberate edit to both this value and the
+  # ignore_changes below.
+  engine_version = "15.17"
   instance_class = "db.t4g.micro"  # Graviton instance - cheaper and faster than t3
   
   allocated_storage     = 20
@@ -65,7 +70,7 @@ resource "aws_db_instance" "main" {
   vpc_security_group_ids = [aws_security_group.rds.id]
   db_subnet_group_name   = aws_db_subnet_group.main.name
 
-  backup_retention_period = 3  # Reduced for cost optimization
+  backup_retention_period = 7
   backup_window         = "03:00-04:00"
   maintenance_window    = "sun:04:00-sun:05:00"
 
@@ -75,14 +80,22 @@ resource "aws_db_instance" "main" {
   # also applies immediately - acceptable for this small admin site.
   apply_immediately = true
 
-  skip_final_snapshot = true  # For development
-  deletion_protection = false  # For development
+  # This is the live production database: refuse deletion at the API level
+  # and always take a final snapshot if it is ever legitimately destroyed.
+  skip_final_snapshot       = false
+  final_snapshot_identifier = "${var.app_name}-db-final"
+  deletion_protection       = true
   
   # Cost optimization settings
   performance_insights_enabled = false
   monitoring_interval = 0
   monitoring_role_arn = null
-  
+
+  lifecycle {
+    # See the engine_version comment above.
+    ignore_changes = [engine_version]
+  }
+
   tags = {
     Environment = var.environment
     Application = var.app_name
@@ -375,160 +388,28 @@ resource "aws_db_subnet_group" "main" {
   }
 }
 
-# Security Group for NAT Instances
-resource "aws_security_group" "nat_instance" {
-  name_prefix = "${var.app_name}-nat-instance-"
-  vpc_id      = module.vpc.vpc_id
-  description = "Security group for NAT instances"
-  
-  ingress {
-    from_port   = 0
-    to_port     = 65535
-    protocol    = "tcp"
-    cidr_blocks = ["10.0.1.0/24", "10.0.2.0/24"]  # Private subnet CIDR blocks
-    description = "Allow traffic from private subnets"
-  }
-  
-  ingress {
-    from_port   = 0
-    to_port     = 65535
-    protocol    = "udp"
-    cidr_blocks = ["10.0.1.0/24", "10.0.2.0/24"]  # Private subnet CIDR blocks
-    description = "Allow UDP traffic from private subnets"
-  }
-  
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-    description = "Allow all outbound traffic"
-  }
-  
-  tags = {
-    Name        = "${var.app_name}-nat-instance-sg"
-    Environment = var.environment
-    Application = var.app_name
-  }
-}
-
-# Data source to get the latest Amazon Linux 2 AMI
-data "aws_ami" "amazon_linux_2" {
-  most_recent = true
-  owners      = ["amazon"]
-  
-  filter {
-    name   = "name"
-    values = ["amzn2-ami-hvm-*-x86_64-gp2"]
-  }
-  
-  filter {
-    name   = "state"
-    values = ["available"]
-  }
-}
-
-# NAT Instances (one per availability zone)
-resource "aws_instance" "nat" {
-  count = length(module.vpc.public_subnets)
-  
-  ami                    = data.aws_ami.amazon_linux_2.id
-  instance_type          = var.nat_instance_type
-  subnet_id              = module.vpc.public_subnets[count.index]
-  vpc_security_group_ids = [aws_security_group.nat_instance.id]
-  source_dest_check      = false  # Required for NAT functionality
-  associate_public_ip_address = true
-  
-  user_data = <<-EOF
-              #!/bin/bash
-              # Enable IP forwarding immediately
-              echo 1 > /proc/sys/net/ipv4/ip_forward
-
-              # Make IP forwarding persistent across reboots
-              cat >> /etc/sysctl.d/99-nat.conf << 'SYSCTL'
-              net.ipv4.ip_forward = 1
-              SYSCTL
-              sysctl -p /etc/sysctl.d/99-nat.conf
-
-              # Configure iptables for NAT
-              iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
-
-              # Install iptables-services for persistence (Amazon Linux 2)
-              yum install -y iptables-services
-              systemctl enable iptables
-              systemctl start iptables
-
-              # Save iptables rules
-              iptables-save > /etc/sysconfig/iptables
-
-              # Create a systemd service to restore NAT on boot (backup method)
-              cat > /etc/systemd/system/nat-setup.service << 'SERVICE'
-              [Unit]
-              Description=NAT Instance Setup
-              After=network.target
-
-              [Service]
-              Type=oneshot
-              ExecStart=/bin/bash -c 'echo 1 > /proc/sys/net/ipv4/ip_forward && iptables -t nat -C POSTROUTING -o eth0 -j MASQUERADE 2>/dev/null || iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE'
-              RemainAfterExit=yes
-
-              [Install]
-              WantedBy=multi-user.target
-              SERVICE
-
-              systemctl daemon-reload
-              systemctl enable nat-setup.service
-              EOF
-  
-  tags = {
-    Name        = "${var.app_name}-nat-instance-${count.index + 1}"
-    Environment = var.environment
-    Application = var.app_name
-  }
-
-  # The AMI is sourced from data.aws_ami.amazon_linux_2 with most_recent=true,
-  # which means every new AL2 release would otherwise force the NAT instances
-  # to be replaced - a high-risk operation given the iptables user_data script
-  # is fragile across AMI changes. Ignore AMI drift; the instances keep their
-  # launch-time AMI until someone explicitly taints + applies to refresh.
-  # Same logic for user_data: heredoc whitespace can change without semantic
-  # difference, and changing user_data also forces replacement.
-  lifecycle {
-    ignore_changes = [ami, user_data]
-  }
-}
-
-# Get the primary network interface for each NAT instance
-data "aws_network_interface" "nat" {
-  count = length(aws_instance.nat)
-  
-  id = aws_instance.nat[count.index].primary_network_interface_id
-}
-
-# Update private route tables to use NAT instances instead of NAT Gateway
-resource "aws_route" "private_nat" {
-  count = length(module.vpc.private_route_table_ids)
-  
-  route_table_id         = module.vpc.private_route_table_ids[count.index]
-  destination_cidr_block = "0.0.0.0/0"
-  network_interface_id   = data.aws_network_interface.nat[count.index].id
-  
-  depends_on = [aws_instance.nat]
-}
+# NAT instances and their private-subnet 0.0.0.0/0 routes were removed
+# 2026-05-26. The Fargate task now runs in public subnets with a public IP
+# for egress (see ecs.tf), so private subnets no longer need NAT - only RDS
+# and the API Gateway VPC Link ENIs live there, neither needs internet.
 
 # CloudFront Origin Access Identity
 resource "aws_cloudfront_origin_access_identity" "main" {
   comment = "OAI for ${var.app_name}"
 }
 
-# Route 53 Hosted Zone for quentinspencer.com
-resource "aws_route53_zone" "quentinspencer_com" {
-  name = "quentinspencer.com"
-  
-  tags = {
-    Environment = var.environment
-    Application = var.app_name
-  }
+# Route 53 hosted zone for quentinspencer.com is owned by the
+# quentinspencer-website repo (zone Z06093453EALOOTL0RHE2, which the registrar
+# delegates to). Use a data source here so this stack writes its records into
+# the active zone instead of creating a parallel orphan zone that doesn't
+# resolve. The previous orphan zone (Z09323901ZY1EPQDTXR7P) was deleted on
+# 2026-05-26.
+data "aws_route53_zone" "quentinspencer_com" {
+  # Pinned to the registrar-delegated zone by id (the same id used in docs.tf
+  # for the docs subdomain records). Lookup by name alone is ambiguous while
+  # the orphan zone still exists; once it's deleted, this could be switched
+  # back to a name lookup if preferred.
+  zone_id = "Z06093453EALOOTL0RHE2"
 }
 
 # SSL Certificate for apps.quentinspencer.com
@@ -576,7 +457,7 @@ resource "aws_route53_record" "apps_quentinspencer_com_validation" {
   records         = [each.value.record]
   ttl             = 60
   type            = each.value.type
-  zone_id         = aws_route53_zone.quentinspencer_com.zone_id
+  zone_id         = data.aws_route53_zone.quentinspencer_com.zone_id
 }
 
 # Certificate validation for api.quentinspencer.com
@@ -594,7 +475,7 @@ resource "aws_route53_record" "api_quentinspencer_com_validation" {
   records         = [each.value.record]
   ttl             = 60
   type            = each.value.type
-  zone_id         = aws_route53_zone.quentinspencer_com.zone_id
+  zone_id         = data.aws_route53_zone.quentinspencer_com.zone_id
 }
 
 # Certificate validation completion for apps.quentinspencer.com
@@ -619,7 +500,7 @@ resource "aws_acm_certificate_validation" "api_quentinspencer_com" {
 
 # Route 53 A record for apps.quentinspencer.com pointing to CloudFront
 resource "aws_route53_record" "apps_quentinspencer_com" {
-  zone_id = aws_route53_zone.quentinspencer_com.zone_id
+  zone_id = data.aws_route53_zone.quentinspencer_com.zone_id
   name    = "apps.quentinspencer.com"
   type    = "A"
   
@@ -632,7 +513,7 @@ resource "aws_route53_record" "apps_quentinspencer_com" {
 
 # Route 53 A record for api.quentinspencer.com pointing to API Gateway
 resource "aws_route53_record" "api_quentinspencer_com" {
-  zone_id = aws_route53_zone.quentinspencer_com.zone_id
+  zone_id = data.aws_route53_zone.quentinspencer_com.zone_id
   name    = "api.quentinspencer.com"
   type    = "A"
   
@@ -658,100 +539,10 @@ resource "aws_vpc_endpoint" "s3" {
   }
 }
 
-# Interface VPC Endpoints for AWS services. These were removed in May 2026 as
-# a cost optimization on the assumption that the NAT instances provided egress
-# to AWS endpoints. That assumption was wrong - the NAT instances' OS-level
-# routing is broken, so the endpoints are needed for ECS tasks to reach
-# Secrets Manager, ECR, and CloudWatch Logs. They were re-created manually
-# during the 2026-05-09 outage triage and re-added to code in this commit.
-# Cost: ~$8/mo per endpoint per AZ (~$32/mo total).
-# Future: fix NAT routing, then revisit.
-resource "aws_security_group" "vpc_endpoints" {
-  # Concrete name (not name_prefix) to match the SG that was created by aws cli
-  # during the 2026-05-09 outage triage. Switching to name_prefix would force
-  # SG replacement, which would briefly detach all 4 VPC endpoints.
-  name        = "church-course-tracker-vpc-endpoints-restored-1778351192"
-  vpc_id      = module.vpc.vpc_id
-  description = "Restored VPC endpoint SG (outage fix 2026-05-09)"
-
-  # Note: description is intentionally absent on the ingress/egress rules to
-  # match the SG that was created by aws cli during the outage triage.
-  # Rule descriptions are immutable in AWS, so adding one here would force
-  # SG replacement.
-  ingress {
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = [module.vpc.vpc_cidr_block]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-}
-
-# Secrets Manager VPC Endpoint
-resource "aws_vpc_endpoint" "secretsmanager" {
-  vpc_id              = module.vpc.vpc_id
-  service_name        = "com.amazonaws.${var.aws_region}.secretsmanager"
-  vpc_endpoint_type   = "Interface"
-  subnet_ids          = module.vpc.private_subnets
-  security_group_ids  = [aws_security_group.vpc_endpoints.id]
-  private_dns_enabled = true
-
-  tags = {
-    Name      = "${var.app_name}-secretsmanager-endpoint"
-    ManagedBy = "outage-fix-2026-05-09"
-  }
-}
-
-# ECR API VPC Endpoint (for GetAuthorizationToken)
-resource "aws_vpc_endpoint" "ecr_api" {
-  vpc_id              = module.vpc.vpc_id
-  service_name        = "com.amazonaws.${var.aws_region}.ecr.api"
-  vpc_endpoint_type   = "Interface"
-  subnet_ids          = module.vpc.private_subnets
-  security_group_ids  = [aws_security_group.vpc_endpoints.id]
-  private_dns_enabled = true
-
-  tags = {
-    Name      = "${var.app_name}-ecr-api-endpoint"
-    ManagedBy = "outage-fix-2026-05-09"
-  }
-}
-
-# ECR DKR VPC Endpoint (for docker image pull)
-resource "aws_vpc_endpoint" "ecr_dkr" {
-  vpc_id              = module.vpc.vpc_id
-  service_name        = "com.amazonaws.${var.aws_region}.ecr.dkr"
-  vpc_endpoint_type   = "Interface"
-  subnet_ids          = module.vpc.private_subnets
-  security_group_ids  = [aws_security_group.vpc_endpoints.id]
-  private_dns_enabled = true
-
-  tags = {
-    Name      = "${var.app_name}-ecr-dkr-endpoint"
-    ManagedBy = "outage-fix-2026-05-09"
-  }
-}
-
-# CloudWatch Logs VPC Endpoint (for container log shipping)
-resource "aws_vpc_endpoint" "logs" {
-  vpc_id              = module.vpc.vpc_id
-  service_name        = "com.amazonaws.${var.aws_region}.logs"
-  vpc_endpoint_type   = "Interface"
-  subnet_ids          = module.vpc.private_subnets
-  security_group_ids  = [aws_security_group.vpc_endpoints.id]
-  private_dns_enabled = true
-
-  tags = {
-    Name      = "${var.app_name}-logs-endpoint"
-    ManagedBy = "outage-fix-2026-05-09"
-  }
-}
+# Interface VPC endpoints (secretsmanager, ecr.api, ecr.dkr, logs) and their
+# shared security group were removed 2026-05-26. The Fargate task now egresses
+# to those AWS APIs over its public IP via the IGW, eliminating the
+# ~$32/mo per-AZ interface endpoint charges.
 
 # Variables are defined in variables.tf
 

@@ -117,10 +117,15 @@ resource "aws_ecs_service" "backend" {
   desired_count   = var.min_capacity
   launch_type     = "FARGATE"
 
+  # Moved to public subnets 2026-05-26 to eliminate the need for NAT egress
+  # (private subnets had no working NAT) and the 4 interface VPC endpoints.
+  # Inbound on port 8000 is still gated by the SG, which only allows the
+  # API Gateway VPC Link SG and intra-VPC sources - the public IP is for
+  # egress to ECR/Secrets Manager/CloudWatch Logs only.
   network_configuration {
     security_groups  = [aws_security_group.ecs.id]
-    subnets          = module.vpc.private_subnets
-    assign_public_ip = false
+    subnets          = module.vpc.public_subnets
+    assign_public_ip = true
   }
 
   # ECS-native Service Discovery registration. Restored 2026-05-09 after the

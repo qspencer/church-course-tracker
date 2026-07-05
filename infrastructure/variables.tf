@@ -60,12 +60,6 @@ variable "docs_certificate_arn" {
   default     = ""
 }
 
-variable "nat_instance_type" {
-  description = "EC2 instance type for NAT instance"
-  type        = string
-  default     = "t3.micro"
-}
-
 variable "alert_email" {
   description = "Email address that receives CloudWatch alarm notifications via SNS. Required - no default. Set via terraform.tfvars or TF_VAR_alert_email."
   type        = string

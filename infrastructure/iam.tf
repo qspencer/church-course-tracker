@@ -110,6 +110,16 @@ resource "aws_iam_role_policy_attachment" "ecs_task_secrets_policy" {
   policy_arn = aws_iam_policy.secrets_manager_policy.arn
 }
 
+# Attach Secrets Manager policy to the ECS *execution* role as well: the
+# task definition's `secrets = [...]` injection (ecs.tf) is performed by
+# the execution role at container provisioning time, so it - not the task
+# role - is what needs GetSecretValue. Without this, a from-scratch apply
+# produces tasks that fail with "unable to fetch secrets".
+resource "aws_iam_role_policy_attachment" "ecs_execution_secrets_policy" {
+  role       = aws_iam_role.ecs_execution_role.name
+  policy_arn = aws_iam_policy.secrets_manager_policy.arn
+}
+
 # CloudWatch Logs Policy
 resource "aws_iam_policy" "cloudwatch_logs_policy" {
   name        = "${var.app_name}-cloudwatch-logs"

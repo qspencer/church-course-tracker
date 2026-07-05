@@ -78,3 +78,50 @@ class TestOtherUsersEndpointsStillProtected:
             f"Expected 401 for anonymous {method.upper()} {path}, "
             f"got {response.status_code}."
         )
+
+
+class TestImportFromPCAuthorization:
+    """Regression tests for POST /users/import-from-pc (fixed July 2026).
+
+    Background: this endpoint previously required only an authenticated
+    user (any role) and accepted an unvalidated `role` field, so any
+    viewer could create an account with role="admin".
+    """
+
+    def test_import_rejects_unauthenticated(self, client: TestClient):
+        response = client.post(
+            "/api/v1/users/import-from-pc",
+            json={"planning_center_person_id": "123", "role": "viewer"},
+        )
+        assert response.status_code == 401
+
+    @pytest.mark.parametrize("token_fixture", ["staff_token", "viewer_token"])
+    def test_import_rejects_non_admin(
+        self, client: TestClient, token_fixture: str, request
+    ):
+        """Staff and viewer roles must get 403, exactly like POST /users."""
+        token = request.getfixturevalue(token_fixture)
+        response = client.post(
+            "/api/v1/users/import-from-pc",
+            json={"planning_center_person_id": "123", "role": "admin"},
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        assert response.status_code == 403, (
+            f"Expected 403 for {token_fixture} on import-from-pc, "
+            f"got {response.status_code}. Regression: non-admins could "
+            "previously create accounts with arbitrary roles."
+        )
+
+    def test_import_rejects_invalid_role_value(
+        self, client: TestClient, admin_token: str
+    ):
+        """The role field must be constrained to the known role names."""
+        response = client.post(
+            "/api/v1/users/import-from-pc",
+            json={"planning_center_person_id": "123", "role": "superuser"},
+            headers={"Authorization": f"Bearer {admin_token}"},
+        )
+        assert response.status_code == 422, (
+            f"Expected 422 for invalid role value, got {response.status_code}. "
+            "Regression: arbitrary role strings were previously accepted."
+        )

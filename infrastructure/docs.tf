@@ -95,12 +95,19 @@ resource "aws_cloudfront_distribution" "docs" {
     target_origin_id       = "S3-${aws_s3_bucket.docs.id}"
     compress               = true
     viewer_protocol_policy = "redirect-to-https"
-    
+
     # Cache policy for documentation (longer cache for static assets)
     cache_policy_id = aws_cloudfront_cache_policy.docs.id
-    
+
     # Response headers policy for CORS and security
     response_headers_policy_id = aws_cloudfront_response_headers_policy.docs.id
+
+    # default_root_object only handles "/", not "/subpath/" - rewrite those to
+    # append index.html so /churchcoursetracker/ serves /churchcoursetracker/index.html.
+    function_association {
+      event_type   = "viewer-request"
+      function_arn = aws_cloudfront_function.docs_index_rewrite.arn
+    }
   }
   
   # Cache behavior for index.html (no cache)
@@ -139,6 +146,33 @@ resource "aws_cloudfront_distribution" "docs" {
     Environment = var.environment
     Application = "${var.app_name}-docs"
   }
+}
+
+# CloudFront Function that rewrites subdirectory requests to their index.html.
+# Fixes /churchcoursetracker/ returning 404 because CloudFront's
+# default_root_object only applies to "/", not arbitrary "/subpath/".
+resource "aws_cloudfront_function" "docs_index_rewrite" {
+  name    = "${var.app_name}-docs-index-rewrite"
+  runtime = "cloudfront-js-1.0"
+  comment = "Rewrite /subpath/ and /subpath to /subpath/index.html"
+  publish = true
+  code    = <<-EOT
+    function handler(event) {
+      var req = event.request;
+      var uri = req.uri;
+      if (uri.endsWith('/')) {
+        req.uri = uri + 'index.html';
+      } else {
+        // No extension in the last path segment? Treat as a directory.
+        var lastSlash = uri.lastIndexOf('/');
+        var lastSegment = uri.slice(lastSlash + 1);
+        if (lastSegment.indexOf('.') === -1) {
+          req.uri = uri + '/index.html';
+        }
+      }
+      return req;
+    }
+  EOT
 }
 
 # CloudFront Cache Policy for documentation (with longer cache for static assets)

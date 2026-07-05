@@ -25,7 +25,7 @@ from app.schemas.user_preference import UserPreference, UserPreferenceUpdate
 from app.services.user_service import UserService
 from app.services.user_preference_service import UserPreferenceService
 from app.services.planning_center_sync_service import PlanningCenterSyncService
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -299,7 +299,9 @@ async def delete_user(
 
 class ImportUserFromPCRequest(BaseModel):
     planning_center_person_id: str
-    role: str = "instructor"
+    role: str = Field(
+        default="instructor", pattern="^(admin|staff|viewer|instructor)$"
+    )
 
 
 @router.post("/import-from-pc", response_model=User)
@@ -308,7 +310,15 @@ async def import_user_from_planning_center(
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_active_user),
 ):
-    """Import a user from Planning Center by person ID"""
+    """Import a user from Planning Center by person ID - Admin only"""
+    # Authorization: importing creates a user account with an arbitrary
+    # role, so it must be gated exactly like POST /users
+    if current_user["role"] != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only admin users can import user accounts",
+        )
+
     sync_service = PlanningCenterSyncService(db)
     user_service = UserService(db)
     

@@ -91,7 +91,7 @@ output "domain_name" {
 
 output "nameservers" {
   description = "Route 53 nameservers for domain configuration"
-  value       = aws_route53_zone.quentinspencer_com.name_servers
+  value       = data.aws_route53_zone.quentinspencer_com.name_servers
 }
 
 # Documentation Site Outputs

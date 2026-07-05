@@ -492,7 +492,25 @@ def ensure_default_users():
             }
         ]
 
+        is_production = settings.ENVIRONMENT == "production"
+
         for user_data in default_users:
+            # In production, never create an account whose password is the
+            # publicly known dev placeholder. ADMIN_PASSWORD is already
+            # hard-blocked at config load; this closes the same hole for
+            # the staff/instructor/viewer seeds on a fresh database.
+            if (
+                is_production
+                and user_data["password"] == settings.DEV_PASSWORD_PLACEHOLDER
+            ):
+                logger.warning(
+                    "Skipping seed user '%s': its password is the dev "
+                    "placeholder. Set %s_PASSWORD to a real value to seed it.",
+                    user_data["username"],
+                    user_data["role"].upper(),
+                )
+                continue
+
             # Check if user exists
             existing_user = db.query(User).filter(
                 (User.username == user_data["username"]) | (User.email == user_data["email"])
